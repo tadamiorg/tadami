@@ -1,0 +1,120 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.AnimeScraper" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Disallow "Force dark theme" -->
+        <item name="android:forceDarkAllowed" tools:targetApi="Q">false</item>
+
+        <!-- Theme Colors -->
+        <item name="colorPrimary">@color/midnightdusk_primary</item>
+        <item name="colorOnPrimary">@color/midnightdusk_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/midnightdusk_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/midnightdusk_onPrimaryContainer</item>
+        <item name="colorSecondary">@color/midnightdusk_secondary</item>
+        <item name="colorOnSecondary">@color/midnightdusk_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/midnightdusk_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/midnightdusk_onSecondaryContainer</item>
+        <item name="colorTertiary">@color/midnightdusk_tertiary</item>
+        <item name="colorOnTertiary">@color/midnightdusk_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/midnightdusk_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/midnightdusk_onTertiaryContainer</item>
+        <item name="android:colorBackground">@color/midnightdusk_background</item>
+        <item name="colorOnBackground">@color/midnightdusk_onBackground</item>
+        <item name="colorSurface">@color/midnightdusk_surface</item>
+        <item name="colorOnSurface">@color/midnightdusk_onSurface</item>
+        <item name="colorSurfaceVariant">@color/midnightdusk_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/midnightdusk_onSurfaceVariant</item>
+        <item name="colorOutline">@color/midnightdusk_outline</item>
+        <item name="colorOnSurfaceInverse">@color/midnightdusk_inverseOnSurface</item>
+        <item name="colorSurfaceInverse">@color/midnightdusk_inverseSurface</item>
+        <item name="colorPrimaryInverse">@color/midnightdusk_primaryInverse</item>
+        <item name="elevationOverlayColor">@color/midnightdusk_elevationOverlay</item>
+        <item name="colorError">@color/error</item>
+        <item name="colorOnError">@color/onError</item>
+        <item name="colorErrorContainer">@color/errorContainer</item>
+        <item name="colorOnErrorContainer">@color/onErrorContainer</item>
+        <item name="android:listDivider">@drawable/line_divider</item>
+        <item name="materialDividerStyle">@style/Widget.AnimeScraper.MaterialDivider</item>
+
+        <item name="android:divider">@color/divider_default</item>
+
+
+        <!-- Ripples -->
+        <item name="colorControlHighlight">?attr/colorSurfaceVariant</item>
+
+        <!-- Handles RTL Text -->
+        <item name="android:textAlignment">gravity</item>
+        <item name="android:textDirection">locale</item>
+
+        <!-- Themes -->
+
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/surface_amoled</item>
+        <item name="android:navigationBarDividerColor">@null</item>
+        <item name="android:enforceNavigationBarContrast" tools:targetApi="Q">false</item>
+        <item name="android:enforceStatusBarContrast" tools:targetApi="Q">false</item>
+
+        <item name="android:buttonStyle">?attr/borderlessButtonStyle</item>
+        <item name="android:backgroundDimAmount">0.32</item>
+        <item name="windowActionModeOverlay">true</item>
+
+        <item name="textInputStyle">@style/Widget.Material3.TextInputLayout.OutlinedBox</item>
+        <item name="appBarLayoutStyle">@style/Widget.Material3.AppBarLayout</item>
+        <item name="toolbarStyle">@style/Widget.Material3.Toolbar.Surface</item>
+
+        <item name="materialSwitchStyle">@style/Widget.Material3.CompoundButton.MaterialSwitch</item>
+
+        <item name="materialCardViewStyle">@style/Widget.Material3.CardView.Elevated</item>
+
+
+        <item name="android:itemTextAppearance">@style/TextAppearance.Widget.Menu</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.AnimeScraper.MaterialAlertDialog</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.AnimeScraper.MaterialAlertDialog</item>
+        <item name="textAppearanceButton">@style/TextAppearance.Widget.Button</item>
+
+        <item name="actionOverflowButtonStyle">@style/Theme.AnimeScraper.ActionButton.Overflow</item>
+
+        <item name="tabStyle">@style/Widget.AnimeScraper.TabLayout</item>
+
+        <!-- Preference text appearance -->
+        <item name="android:textViewStyle">@style/TextAppearance.AnimeScraper.Color</item>
+        <item name="android:textAppearanceListItem">?attr/textAppearanceBodyLarge</item>
+
+    </style>
+
+    <!--== Default Theme ==-->
+    <style name="Theme.AnimeScraper" parent="Base.Theme.AnimeScraper" />
+
+    <!--== Midnight Dusk Theme ==-->
+    <style name="Theme.AnimeScraper.MidnightDusk">
+        <!-- Theme Colors -->
+        <item name="colorPrimary">@color/midnightdusk_primary</item>
+        <item name="colorOnPrimary">@color/midnightdusk_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/midnightdusk_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/midnightdusk_onPrimaryContainer</item>
+        <item name="colorSecondary">@color/midnightdusk_secondary</item>
+        <item name="colorOnSecondary">@color/midnightdusk_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/midnightdusk_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/midnightdusk_onSecondaryContainer</item>
+        <item name="colorTertiary">@color/midnightdusk_tertiary</item>
+        <item name="colorOnTertiary">@color/midnightdusk_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/midnightdusk_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/midnightdusk_onTertiaryContainer</item>
+        <item name="android:colorBackground">@color/midnightdusk_background</item>
+        <item name="colorOnBackground">@color/midnightdusk_onBackground</item>
+        <item name="colorSurface">@color/midnightdusk_surface</item>
+        <item name="colorOnSurface">@color/midnightdusk_onSurface</item>
+        <item name="colorSurfaceVariant">@color/midnightdusk_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/midnightdusk_onSurfaceVariant</item>
+        <item name="colorOutline">@color/midnightdusk_outline</item>
+        <item name="colorOnSurfaceInverse">@color/midnightdusk_inverseOnSurface</item>
+        <item name="colorSurfaceInverse">@color/midnightdusk_inverseSurface</item>
+        <item name="colorPrimaryInverse">@color/midnightdusk_primaryInverse</item>
+        <item name="elevationOverlayColor">@color/midnightdusk_elevationOverlay</item>
+    </style>
+
+    <style name="AnimeScraper.SplashTheme" parent="Base.Theme.AnimeScraper">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+    </style>
+
+
+</resources>

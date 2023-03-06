@@ -1,0 +1,172 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'kotlinx-serialization'
+    id 'kotlin-parcelize'
+    id "app.cash.sqldelight" version "2.0.0-alpha05"
+}
+
+
+sqldelight {
+    databases {
+        Database { // This will be the name of the generated database class.
+            packageName = "com.sf.animescraper"
+            dialect 'app.cash.sqldelight:sqlite-3-24-dialect:2.0.0-alpha05'
+        }
+    }
+}
+
+android {
+    namespace 'com.sf.animescraper'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.sf.animescraper"
+        minSdk 28
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary true
+        }
+    }
+
+    buildTypes {
+        release {
+            debuggable = false
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.3.2'
+    }
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.5.3'
+    implementation 'androidx.preference:preference-ktx:1.2.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+
+    // Coil
+
+    def coil_version = "2.2.2"
+
+    implementation "io.coil-kt:coil:$coil_version"
+    implementation "io.coil-kt:coil-compose:$coil_version"
+
+    // Exoplayer Dependencies
+
+    def exoplayer_version = "2.18.3"
+
+    implementation "com.google.android.exoplayer:exoplayer:$exoplayer_version"
+    implementation "com.google.android.exoplayer:exoplayer-dash:$exoplayer_version"
+    implementation "com.google.android.exoplayer:exoplayer-hls:$exoplayer_version"
+    implementation "com.google.android.exoplayer:exoplayer-smoothstreaming:$exoplayer_version"
+    implementation "com.google.android.exoplayer:exoplayer-rtsp:$exoplayer_version"
+
+    // Compose dependencies
+
+    def nav_version = "2.5.3"
+    def compose_version = "1.3.3"
+
+    // Compose nav dependencies
+
+    implementation 'androidx.activity:activity-compose:1.6.1'
+    implementation "androidx.compose.animation:animation:$compose_version"
+    implementation "androidx.compose.runtime:runtime:$compose_version"
+    implementation "androidx.compose.runtime:runtime-saveable:$compose_version"
+    implementation "androidx.compose.ui:ui:$compose_version"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1"
+    implementation "androidx.navigation:navigation-runtime-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-compose:$nav_version"
+
+    // Compose Material
+
+    implementation 'androidx.compose.material3:material3:1.0.1'
+    implementation "androidx.compose.material:material:1.3.1"
+
+    // Other compose dependencies
+
+    implementation "androidx.compose.foundation:foundation:1.3.1"
+    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
+    implementation "com.google.accompanist:accompanist-themeadapter-material3:0.28.0"
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.28.0"
+    implementation "com.google.accompanist:accompanist-flowlayout:0.28.0"
+    implementation "com.google.accompanist:accompanist-navigation-animation:0.28.0"
+    implementation "androidx.compose.ui:ui-util:$compose_version"
+
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
+
+    // ViewModel Dependencies
+
+    def lifecycle_version = "2.5.1"
+    // ViewModel
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
+    // ViewModel utilities for Compose
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
+    // LiveData
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
+    // Saved state module for ViewModel
+    implementation "androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycle_version"
+
+    // RX
+
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.0'
+
+    // JSoup
+
+    implementation 'org.jsoup:jsoup:1.15.3'
+    implementation 'androidx.webkit:webkit:1.6.0'
+
+    // Injekt Dependency injection
+
+    implementation "uy.kohesive.injekt:injekt-core:1.16.1"
+
+    // Json Serialization
+
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1'
+
+    // Network client okhttp
+    def okhttpVersion = "4.10.0"
+    implementation "com.squareup.okhttp3:okhttp:$okhttpVersion"
+    implementation "com.squareup.okhttp3:logging-interceptor:$okhttpVersion"
+    implementation "com.squareup.okhttp3:okhttp-dnsoverhttps:$okhttpVersion"
+    implementation "com.squareup.okio:okio:3.2.0"
+
+    // SQLDelight
+
+    implementation "app.cash.sqldelight:android-driver:2.0.0-alpha05"
+}

@@ -1,0 +1,41 @@
+import kotlin.Boolean;
+
+CREATE TABLE Episode (
+  _id INTEGER NOT NULL PRIMARY KEY,
+  anime_id INTEGER NOT NULL,
+  url TEXT NOT NULL,
+  name TEXT NOT NULL,
+  number REAL NOT NULL,
+  seen INTEGER AS Boolean NOT NULL DEFAULT 0,
+  FOREIGN KEY(anime_id) REFERENCES Anime (_id)
+  ON DELETE CASCADE
+);
+
+CREATE INDEX episodes_anime_id_index ON Episode(anime_id);
+CREATE INDEX episodes_unseen_by_anime_index ON Episode(anime_id, seen) WHERE seen = 0;
+
+getEpisodeById:
+SELECT *
+FROM Episode
+WHERE _id = :id;
+
+getEpisodesByAnimeId:
+SELECT *
+FROM Episode
+WHERE anime_id = :animeId;
+
+insert:
+INSERT INTO Episode(anime_id,url,name,number)
+VALUES (:animeId,:url,:name,:number);
+
+update:
+UPDATE Episode
+SET anime_id = coalesce(:animeId, anime_id),
+    url = coalesce(:url, url),
+    name = coalesce(:name, name),
+    number = coalesce(:number, number),
+    seen =  coalesce(:seen, seen)
+WHERE _id = :episodeId;
+
+selectLastInsertedRowId:
+SELECT last_insert_rowid() FROM Episode;

@@ -1,0 +1,59 @@
+import kotlin.collections.List;
+import kotlin.Boolean;
+import kotlin.String;
+
+CREATE TABLE Anime (
+  _id INTEGER NOT NULL PRIMARY KEY,
+  source_id TEXT NOT NULL,
+  url TEXT NOT NULL,
+  title TEXT NOT NULL,
+  thumbnail_url TEXT,
+  status TEXT,
+  description TEXT,
+  release TEXT,
+  genre TEXT AS List<String>,
+  favorite INTEGER AS Boolean NOT NULL DEFAULT 0
+);
+
+CREATE INDEX animes_favorite_index ON Anime(favorite) WHERE favorite = 1;
+CREATE INDEX anime_url_index ON Anime(url);
+
+getBySourceAndUrl:
+SELECT * FROM Anime
+WHERE url = :url AND source_id = :sourceId
+LIMIT 1;
+
+getAll:
+SELECT *
+FROM Anime;
+
+getById:
+SELECT *
+FROM Anime
+WHERE _id = :animeId;
+
+delete:
+DELETE FROM Anime
+WHERE _id IN :animeId;
+
+insert:
+INSERT INTO Anime(source_id,url,title,thumbnail_url,status,genre)
+VALUES (:sourceId,:url,:title,:thumbnailUrl,:status,:genre);
+
+update:
+UPDATE Anime
+SET source_id = coalesce(:sourceId, source_id),
+    url = coalesce(:url, url),
+    title = coalesce(:title, title),
+    thumbnail_url = coalesce(:thumbnailUrl, thumbnail_url),
+    status = coalesce(:status, status),
+    genre = coalesce(:genre, genre),
+    favorite = coalesce(:favorite, favorite)
+WHERE _id = :animeId;
+
+getFavorites:
+SELECT * FROM Anime
+WHERE favorite = 1;
+
+selectLastInsertedRowId:
+SELECT last_insert_rowid() FROM Anime;
