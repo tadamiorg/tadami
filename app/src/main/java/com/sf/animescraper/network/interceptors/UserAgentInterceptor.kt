@@ -1,7 +1,7 @@
 package com.sf.animescraper.network.interceptors
 
 
-import com.sf.animescraper.network.scraping.AnimeSourceBase
+import com.sf.animescraper.network.api.online.AnimeSourceBase
 import okhttp3.Interceptor
 import okhttp3.Response
 

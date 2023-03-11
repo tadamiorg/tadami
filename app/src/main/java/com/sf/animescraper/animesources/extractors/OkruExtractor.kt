@@ -2,7 +2,7 @@ package com.sf.animescraper.animesources.extractors
 
 import com.sf.animescraper.network.requests.okhttp.GET
 import com.sf.animescraper.network.requests.utils.asJsoup
-import com.sf.animescraper.network.scraping.dto.crypto.StreamSource
+import com.sf.animescraper.network.api.model.StreamSource
 import okhttp3.OkHttpClient
 
 class OkruExtractor(private val client: OkHttpClient) {

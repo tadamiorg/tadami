@@ -2,7 +2,7 @@ package com.sf.animescraper.ui.tabs.animesources
 
 import com.sf.animescraper.animesources.sources.en.animeheaven.AnimeHeaven
 import com.sf.animescraper.animesources.sources.en.gogoanime.GogoAnime
-import com.sf.animescraper.network.scraping.AnimeSource
+import com.sf.animescraper.network.api.online.AnimeSource
 
 class AnimeSourcesManager{
 

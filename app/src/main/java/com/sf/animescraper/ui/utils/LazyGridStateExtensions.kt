@@ -2,31 +2,17 @@ package com.sf.animescraper.ui.utils
 
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.*
+import androidx.paging.compose.LazyPagingItems
 
 @Composable
-fun LazyGridState.OnBottomReached(
-    loadMore: () -> Unit
-) {
-    val shouldLoadMore = remember {
-        derivedStateOf {
-
-            // get last visible item
-            val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()
-                ?:
-                // list is empty
-                // return false here if loadMore should not be invoked if the list is empty
-                return@derivedStateOf true
-
-            // Check if last visible item is the last item in the list
-            lastVisibleItem.index == layoutInfo.totalItemsCount - 1
-        }
-    }
-
-    LaunchedEffect(shouldLoadMore){
-        snapshotFlow { shouldLoadMore.value }
-            .collect {
-                // if should load more, then invoke loadMore
-                if (it) loadMore()
-            }
+fun <T : Any> LazyPagingItems<T>.rememberLazyGridState(): LazyGridState {
+    // After recreation, LazyPagingItems first return 0 items, then the cached items.
+    // This behavior/issue is resetting the LazyListState scroll position.
+    // Below is a workaround. More info: https://issuetracker.google.com/issues/177245496.
+    return when (itemCount) {
+        // Return a different LazyListState instance.
+        0 -> remember(this) { LazyGridState(0, 0) }
+        // Return rememberLazyListState (normal case).
+        else -> androidx.compose.foundation.lazy.grid.rememberLazyGridState()
     }
 }

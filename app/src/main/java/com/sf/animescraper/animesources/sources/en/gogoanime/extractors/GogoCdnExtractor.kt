@@ -1,12 +1,9 @@
 package com.sf.animescraper.animesources.sources.en.gogoanime.extractors
 
 import com.sf.animescraper.network.requests.okhttp.GET
-import com.sf.animescraper.network.scraping.dto.crypto.StreamSource
+import com.sf.animescraper.network.api.model.StreamSource
 import com.sf.animescraper.network.requests.utils.asJsoup
 import android.util.Base64
-import android.util.Log
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl

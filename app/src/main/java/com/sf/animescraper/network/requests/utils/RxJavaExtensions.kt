@@ -48,3 +48,4 @@ open class ObserverAS<T : Any>(private val callback : Callback<T>? = null) : Obs
     override fun onComplete() {}
 }
 
+

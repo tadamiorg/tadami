@@ -43,6 +43,7 @@ abstract class WebViewInterceptor(private val context: Context) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
+
         val response = chain.proceed(request)
         if (!shouldIntercept(response)) {
             return response

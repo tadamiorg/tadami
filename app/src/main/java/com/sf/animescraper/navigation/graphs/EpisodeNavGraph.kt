@@ -2,24 +2,33 @@ package com.sf.animescraper.navigation.graphs
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.sf.animescraper.network.scraping.dto.details.DetailsEpisode
+import androidx.navigation.navArgument
 import com.sf.animescraper.ui.animeinfos.episode.player.VideoPlayer
 
 @Composable
 fun EpisodeNavGraph(
     navController: NavHostController,
-    title: String,
-    initialEpisode: Int,
-    episodes: List<DetailsEpisode>,
+    episode: Long,
+    sourceId : String
 ) {
     NavHost(
         navController = navController,
-        startDestination = EpisodeNavGraph.SCREEN
+        startDestination = "${EpisodeNavGraph.SCREEN}/{sourceId}/{episode}"
     ) {
-        composable(EpisodeNavGraph.SCREEN) {
-            VideoPlayer(animeTitle = title, episodesList = episodes, initialEpisode = initialEpisode)
+        composable("${EpisodeNavGraph.SCREEN}/{sourceId}/{episode}", arguments = listOf(
+            navArgument("episode"){
+                defaultValue = episode
+                type = NavType.LongType
+            },
+            navArgument("sourceId"){
+                defaultValue = sourceId
+                type = NavType.StringType
+            }
+        )) {
+            VideoPlayer()
         }
     }
 }

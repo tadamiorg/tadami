@@ -6,20 +6,14 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import com.sf.animescraper.Database
 import com.sf.animescraper.R
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 @Composable
-fun FavoritesScreen(
-    database: Database = Injekt.get()
-) {
+fun FavoritesScreen() {
 
     Column(
         modifier = Modifier

@@ -1,12 +1,10 @@
 package com.sf.animescraper.ui.components.filters
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
-import androidx.compose.foundation.magnifier
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -20,9 +18,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.sf.animescraper.R
-import com.sf.animescraper.network.scraping.dto.search.AnimeFilter
+import com.sf.animescraper.network.api.model.AnimeFilter
 import com.sf.animescraper.ui.utils.capFirstLetter
-import com.sf.animescraper.ui.utils.clickableNoIndication
 import com.sf.animescraper.ui.utils.lowFirstLetter
 import com.sf.animescraper.ui.utils.toInt
 

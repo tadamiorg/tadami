@@ -15,7 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.sf.animescraper.navigation.graphs.DiscoverRoutes
-import com.sf.animescraper.network.scraping.AnimeSource
+import com.sf.animescraper.network.api.online.AnimeSource
 import com.sf.animescraper.ui.shared.SharedViewModel
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get

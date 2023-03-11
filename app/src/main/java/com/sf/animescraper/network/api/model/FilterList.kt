@@ -1,4 +1,4 @@
-package com.sf.animescraper.network.scraping.dto.search
+package com.sf.animescraper.network.api.model
 
 /*data class AnimeFilterList(private val list: MutableList<AnimeFilter<*>>) : MutableList<AnimeFilter<*>> by list {
 

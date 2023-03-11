@@ -1,28 +1,43 @@
 package com.sf.animescraper.ui.animeinfos.details
 
+import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sf.animescraper.Database
-import com.sf.animescraper.network.requests.okhttp.Callback
-import com.sf.animescraper.network.requests.utils.ObserverAS
-import com.sf.animescraper.network.scraping.AnimeSource
-import com.sf.animescraper.network.scraping.dto.details.AnimeDetails
-import com.sf.animescraper.network.scraping.dto.details.DetailsEpisode
-import com.sf.animescraper.network.scraping.dto.search.Anime
-import com.sf.animescraper.ui.shared.SharedViewModel
-import data.Episode
-import io.reactivex.rxjava3.schedulers.Schedulers
+import com.sf.animescraper.data.episode.EpisodeRepository
+import com.sf.animescraper.data.interactors.AnimeWithEpisodesInteractor
+import com.sf.animescraper.data.interactors.UpdateAnimeInteractor
+import com.sf.animescraper.domain.anime.Anime
+import com.sf.animescraper.domain.episode.Episode
+import com.sf.animescraper.domain.episode.copyFromSEpisode
+import com.sf.animescraper.network.api.online.AnimeSource
+import com.sf.animescraper.network.requests.okhttp.HttpError
+import com.sf.animescraper.ui.tabs.animesources.AnimeSourcesManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.rx3.await
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class DetailsViewModel(
-    sharedViewModel: SharedViewModel = Injekt.get()
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private val episodeRepository: EpisodeRepository = Injekt.get()
+    private val sourcesManager: AnimeSourcesManager = Injekt.get()
+    private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
+    private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
+
+    private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
+    private val sourceId: String = checkNotNull(savedStateHandle["sourceId"])
+
+    val source : AnimeSource = checkNotNull(sourcesManager.getExtensionById(sourceId))
+
     private val _uiState = MutableStateFlow(DetailsUiState())
     val uiState: StateFlow<DetailsUiState> = _uiState.asStateFlow()
+
+    // Loaders for details and episodes
 
     private var _detailsRefreshing = MutableStateFlow(false)
     private val detailsRefreshing = _detailsRefreshing.asStateFlow()
@@ -30,79 +45,68 @@ class DetailsViewModel(
     private var _episodesRefreshing = MutableStateFlow(false)
     private val episodesRefreshing = _episodesRefreshing.asStateFlow()
 
-    val source = sharedViewModel.uiState.value.source as AnimeSource
-    val anime = sharedViewModel.uiState.value.selectedAnime as Anime
-
-    init {
-        val details = AnimeDetails.create()
-
-        details.apply {
-            url = anime.url
-            title = anime.title
-            thumbnail_url = anime.image
-        }
-        setDetails(details)
-        refresh()
-    }
-
     val isRefreshing: StateFlow<Boolean> =
         combine(episodesRefreshing, detailsRefreshing) { values ->
             values.any { it }
         }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-
-    private fun getDetails(callback: Callback<AnimeDetails>? = null) {
-        _detailsRefreshing.update { true }
+    init {
         viewModelScope.launch(Dispatchers.IO) {
-            source.fetchAnimeDetails(anime).subscribe(object : ObserverAS<AnimeDetails>(callback) {
-                override fun onNext(data: AnimeDetails) {
-                    setDetails(data)
-                    _detailsRefreshing.update { false }
-                    super.onNext(data)
+            animeWithEpisodesInteractor.subscribe(animeId).collectLatest { (anime, episodes) ->
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        details = anime,
+                        episodes = episodes
+                    )
+                }
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            val anime = animeWithEpisodesInteractor.awaitAnime(animeId)
+            val episodes = animeWithEpisodesInteractor.awaitEpisodes(animeId)
+
+            try {
+                if (!anime.initialized) {
+                    _detailsRefreshing.update { true }
+                    fetchAnimeDetailsFromSource(anime)
                 }
 
-                override fun onError(e: Throwable) {
-                    _detailsRefreshing.update { false }
-                    super.onError(e)
+                if (episodes.isEmpty()) {
+                    _episodesRefreshing.update { true }
+                    fetchEpisodesFromSource(anime)
                 }
-            })
-        }
-    }
-
-    private fun getEpisodes(callback: Callback<List<DetailsEpisode>>? = null) {
-        _episodesRefreshing.update { true }
-        viewModelScope.launch(Dispatchers.IO) {
-
-            source.fetchEpisodesList(anime).subscribeOn(Schedulers.io())
-                .subscribe(object : ObserverAS<List<DetailsEpisode>>(callback) {
-                    override fun onNext(data: List<DetailsEpisode>) {
-                        setEpisodes(data)
-                        _episodesRefreshing.update { false }
-                        super.onNext(data)
+            }
+            catch (e : HttpError){
+                when(e){
+                    is HttpError.Failure -> {
+                        Log.e("Anime details","Anime details could not be retrieved. Error code : ${e.statusCode}")
                     }
-
-                    override fun onError(e: Throwable) {
-                        _episodesRefreshing.update { false }
-                        super.onError(e)
+                    else ->{
+                        Log.d("Unknown error",e.toString(),e)
                     }
-                })
+                }
+
+                _episodesRefreshing.update { false }
+                _detailsRefreshing.update { false }
+            }
+
         }
     }
 
-    fun setDetails(details: AnimeDetails) {
-        _uiState.update { currentState ->
-            currentState.copy(details = details)
-        }
+    private suspend fun fetchAnimeDetailsFromSource(anime: Anime) {
+        val networkDetails = source.fetchAnimeDetails(anime).singleOrError().await()
+        val isUpdated = updateAnimeInteractor.awaitUpdateFromSource(anime, networkDetails)
+        _detailsRefreshing.update { false }
+
     }
 
-    private fun setEpisodes(episodes: List<DetailsEpisode>) {
-        _uiState.update { currentState ->
-            currentState.copy(episodes = episodes)
-        }
-    }
-
-    fun refresh() {
-        getDetails()
-        getEpisodes()
+    private suspend fun fetchEpisodesFromSource(anime: Anime) {
+        val networkEpisodes = source.fetchEpisodesList(anime).singleOrError().await()
+        episodeRepository.addAll(networkEpisodes.map {
+            Episode.create().copyFromSEpisode(it).copy(
+                animeId = animeId
+            )
+        })
+        _episodesRefreshing.update { false }
     }
 }

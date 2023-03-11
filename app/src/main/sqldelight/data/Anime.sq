@@ -4,15 +4,16 @@ import kotlin.String;
 
 CREATE TABLE Anime (
   _id INTEGER NOT NULL PRIMARY KEY,
-  source_id TEXT NOT NULL,
+  source TEXT NOT NULL,
   url TEXT NOT NULL,
   title TEXT NOT NULL,
   thumbnail_url TEXT,
+  release TEXT,
   status TEXT,
   description TEXT,
-  release TEXT,
-  genre TEXT AS List<String>,
-  favorite INTEGER AS Boolean NOT NULL DEFAULT 0
+  genres TEXT AS List<String>,
+  favorite INTEGER AS Boolean NOT NULL DEFAULT 0,
+  initialized INTEGER AS Boolean NOT NULL DEFAULT 0
 );
 
 CREATE INDEX animes_favorite_index ON Anime(favorite) WHERE favorite = 1;
@@ -20,7 +21,7 @@ CREATE INDEX anime_url_index ON Anime(url);
 
 getBySourceAndUrl:
 SELECT * FROM Anime
-WHERE url = :url AND source_id = :sourceId
+WHERE url = :url AND source = :source
 LIMIT 1;
 
 getAll:
@@ -37,18 +38,21 @@ DELETE FROM Anime
 WHERE _id IN :animeId;
 
 insert:
-INSERT INTO Anime(source_id,url,title,thumbnail_url,status,genre)
-VALUES (:sourceId,:url,:title,:thumbnailUrl,:status,:genre);
+INSERT INTO Anime(source, url, title, thumbnail_url, release, status, description, genres, favorite, initialized)
+VALUES (:source,:url,:title,:thumbnailUrl,:release,:status,:description,:genre,:favorite,:initiliazed);
 
 update:
 UPDATE Anime
-SET source_id = coalesce(:sourceId, source_id),
+SET source = coalesce(:source, source),
     url = coalesce(:url, url),
     title = coalesce(:title, title),
     thumbnail_url = coalesce(:thumbnailUrl, thumbnail_url),
+    release = coalesce(:release, release),
     status = coalesce(:status, status),
-    genre = coalesce(:genre, genre),
-    favorite = coalesce(:favorite, favorite)
+    description = coalesce(:description, description),
+    genres = coalesce(:genres, genres),
+    favorite = coalesce(:favorite, favorite),
+    initialized = coalesce(:initialized, initialized)
 WHERE _id = :animeId;
 
 getFavorites:
@@ -56,4 +60,4 @@ SELECT * FROM Anime
 WHERE favorite = 1;
 
 selectLastInsertedRowId:
-SELECT last_insert_rowid() FROM Anime;
+SELECT last_insert_rowid();

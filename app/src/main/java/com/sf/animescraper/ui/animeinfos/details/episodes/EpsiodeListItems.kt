@@ -1,19 +1,19 @@
 package com.sf.animescraper.ui.animeinfos.details.episodes
 
 import androidx.compose.foundation.lazy.LazyListScope
-import com.sf.animescraper.network.scraping.dto.details.DetailsEpisode
+import com.sf.animescraper.domain.episode.Episode
 import com.sf.animescraper.ui.animeinfos.details.DetailsScreenItem
 
 fun LazyListScope.episodeItems(
-    episodes: List<DetailsEpisode>,
-    onEpisodeClicked: (index : Int) -> Unit
+    episodes: List<Episode>,
+    onEpisodeClicked: (epId : Long) -> Unit
 ) {
 
-    items(count = episodes.size, key = {episodes[it].url}, contentType = { DetailsScreenItem.EPISODE }){
+    items(count = episodes.size, key = {episodes[it].id}, contentType = { DetailsScreenItem.EPISODE }){
         EpisodeListItem(
-            title = episodes[it].name ?: "",
+            title = episodes[it].name,
             onClick = {
-                onEpisodeClicked(it)
+                onEpisodeClicked(episodes[it].id)
             },
         )
     }

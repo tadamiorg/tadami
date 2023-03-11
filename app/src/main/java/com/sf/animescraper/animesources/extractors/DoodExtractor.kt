@@ -1,8 +1,7 @@
 package com.sf.animescraper.animesources.extractors
 
-import android.util.Log
 import com.sf.animescraper.network.requests.okhttp.GET
-import com.sf.animescraper.network.scraping.dto.crypto.StreamSource
+import com.sf.animescraper.network.api.model.StreamSource
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 

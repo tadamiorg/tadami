@@ -1,4 +1,4 @@
-package com.sf.animescraper.network.scraping.dto.crypto
+package com.sf.animescraper.network.api.model
 
 import okhttp3.Headers
 

@@ -1,11 +1,9 @@
 package com.sf.animescraper.utils
 
 import android.app.Activity
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.ContextWrapper
-import android.os.Build
+import android.provider.Settings
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 
@@ -26,3 +24,6 @@ fun Context.getColorFromAttr( @AttrRes attrColor: Int
     typedArray.recycle()
     return textColor
 }
+
+val Context.animatorDurationScale: Float
+    get() = Settings.Global.getFloat(this.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)

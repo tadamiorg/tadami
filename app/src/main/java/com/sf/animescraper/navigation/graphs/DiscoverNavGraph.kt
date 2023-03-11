@@ -19,7 +19,6 @@ fun NavGraphBuilder.discoverNavGraph(navController: NavHostController) {
             SearchScreen(navController = navController)
         }
     }
-
 }
 object DiscoverRoutes {
     const val RECENT = "recent"

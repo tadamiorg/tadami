@@ -1,9 +1,10 @@
-package com.sf.animescraper.network.scraping
+package com.sf.animescraper.network.api.online
 
 
+import com.sf.animescraper.domain.anime.Anime
 import com.sf.animescraper.network.requests.okhttp.GET
-import com.sf.animescraper.network.scraping.dto.search.Anime
-import com.sf.animescraper.network.scraping.dto.search.AnimeFilterList
+import com.sf.animescraper.network.api.model.SAnime
+import com.sf.animescraper.network.api.model.AnimeFilterList
 import com.sf.animescraper.utils.Lang
 import okhttp3.Request
 

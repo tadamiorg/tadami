@@ -1,17 +1,16 @@
 package com.sf.animescraper.ui.discover.recent
 
-import androidx.compose.runtime.*
-import com.sf.animescraper.network.scraping.dto.search.Anime
+import androidx.compose.runtime.Composable
+import androidx.paging.compose.LazyPagingItems
+import com.sf.animescraper.domain.anime.Anime
 import com.sf.animescraper.ui.components.InfiniteAnimeGrid
 
 @Composable
 fun RecentComponent(
-    animeList: List<Anime>,
-    onAnimeClicked: (anime: Anime) -> Unit,
-    onLoad : () -> Unit,
-    isLoading : Boolean
+    animeList: LazyPagingItems<Anime>,
+    onAnimeClicked: (anime:Anime) -> Unit,
 ) {
-    InfiniteAnimeGrid(animeList = animeList, onAnimeCLicked = onAnimeClicked, onLoad = onLoad,isLoading = isLoading)
+    InfiniteAnimeGrid(animeList = animeList, onAnimeCLicked = onAnimeClicked)
 }
 
 

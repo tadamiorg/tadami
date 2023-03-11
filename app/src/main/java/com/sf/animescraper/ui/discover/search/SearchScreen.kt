@@ -19,10 +19,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.sf.animescraper.R
 import com.sf.animescraper.navigation.graphs.AnimeInfosRoutes
-import com.sf.animescraper.network.requests.okhttp.Callback
-import com.sf.animescraper.network.scraping.AnimesPage
 import com.sf.animescraper.ui.components.filters.AsBottomSheetLayout
 import kotlinx.coroutines.launch
 
@@ -32,9 +31,8 @@ fun SearchScreen(
     navController: NavHostController,
     searchViewModel: SearchViewModel = viewModel()
 ) {
-
-    val searchUiState by searchViewModel.uiState.collectAsState()
-    var isLoading by rememberSaveable { mutableStateOf(true) }
+    val animeListState by searchViewModel.animeList.collectAsState()
+    val animeList = animeListState.collectAsLazyPagingItems()
     var searchEnabled by rememberSaveable { mutableStateOf(false) }
     val sourceFilters = searchViewModel.sourceFilters.collectAsState()
 
@@ -44,11 +42,6 @@ fun SearchScreen(
 
     var fabHeight by remember {
         mutableStateOf(0)
-    }
-
-    fun search(){
-        isLoading = true
-        searchViewModel.resetData()
     }
 
     val heightInDp = with(LocalDensity.current) { fabHeight.toDp() }
@@ -70,7 +63,7 @@ fun SearchScreen(
                     searchViewModel.resetFilters()
                 },
                 search = {
-                    search()
+                    searchViewModel.resetData()
                 }
             )
         },
@@ -88,7 +81,7 @@ fun SearchScreen(
                     onBackClicked = { navController.navigateUp() },
                     onCancelActionMode = {
                         searchViewModel.updateQuery("")
-                        search()
+                        searchViewModel.resetData()
                         searchEnabled = false
                     },
                     onSearchClicked = {
@@ -96,7 +89,7 @@ fun SearchScreen(
                     },
                     searchEnabled = searchEnabled,
                     onSearch = {
-                        search()
+                        searchViewModel.resetData()
                     },
                     onUpdateSearch = {
                         searchViewModel.updateQuery(it)
@@ -126,26 +119,11 @@ fun SearchScreen(
             SearchComponent(
                 modifier = Modifier.padding(innerPadding),
                 fabPadding = PaddingValues(bottom = heightInDp + 16.dp),
-                animeList = searchUiState.animeList,
+                animeList = animeList,
                 onAnimeClicked = {
                     searchViewModel.onAnimeClicked(it)
-                    navController.navigate(AnimeInfosRoutes.DETAILS)
-                },
-                onLoad = {
-                    if (searchUiState.hasNextPage) {
-                        searchViewModel.getSearch(object : Callback<AnimesPage> {
-                            override fun onData(data: AnimesPage?) {
-                                isLoading = false
-                            }
-
-                            override fun onError(message: String?, errorCode: Int?) {
-                                isLoading = false
-                            }
-                        })
-                    }
-
-                },
-                isLoading = isLoading,
+                    navController.navigate("${AnimeInfosRoutes.DETAILS}/${it.source}/${it.id}")
+                }
             )
         }
     }

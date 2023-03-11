@@ -1,28 +1,19 @@
 package com.sf.animescraper.ui.components.filters
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.PopupProperties
-import com.sf.animescraper.network.scraping.dto.search.AnimeFilter
+import com.sf.animescraper.network.api.model.AnimeFilter
 import com.sf.animescraper.ui.utils.capFirstLetter
 import com.sf.animescraper.R
-import com.sf.animescraper.network.scraping.dto.search.AnimeFilterList
-import com.sf.animescraper.ui.utils.clickableNoIndication
 
 @Composable
 fun Select(

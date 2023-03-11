@@ -1,12 +1,12 @@
 package com.sf.animescraper.animesources.sources.en.animeheaven
 
+import com.sf.animescraper.domain.anime.Anime
 import com.sf.animescraper.network.requests.okhttp.GET
-import com.sf.animescraper.network.scraping.AnimeSource
-import com.sf.animescraper.network.scraping.dto.crypto.StreamSource
-import com.sf.animescraper.network.scraping.dto.details.AnimeDetails
-import com.sf.animescraper.network.scraping.dto.details.DetailsEpisode
-import com.sf.animescraper.network.scraping.dto.search.Anime
-import com.sf.animescraper.network.scraping.dto.search.AnimeFilterList
+import com.sf.animescraper.network.api.online.AnimeSource
+import com.sf.animescraper.network.api.model.StreamSource
+import com.sf.animescraper.network.api.model.SAnime
+import com.sf.animescraper.network.api.model.AnimeFilterList
+import com.sf.animescraper.network.api.model.SEpisode
 import com.sf.animescraper.utils.Lang
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -23,13 +23,12 @@ class AnimeHeaven : AnimeSource("AnimeHeaven") {
 
     override fun latestSelector(): String = "div.iepbox div.iep"
 
-    override fun latestAnimeFromElement(element: Element): Anime {
-        val anime : Anime = Anime.create()
+    override fun latestAnimeFromElement(element: Element): SAnime {
+        val anime : SAnime = SAnime.create()
         val imgRef = element.select("div.ieppic a").first()
         anime.title = element.select("div.iepcon .cona").first()!!.text()
         anime.setUrlWithoutDomain(URL(imgRef?.attr("href")).path)
-        anime.image = imgRef!!.select("img").first()?.attr("src")
-        anime.episode = element.select("div.iepcon .iepst2r").first()?.text()
+        anime.thumbnailUrl = imgRef!!.select("img").first()?.attr("src")
         return anime
     }
 
@@ -43,9 +42,8 @@ class AnimeHeaven : AnimeSource("AnimeHeaven") {
         return ""
     }
 
-    override fun searchAnimeFromElement(element: Element): Anime {
-        val anime : Anime = Anime.create()
-        return anime
+    override fun searchAnimeFromElement(element: Element): SAnime {
+        return SAnime.create()
     }
 
     override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList): Request {
@@ -56,31 +54,16 @@ class AnimeHeaven : AnimeSource("AnimeHeaven") {
 
     // Details
 
-    override fun animeDetailsParse(document: Document): AnimeDetails {
-        val details = AnimeDetails.create()
-        val detailsBody = document.selectFirst("div.anime_info_body")
-        if(detailsBody != null) {
-            val infosTypes = detailsBody.select("p.type")
-            details.title = detailsBody.selectFirst("h1")?.text() ?: ""
-            details.thumbnail_url = detailsBody.selectFirst("img")?.attr("src")
-            details.description = infosTypes[1].ownText()
-            details.genre = infosTypes[2].select("a").map {
-                it.text().replace(",","").trim()
-            }
-            details.release = infosTypes[3].ownText()
-            details.status = infosTypes[4].selectFirst("a")?.text()
-        }
-        return details
-
-
+    override fun animeDetailsParse(document: Document): SAnime {
+        return SAnime.create()
     }
 
     override fun episodesSelector(): String {
        return ""
     }
 
-    override fun episodeFromElement(element: Element): DetailsEpisode {
-        return DetailsEpisode(null,"caca","caca",null,false)
+    override fun episodeFromElement(element: Element): SEpisode {
+        return SEpisode.create()
     }
 
     override fun streamSourcesSelector(): String {

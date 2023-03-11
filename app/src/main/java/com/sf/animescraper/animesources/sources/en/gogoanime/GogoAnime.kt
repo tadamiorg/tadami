@@ -3,16 +3,12 @@ package com.sf.animescraper.animesources.sources.en.gogoanime
 import com.sf.animescraper.animesources.extractors.DoodExtractor
 import com.sf.animescraper.animesources.extractors.StreamSBExtractor
 import com.sf.animescraper.animesources.sources.en.gogoanime.extractors.GogoCdnExtractor
+import com.sf.animescraper.domain.anime.Anime
+import com.sf.animescraper.network.api.model.*
+import com.sf.animescraper.network.api.online.AnimeSource
 import com.sf.animescraper.network.requests.okhttp.GET
 import com.sf.animescraper.network.requests.okhttp.asObservable
 import com.sf.animescraper.network.requests.utils.asJsoup
-import com.sf.animescraper.network.scraping.AnimeSource
-import com.sf.animescraper.network.scraping.dto.crypto.StreamSource
-import com.sf.animescraper.network.scraping.dto.details.AnimeDetails
-import com.sf.animescraper.network.scraping.dto.details.DetailsEpisode
-import com.sf.animescraper.network.scraping.dto.search.Anime
-import com.sf.animescraper.network.scraping.dto.search.AnimeFilter
-import com.sf.animescraper.network.scraping.dto.search.AnimeFilterList
 import com.sf.animescraper.utils.Lang
 import io.reactivex.rxjava3.core.Observable
 import kotlinx.serialization.json.Json
@@ -27,7 +23,7 @@ class GogoAnime : AnimeSource("GogoAnime") {
 
     override val name: String = "GogoAnime"
 
-    override val baseUrl: String = "https://www1.gogoanime.bid"
+    override val baseUrl: String = "https://gogoanime.gr"
 
     override val lang: Lang = Lang.ENGLISH
 
@@ -46,13 +42,12 @@ class GogoAnime : AnimeSource("GogoAnime") {
     override fun latestAnimeNextPageSelector(): String =
         "ul.pagination-list li:last-child:not(.selected)"
 
-    override fun latestAnimeFromElement(element: Element): Anime {
-        val anime: Anime = Anime.create()
+    override fun latestAnimeFromElement(element: Element): SAnime {
+        val anime: SAnime = SAnime.create()
         val imgRef = element.select("div.img a").first()
         anime.title = element.select("p.name").first()!!.text()
         anime.url = getDetailsURL(imgRef?.select("img")?.first()?.attr("src"))
-        anime.image = imgRef!!.select("img").first()?.attr("src")
-        anime.episode = element.select("p.episode").first()?.text()?.trim()?.split(" ")?.last()
+        anime.thumbnailUrl = imgRef!!.select("img").first()?.attr("src")
         return anime
     }
 
@@ -72,10 +67,10 @@ class GogoAnime : AnimeSource("GogoAnime") {
     override fun searchAnimeNextPageSelector(): String =
         "ul.pagination-list li:last-child:not(.selected)"
 
-    override fun searchAnimeFromElement(element: Element): Anime {
-        val anime: Anime = Anime.create()
+    override fun searchAnimeFromElement(element: Element): SAnime {
+        val anime: SAnime = SAnime.create()
         anime.title = element.attr("title")
-        anime.image = element.select("img").attr("src")
+        anime.thumbnailUrl = element.select("img").attr("src")
         anime.setUrlWithoutDomain(element.attr("href"))
         return anime
     }
@@ -131,34 +126,29 @@ class GogoAnime : AnimeSource("GogoAnime") {
 
     // Details
 
-    override fun animeDetailsParse(document: Document): AnimeDetails {
-        val details = AnimeDetails.create()
-        val detailsBody = document.selectFirst("div.anime_info_body")
+    override fun animeDetailsParse(document: Document): SAnime {
+        val anime = SAnime.create()
 
-        val infosTypes = detailsBody?.select("p.type")
-        details.title = detailsBody?.selectFirst("h1")?.text() ?: ""
-        details.url = "/category/${document.location().split("/").last()}"
-        details.thumbnail_url = detailsBody?.selectFirst("img")?.attr("src")
-        details.description = infosTypes?.get(1)?.ownText()
-        details.genre = infosTypes?.get(2)?.select("a")?.map {
-            it.text().replace(",", "").trim()
-        }
-        details.release = infosTypes?.get(3)?.ownText()
-        details.status = infosTypes?.get(4)?.selectFirst("a")?.text()
+        anime.title = document.select("div.anime_info_body_bg h1").text()
+        anime.genres = document.select("p.type:eq(5) a").map { it.attr("title") }
+        anime.description = document.selectFirst("p.type:eq(4)")?.ownText()
+        anime.status = document.select("p.type:eq(7) a").text()
+        anime.release = document.selectFirst("p.type:eq(6)")?.ownText()
 
-        return details
+        return anime
     }
 
     // Episodes List
 
     override fun episodesSelector(): String = "li > a"
 
-    override fun episodeFromElement(element: Element): DetailsEpisode {
-        val url = getUrlWithoutDomain(baseUrl + element.attr("href").substringAfter(" "))
-        val ep = element.selectFirst("div.name")?.ownText()?.substringAfter(" ")
-        val name = "Episode $ep"
-        val episodeNumber = ep?.toFloat()
-        return DetailsEpisode(url = url, name = name, seen = false)
+    override fun episodeFromElement(element: Element): SEpisode {
+        val episode = SEpisode.create()
+        val ep = element.selectFirst("div.name")?.ownText()?.substringAfter(" ") ?: ""
+        episode.setUrlWithoutDomain(baseUrl + element.attr("href").substringAfter(" "))
+        episode.name = "Episode $ep"
+        episode.episodeNumber = ep.toFloat()
+        return episode
     }
 
     private fun getGogoEpisodesRequest(response: Response): Request {
@@ -173,7 +163,7 @@ class GogoAnime : AnimeSource("GogoAnime") {
         )
     }
 
-    override fun fetchEpisodesList(anime: Anime): Observable<List<DetailsEpisode>> {
+    override fun fetchEpisodesList(anime: Anime): Observable<List<SEpisode>> {
         val episodesListRequest = client.newCall(episodesRequest(anime))
             .asObservable()
             .map { response ->

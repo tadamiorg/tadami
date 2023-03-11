@@ -1,18 +1,16 @@
-package com.sf.animescraper.network.scraping
+package com.sf.animescraper.network.api.online
 
-import com.sf.animescraper.network.requests.okhttp.HttpClient
-import com.sf.animescraper.network.requests.okhttp.asObservable
+import com.sf.animescraper.domain.anime.Anime
 import com.sf.animescraper.network.requests.utils.asJsoup
-import com.sf.animescraper.network.scraping.dto.crypto.StreamSource
-import com.sf.animescraper.network.scraping.dto.details.AnimeDetails
-import com.sf.animescraper.network.scraping.dto.details.DetailsEpisode
-import com.sf.animescraper.network.scraping.dto.search.Anime
-import com.sf.animescraper.network.scraping.dto.search.AnimeFilterList
+import com.sf.animescraper.network.api.model.StreamSource
+import com.sf.animescraper.network.api.model.SAnime
+import com.sf.animescraper.network.api.model.AnimeFilterList
+import com.sf.animescraper.network.api.model.SEpisode
+import com.sf.animescraper.network.requests.okhttp.*
 import io.reactivex.rxjava3.core.Observable
 import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.Response
-import okhttp3.internal.toImmutableList
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import uy.kohesive.injekt.injectLazy
@@ -38,11 +36,15 @@ abstract class AnimeSourceBase {
         add("User-Agent", DEFAULT_USER_AGENT)
     }
 
-    fun Anime.setUrlWithoutDomain(url: String) {
+    fun SAnime.setUrlWithoutDomain(url: String) {
+        this.url = getUrlWithoutDomain(url)
+    }
+    fun SEpisode.setUrlWithoutDomain(url: String) {
         this.url = getUrlWithoutDomain(url)
     }
 
-    fun getUrlWithoutDomain(orig: String): String {
+
+    private fun getUrlWithoutDomain(orig: String): String {
         return try {
             val uri = URI(orig.replace(" ", "%20"))
             var out = uri.path
@@ -62,7 +64,7 @@ abstract class AnimeSourceBase {
 
     protected abstract fun latestSelector(): String
 
-    protected abstract fun latestAnimeFromElement(element: Element): Anime
+    protected abstract fun latestAnimeFromElement(element: Element): SAnime
 
     protected abstract fun latestAnimesRequest(page: Int): Request
 
@@ -94,7 +96,7 @@ abstract class AnimeSourceBase {
 
     protected abstract fun searchSelector(): String
 
-    protected abstract fun searchAnimeFromElement(element: Element): Anime
+    protected abstract fun searchAnimeFromElement(element: Element): SAnime
 
     protected abstract fun searchAnimeRequest(page: Int,query: String,filters : AnimeFilterList): Request
 
@@ -132,14 +134,14 @@ abstract class AnimeSourceBase {
 
     protected abstract fun animeDetailsRequest(anime: Anime): Request
 
-    private fun animeDetailsParse(response: Response): AnimeDetails {
+    private fun animeDetailsParse(response: Response): SAnime {
         return animeDetailsParse(response.asJsoup())
 
     }
 
-    protected abstract fun animeDetailsParse(document: Document): AnimeDetails
+    protected abstract fun animeDetailsParse(document: Document): SAnime
 
-    open fun fetchAnimeDetails(anime: Anime): Observable<AnimeDetails> {
+    open fun fetchAnimeDetails(anime: Anime): Observable<SAnime> {
         return client.newCall(animeDetailsRequest(anime))
             .asObservable()
             .map { response ->
@@ -153,9 +155,9 @@ abstract class AnimeSourceBase {
 
     protected abstract fun episodesSelector(): String
 
-    protected abstract fun episodeFromElement(element: Element): DetailsEpisode
+    protected abstract fun episodeFromElement(element: Element): SEpisode
 
-    protected open fun episodesParse(response: Response): List<DetailsEpisode> {
+    protected open fun episodesParse(response: Response): List<SEpisode> {
         val document = response.asJsoup()
 
         val episodes = document.select(episodesSelector()).map { element ->
@@ -164,7 +166,7 @@ abstract class AnimeSourceBase {
         return episodes
     }
 
-    open fun fetchEpisodesList(anime: Anime): Observable<List<DetailsEpisode>> {
+    open fun fetchEpisodesList(anime: Anime): Observable<List<SEpisode>> {
         return client.newCall(episodesRequest(anime))
             .asObservable()
             .map { response ->
@@ -191,9 +193,8 @@ abstract class AnimeSourceBase {
 
     open fun fetchEpisode(url: String): Observable<List<StreamSource>> {
         return client.newCall(episodeRequest(url))
-            .asObservable()
-            .map { response ->
-                episodeSourcesParse(response)
+            .asCancelableObservable{
+                episodeSourcesParse(it)
             }
     }
 

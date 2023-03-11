@@ -6,7 +6,6 @@ plugins {
     id "app.cash.sqldelight" version "2.0.0-alpha05"
 }
 
-
 sqldelight {
     databases {
         Database { // This will be the name of the generated database class.
@@ -36,7 +35,8 @@ android {
     buildTypes {
         release {
             debuggable = false
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -75,6 +75,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-rx3:1.6.4'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 
     // Coil
@@ -169,4 +170,19 @@ dependencies {
     // SQLDelight
 
     implementation "app.cash.sqldelight:android-driver:2.0.0-alpha05"
+    implementation "app.cash.sqldelight:coroutines-extensions:2.0.0-alpha05"
+
+    // Paging Library 3
+
+    def paging_version = "3.1.1"
+
+    implementation "androidx.paging:paging-runtime:$paging_version"
+    // alternatively - without Android dependencies for tests
+    testImplementation "androidx.paging:paging-common:$paging_version"
+    // optional - RxJava3 support
+    implementation "androidx.paging:paging-rxjava3:$paging_version"
+    // optional - Jetpack Compose integration
+    implementation "androidx.paging:paging-compose:1.0.0-alpha18"
+
+
 }

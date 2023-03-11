@@ -21,7 +21,7 @@ fun EpisodeListItem(
     title: String,
     date: String? = null,
     onClick: () -> Unit,
-    ) {
+) {
     Row(
         modifier = modifier
             .combinedClickable(

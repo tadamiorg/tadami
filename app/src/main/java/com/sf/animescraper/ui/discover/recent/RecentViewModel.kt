@@ -1,57 +1,39 @@
 package com.sf.animescraper.ui.discover.recent
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sf.animescraper.network.requests.okhttp.Callback
-import com.sf.animescraper.network.requests.utils.ObserverAS
-import com.sf.animescraper.network.scraping.AnimeSource
-import com.sf.animescraper.network.scraping.AnimesPage
-import com.sf.animescraper.network.scraping.dto.search.Anime
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
+import com.sf.animescraper.data.anime.AnimeRepository
+import com.sf.animescraper.domain.anime.Anime
+import com.sf.animescraper.domain.anime.toDomainAnime
+import com.sf.animescraper.network.api.online.AnimeSource
 import com.sf.animescraper.ui.shared.SharedViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class RecentViewModel(
+class RecentViewModel(stateHandle: SavedStateHandle) : ViewModel() {
+
     private val sharedViewModel: SharedViewModel = Injekt.get()
-) : ViewModel() {
+    private val animeRepository: AnimeRepository = Injekt.get()
 
-    private val _uiState = MutableStateFlow(RecentUiState())
-    val uiState: StateFlow<RecentUiState> = _uiState.asStateFlow()
+    private val sourceId: String? = stateHandle["sourceId"]
 
-    val source = sharedViewModel.uiState.value.source as AnimeSource
+    val source = sharedViewModel.source.value as AnimeSource
 
-    private var page: Int = 1
+    val animeList: Flow<PagingData<Anime>> = animeRepository.getLatestPager(source.id)
+        .map { pagingData ->
+            pagingData.map { sAnime ->
+                animeRepository.insertNetworkToLocalAnime(sAnime.toDomainAnime(source.id))
+            }
+        }.cachedIn(viewModelScope)
 
-    fun getRecent(callback: Callback<AnimesPage>? = null) {
-        viewModelScope.launch(Dispatchers.IO) {
-            source.fetchLatest(page++).subscribe(object : ObserverAS<AnimesPage>(callback) {
-                override fun onNext(data: AnimesPage) {
-                    _uiState.update { currentState ->
-                        currentState.copy(
-                            animeList = currentState.animeList + data.animes,
-                            hasNextPage = data.hasNextPage
-                        )
-                    }
-                    super.onNext(data)
-                }
-            })
-        }
-    }
 
     fun onAnimeClicked(anime: Anime) {
-        sharedViewModel.selectAnime(anime)
-    }
-
-    fun resetData() {
-        _uiState.update { currentState ->
-            currentState.copy(animeList = listOf())
-        }
-        page = 1
+        sharedViewModel.setAnime(anime)
     }
 }

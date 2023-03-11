@@ -2,75 +2,66 @@ package com.sf.animescraper.ui.discover.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sf.animescraper.network.requests.okhttp.Callback
-import com.sf.animescraper.network.requests.utils.ObserverAS
-import com.sf.animescraper.network.scraping.AnimeSource
-import com.sf.animescraper.network.scraping.AnimesPage
-import com.sf.animescraper.network.scraping.dto.search.Anime
-import com.sf.animescraper.network.scraping.dto.search.AnimeFilterList
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
+import com.sf.animescraper.data.anime.AnimeRepository
+import com.sf.animescraper.domain.anime.Anime
+import com.sf.animescraper.domain.anime.toDomainAnime
+import com.sf.animescraper.network.api.model.AnimeFilterList
+import com.sf.animescraper.network.api.online.AnimeSource
 import com.sf.animescraper.ui.shared.SharedViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.*
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class SearchViewModel(private val sharedViewModel: SharedViewModel = Injekt.get()) : ViewModel()
-{
-    private val _uiState = MutableStateFlow(SearchUiState())
-    val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
+class SearchViewModel() : ViewModel() {
+    private val sharedViewModel: SharedViewModel = Injekt.get()
+    private val animeRepository: AnimeRepository = Injekt.get()
 
-    val source = sharedViewModel.uiState.value.source as AnimeSource
+    val source = sharedViewModel.source.value as AnimeSource
 
     private val filtersList = source.getFilterList()
     private val _sourceFilters = MutableStateFlow(filtersList)
 
     val sourceFilters: StateFlow<AnimeFilterList> = _sourceFilters.asStateFlow()
 
-    private var page: Int = 1
-
     private val _query = MutableStateFlow("")
-    private val query : StateFlow<String> = _query.asStateFlow()
+    private val query: StateFlow<String> = _query.asStateFlow()
 
-    fun updateQuery(value : String){
+    private fun getPager(): Flow<PagingData<Anime>> {
+        return animeRepository.getSearchPager(source.id, query.value, sourceFilters.value)
+            .map { pagingData ->
+                pagingData.map { sAnime ->
+                    animeRepository.insertNetworkToLocalAnime(sAnime.toDomainAnime(source.id))
+                }
+            }.cachedIn(viewModelScope)
+    }
+
+    private var _animeList = MutableStateFlow(
+        getPager()
+    )
+    val animeList = _animeList.asStateFlow()
+
+    fun updateQuery(value: String) {
         _query.update { value }
     }
 
-    fun updateFilters(updatedFilters : AnimeFilterList){
+    fun updateFilters(updatedFilters: AnimeFilterList) {
         _sourceFilters.value = updatedFilters
     }
 
-    fun resetFilters(){
+    fun resetFilters() {
         updateFilters(source.getFilterList())
     }
 
-    fun getSearch(callback: Callback<AnimesPage>? = null) {
-        viewModelScope.launch(Dispatchers.IO) {
-            source.fetchSearch(page++,query.value,_sourceFilters.value).subscribe(object : ObserverAS<AnimesPage>(callback) {
-                override fun onNext(data: AnimesPage) {
-                    _uiState.update { currentState ->
-                        currentState.copy(
-                            animeList = currentState.animeList + data.animes,
-                            hasNextPage = data.hasNextPage
-                        )
-                    }
-                    super.onNext(data)
-                }
-            })
-        }
-    }
-
     fun onAnimeClicked(anime: Anime) {
-        sharedViewModel.selectAnime(anime)
+        sharedViewModel.setAnime(anime)
     }
 
     fun resetData() {
-        _uiState.update { currentState ->
-            currentState.copy(animeList = listOf(), hasNextPage = true)
+        _animeList.update {
+            getPager()
         }
-        page = 1
     }
 }

@@ -1,37 +1,72 @@
 package com.sf.animescraper.ui.components
 
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.sf.animescraper.network.scraping.dto.search.Anime
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import com.sf.animescraper.domain.anime.Anime
 import com.sf.animescraper.ui.base.widgets.ContentLoader
 
 @Composable
 fun AnimeGrid(
     modifier: Modifier = Modifier,
-    animeList: List<Anime>,
+    animeList: LazyPagingItems<Anime>,
     onAnimeCLicked: (anime: Anime) -> Unit,
     lazyGridState: LazyGridState = rememberLazyGridState(),
-    contentPadding : PaddingValues,
-    isLoading: Boolean = false
+    contentPadding : PaddingValues
 ) {
+
+    var initialLoading by remember {
+        mutableStateOf(false)
+    }
+
+    initialLoading = when(animeList.loadState.refresh){
+        is LoadState.Loading -> {
+            true
+        }
+        else ->{
+            false
+        }
+    }
+
     ContentLoader(
         modifier = modifier,
-        isLoading = isLoading
+        isLoading = initialLoading
     ) {
         LazyVerticalGrid(
             state = lazyGridState,
             columns = GridCells.Adaptive(128.dp),
             contentPadding = contentPadding
         ) {
-            items(animeList.size, key = { it }) { index ->
-                AnimeItem(anime = animeList[index], onAnimeClicked = onAnimeCLicked)
+            if (animeList.loadState.prepend is LoadState.Loading) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    LoadingItem()
+                }
+            }
+            items(animeList.itemCount){index ->
+                AnimeItem(anime = animeList[index]!!, onAnimeClicked = onAnimeCLicked)
+            }
+            if (animeList.loadState.refresh is LoadState.Loading || animeList.loadState.append is LoadState.Loading) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    LoadingItem()
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun LoadingItem() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        CircularProgressIndicator()
     }
 }

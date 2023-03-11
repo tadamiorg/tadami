@@ -1,4 +1,4 @@
-package com.sf.animescraper.network.scraping.dto.search
+package com.sf.animescraper.network.api.model
 
 
 /*sealed class AnimeFilter<T>(val name: String, var state: T) {

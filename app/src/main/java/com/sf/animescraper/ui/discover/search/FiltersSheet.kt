@@ -12,8 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.sf.animescraper.network.scraping.dto.search.AnimeFilter
-import com.sf.animescraper.network.scraping.dto.search.AnimeFilterList
+import com.sf.animescraper.network.api.model.AnimeFilter
+import com.sf.animescraper.network.api.model.AnimeFilterList
 import com.sf.animescraper.ui.components.filters.Group
 import com.sf.animescraper.ui.components.filters.Select
 

@@ -2,7 +2,7 @@ package com.sf.animescraper.animesources.extractors.fembedextractor
 
 import com.sf.animescraper.network.requests.okhttp.GET
 import com.sf.animescraper.network.requests.okhttp.POST
-import com.sf.animescraper.network.scraping.dto.crypto.StreamSource
+import com.sf.animescraper.network.api.model.StreamSource
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient

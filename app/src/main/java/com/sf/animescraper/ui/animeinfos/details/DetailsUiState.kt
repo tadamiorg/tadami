@@ -1,11 +1,11 @@
 package com.sf.animescraper.ui.animeinfos.details
 
-import com.sf.animescraper.network.scraping.dto.details.AnimeDetails
-import com.sf.animescraper.network.scraping.dto.details.DetailsEpisode
+import com.sf.animescraper.domain.anime.Anime
+import com.sf.animescraper.domain.episode.Episode
 
 data class DetailsUiState (
-    val details : AnimeDetails? = null,
-    val episodes : List<DetailsEpisode> = listOf()
+    val details : Anime? = null,
+    val episodes : List<Episode> = listOf()
 )
 
 enum class DetailsScreenItem {

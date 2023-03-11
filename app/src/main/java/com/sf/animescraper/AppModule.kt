@@ -4,14 +4,21 @@ import android.app.Application
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.sqlite.db.SupportSQLiteDatabase
+import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
-import com.sf.animescraper.network.database.booleanAdapter
+import com.sf.animescraper.data.AndroidDatabaseHandler
+import com.sf.animescraper.data.anime.AnimeRepository
+import com.sf.animescraper.data.anime.AnimeRepositoryImpl
+import com.sf.animescraper.data.DataBaseHandler
+import com.sf.animescraper.data.interactors.AnimeWithEpisodesInteractor
+import com.sf.animescraper.data.interactors.UpdateAnimeInteractor
+import com.sf.animescraper.data.episode.EpisodeRepository
+import com.sf.animescraper.data.episode.EpisodeRepositoryImpl
 import com.sf.animescraper.network.database.listOfStringsAdapter
 import com.sf.animescraper.network.requests.okhttp.HttpClient
 import com.sf.animescraper.ui.shared.SharedViewModel
 import com.sf.animescraper.ui.tabs.animesources.AnimeSourcesManager
 import data.Anime
-import data.Episode
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import uy.kohesive.injekt.api.*
@@ -25,26 +32,54 @@ class AppModule(private val app: Application) : InjektModule {
 
         // Database
 
-        val sqlDriverAnime = AndroidSqliteDriver(
-            schema = Database.Schema,
-            context = app,
-            name = "animescraper.db",
-            callback = object : AndroidSqliteDriver.Callback(Database.Schema) {
-                override fun onOpen(db: SupportSQLiteDatabase) {
-                    Log.i("Database","Opened")
-                    super.onOpen(db)
-                }
-            },
-        )
+        addSingletonFactory<SqlDriver> {
+            AndroidSqliteDriver(
+                schema = Database.Schema,
+                context = app,
+                name = "animescraper.db",
+                callback = object : AndroidSqliteDriver.Callback(Database.Schema) {
+                    override fun onOpen(db: SupportSQLiteDatabase) {
+                        Log.i("Database","Opened")
+                        super.onOpen(db)
+                    }
+                },
+            )
+        }
 
         addSingletonFactory {
             Database(
-                driver = sqlDriverAnime,
+                driver = get(),
                 AnimeAdapter = Anime.Adapter(
-                    genreAdapter = listOfStringsAdapter,
+                    genresAdapter = listOfStringsAdapter,
 
                 ),
             )
+        }
+
+        addSingletonFactory<DataBaseHandler> {
+            AndroidDatabaseHandler(get())
+        }
+
+        // Sources
+
+        addSingletonFactory{AnimeSourcesManager()}
+
+        // DataSources
+
+        addSingletonFactory<AnimeRepository>{
+            AnimeRepositoryImpl(get(),get())
+        }
+
+        addSingletonFactory<EpisodeRepository>{
+            EpisodeRepositoryImpl(get())
+        }
+
+        addSingletonFactory {
+            UpdateAnimeInteractor(get())
+        }
+
+        addSingletonFactory {
+            AnimeWithEpisodesInteractor(get(),get())
         }
 
         // HttpClient
@@ -54,10 +89,6 @@ class AppModule(private val app: Application) : InjektModule {
         // SharedViewModels
 
         addSingletonFactory{SharedViewModel()}
-
-        // Sources
-
-        addSingletonFactory{AnimeSourcesManager()}
 
         addSingletonFactory {
             Json {
@@ -70,7 +101,8 @@ class AppModule(private val app: Application) : InjektModule {
         ContextCompat.getMainExecutor(app).execute {
             get<HttpClient>()
             get<Database>()
-
+            get<DataBaseHandler>()
+            get<AnimeRepository>()
             get<AnimeSourcesManager>()
         }
     }

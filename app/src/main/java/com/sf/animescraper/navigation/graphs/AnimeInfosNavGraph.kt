@@ -8,30 +8,30 @@ import com.sf.animescraper.ui.animeinfos.episode.EpisodeActivity
 fun NavGraphBuilder.animeInfosNavGraph(navController: NavHostController) {
     navigation(
         route = "InfosRoutes",
-        startDestination = AnimeInfosRoutes.DETAILS
-    ){
+        startDestination = "${AnimeInfosRoutes.DETAILS}/{sourceId}/{animeId}"
+    ) {
 
-        composable(route = AnimeInfosRoutes.DETAILS) {
+        composable(route = "${AnimeInfosRoutes.DETAILS}/{sourceId}/{animeId}", arguments = listOf(
+            navArgument("sourceId") { type = NavType.StringType },
+            navArgument("animeId") { type = NavType.LongType }
+        )) {
             DetailsScreen(navController)
         }
 
-        activity("${AnimeInfosRoutes.EPISODE}/{title}/{initialEpisode}?episodes={episodes}"){
+        activity("${AnimeInfosRoutes.EPISODE}/{sourceId}/{episode}") {
             this.activityClass = EpisodeActivity::class
-            argument("initialEpisode"){
-                this.defaultValue = 0
-                this.type = NavType.IntType
-            }
-            argument("title"){
-                this.defaultValue = ""
+            argument("sourceId"){
+                this.nullable = false
                 this.type = NavType.StringType
             }
-            argument("episodes"){
-                this.defaultValue = "[]"
-                this.type = NavType.StringType
+            argument("episode") {
+                this.nullable = false
+                this.type = NavType.LongType
             }
         }
     }
 }
+
 object AnimeInfosRoutes {
     const val EPISODE = "episode"
     const val DETAILS = "details"

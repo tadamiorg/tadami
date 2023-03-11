@@ -1,6 +1,5 @@
 package com.sf.animescraper.ui.animeinfos.details
 
-import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -19,10 +18,6 @@ import com.sf.animescraper.ui.animeinfos.details.infos.AnimeInfosBox
 import com.sf.animescraper.ui.animeinfos.details.infos.description.ExpandableAnimeDescription
 import com.sf.animescraper.ui.base.widgets.PullRefresh
 import com.sf.animescraper.ui.base.widgets.VerticalFastScroller
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,15 +26,14 @@ fun DetailsScreen(
     detailsViewModel: DetailsViewModel = viewModel()
 ) {
 
-    val detailsUiState by detailsViewModel.uiState.collectAsState()
+    val uiState by detailsViewModel.uiState.collectAsState()
     val isRefreshing by detailsViewModel.isRefreshing.collectAsState()
 
     val episodesListState = rememberLazyListState()
-    val episodes = remember(detailsUiState) { detailsUiState.episodes }
 
     Scaffold(topBar = {
         StateDetailsToolbar(
-            title = detailsUiState.details?.title ?: "",
+            title = uiState.details?.title ?: "",
             episodesListState = episodesListState,
             onBackClicked = { navHostController.navigateUp() },
             onFavoriteClicked = {
@@ -53,7 +47,7 @@ fun DetailsScreen(
         PullRefresh(
             refreshing = isRefreshing,
             onRefresh = {
-                detailsViewModel.refresh()
+
             },
             indicatorPadding = contentPadding,
         ) {
@@ -78,11 +72,11 @@ fun DetailsScreen(
                     ) {
                         AnimeInfosBox(
                             appBarPadding = topPadding,
-                            title = detailsUiState.details?.title ?: "",
-                            author = detailsUiState.details?.release,
+                            title = uiState.details?.title ?: "",
+                            author = uiState.details?.release,
                             artist = "",
-                            status = detailsUiState.details?.status,
-                            cover = { detailsUiState.details?.thumbnail_url ?: "" },
+                            status = uiState.details?.status,
+                            cover = { uiState.details?.thumbnailUrl ?: "" },
                             sourceName = detailsViewModel.source.name
                         )
                     }
@@ -93,8 +87,8 @@ fun DetailsScreen(
                     ) {
                         ExpandableAnimeDescription(
                             defaultExpandState = false,
-                            description = detailsUiState.details?.description,
-                            tagsProvider = { detailsUiState.details?.genre },
+                            description = uiState.details?.description,
+                            tagsProvider = { uiState.details?.genres },
                         )
                     }
 
@@ -104,16 +98,12 @@ fun DetailsScreen(
                     ) {
                         EpisodesHeader(
                             modifier = Modifier.padding(16.dp),
-                            episodesNumber = detailsUiState.episodes.size
+                            episodesNumber = uiState.episodes.size
                         )
                     }
 
-                    episodeItems(episodes = episodes, onEpisodeClicked = { index ->
-                        val json: Json = Injekt.get()
-                        val params = detailsUiState.episodes
-                        val episodesArg = Uri.encode(json.encodeToString(params))
-                        val title = detailsUiState.details?.title
-                        navHostController.navigate("${AnimeInfosRoutes.EPISODE}/$title/$index?episodes=$episodesArg")
+                    episodeItems(episodes = uiState.episodes, onEpisodeClicked = { epId ->
+                        navHostController.navigate("${AnimeInfosRoutes.EPISODE}/${detailsViewModel.source.id}/$epId")
                     })
                 }
             }
