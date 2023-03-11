@@ -16,18 +16,17 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.sf.animescraper.navigation.graphs.DiscoverRoutes
 import com.sf.animescraper.network.api.online.AnimeSource
-import com.sf.animescraper.ui.shared.SharedViewModel
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 @Composable
 fun AnimeSourcesComponent(
     navController: NavHostController,
-    sharedViewModel: SharedViewModel = Injekt.get()
+    sourcesManager: AnimeSourcesManager = Injekt.get()
 ) {
 
     val categories = remember {
-        sharedViewModel.animeSourcesManager.animeExtensions.values.toList()
+        sourcesManager.animeExtensions.values.toList()
             .fold(mutableMapOf<Int, MutableList<AnimeSource>>()) { langMap, animeSource ->
                 langMap.getOrPut(animeSource.lang.getRes()) { mutableListOf() }.add(animeSource)
                 langMap
@@ -50,12 +49,10 @@ fun AnimeSourcesComponent(
                     AnimeSourceItem(
                         source = source,
                         onRecentClicked = {
-                            sharedViewModel.setAnimeSource(source.id)
-                            navController.navigate(DiscoverRoutes.RECENT)
+                            navController.navigate("${DiscoverRoutes.RECENT}/${source.id}")
                         },
                         onSearchClicked = {
-                            sharedViewModel.setAnimeSource(source.id)
-                            navController.navigate(DiscoverRoutes.SEARCH)
+                            navController.navigate("${DiscoverRoutes.SEARCH}/${source.id}")
                         }
                     )
                 }

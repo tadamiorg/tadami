@@ -16,7 +16,6 @@ import com.sf.animescraper.data.episode.EpisodeRepository
 import com.sf.animescraper.data.episode.EpisodeRepositoryImpl
 import com.sf.animescraper.network.database.listOfStringsAdapter
 import com.sf.animescraper.network.requests.okhttp.HttpClient
-import com.sf.animescraper.ui.shared.SharedViewModel
 import com.sf.animescraper.ui.tabs.animesources.AnimeSourcesManager
 import data.Anime
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -85,10 +84,6 @@ class AppModule(private val app: Application) : InjektModule {
         // HttpClient
 
         addSingletonFactory { HttpClient(app) }
-
-        // SharedViewModels
-
-        addSingletonFactory{SharedViewModel()}
 
         addSingletonFactory {
             Json {

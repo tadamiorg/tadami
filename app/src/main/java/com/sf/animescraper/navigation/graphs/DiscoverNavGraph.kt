@@ -1,21 +1,23 @@
 package com.sf.animescraper.navigation.graphs
 
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
+import androidx.navigation.*
 import androidx.navigation.compose.composable
-import androidx.navigation.navigation
 import com.sf.animescraper.ui.discover.recent.RecentScreen
 import com.sf.animescraper.ui.discover.search.SearchScreen
 
 fun NavGraphBuilder.discoverNavGraph(navController: NavHostController) {
     navigation(
         route = "DiscoverRoutes",
-        startDestination = DiscoverRoutes.RECENT
+        startDestination = "${DiscoverRoutes.RECENT}/{sourceId}"
     ){
-        composable(route = DiscoverRoutes.RECENT) {
+        composable(route = "${DiscoverRoutes.RECENT}/{sourceId}", arguments = listOf(
+            navArgument("sourceId") { type = NavType.StringType }
+        )) {
             RecentScreen(navController = navController)
         }
-        composable(route = DiscoverRoutes.SEARCH) {
+        composable(route = "${DiscoverRoutes.SEARCH}/{sourceId}",arguments = listOf(
+            navArgument("sourceId") { type = NavType.StringType }
+        )) {
             SearchScreen(navController = navController)
         }
     }

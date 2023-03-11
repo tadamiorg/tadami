@@ -1,5 +1,6 @@
 package com.sf.animescraper.ui.discover.search
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -9,17 +10,19 @@ import com.sf.animescraper.data.anime.AnimeRepository
 import com.sf.animescraper.domain.anime.Anime
 import com.sf.animescraper.domain.anime.toDomainAnime
 import com.sf.animescraper.network.api.model.AnimeFilterList
-import com.sf.animescraper.network.api.online.AnimeSource
-import com.sf.animescraper.ui.shared.SharedViewModel
+import com.sf.animescraper.ui.tabs.animesources.AnimeSourcesManager
 import kotlinx.coroutines.flow.*
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class SearchViewModel() : ViewModel() {
-    private val sharedViewModel: SharedViewModel = Injekt.get()
+class SearchViewModel(
+    stateHandle: SavedStateHandle
+) : ViewModel() {
     private val animeRepository: AnimeRepository = Injekt.get()
+    private val sourcesManager: AnimeSourcesManager = Injekt.get()
 
-    val source = sharedViewModel.source.value as AnimeSource
+    private val sourceId: String = checkNotNull(stateHandle["sourceId"])
+    val source = checkNotNull(sourcesManager.getExtensionById(sourceId))
 
     private val filtersList = source.getFilterList()
     private val _sourceFilters = MutableStateFlow(filtersList)
@@ -53,10 +56,6 @@ class SearchViewModel() : ViewModel() {
 
     fun resetFilters() {
         updateFilters(source.getFilterList())
-    }
-
-    fun onAnimeClicked(anime: Anime) {
-        sharedViewModel.setAnime(anime)
     }
 
     fun resetData() {

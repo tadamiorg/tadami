@@ -29,7 +29,6 @@ fun RecentScreen(
         RecentComponent(
             animeList = animeList,
             onAnimeClicked = {
-                recentViewModel.onAnimeClicked(it)
                 navController.navigate("${AnimeInfosRoutes.DETAILS}/${it.source}/${it.id}")
             }
         )

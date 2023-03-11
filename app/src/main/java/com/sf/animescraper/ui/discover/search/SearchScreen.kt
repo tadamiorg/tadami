@@ -121,7 +121,6 @@ fun SearchScreen(
                 fabPadding = PaddingValues(bottom = heightInDp + 16.dp),
                 animeList = animeList,
                 onAnimeClicked = {
-                    searchViewModel.onAnimeClicked(it)
                     navController.navigate("${AnimeInfosRoutes.DETAILS}/${it.source}/${it.id}")
                 }
             )

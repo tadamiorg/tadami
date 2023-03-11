@@ -9,8 +9,7 @@ import androidx.paging.map
 import com.sf.animescraper.data.anime.AnimeRepository
 import com.sf.animescraper.domain.anime.Anime
 import com.sf.animescraper.domain.anime.toDomainAnime
-import com.sf.animescraper.network.api.online.AnimeSource
-import com.sf.animescraper.ui.shared.SharedViewModel
+import com.sf.animescraper.ui.tabs.animesources.AnimeSourcesManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import uy.kohesive.injekt.Injekt
@@ -18,12 +17,11 @@ import uy.kohesive.injekt.api.get
 
 class RecentViewModel(stateHandle: SavedStateHandle) : ViewModel() {
 
-    private val sharedViewModel: SharedViewModel = Injekt.get()
     private val animeRepository: AnimeRepository = Injekt.get()
+    private val sourcesManager: AnimeSourcesManager = Injekt.get()
 
-    private val sourceId: String? = stateHandle["sourceId"]
-
-    val source = sharedViewModel.source.value as AnimeSource
+    private val sourceId: String = checkNotNull(stateHandle["sourceId"])
+    val source = checkNotNull(sourcesManager.getExtensionById(sourceId))
 
     val animeList: Flow<PagingData<Anime>> = animeRepository.getLatestPager(source.id)
         .map { pagingData ->
@@ -31,9 +29,4 @@ class RecentViewModel(stateHandle: SavedStateHandle) : ViewModel() {
                 animeRepository.insertNetworkToLocalAnime(sAnime.toDomainAnime(source.id))
             }
         }.cachedIn(viewModelScope)
-
-
-    fun onAnimeClicked(anime: Anime) {
-        sharedViewModel.setAnime(anime)
-    }
 }
