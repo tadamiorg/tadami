@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
@@ -17,19 +18,22 @@ fun AnimeGrid(
     animeList: LazyPagingItems<Anime>,
     onAnimeCLicked: (anime: Anime) -> Unit,
     lazyGridState: LazyGridState = rememberLazyGridState(),
-    contentPadding : PaddingValues
+    contentPadding: PaddingValues
 ) {
 
-    var initialLoading by remember {
-        mutableStateOf(false)
+    var initialLoading by rememberSaveable {
+        mutableStateOf(true)
     }
 
-    initialLoading = when(animeList.loadState.refresh){
-        is LoadState.Loading -> {
-            true
-        }
-        else ->{
+    initialLoading = when (animeList.loadState.refresh) {
+        is LoadState.Error -> {
             false
+        }
+        is LoadState.NotLoading -> {
+            false
+        }
+        else -> {
+            initialLoading
         }
     }
 
@@ -47,7 +51,7 @@ fun AnimeGrid(
                     LoadingItem()
                 }
             }
-            items(animeList.itemCount){index ->
+            items(animeList.itemCount) { index ->
                 AnimeItem(anime = animeList[index]!!, onAnimeClicked = onAnimeCLicked)
             }
             if (animeList.loadState.refresh is LoadState.Loading || animeList.loadState.append is LoadState.Loading) {

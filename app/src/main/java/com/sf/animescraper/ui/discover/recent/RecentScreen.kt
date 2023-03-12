@@ -18,8 +18,6 @@ fun RecentScreen(
 
     val animeList = recentViewModel.animeList.collectAsLazyPagingItems()
 
-
-
     ScreenTopBar(
         title = "${stringResource(id = R.string.discover_recents_screen_title)} - ${recentViewModel.source.name}",
         backArrow = true,
