@@ -26,14 +26,11 @@ fun AnimeGrid(
     }
 
     initialLoading = when (animeList.loadState.refresh) {
-        is LoadState.Error -> {
-            false
-        }
-        is LoadState.NotLoading -> {
-            false
+        is LoadState.Loading -> {
+            initialLoading
         }
         else -> {
-            initialLoading
+            false
         }
     }
 
