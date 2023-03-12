@@ -9,6 +9,7 @@ data class Episode(
     val name : String,
     val episodeNumber : Float,
     val seen : Boolean,
+    val sourceOrder : Long,
     val date : String?,
 ) {
     companion object {
@@ -18,8 +19,9 @@ data class Episode(
                 animeId = -1L,
                 url = "",
                 name = "",
-                seen = false,
                 episodeNumber = -1F,
+                seen = false,
+                sourceOrder = 0L,
                 date = null
             )
         }

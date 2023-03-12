@@ -8,6 +8,7 @@ CREATE TABLE Episode (
   episode_number REAL NOT NULL,
   seen INTEGER AS Boolean NOT NULL DEFAULT 0,
   date TEXT,
+  source_order INTEGER NOT NULL,
   FOREIGN KEY(anime_id) REFERENCES Anime (_id)
   ON DELETE CASCADE
 );
@@ -26,8 +27,8 @@ FROM Episode
 WHERE anime_id = :animeId;
 
 insert:
-INSERT INTO Episode(anime_id,url,name,episode_number,seen,date)
-VALUES (:animeId,:url,:name,:episodeNumber,:seen,:date);
+INSERT INTO Episode(anime_id,url,name,episode_number,seen,date,source_order)
+VALUES (:animeId,:url,:name,:episodeNumber,:seen,:date,:sourceOrder);
 
 update:
 UPDATE Episode
@@ -35,8 +36,14 @@ SET anime_id = coalesce(:animeId, anime_id),
     url = coalesce(:url, url),
     name = coalesce(:name, name),
     episode_number = coalesce(:episodeNumber, episode_number),
-    seen =  coalesce(:seen, seen)
+    seen =  coalesce(:seen, seen),
+    date =  coalesce(:date, date),
+    source_order = coalesce(:sourceOrder, source_order)
 WHERE _id = :episodeId;
+
+delete:
+DELETE FROM Episode
+WHERE _id IN :episodeId;
 
 selectLastInsertedRowId:
 SELECT last_insert_rowid();

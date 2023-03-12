@@ -47,7 +47,7 @@ fun DetailsScreen(
         PullRefresh(
             refreshing = isRefreshing,
             onRefresh = {
-
+                detailsViewModel.onRefresh()
             },
             indicatorPadding = contentPadding,
         ) {

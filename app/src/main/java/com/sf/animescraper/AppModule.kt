@@ -74,7 +74,7 @@ class AppModule(private val app: Application) : InjektModule {
         }
 
         addSingletonFactory {
-            UpdateAnimeInteractor(get())
+            UpdateAnimeInteractor(get(),get())
         }
 
         addSingletonFactory {

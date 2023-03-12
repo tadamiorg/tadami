@@ -2,6 +2,7 @@ package com.sf.animescraper.data.episode
 
 import com.sf.animescraper.data.DataBaseHandler
 import com.sf.animescraper.domain.episode.Episode
+import com.sf.animescraper.domain.episode.UpdateEpisode
 import kotlinx.coroutines.flow.Flow
 
 interface EpisodeRepository {
@@ -9,6 +10,8 @@ interface EpisodeRepository {
     suspend fun getEpisodesByAnimeId(animeId: Long): List<Episode>
     suspend fun getEpisodeById(episodeId : Long) : Episode
     fun getEpisodesByAnimeIdAsFlow(animeId: Long): Flow<List<Episode>>
+    suspend fun deleteEpisodesById(ids : List<Long>)
+    suspend fun updateAll(episodes : List<UpdateEpisode>)
 
 }
 
@@ -25,7 +28,8 @@ class EpisodeRepositoryImpl(
                         name = episode.name,
                         episodeNumber = episode.episodeNumber.toDouble(),
                         seen = episode.seen,
-                        date = episode.date
+                        date = episode.date,
+                        sourceOrder = episode.sourceOrder
                     )
                     val insertedEpId = episodeQueries.selectLastInsertedRowId().executeAsOne()
                     episode.copy(id = insertedEpId)
@@ -56,5 +60,26 @@ class EpisodeRepositoryImpl(
 
     override fun getEpisodesByAnimeIdAsFlow(animeId: Long): Flow<List<Episode>> {
         return handler.subscribeToList { episodeQueries.getEpisodesByAnimeId(animeId, episodeMapper) }
+    }
+
+    override suspend fun deleteEpisodesById(ids: List<Long>) {
+        handler.await { episodeQueries.delete(ids) }
+    }
+
+    override suspend fun updateAll(episodes: List<UpdateEpisode>) {
+        handler.await {
+            episodes.forEach {episodeUpdate ->
+                episodeQueries.update(
+                    animeId = episodeUpdate.animeId,
+                    url = episodeUpdate.url,
+                    name = episodeUpdate.name,
+                    episodeNumber = episodeUpdate.episodeNumber?.toDouble(),
+                    seen = episodeUpdate.seen,
+                    episodeId = episodeUpdate.id,
+                    date = episodeUpdate.date,
+                    sourceOrder = episodeUpdate.sourceOrder
+                )
+            }
+        }
     }
 }

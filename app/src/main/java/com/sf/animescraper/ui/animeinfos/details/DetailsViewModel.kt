@@ -4,12 +4,9 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sf.animescraper.data.episode.EpisodeRepository
 import com.sf.animescraper.data.interactors.AnimeWithEpisodesInteractor
 import com.sf.animescraper.data.interactors.UpdateAnimeInteractor
 import com.sf.animescraper.domain.anime.Anime
-import com.sf.animescraper.domain.episode.Episode
-import com.sf.animescraper.domain.episode.copyFromSEpisode
 import com.sf.animescraper.network.api.online.AnimeSource
 import com.sf.animescraper.network.requests.okhttp.HttpError
 import com.sf.animescraper.ui.tabs.animesources.AnimeSourcesManager
@@ -24,7 +21,6 @@ class DetailsViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val episodeRepository: EpisodeRepository = Injekt.get()
     private val sourcesManager: AnimeSourcesManager = Injekt.get()
     private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
     private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
@@ -56,7 +52,9 @@ class DetailsViewModel(
                 _uiState.update { currentState ->
                     currentState.copy(
                         details = anime,
-                        episodes = episodes
+                        episodes = episodes.sortedBy {
+                            it.sourceOrder
+                        }
                     )
                 }
             }
@@ -95,18 +93,24 @@ class DetailsViewModel(
 
     private suspend fun fetchAnimeDetailsFromSource(anime: Anime) {
         val networkDetails = source.fetchAnimeDetails(anime).singleOrError().await()
-        val isUpdated = updateAnimeInteractor.awaitUpdateFromSource(anime, networkDetails)
+        updateAnimeInteractor.awaitUpdateFromSource(anime, networkDetails)
         _detailsRefreshing.update { false }
 
     }
 
     private suspend fun fetchEpisodesFromSource(anime: Anime) {
         val networkEpisodes = source.fetchEpisodesList(anime).singleOrError().await()
-        episodeRepository.addAll(networkEpisodes.map {
-            Episode.create().copyFromSEpisode(it).copy(
-                animeId = animeId
-            )
-        })
+        updateAnimeInteractor.awaitEpisodesSyncFromSource(anime,networkEpisodes)
         _episodesRefreshing.update { false }
+    }
+
+    fun onRefresh(){
+        viewModelScope.launch(Dispatchers.IO) {
+            _episodesRefreshing.update { true }
+            _detailsRefreshing.update { true }
+            val anime = animeWithEpisodesInteractor.awaitAnime(animeId)
+            fetchAnimeDetailsFromSource(anime)
+            fetchEpisodesFromSource(anime)
+        }
     }
 }

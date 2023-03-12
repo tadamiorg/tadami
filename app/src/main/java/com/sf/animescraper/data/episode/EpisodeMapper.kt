@@ -9,7 +9,8 @@ val episodeMapper: (
     name: String,
     episode_number: Double,
     seen: Boolean,
-    date: String?
+    date: String?,
+    source_order: Long
 ) -> Episode =
     { id: Long,
       animeId: Long,
@@ -17,7 +18,8 @@ val episodeMapper: (
       name: String,
       episodeNumber: Double,
       seen: Boolean,
-      date: String?
+      date: String?,
+      sourceOrder : Long
         ->
         Episode(
             id = id,
@@ -26,6 +28,7 @@ val episodeMapper: (
             name = name,
             episodeNumber = episodeNumber.toFloat(),
             seen = seen,
-            date = date
+            date = date,
+            sourceOrder = sourceOrder
         )
     }
