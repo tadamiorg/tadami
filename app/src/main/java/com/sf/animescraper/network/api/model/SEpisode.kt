@@ -4,7 +4,7 @@ interface SEpisode {
     var url : String
     var name : String
     var episodeNumber : Float
-    var date : String?
+    var dateUpload : Long
 
     companion object{
         fun create() : SEpisode{

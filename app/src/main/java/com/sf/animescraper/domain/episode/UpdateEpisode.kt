@@ -6,10 +6,19 @@ data class UpdateEpisode(
     val url: String? = null,
     val name: String? = null,
     val episodeNumber: Float? =  null,
+    val timeSeen: Long? = null,
+    val totalTime: Long? = null,
+    val dateFetch: Long? = null,
+    val dateUpload: Long? = null,
     val seen: Boolean? = null,
-    val date: String? =  null,
     val sourceOrder : Long? = null
-)
+){
+    companion object{
+        fun create(id: Long) : UpdateEpisode{
+            return UpdateEpisode(id)
+        }
+    }
+}
 
 
 fun Episode.toUpdateEpisode() : UpdateEpisode{
@@ -19,8 +28,11 @@ fun Episode.toUpdateEpisode() : UpdateEpisode{
         url = url,
         name = name,
         episodeNumber = episodeNumber,
+        timeSeen = timeSeen,
+        totalTime = totalTime,
+        dateFetch = dateFetch,
+        dateUpload = dateUpload,
         seen = seen,
-        date = date,
         sourceOrder = sourceOrder
     )
 }

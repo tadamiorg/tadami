@@ -86,7 +86,6 @@ private fun DetailsToolbar(
                 actions.forEach {action ->
                     ActionItem(action = action)
                 }
-
             }
         )
     }

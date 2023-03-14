@@ -5,11 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sf.animescraper.data.episode.EpisodeRepository
 import com.sf.animescraper.data.interactors.AnimeWithEpisodesInteractor
+import com.sf.animescraper.data.interactors.UpdateAnimeInteractor
 import com.sf.animescraper.domain.episode.Episode
 import com.sf.animescraper.network.api.model.StreamSource
 import com.sf.animescraper.network.api.online.AnimeSource
 import com.sf.animescraper.network.requests.utils.ObserverAS
 import com.sf.animescraper.ui.tabs.animesources.AnimeSourcesManager
+import com.sf.animescraper.ui.utils.SaveableMutableSaveStateFlow
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
@@ -22,10 +24,15 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     private val episodeRepository: EpisodeRepository = Injekt.get()
     private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
+    private val updateAnimeInteractor : UpdateAnimeInteractor = Injekt.get()
     private val sourcesManager: AnimeSourcesManager = Injekt.get()
 
-    private val initialEpisode: Long = checkNotNull(savedStateHandle["episode"])
     private val sourceId: String = checkNotNull(savedStateHandle["sourceId"])
+
+    private val _episodeId = SaveableMutableSaveStateFlow<Long>(
+        savedStateHandle, "episode", checkNotNull(savedStateHandle["episode"])
+    )
+    private val episodeId = _episodeId.asStateFlow()
 
     private val source: AnimeSource = checkNotNull(sourcesManager.getExtensionById(sourceId))
 
@@ -43,9 +50,6 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     private val _isFetchingSources: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isFetchingSources = _isFetchingSources.asStateFlow()
 
-    private val _isNewEpisode: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    val isNewEpisode = _isNewEpisode.asStateFlow()
-
     val playerScreenLoading = combine(animeTitle, episodes) { title, episodes ->
         title.isEmpty() || episodes.isEmpty()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, true)
@@ -59,20 +63,21 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             updatedEpisode.collectLatest {
                 it?.let {
-                    selectEpisode(it.url)
+                    _episodeId.value = it.id
+                    selectEpisode(it)
                 }
             }
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            val selectedEpisode = episodeRepository.getEpisodeById(initialEpisode)
+            val selectedEpisode = episodeRepository.getEpisodeById(episodeId.value)
 
-            animeWithEpisodesInteractor.awaitBoth(selectedEpisode.animeId)
-                .let { (anime, episodes) ->
-                    _animeTitle.update { anime.title }
-                    _episodesList.update { episodes }
-                    _currentEpisode.update { selectedEpisode }
-                }
+            _currentEpisode.update { selectedEpisode }
+
+            animeWithEpisodesInteractor.subscribe(selectedEpisode.animeId).collectLatest {(anime, episodes) ->
+                _animeTitle.update { anime.title }
+                _episodesList.update { episodes }
+            }
         }
     }
 
@@ -80,34 +85,53 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         _currentEpisode.update { episode }
     }
 
-    fun selectSource(source: StreamSource) {
+    fun selectSource(source: StreamSource?) {
         _uiState.update { currentState ->
             currentState.copy(selectedSource = source)
         }
     }
 
-    fun newEpisodeLoaded() {
-        _isNewEpisode.update { false }
+    fun updateTime(episode: Episode?,totalTime : Long,timeSeen : Long){
+        episode?.let { ep ->
+            if(ep.seen) return
+            viewModelScope.launch(Dispatchers.IO) {
+                if (totalTime > 0L && timeSeen > 999L) {
+                    val watched = (timeSeen.toDouble() / totalTime) * 100 > 92
+                    if(watched){
+                        updateAnimeInteractor.awaitSeenUpdate(ep,true)
+                    }else{
+                        updateAnimeInteractor.awaitSeenTimeUpdate(ep, totalTime, timeSeen)
+                    }
+                }
+            }
+        }
     }
 
     private fun selectEpisode(
-        url: String
+        episode: Episode
     ) {
+        _uiState.updateAndGet { currentState ->
+            currentState.copy(
+                rawUrl = null,
+                selectedSource = null,
+                availableSources = emptyList()
+            )
+        }
         _isFetchingSources.update { true }
-        _isNewEpisode.update { true }
         fetchEpisodeDisposable?.dispose()
 
-        source.fetchEpisode(url).subscribeOn(Schedulers.io())
+        source.fetchEpisode(episode.url).subscribeOn(Schedulers.io())
             .subscribe(
                 object : ObserverAS<List<StreamSource>>() {
                     override fun onNext(data: List<StreamSource>) {
-                        _uiState.update { currentState ->
+                        _uiState.updateAndGet { currentState ->
                             currentState.copy(
-                                rawUrl = url,
+                                rawUrl = episode.url,
                                 selectedSource = data.firstOrNull(),
                                 availableSources = data
                             )
                         }
+
                         _isFetchingSources.update { false }
                         super.onNext(data)
                     }

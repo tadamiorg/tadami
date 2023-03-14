@@ -19,10 +19,10 @@ import com.sf.animescraper.ui.utils.clickableNoIndication
 
 @Composable
 fun ContentLoader(modifier: Modifier = Modifier,isLoading: Boolean, delay : Int = 0,content: @Composable BoxScope.() -> Unit) {
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Box(modifier = modifier.fillMaxSize()) {
         content()
         AnimatedVisibility(
-            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).clickableNoIndication {  },
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).align(Alignment.Center).clickableNoIndication {  },
             visible = isLoading,
             enter = fadeIn(animationSpec = tween(0)),
             exit = fadeOut(animationSpec = tween(delayMillis = delay))

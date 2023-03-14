@@ -24,7 +24,6 @@ fun InfiniteAnimeGrid(
         animeList = animeList,
         onAnimeCLicked = onAnimeCLicked,
         lazyGridState = lazyGridState
-
     )
 
 }

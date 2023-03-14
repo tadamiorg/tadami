@@ -1,4 +1,5 @@
 import kotlin.Boolean;
+import kotlin.Long;
 
 CREATE TABLE Episode (
   _id INTEGER NOT NULL PRIMARY KEY,
@@ -6,8 +7,11 @@ CREATE TABLE Episode (
   url TEXT NOT NULL,
   name TEXT NOT NULL,
   episode_number REAL NOT NULL,
+  time_seen INTEGER NOT NULL,
+  total_time INTEGER NOT NULL,
+  date_fetch INTEGER NOT NULL,
+  date_upload INTEGER NOT NULL,
   seen INTEGER AS Boolean NOT NULL DEFAULT 0,
-  date TEXT,
   source_order INTEGER NOT NULL,
   FOREIGN KEY(anime_id) REFERENCES Anime (_id)
   ON DELETE CASCADE
@@ -27,8 +31,8 @@ FROM Episode
 WHERE anime_id = :animeId;
 
 insert:
-INSERT INTO Episode(anime_id,url,name,episode_number,seen,date,source_order)
-VALUES (:animeId,:url,:name,:episodeNumber,:seen,:date,:sourceOrder);
+INSERT INTO Episode(anime_id,url,name,episode_number,time_seen,total_time,date_fetch,date_upload,seen,source_order)
+VALUES (:animeId,:url,:name,:episodeNumber,:timeSeen,:totalTime,:dateFetch,:dateUpload,:seen,:sourceOrder);
 
 update:
 UPDATE Episode
@@ -36,8 +40,11 @@ SET anime_id = coalesce(:animeId, anime_id),
     url = coalesce(:url, url),
     name = coalesce(:name, name),
     episode_number = coalesce(:episodeNumber, episode_number),
+    time_seen = coalesce(:timeSeen, time_seen),
+    total_time = coalesce(:totalTime, total_time),
+    date_fetch =  coalesce(:dateFetch, date_fetch),
+    date_upload =  coalesce(:dateUpload, date_upload),
     seen =  coalesce(:seen, seen),
-    date =  coalesce(:date, date),
     source_order = coalesce(:sourceOrder, source_order)
 WHERE _id = :episodeId;
 

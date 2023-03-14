@@ -39,7 +39,6 @@ import com.sf.animescraper.ui.base.widgets.ContentLoader
 import com.sf.animescraper.ui.utils.UiToasts
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
-
 @Composable
 fun VideoPlayer(
     modifier: Modifier = Modifier,
@@ -53,16 +52,11 @@ fun VideoPlayer(
     val episodeUiState by playerViewModel.uiState.collectAsState()
     val currentEpisode by playerViewModel.currentEpisode.collectAsState()
 
-    val isNewEpisode by playerViewModel.isNewEpisode.collectAsState()
     val isFetchingSources by playerViewModel.isFetchingSources.collectAsState()
 
     val animeTitle by playerViewModel.animeTitle.collectAsState()
 
     val episodesList by playerViewModel.episodes.collectAsState()
-
-    fun selectEpisode(episode: Episode) {
-        playerViewModel.setCurrentEpisode(episode)
-    }
 
     val upstreamDataSource = DefaultHttpDataSource.Factory()
 
@@ -83,7 +77,6 @@ fun VideoPlayer(
         }
     }
 
-
     val dataSourceFactory = remember {
         DefaultMediaSourceFactory(context).apply {
             setDataSourceFactory(resolvingDataSource)
@@ -98,10 +91,6 @@ fun VideoPlayer(
                 setMediaSourceFactory(dataSourceFactory)
             }
             .build()
-            .apply {
-                prepare()
-                playWhenReady = true
-            }
     }
 
 
@@ -121,20 +110,22 @@ fun VideoPlayer(
 
     var openDialog by remember { mutableStateOf(false) }
 
+    fun selectEpisode(episode: Episode) {
+        playerViewModel.updateTime(currentEpisode,totalDuration, currentTime)
+        playerViewModel.setCurrentEpisode(episode)
+    }
+
     LaunchedEffect(key1 = episodeUiState.selectedSource) {
         episodeUiState.selectedSource?.let {
+            exoPlayer.prepare()
+            exoPlayer.playWhenReady = true
             val item = MediaItem.Builder().apply {
                 setUri(
                     it.url
                 )
             }.build()
 
-            if (!isNewEpisode) {
-                exoPlayer.setMediaItem(item, currentTime)
-            } else {
-                exoPlayer.setMediaItem(item, true)
-            }
-            playerViewModel.newEpisodeLoaded()
+            exoPlayer.setMediaItem(item, currentEpisode?.timeSeen.takeIf { it!! > 0 } ?: currentTime)
         }
     }
 
@@ -155,7 +146,7 @@ fun VideoPlayer(
 
     val hasPreviousIterator by remember(episodesList, currentEpisode) {
         derivedStateOf {
-            episodesList.listIterator(episodesList.indexOf(currentEpisode)+1)
+            episodesList.listIterator(episodesList.indexOf(currentEpisode) + 1)
         }
     }
 
@@ -206,7 +197,8 @@ fun VideoPlayer(
                             player = exoPlayer
                             useController = false
                             layoutParams = FrameLayout.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT
                             )
                             setShowBuffering(StyledPlayerView.SHOW_BUFFERING_ALWAYS)
 
@@ -222,7 +214,10 @@ fun VideoPlayer(
                         if (events.contains(Player.EVENT_PLAYER_ERROR)) {
                             player.clearMediaItems()
                             player.prepare()
-                            UiToasts.showToast(R.string.player_screen_source_load_error,"${episodeUiState.selectedSource?.quality}")
+                            UiToasts.showToast(
+                                R.string.player_screen_source_load_error,
+                                "${episodeUiState.selectedSource?.quality}"
+                            )
                         } else {
                             super.onEvents(player, events)
                             totalDuration = player.duration.coerceAtLeast(0L)
@@ -239,6 +234,7 @@ fun VideoPlayer(
 
                     when (event) {
                         Lifecycle.Event.ON_PAUSE -> {
+                            playerViewModel.updateTime(currentEpisode,totalDuration, currentTime)
                             exoPlayer.pause()
                         }
                         Lifecycle.Event.ON_RESUME -> {
@@ -251,6 +247,7 @@ fun VideoPlayer(
                 lifecycle.addObserver(observer)
 
                 onDispose {
+                    playerViewModel.updateTime(currentEpisode,totalDuration, currentTime)
                     lifecycle.removeObserver(observer)
                     exoPlayer.removeListener(listener)
                     exoPlayer.release()
@@ -297,24 +294,20 @@ fun VideoPlayer(
                 },
                 onNext = {
                     if (hasNextIterator.hasPrevious()) {
-                        exoPlayer.clearMediaItems()
                         val next = hasNextIterator.previous()
+                        exoPlayer.clearMediaItems()
                         selectEpisode(next)
                     }
                 },
                 onPrevious = {
                     if (hasPreviousIterator.hasNext()) {
-                        exoPlayer.clearMediaItems()
                         val previous = hasPreviousIterator.next()
+                        exoPlayer.clearMediaItems()
                         selectEpisode(previous)
                     }
                 }
             )
-
-
         }
     }
-
-
 }
 

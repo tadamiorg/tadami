@@ -8,8 +8,11 @@ val episodeMapper: (
     url: String,
     name: String,
     episode_number: Double,
+    time_seen : Long,
+    total_time : Long,
+    date_fetch: Long,
+    date_upload: Long,
     seen: Boolean,
-    date: String?,
     source_order: Long
 ) -> Episode =
     { id: Long,
@@ -17,8 +20,11 @@ val episodeMapper: (
       url: String,
       name: String,
       episodeNumber: Double,
+      timeSeen : Long,
+      totalTime : Long,
+      dateFetch : Long,
+      dateUpload : Long,
       seen: Boolean,
-      date: String?,
       sourceOrder : Long
         ->
         Episode(
@@ -27,8 +33,11 @@ val episodeMapper: (
             url = url,
             name = name,
             episodeNumber = episodeNumber.toFloat(),
+            timeSeen = timeSeen,
+            totalTime = totalTime,
+            dateFetch = dateFetch,
+            dateUpload = dateUpload,
             seen = seen,
-            date = date,
             sourceOrder = sourceOrder
         )
     }

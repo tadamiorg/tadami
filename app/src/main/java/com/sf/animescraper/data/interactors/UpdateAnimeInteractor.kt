@@ -3,17 +3,28 @@ package com.sf.animescraper.data.interactors
 import com.sf.animescraper.data.anime.AnimeRepository
 import com.sf.animescraper.data.episode.EpisodeRepository
 import com.sf.animescraper.domain.anime.Anime
+import com.sf.animescraper.domain.anime.UpdateAnime
 import com.sf.animescraper.domain.anime.toUpdateAnime
 import com.sf.animescraper.domain.episode.Episode
+import com.sf.animescraper.domain.episode.UpdateEpisode
 import com.sf.animescraper.domain.episode.copyFromSEpisode
 import com.sf.animescraper.domain.episode.toUpdateEpisode
 import com.sf.animescraper.network.api.model.SAnime
 import com.sf.animescraper.network.api.model.SEpisode
+import java.util.*
 
 class UpdateAnimeInteractor(
     private val animeRepository: AnimeRepository,
     private val episodeRepository: EpisodeRepository,
 ) {
+
+    suspend fun updateFavorite(
+        anime: Anime,
+        favorite: Boolean
+    ) {
+        animeRepository.updateAnime(UpdateAnime.create(anime.id).copy(favorite = favorite))
+    }
+
     suspend fun awaitUpdateFromSource(
         localAnime: Anime,
         remoteAnime: SAnime,
@@ -43,7 +54,7 @@ class UpdateAnimeInteractor(
     ) {
         val sourceEpisodes = remoteEpisodes
             .distinctBy { it.url }
-            .mapIndexed { i,sEpisode ->
+            .mapIndexed { i, sEpisode ->
                 Episode.create()
                     .copyFromSEpisode(sEpisode)
                     .copy(animeId = anime.id, sourceOrder = i.toLong())
@@ -61,34 +72,67 @@ class UpdateAnimeInteractor(
             }
         }
 
+        val rightNow = Date().time
+
         for (sourceEpisode in sourceEpisodes) {
             val dbEpisode = localEpisodes.find { it.url == sourceEpisode.url }
 
-            if(dbEpisode != null){
-                episodesToUpdate.add(dbEpisode.copy(
+            if (dbEpisode == null) {
+                val toAddEpisode = if (sourceEpisode.dateUpload == 0L) {
+                    sourceEpisode.copy(dateFetch = rightNow)
+                } else {
+                    sourceEpisode.copy(dateFetch = rightNow, dateUpload = sourceEpisode.dateUpload)
+                }
+                episodesToAdd.add(toAddEpisode)
+            } else {
+                var toUpdateEpisode = dbEpisode.copy(
                     url = sourceEpisode.url,
                     name = sourceEpisode.name,
                     episodeNumber = sourceEpisode.episodeNumber,
-                    date = sourceEpisode.date,
                     sourceOrder = sourceEpisode.sourceOrder
-                ))
-            }else{
-                episodesToAdd.add(sourceEpisode)
+                )
+
+                if (sourceEpisode.dateUpload != 0L) {
+                    toUpdateEpisode = toUpdateEpisode.copy(dateUpload = sourceEpisode.dateUpload)
+                }
+                episodesToUpdate.add(toUpdateEpisode)
             }
         }
 
-        if(episodesToDelete.isNotEmpty()){
+        if (episodesToDelete.isNotEmpty()) {
             val toDeleteIds = episodesToDelete.map { it.id }
             episodeRepository.deleteEpisodesById(toDeleteIds)
         }
 
-        if(episodesToUpdate.isNotEmpty()){
+        if (episodesToUpdate.isNotEmpty()) {
             val toUpdateEpisodes = episodesToUpdate.map { it.toUpdateEpisode() }
             episodeRepository.updateAll(toUpdateEpisodes)
         }
 
-        if(episodesToAdd.isNotEmpty()){
+        if (episodesToAdd.isNotEmpty()) {
             episodeRepository.addAll(episodesToAdd)
         }
     }
+
+    suspend fun awaitSeenTimeUpdate(
+        episode : Episode,
+        totalTime : Long? = null,
+        timeSeen : Long? = null
+    ){
+        episodeRepository.update(UpdateEpisode.create(episode.id).copy(
+            totalTime = totalTime,
+            timeSeen = timeSeen
+        ))
+    }
+    suspend fun awaitSeenUpdate(
+        episode : Episode,
+        seen : Boolean
+    ){
+        episodeRepository.update(UpdateEpisode.create(episode.id).copy(
+            seen = seen,
+            totalTime = 0,
+            timeSeen = 0
+        ))
+    }
+
 }

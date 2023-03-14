@@ -37,8 +37,7 @@ fun DetailsScreen(
             episodesListState = episodesListState,
             onBackClicked = { navHostController.navigateUp() },
             onFavoriteClicked = {
-
-
+                detailsViewModel.toggleFavorite()
             }
         )
     }) { contentPadding ->
@@ -102,9 +101,15 @@ fun DetailsScreen(
                         )
                     }
 
-                    episodeItems(episodes = uiState.episodes, onEpisodeClicked = { epId ->
-                        navHostController.navigate("${AnimeInfosRoutes.EPISODE}/${detailsViewModel.source.id}/$epId")
-                    })
+                    episodeItems(
+                        episodes = uiState.episodes,
+                        onEpisodeClicked = { epId ->
+                            navHostController.navigate("${AnimeInfosRoutes.EPISODE}/${detailsViewModel.source.id}/$epId")
+                        },
+                        onEpisodeLongClick = {
+
+                        }
+                    )
                 }
             }
         }

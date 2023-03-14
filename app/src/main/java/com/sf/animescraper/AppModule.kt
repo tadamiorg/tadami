@@ -14,6 +14,7 @@ import com.sf.animescraper.data.interactors.AnimeWithEpisodesInteractor
 import com.sf.animescraper.data.interactors.UpdateAnimeInteractor
 import com.sf.animescraper.data.episode.EpisodeRepository
 import com.sf.animescraper.data.episode.EpisodeRepositoryImpl
+import com.sf.animescraper.data.interactors.FavoriteInteractor
 import com.sf.animescraper.network.database.listOfStringsAdapter
 import com.sf.animescraper.network.requests.okhttp.HttpClient
 import com.sf.animescraper.ui.tabs.animesources.AnimeSourcesManager
@@ -50,7 +51,6 @@ class AppModule(private val app: Application) : InjektModule {
                 driver = get(),
                 AnimeAdapter = Anime.Adapter(
                     genresAdapter = listOfStringsAdapter,
-
                 ),
             )
         }
@@ -79,6 +79,10 @@ class AppModule(private val app: Application) : InjektModule {
 
         addSingletonFactory {
             AnimeWithEpisodesInteractor(get(),get())
+        }
+
+        addSingletonFactory {
+            FavoriteInteractor(get())
         }
 
         // HttpClient

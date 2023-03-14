@@ -10,6 +10,8 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.sf.animescraper.domain.anime.Anime
+import com.sf.animescraper.domain.anime.FavoriteAnime
+import com.sf.animescraper.domain.anime.toAnime
 import com.sf.animescraper.ui.base.widgets.ContentLoader
 
 @Composable
@@ -18,7 +20,7 @@ fun AnimeGrid(
     animeList: LazyPagingItems<Anime>,
     onAnimeCLicked: (anime: Anime) -> Unit,
     lazyGridState: LazyGridState = rememberLazyGridState(),
-    contentPadding: PaddingValues
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
 
     var initialLoading by rememberSaveable {
@@ -49,13 +51,33 @@ fun AnimeGrid(
                 }
             }
             items(animeList.itemCount) { index ->
-                AnimeItem(anime = animeList[index]!!, onAnimeClicked = onAnimeCLicked)
+                AnimeGridItem(anime = animeList[index]!!, onAnimeClicked = onAnimeCLicked)
             }
             if (animeList.loadState.refresh is LoadState.Loading || animeList.loadState.append is LoadState.Loading) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     LoadingItem()
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun AnimeGrid(
+    modifier: Modifier = Modifier,
+    animeList: List<FavoriteAnime>,
+    onAnimeCLicked: (anime: Anime) -> Unit,
+    lazyGridState: LazyGridState = rememberLazyGridState(),
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+) {
+    LazyVerticalGrid(
+        modifier = modifier,
+        state = lazyGridState,
+        columns = GridCells.Adaptive(128.dp),
+        contentPadding = contentPadding
+    ) {
+        items(animeList){favorite ->
+            CompactAnimeGridItem(anime = favorite.toAnime(), unseenBadge = favorite.unseenEpisodes,onAnimeClicked = onAnimeCLicked)
         }
     }
 }

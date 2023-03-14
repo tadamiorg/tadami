@@ -7,10 +7,13 @@ data class Episode(
     val animeId : Long,
     val url : String,
     val name : String,
+    val timeSeen : Long,
+    val totalTime : Long,
+    val dateFetch : Long,
+    val dateUpload : Long,
     val episodeNumber : Float,
     val seen : Boolean,
     val sourceOrder : Long,
-    val date : String?,
 ) {
     companion object {
         fun create() : Episode{
@@ -20,9 +23,12 @@ data class Episode(
                 url = "",
                 name = "",
                 episodeNumber = -1F,
+                timeSeen = 0,
+                totalTime = 0,
+                dateFetch = 0,
+                dateUpload = -1,
                 seen = false,
                 sourceOrder = 0L,
-                date = null
             )
         }
     }
@@ -33,6 +39,6 @@ fun Episode.copyFromSEpisode(other : SEpisode) : Episode{
         url = other.url,
         name = other.name,
         episodeNumber = other.episodeNumber,
-        date = other.date
+        dateUpload = other.dateUpload
     )
 }

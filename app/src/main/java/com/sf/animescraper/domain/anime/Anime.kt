@@ -14,7 +14,7 @@ data class Anime(
     val genres: List<String>?,
     val favorite: Boolean,
     val initialized: Boolean,
-){
+) {
     fun copyFrom(other: SAnime): Anime {
         return this.copy(
             release = other.release,
@@ -27,7 +27,7 @@ data class Anime(
     }
 
 
-    companion object{
+    companion object {
         fun create() = Anime(
             id = -1L,
             source = "",
@@ -44,7 +44,7 @@ data class Anime(
     }
 }
 
-fun SAnime.toDomainAnime(source: String) : Anime{
+fun SAnime.toDomainAnime(source: String): Anime {
     return Anime.create().copy(
         source = source,
         url = url,
@@ -55,6 +55,22 @@ fun SAnime.toDomainAnime(source: String) : Anime{
         description = description,
         genres = genres,
         initialized = initialized
+    )
+}
+
+fun FavoriteAnime.toAnime(): Anime {
+    return Anime(
+        id = id,
+        source = source,
+        url = url,
+        title = title,
+        thumbnailUrl = thumbnailUrl,
+        release = release,
+        status = status,
+        description = description,
+        genres = genres,
+        favorite = favorite,
+        initialized = initialized,
     )
 }
 

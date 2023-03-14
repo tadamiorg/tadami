@@ -12,7 +12,13 @@ data class UpdateAnime(
     val genres: List<String>? = null,
     val favorite: Boolean? = null,
     val initialized: Boolean? = null,
-)
+){
+    companion object{
+        fun create(id : Long) : UpdateAnime{
+            return UpdateAnime(id)
+        }
+    }
+}
 
 
 fun Anime.toUpdateAnime() : UpdateAnime {

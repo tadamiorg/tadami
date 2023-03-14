@@ -5,6 +5,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.sf.animescraper.data.DataBaseHandler
 import com.sf.animescraper.domain.anime.Anime
+import com.sf.animescraper.domain.anime.FavoriteAnime
 import com.sf.animescraper.domain.anime.UpdateAnime
 import com.sf.animescraper.network.api.model.AnimeFilterList
 import com.sf.animescraper.network.api.model.SAnime
@@ -20,7 +21,7 @@ interface AnimeRepository {
 
     suspend fun insertNetworkToLocalAnime(anime: Anime): Anime
 
-    fun getFavoriteAnimes(): Flow<List<Anime>>
+    fun getFavoriteAnimes(): Flow<List<FavoriteAnime>>
 
     suspend fun getAnimeById(id: Long): Anime
 
@@ -28,7 +29,7 @@ interface AnimeRepository {
 
     suspend fun getAnimeBySourceAndUrl(source: String, url: String): Anime?
 
-    fun getMangaByUrlAndSourceIdAsFlow(sourceId: String, url: String): Flow<Anime?>
+    fun getAnimeByUrlAndSourceIdAsFlow(sourceId: String, url: String): Flow<Anime?>
 
     suspend fun updateAnime(anime: UpdateAnime) : Boolean
 
@@ -84,15 +85,15 @@ class AnimeRepositoryImpl(
         }
     }
 
-    override fun getFavoriteAnimes(): Flow<List<Anime>> {
-        return handler.subscribeToList { animeQueries.getFavorites(animeMapper) }
+    override fun getFavoriteAnimes(): Flow<List<FavoriteAnime>> {
+        return handler.subscribeToList { favoriteQueries.getFavorites(favoriteMapper) }
     }
 
     override suspend fun getAnimeBySourceAndUrl(source: String, url: String): Anime? {
         return handler.awaitOneOrNull { animeQueries.getBySourceAndUrl(url, source, animeMapper) }
     }
 
-    override fun getMangaByUrlAndSourceIdAsFlow(sourceId: String, url: String): Flow<Anime?> {
+    override fun getAnimeByUrlAndSourceIdAsFlow(sourceId: String, url: String): Flow<Anime?> {
         return handler.subscribeToOneOrNull {
             animeQueries.getBySourceAndUrl(
                 url,

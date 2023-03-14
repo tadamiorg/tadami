@@ -13,6 +13,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sf.animescraper.ui.animeinfos.details.infos.DotSeparatorText
+import com.sf.animescraper.ui.utils.SeenItemAlpha
+import com.sf.animescraper.ui.utils.SecondaryItemAlpha
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -21,11 +24,18 @@ fun EpisodeListItem(
     title: String,
     date: String? = null,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    seen : Boolean,
+    watchProgress : String?
 ) {
+    val textAlpha = if (seen) SeenItemAlpha else 1f
+    val textSubtitleAlpha = if (seen) SeenItemAlpha else SecondaryItemAlpha
+
     Row(
         modifier = modifier
             .combinedClickable(
                 onClick = onClick,
+                onLongClick = onLongClick
             )
             .padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 12.dp),
     ) {
@@ -39,13 +49,13 @@ fun EpisodeListItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     onTextLayout = { textHeight = it.size.height },
-                    modifier = Modifier.alpha(1f),
+                    modifier = Modifier.alpha(textAlpha),
                 )
             }
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            Row(modifier = Modifier.alpha(.78f)) {
+            Row(modifier = Modifier.alpha(textSubtitleAlpha)) {
                 ProvideTextStyle(
                     value = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp),
                 ) {
@@ -55,6 +65,16 @@ fun EpisodeListItem(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
+                        if (watchProgress != null) DotSeparatorText()
+                    }
+                    if (watchProgress != null) {
+                        Text(
+                            text = watchProgress,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.alpha(SeenItemAlpha),
+                        )
+
                     }
                 }
             }

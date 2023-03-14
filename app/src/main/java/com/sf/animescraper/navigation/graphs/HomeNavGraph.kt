@@ -19,10 +19,10 @@ fun HomeNavGraph(navController: NavHostController) {
         startDestination = HomeNavItems.Favorites.route
     ) {
         composable(route = HomeNavItems.Favorites.route){
-            FavoritesScreen()
+            FavoritesScreen(navController = navController)
         }
         composable(route = HomeNavItems.Sources.route){
-            AnimeSourcesScreen(navHostController = navController)
+            AnimeSourcesScreen(navController = navController)
         }
         composable(route = HomeNavItems.Settings.route){
             SettingsScreen()

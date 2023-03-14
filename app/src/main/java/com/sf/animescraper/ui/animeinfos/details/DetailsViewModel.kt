@@ -113,4 +113,10 @@ class DetailsViewModel(
             fetchEpisodesFromSource(anime)
         }
     }
+    fun toggleFavorite(){
+        viewModelScope.launch(Dispatchers.IO) {
+            val anime = animeWithEpisodesInteractor.awaitAnime(animeId)
+            updateAnimeInteractor.updateFavorite(anime,!anime.favorite)
+        }
+    }
 }
