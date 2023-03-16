@@ -3,6 +3,7 @@ package com.sf.animescraper.network.requests.utils
 import com.sf.animescraper.network.requests.okhttp.Callback
 import com.sf.animescraper.ui.utils.UiToasts
 import com.sf.animescraper.App
+import com.sf.animescraper.R
 import com.sf.animescraper.network.requests.okhttp.HttpError
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.disposables.Disposable
@@ -28,15 +29,21 @@ open class ObserverAS<T : Any>(private val callback : Callback<T>? = null) : Obs
             withContext(Dispatchers.Main){
                 when(e){
                     is HttpError.Failure -> {
-                        App.getAppContext()?.let { UiToasts.showToast("Could not scrape website. Error Code : ${e.statusCode}") }
+                        App.getAppContext()?.let { UiToasts.showToast(
+                            R.string.request_error_response,
+                            "${e.statusCode}"
+                        )}
                         callback?.onError(e.message,e.statusCode)
                     }
                     is HttpError.CloudflareError ->{
-                        App.getAppContext()?.let { UiToasts.showToast(e.msg) }
+                        App.getAppContext()?.let { UiToasts.showToast(R.string.request_bypass_cloudflare_failure) }
                         callback?.onError(e.msg)
                     }
                     else ->{
-                        App.getAppContext()?.let{ UiToasts.showToast("Unknown Error : ${e.message}")}
+                        App.getAppContext()?.let{ UiToasts.showToast(
+                            R.string.request_unknown_error,
+                            "${e.message}"
+                        )}
                         callback?.onError(e.message)
                         e.printStackTrace()
                     }

@@ -10,9 +10,8 @@
     <string name="language_fr">Français</string>
     <string name="language_en">Anglais</string>
     <string name="language_others">Autres</string>
-    <string name="request_error_connect">L\'application n\'a pas pu se connecter à l\'API</string>
-    <string name="request_error_response">La réponse de l\'API n\'est pas valide</string>
-    <string name="bypass_cloudflare_failure">Impossible de contourner Cloudflare</string>
+    <string name="request_error_response">Impossible de récupérer les données de la source. Code d\'erreur : %1$s</string>
+    <string name="request_bypass_cloudflare_failure">Impossible de contourner Cloudflare</string>
     <string name="discover_recents_screen_title">Récents</string>
     <string name="anime_sources_screen_recents_btn">Récents</string>
     <plurals name="details_screen_episodes_number">
@@ -34,8 +33,9 @@
     <string name="player_screen_qd_title">Qualité du stream</string>
     <string name="player_screen_qd_cancel_btn">Annuler</string>
     <string name="discover_search_screen_title">Recherche</string>
-    <string name="discover_search_screen_search_placeholder">Rechercher par nom...</string>
+    <string name="discover_search_screen_search_placeholder">Rechercher par nom…</string>
     <string name="discover_search_screen_filters_group_ok_btn">Confirmer</string>
     <string name="discover_search_screen_filters_group_selected_text">selectionner</string>
     <string name="player_screen_source_load_error">La source %1$s n\'a pas pu charger</string>
+    <string name="request_unknown_error">Erreur réseau : %1$s</string>
 </resources>

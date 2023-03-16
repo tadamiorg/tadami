@@ -13,6 +13,7 @@ import com.sf.animescraper.network.requests.okhttp.HttpError
 import com.sf.animescraper.ui.animeinfos.details.episodes.EpisodeItem
 import com.sf.animescraper.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.animescraper.ui.utils.addOrRemove
+import com.sf.animescraper.ui.utils.awaitSingleOrError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -68,47 +69,36 @@ class DetailsViewModel(
             val anime = animeWithEpisodesInteractor.awaitAnime(animeId)
             val episodes = animeWithEpisodesInteractor.awaitEpisodes(animeId)
 
-            try {
-                if (!anime.initialized) {
-                    _detailsRefreshing.update { true }
-                    fetchAnimeDetailsFromSource(anime)
-                }
-
-                if (episodes.isEmpty()) {
-                    _episodesRefreshing.update { true }
-                    fetchEpisodesFromSource(anime)
-                }
-            } catch (e: HttpError) {
-                when (e) {
-                    is HttpError.Failure -> {
-                        Log.e(
-                            "Anime details",
-                            "Anime details could not be retrieved. Error code : ${e.statusCode}"
-                        )
-                    }
-                    else -> {
-                        Log.d("Unknown error", e.toString(), e)
-                    }
-                }
-
-                _episodesRefreshing.update { false }
-                _detailsRefreshing.update { false }
+            if (!anime.initialized) {
+                _detailsRefreshing.update { true }
+                fetchAnimeDetailsFromSource(anime)
             }
 
+            if (episodes.isEmpty()) {
+                _episodesRefreshing.update { true }
+                fetchEpisodesFromSource(anime)
+            }
         }
     }
 
-    private suspend fun fetchAnimeDetailsFromSource(anime: Anime) {
-        val networkDetails = source.fetchAnimeDetails(anime).singleOrError().await()
-        updateAnimeInteractor.awaitUpdateFromSource(anime, networkDetails)
-        _detailsRefreshing.update { false }
+    // Update anime details functions
 
+    private suspend fun fetchAnimeDetailsFromSource(anime: Anime) {
+        val networkDetails = source.fetchAnimeDetails(anime)
+            .awaitSingleOrError { _detailsRefreshing.update { false } }
+        networkDetails?.let {
+            updateAnimeInteractor.awaitUpdateFromSource(anime, it)
+            _detailsRefreshing.update { false }
+        }
     }
 
     private suspend fun fetchEpisodesFromSource(anime: Anime) {
-        val networkEpisodes = source.fetchEpisodesList(anime).singleOrError().await()
-        updateAnimeInteractor.awaitEpisodesSyncFromSource(anime, networkEpisodes)
-        _episodesRefreshing.update { false }
+        val networkEpisodes = source.fetchEpisodesList(anime)
+            .awaitSingleOrError { _episodesRefreshing.update { false } }
+        networkEpisodes?.let {
+            updateAnimeInteractor.awaitEpisodesSyncFromSource(anime, networkEpisodes)
+            _episodesRefreshing.update { false }
+        }
     }
 
     fun onRefresh() {
@@ -130,12 +120,12 @@ class DetailsViewModel(
 
     // Action Mode Functions
 
-    fun setSeenStatus(){
+    fun setSeenStatus() {
         viewModelScope.launch(Dispatchers.IO) {
-            selectedEpisodesIds.forEach {id ->
-                val found = uiState.value.episodes.find { it.episode.id == id}?.episode
-                if(found != null){
-                    updateAnimeInteractor.awaitSeenUpdate(found,true)
+            selectedEpisodesIds.forEach { id ->
+                val found = uiState.value.episodes.find { it.episode.id == id }?.episode
+                if (found != null) {
+                    updateAnimeInteractor.awaitSeenUpdate(found, true)
                 }
             }
             toggleAllSelectedEpisodes(false)
@@ -143,21 +133,22 @@ class DetailsViewModel(
         }
     }
 
-    fun setSeenStatusDown(){
+    fun setSeenStatusDown() {
         viewModelScope.launch(Dispatchers.IO) {
-            if(selectedEpisodesIds.size > 1) return@launch
+            if (selectedEpisodesIds.size > 1) return@launch
 
             val selectedEpisodeId = selectedEpisodesIds.first()
-            val selectedEp = uiState.value.episodes.indexOfFirst { it.episode.id == selectedEpisodeId }
+            val selectedEp =
+                uiState.value.episodes.indexOfFirst { it.episode.id == selectedEpisodeId }
 
-            if(selectedEp<0) return@launch
+            if (selectedEp < 0) return@launch
 
             val listSize = uiState.value.episodes.size
 
-            val underEps = uiState.value.episodes.slice(selectedEp+1 until listSize)
+            val underEps = uiState.value.episodes.slice(selectedEp + 1 until listSize)
 
-            underEps.forEach {under ->
-                updateAnimeInteractor.awaitSeenUpdate(under.episode,true)
+            underEps.forEach { under ->
+                updateAnimeInteractor.awaitSeenUpdate(under.episode, true)
             }
 
             toggleAllSelectedEpisodes(false)
@@ -165,12 +156,12 @@ class DetailsViewModel(
         }
     }
 
-    fun setUnseenStatus(){
+    fun setUnseenStatus() {
         viewModelScope.launch(Dispatchers.IO) {
-            selectedEpisodesIds.forEach {id ->
-                val found = uiState.value.episodes.find { it.episode.id == id}?.episode
-                if(found != null){
-                    updateAnimeInteractor.awaitSeenUpdate(found,false)
+            selectedEpisodesIds.forEach { id ->
+                val found = uiState.value.episodes.find { it.episode.id == id }?.episode
+                if (found != null) {
+                    updateAnimeInteractor.awaitSeenUpdate(found, false)
                 }
             }
             toggleAllSelectedEpisodes(false)
@@ -220,6 +211,7 @@ class DetailsViewModel(
             )
         }
     }
+
     private fun List<Episode>.toEpisodeItems(): List<EpisodeItem> {
         return this.map {
             EpisodeItem(
