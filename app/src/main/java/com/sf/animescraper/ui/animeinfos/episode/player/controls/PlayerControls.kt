@@ -29,6 +29,7 @@ fun PlayerControls(
     onSeekChanged: (timeMs: Float) -> Unit,
     onSettings: () -> Unit,
     onBack: () -> Unit,
+    onCast: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onForward: () -> Unit
@@ -51,7 +52,8 @@ fun PlayerControls(
                     .fillMaxWidth(),
                 title = title,
                 episode = episode,
-                onBackClicked = onBack
+                onBackClicked = onBack,
+                onCastClicked = onCast
             )
 
             // center player controls

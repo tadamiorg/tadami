@@ -292,6 +292,9 @@ fun VideoPlayer(
                     exoPlayer.release()
                     dispatcher.onBackPressed()
                 },
+                onCast = {
+
+                },
                 onNext = {
                     if (hasNextIterator.hasPrevious()) {
                         val next = hasNextIterator.previous()

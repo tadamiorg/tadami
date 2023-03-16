@@ -24,7 +24,8 @@ fun TopControl(
     modifier: Modifier = Modifier,
     title: () -> String,
     episode: String,
-    onBackClicked: () -> Unit
+    onBackClicked: () -> Unit,
+    onCastClicked: () -> Unit
 ) {
     val videoTitle = remember(title()) { title() }
     val episodeNumber = remember(episode) { episode }
@@ -69,8 +70,8 @@ fun TopControl(
             )
         }
 
-        IconButton(modifier = Modifier,onClick = onBackClicked) {
-            Icon(painter = painterResource(id = R.drawable.ic_cast), contentDescription = "Cast",tint = MaterialTheme.colorScheme.onSurface)
+        IconButton(modifier = Modifier,onClick = onCastClicked, enabled = false) {
+            Icon(painter = painterResource(id = R.drawable.ic_cast), contentDescription = null,tint = MaterialTheme.colorScheme.onSurface)
         }
 
     }
@@ -81,6 +82,6 @@ fun TopControl(
 fun PreviewTopControl() {
     TopControl(Modifier.fillMaxWidth(),
         { "Ore ga ojô-sama gakkô ni 'shomin sample' toshite gettsu sareta ken" },
-        "episode 5", onBackClicked = {})
+        "episode 5", onBackClicked = {}, onCastClicked = {})
 
 }

@@ -27,7 +27,6 @@ import com.sf.animescraper.ui.utils.AppKeyboardFocusManager
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
 
-
 @Composable
 fun SearchToolBar(
     modifier: Modifier = Modifier,
@@ -142,8 +141,8 @@ fun SearchToolBarCollapsed(
 ) {
     val actions = remember {
         listOf(
-            Action(
-                title = androidx.appcompat.R.string.search_menu_title,
+            Action.Drawable(
+                title = R.string.stub_text,
                 icon = R.drawable.ic_search,
                 onClick = onExpand
             )

@@ -2,44 +2,79 @@ package com.sf.animescraper.ui.animeinfos.details.episodes
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.ui.res.stringResource
-import com.sf.animescraper.domain.episode.Episode
+import androidx.compose.ui.util.fastAny
 import com.sf.animescraper.ui.animeinfos.details.DetailsScreenItem
 import com.sf.animescraper.ui.utils.formatMinSec
 import com.sf.animescraper.ui.utils.toRelativeString
-import java.text.DateFormat
 import java.util.*
 
 fun LazyListScope.episodeItems(
-    episodes: List<Episode>,
+    episodes: List<EpisodeItem>,
     onEpisodeClicked: (epId: Long) -> Unit,
-    onEpisodeLongClick: () -> Unit,
+    onEpisodeSelected: (episode: EpisodeItem, selected: Boolean) -> Unit
 ) {
     items(
         items = episodes,
-        key = { it.id },
-        contentType = { DetailsScreenItem.EPISODE }) { episode ->
+        key = { it.episode.id },
+        contentType = { DetailsScreenItem.EPISODE }) { episodeItem ->
         EpisodeListItem(
-            title = episode.name,
+            title = episodeItem.episode.name,
             onClick = {
-                onEpisodeClicked(episode.id)
+                updateSelected(
+                    episodeItem = episodeItem,
+                    episodes = episodes,
+                    onEpisodeSelected = onEpisodeSelected,
+                    onEpisodeClicked = onEpisodeClicked
+                )
             },
-            onLongClick = onEpisodeLongClick,
-            seen = episode.seen,
-            watchProgress = episode.timeSeen
-                .takeIf { !episode.seen && episode.totalTime > 0L && it > 0L }
+            onLongClick = {
+                updateSelected(
+                    episodeItem = episodeItem,
+                    episodes = episodes,
+                    onEpisodeSelected = onEpisodeSelected,
+                    onEpisodeLongClicked = true
+                )
+            },
+            seen = episodeItem.episode.seen,
+            watchProgress = episodeItem.episode.timeSeen
+                .takeIf { !episodeItem.episode.seen && episodeItem.episode.totalTime > 0L && it > 0L }
                 ?.let {
-                    "${it.formatMinSec()}/${episode.totalTime.formatMinSec()}"
+                    "${it.formatMinSec()}/${episodeItem.episode.totalTime.formatMinSec()}"
                 },
             date = when {
-                episode.dateUpload > 0L -> {
-                    Date(episode.dateUpload).toRelativeString()
+                episodeItem.episode.dateUpload > 0L -> {
+                    Date(episodeItem.episode.dateUpload).toRelativeString()
                 }
-                episode.dateFetch > 0L -> {
-                    Date(episode.dateFetch).toRelativeString()
+                episodeItem.episode.dateFetch > 0L -> {
+                    Date(episodeItem.episode.dateFetch).toRelativeString()
                 }
                 else -> null
             },
+            selected = episodeItem.selected
         )
     }
+}
+
+fun updateSelected(
+    episodeItem: EpisodeItem,
+    episodes: List<EpisodeItem>,
+    onEpisodeSelected: (episodeItem: EpisodeItem, selected: Boolean) -> Unit,
+    onEpisodeClicked: ((episodeId: Long) -> Unit)? = null,
+    onEpisodeLongClicked: Boolean = false
+) {
+    onEpisodeClicked?.let{ clicked ->
+        when {
+            episodeItem.selected -> {
+                onEpisodeSelected(episodeItem, false)
+            }
+            episodes.fastAny { it.selected } -> {
+                onEpisodeSelected(episodeItem, true)
+            }
+            else -> {
+                clicked.invoke(episodeItem.episode.id)
+            }
+        }
+    }
+    if(!onEpisodeLongClicked) return
+    onEpisodeSelected(episodeItem, !episodeItem.selected)
 }

@@ -15,11 +15,24 @@ fun ActionItem(
         enabled = action.enabled,
         onClick = action.onClick
     ) {
-        Icon(
-            painter = painterResource(id = action.icon),
-            contentDescription = stringResource(
-                id = action.title
-            )
-        )
+        when(action){
+            is Action.Drawable -> {
+                Icon(
+                    painter = painterResource(id = action.icon),
+                    contentDescription = stringResource(
+                        id = action.title
+                    )
+                )
+            }
+            is Action.Vector -> {
+                Icon(
+                    imageVector = action.icon,
+                    contentDescription = stringResource(
+                        id = action.title
+                    )
+                )
+            }
+        }
+
     }
 }

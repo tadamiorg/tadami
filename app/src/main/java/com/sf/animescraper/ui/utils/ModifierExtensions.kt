@@ -1,9 +1,12 @@
 package com.sf.animescraper.ui.utils
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -43,6 +46,15 @@ fun Modifier.clickableNoIndication(
         onLongClick = onLongClick,
         onClick = onClick,
     )
+}
+
+fun Modifier.selectedBackground(isSelected: Boolean): Modifier = composed {
+    if (isSelected) {
+        val alpha = 0.22f
+        background(MaterialTheme.colorScheme.secondary.copy(alpha = alpha))
+    } else {
+        this
+    }
 }
 
 fun Modifier.clickableTaps(
