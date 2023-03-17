@@ -4,6 +4,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.util.fastAny
 import com.sf.animescraper.ui.animeinfos.details.DetailsScreenItem
+import com.sf.animescraper.ui.components.data.EpisodeItem
 import com.sf.animescraper.ui.utils.formatMinSec
 import com.sf.animescraper.ui.utils.toRelativeString
 import java.util.*

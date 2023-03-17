@@ -10,7 +10,10 @@ fun RecentComponent(
     animeList: LazyPagingItems<Anime>,
     onAnimeClicked: (anime:Anime) -> Unit,
 ) {
-    InfiniteAnimeGrid(animeList = animeList, onAnimeCLicked = onAnimeClicked)
+    InfiniteAnimeGrid(
+        animeList = animeList,
+        onAnimeClicked = onAnimeClicked
+    )
 }
 
 

@@ -1,24 +1,29 @@
 package com.sf.animescraper.ui.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.sf.animescraper.domain.anime.Anime
-import com.sf.animescraper.domain.anime.FavoriteAnime
 import com.sf.animescraper.domain.anime.toAnime
 import com.sf.animescraper.ui.base.widgets.ContentLoader
+import com.sf.animescraper.ui.components.data.FavoriteItem
+import com.sf.animescraper.ui.utils.CommonMangaItemDefaults
+import com.sf.animescraper.ui.utils.plus
 
 @Composable
 fun AnimeGrid(
     modifier: Modifier = Modifier,
     animeList: LazyPagingItems<Anime>,
-    onAnimeCLicked: (anime: Anime) -> Unit,
+    onAnimeClicked: (anime: Anime) -> Unit,
+    onAnimeLongClicked : (anime: Anime) -> Unit = onAnimeClicked,
     lazyGridState: LazyGridState = rememberLazyGridState(),
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
@@ -36,14 +41,27 @@ fun AnimeGrid(
         }
     }
 
+    val configuration = LocalConfiguration.current
+
+    val columns = when (configuration.orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> {
+            GridCells.Adaptive(128.dp)
+        }
+        else -> {
+            GridCells.Fixed(3)
+        }
+    }
+
     ContentLoader(
         modifier = modifier,
         isLoading = initialLoading
     ) {
         LazyVerticalGrid(
             state = lazyGridState,
-            columns = GridCells.Adaptive(128.dp),
-            contentPadding = contentPadding
+            columns = columns,
+            verticalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridVerticalSpacer),
+            horizontalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridHorizontalSpacer),
+            contentPadding = contentPadding + PaddingValues(8.dp)
         ) {
             if (animeList.loadState.prepend is LoadState.Loading) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
@@ -51,7 +69,11 @@ fun AnimeGrid(
                 }
             }
             items(animeList.itemCount) { index ->
-                AnimeGridItem(anime = animeList[index]!!, onAnimeClicked = onAnimeCLicked)
+                CompactAnimeGridItem(
+                    anime = animeList[index]!!,
+                    onClick = { onAnimeClicked(animeList[index]!!) },
+                    onLongClick = { onAnimeLongClicked(animeList[index]!!) }
+                )
             }
             if (animeList.loadState.refresh is LoadState.Loading || animeList.loadState.append is LoadState.Loading) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
@@ -63,21 +85,45 @@ fun AnimeGrid(
 }
 
 @Composable
-fun AnimeGrid(
+fun FavoriteAnimeGrid(
     modifier: Modifier = Modifier,
-    animeList: List<FavoriteAnime>,
-    onAnimeCLicked: (anime: Anime) -> Unit,
+    animeList: List<FavoriteItem>,
+    onAnimeCLicked: (anime: FavoriteItem) -> Unit,
+    onAnimeLongClicked: (anime: FavoriteItem) -> Unit,
     lazyGridState: LazyGridState = rememberLazyGridState(),
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
+    val configuration = LocalConfiguration.current
+
+    val columns = when (configuration.orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> {
+            GridCells.Adaptive(128.dp)
+        }
+        else -> {
+            GridCells.Fixed(3)
+        }
+    }
+
     LazyVerticalGrid(
         modifier = modifier,
         state = lazyGridState,
-        columns = GridCells.Adaptive(128.dp),
-        contentPadding = contentPadding
+        columns = columns,
+        verticalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridVerticalSpacer),
+        horizontalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridHorizontalSpacer),
+        contentPadding = contentPadding + PaddingValues(8.dp)
     ) {
-        items(animeList){favorite ->
-            CompactAnimeGridItem(anime = favorite.toAnime(), unseenBadge = favorite.unseenEpisodes,onAnimeClicked = onAnimeCLicked)
+        items(animeList) { favoriteItem ->
+            CompactAnimeGridItem(
+                isSelected = favoriteItem.selected,
+                anime = favoriteItem.anime.toAnime(),
+                unseenBadge = favoriteItem.anime.unseenEpisodes,
+                onClick = {
+                    onAnimeCLicked(favoriteItem)
+                },
+                onLongClick = {
+                    onAnimeLongClicked(favoriteItem)
+                }
+            )
         }
     }
 }

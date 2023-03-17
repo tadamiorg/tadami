@@ -12,6 +12,7 @@ interface EpisodeRepository {
     fun getEpisodesByAnimeIdAsFlow(animeId: Long): Flow<List<Episode>>
     suspend fun deleteEpisodesById(ids: List<Long>)
     suspend fun updateAll(episodes: List<UpdateEpisode>)
+    suspend fun updateAllByAnimeId(animeId: Long,episodeUpdate:UpdateEpisode)
     suspend fun update(episodeUpdate: UpdateEpisode)
 
 }
@@ -90,6 +91,23 @@ class EpisodeRepositoryImpl(
                     episodeId = episodeUpdate.id
                 )
             }
+        }
+    }
+
+    override suspend fun updateAllByAnimeId(animeId: Long,episodeUpdate : UpdateEpisode) {
+        handler.await {
+                episodeQueries.updateAllByAnimeId(
+                    animeId = animeId,
+                    url = episodeUpdate.url,
+                    name = episodeUpdate.name,
+                    episodeNumber = episodeUpdate.episodeNumber?.toDouble(),
+                    timeSeen = episodeUpdate.timeSeen,
+                    totalTime = episodeUpdate.totalTime,
+                    dateFetch = episodeUpdate.dateFetch,
+                    dateUpload = episodeUpdate.dateUpload,
+                    seen = episodeUpdate.seen,
+                    sourceOrder = episodeUpdate.sourceOrder,
+                )
         }
     }
 

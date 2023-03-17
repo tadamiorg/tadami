@@ -12,7 +12,8 @@ import com.sf.animescraper.ui.utils.rememberLazyGridState
 fun InfiniteAnimeGrid(
     modifier: Modifier = Modifier,
     animeList: LazyPagingItems<Anime>,
-    onAnimeCLicked: (anime: Anime) -> Unit,
+    onAnimeClicked: (anime: Anime) -> Unit,
+    onAnimeLongClicked: (anime: Anime) -> Unit = onAnimeClicked,
     contentPadding : PaddingValues = PaddingValues(0.dp),
 ) {
 
@@ -22,7 +23,8 @@ fun InfiniteAnimeGrid(
         modifier = modifier,
         contentPadding = contentPadding,
         animeList = animeList,
-        onAnimeCLicked = onAnimeCLicked,
+        onAnimeClicked = onAnimeClicked,
+        onAnimeLongClicked = onAnimeLongClicked,
         lazyGridState = lazyGridState
     )
 

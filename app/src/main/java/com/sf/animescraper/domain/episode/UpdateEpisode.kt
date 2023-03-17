@@ -17,6 +17,9 @@ data class UpdateEpisode(
         fun create(id: Long) : UpdateEpisode{
             return UpdateEpisode(id)
         }
+        fun createWithoutId() : UpdateEpisode{
+            return UpdateEpisode(0)
+        }
     }
 }
 

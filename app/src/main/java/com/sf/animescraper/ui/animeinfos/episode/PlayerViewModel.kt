@@ -98,9 +98,9 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 if (totalTime > 0L && timeSeen > 999L) {
                     val watched = (timeSeen.toDouble() / totalTime) * 100 > 92
                     if(watched){
-                        updateAnimeInteractor.awaitSeenUpdate(ep,true)
+                        updateAnimeInteractor.awaitSeenEpisodeUpdate(ep,true)
                     }else{
-                        updateAnimeInteractor.awaitSeenTimeUpdate(ep, totalTime, timeSeen)
+                        updateAnimeInteractor.awaitSeenEpisodeTimeUpdate(ep, totalTime, timeSeen)
                     }
                 }
             }

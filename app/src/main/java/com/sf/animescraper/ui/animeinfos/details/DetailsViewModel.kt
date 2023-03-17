@@ -1,6 +1,5 @@
 package com.sf.animescraper.ui.animeinfos.details
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,15 +8,13 @@ import com.sf.animescraper.data.interactors.UpdateAnimeInteractor
 import com.sf.animescraper.domain.anime.Anime
 import com.sf.animescraper.domain.episode.Episode
 import com.sf.animescraper.network.api.online.AnimeSource
-import com.sf.animescraper.network.requests.okhttp.HttpError
-import com.sf.animescraper.ui.animeinfos.details.episodes.EpisodeItem
+import com.sf.animescraper.ui.components.data.EpisodeItem
 import com.sf.animescraper.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.animescraper.ui.utils.addOrRemove
 import com.sf.animescraper.ui.utils.awaitSingleOrError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx3.await
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -125,7 +122,7 @@ class DetailsViewModel(
             selectedEpisodesIds.forEach { id ->
                 val found = uiState.value.episodes.find { it.episode.id == id }?.episode
                 if (found != null) {
-                    updateAnimeInteractor.awaitSeenUpdate(found, true)
+                    updateAnimeInteractor.awaitSeenEpisodeUpdate(found, true)
                 }
             }
             toggleAllSelectedEpisodes(false)
@@ -148,7 +145,7 @@ class DetailsViewModel(
             val underEps = uiState.value.episodes.slice(selectedEp + 1 until listSize)
 
             underEps.forEach { under ->
-                updateAnimeInteractor.awaitSeenUpdate(under.episode, true)
+                updateAnimeInteractor.awaitSeenEpisodeUpdate(under.episode, true)
             }
 
             toggleAllSelectedEpisodes(false)
@@ -161,7 +158,7 @@ class DetailsViewModel(
             selectedEpisodesIds.forEach { id ->
                 val found = uiState.value.episodes.find { it.episode.id == id }?.episode
                 if (found != null) {
-                    updateAnimeInteractor.awaitSeenUpdate(found, false)
+                    updateAnimeInteractor.awaitSeenEpisodeUpdate(found, false)
                 }
             }
             toggleAllSelectedEpisodes(false)

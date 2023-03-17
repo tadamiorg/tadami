@@ -114,7 +114,7 @@ class UpdateAnimeInteractor(
         }
     }
 
-    suspend fun awaitSeenTimeUpdate(
+    suspend fun awaitSeenEpisodeTimeUpdate(
         episode : Episode,
         totalTime : Long? = null,
         timeSeen : Long? = null
@@ -124,7 +124,7 @@ class UpdateAnimeInteractor(
             timeSeen = timeSeen
         ))
     }
-    suspend fun awaitSeenUpdate(
+    suspend fun awaitSeenEpisodeUpdate(
         episode : Episode,
         seen : Boolean
     ){
@@ -133,6 +133,20 @@ class UpdateAnimeInteractor(
             totalTime = 0,
             timeSeen = 0
         ))
+    }
+
+    suspend fun awaitSeenAnimeUpdate(
+        animeId : Long,
+        seen : Boolean
+    ){
+        episodeRepository.updateAllByAnimeId(
+            animeId = animeId,
+            UpdateEpisode.createWithoutId().copy(
+                seen = seen,
+                totalTime = 0,
+                timeSeen = 0
+            )
+        )
     }
 
 }

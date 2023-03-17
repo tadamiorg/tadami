@@ -1,4 +1,4 @@
-package com.sf.animescraper.ui.animeinfos.details.episodes
+package com.sf.animescraper.ui.components.data
 
 import com.sf.animescraper.domain.episode.Episode
 

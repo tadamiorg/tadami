@@ -48,6 +48,19 @@ SET anime_id = coalesce(:animeId, anime_id),
     source_order = coalesce(:sourceOrder, source_order)
 WHERE _id = :episodeId;
 
+updateAllByAnimeId:
+UPDATE Episode
+SET url = coalesce(:url, url),
+    name = coalesce(:name, name),
+    episode_number = coalesce(:episodeNumber, episode_number),
+    time_seen = coalesce(:timeSeen, time_seen),
+    total_time = coalesce(:totalTime, total_time),
+    date_fetch =  coalesce(:dateFetch, date_fetch),
+    date_upload =  coalesce(:dateUpload, date_upload),
+    seen =  coalesce(:seen, seen),
+    source_order = coalesce(:sourceOrder, source_order)
+WHERE anime_id = :animeId;
+
 delete:
 DELETE FROM Episode
 WHERE _id IN :episodeId;

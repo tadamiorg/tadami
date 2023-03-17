@@ -1,11 +1,15 @@
 package com.sf.animescraper.ui.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
@@ -17,13 +21,16 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.sf.animescraper.R
 import com.sf.animescraper.domain.anime.Anime
+import com.sf.animescraper.ui.components.data.FavoriteItem
+import com.sf.animescraper.ui.utils.GridSelectedCoverAlpha
+import com.sf.animescraper.ui.utils.selectedBorderBackground
 
 private val CoverPlaceholderColor = Color(0x1F888888)
 
 @Composable
 fun AnimeGridItem(
     anime: Anime,
-    unseenBadge: Long = 0,
+    unseenBadge: Long? = null,
     onAnimeClicked: (anime: Anime) -> Unit
 ) {
     Column(
@@ -50,7 +57,7 @@ fun AnimeGridItem(
                 contentScale = ContentScale.Crop,
             )
 
-            if (unseenBadge > 0) {
+            if (unseenBadge != null && unseenBadge > 0) {
                 AnimeItemBadge(text = unseenBadge.toString())
             }
         }
@@ -67,20 +74,24 @@ fun AnimeGridItem(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CompactAnimeGridItem(
+    isSelected : Boolean = false,
     anime: Anime,
-    unseenBadge: Long = 0,
-    onAnimeClicked: (anime: Anime) -> Unit
+    unseenBadge: Long? = null,
+    onClick : () -> Unit,
+    onLongClick : () -> Unit = onClick
 ) {
 
     Box(modifier = Modifier
-        .fillMaxWidth()
-        .padding(7.dp, 0.dp, 7.dp, 7.dp)
-        .clickable {
-            onAnimeClicked(anime)
-        }
-        .aspectRatio(2f / 3f)
+        .clip(MaterialTheme.shapes.small)
+        .combinedClickable(
+            onClick = onClick,
+            onLongClick = onLongClick
+        )
+        .selectedBorderBackground(isSelected)
+        .padding(4.dp)
     ) {
         AsyncImage(
             model = anime.thumbnailUrl,
@@ -90,14 +101,16 @@ fun CompactAnimeGridItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(2f / 3f)
-                .clip(MaterialTheme.shapes.small),
+                .clip(MaterialTheme.shapes.small)
+                .alpha(if (isSelected) GridSelectedCoverAlpha else 1f),
             contentScale = ContentScale.Crop,
         )
 
         AnimeGridItemTitleOverlay(title = anime.title)
 
-        if (unseenBadge > 0) {
+        if (unseenBadge != null && unseenBadge > 0) {
             AnimeItemBadge(text = unseenBadge.toString())
         }
     }
 }
+

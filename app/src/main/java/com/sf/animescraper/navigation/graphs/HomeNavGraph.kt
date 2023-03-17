@@ -12,14 +12,23 @@ import com.sf.animescraper.ui.tabs.favorites.FavoritesScreen
 import com.sf.animescraper.ui.tabs.settings.SettingsScreen
 
 @Composable
-fun HomeNavGraph(navController: NavHostController) {
+fun HomeNavGraph(
+    navController: NavHostController,
+    bottomNavDisplay : Boolean,
+    setNavDisplay : (display : Boolean) -> Unit
+) {
     NavHost(
         navController = navController,
         route = GRAPH.HOME,
         startDestination = HomeNavItems.Favorites.route
     ) {
         composable(route = HomeNavItems.Favorites.route){
-            FavoritesScreen(navController = navController)
+            FavoritesScreen(
+                navController = navController,
+                setNavDisplay = setNavDisplay,
+                bottomNavDisplay = bottomNavDisplay
+            )
+
         }
         composable(route = HomeNavItems.Sources.route){
             AnimeSourcesScreen(navController = navController)
