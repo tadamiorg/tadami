@@ -1,7 +1,7 @@
 package com.sf.animescraper.animesources.sources.en.gogoanime
 
 import com.sf.animescraper.animesources.extractors.DoodExtractor
-import com.sf.animescraper.animesources.extractors.StreamSBExtractor
+import com.sf.animescraper.animesources.extractors.streamsbextractor.StreamSBExtractor
 import com.sf.animescraper.animesources.sources.en.gogoanime.extractors.GogoCdnExtractor
 import com.sf.animescraper.domain.anime.Anime
 import com.sf.animescraper.network.api.model.*

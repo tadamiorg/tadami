@@ -14,7 +14,6 @@ import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
-
 class GogoCdnExtractor(private val client: OkHttpClient,private val json : Json) {
     fun videosFromUrl(serverUrl: String): List<StreamSource> {
         try {
@@ -31,7 +30,9 @@ class GogoCdnExtractor(private val client: OkHttpClient,private val json : Json)
             val encryptAjaxParams = cryptoHandler(
                 document.select("script[data-value]")
                     .attr("data-value"),
-                iv, secretKey, false
+                iv,
+                secretKey,
+                false
             ).substringAfter("&")
 
             val httpUrl = serverUrl.toHttpUrl()
