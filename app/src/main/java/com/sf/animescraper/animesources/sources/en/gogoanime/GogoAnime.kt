@@ -180,7 +180,7 @@ class GogoAnime : AnimeSource("GogoAnime") {
 
     // Episode Source Stream
 
-    fun List<StreamSource>.sort(): List<StreamSource> {
+    private fun List<StreamSource>.sort(): List<StreamSource> {
         val quality = "1080"
         val server = "Gogostream"
 

@@ -118,13 +118,14 @@ dependencies {
     implementation "androidx.compose.material:material-icons-extended:1.3.1"
 
     // Other compose dependencies
+    def compose_accompanist = "0.28.0"
 
     implementation "androidx.compose.foundation:foundation:1.3.1"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
-    implementation "com.google.accompanist:accompanist-themeadapter-material3:0.28.0"
-    implementation "com.google.accompanist:accompanist-systemuicontroller:0.28.0"
-    implementation "com.google.accompanist:accompanist-flowlayout:0.28.0"
-    implementation "com.google.accompanist:accompanist-navigation-animation:0.28.0"
+    implementation "com.google.accompanist:accompanist-themeadapter-material3:$compose_accompanist"
+    implementation "com.google.accompanist:accompanist-systemuicontroller:$compose_accompanist"
+    implementation "com.google.accompanist:accompanist-flowlayout:$compose_accompanist"
+    implementation "com.google.accompanist:accompanist-navigation-animation:$compose_accompanist"
     implementation "androidx.compose.ui:ui-util:$compose_version"
 
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
@@ -184,6 +185,14 @@ dependencies {
     implementation "androidx.paging:paging-rxjava3:$paging_version"
     // optional - Jetpack Compose integration
     implementation "androidx.paging:paging-compose:1.0.0-alpha18"
+
+    // Preference data store
+
+    implementation "androidx.datastore:datastore-preferences:1.0.0"
+
+    // Wheel Picker
+
+    implementation "com.github.commandiron:WheelPickerCompose:1.0.11"
 
 
 }

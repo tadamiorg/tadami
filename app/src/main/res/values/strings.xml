@@ -39,5 +39,30 @@
     <string name="player_screen_source_load_error">Stream source %1$s can\'t load</string>
     <string name="stub_text" translatable="false">stub</string>
     <string name="request_unknown_error">Network error : %1$s</string>
+    <string name="default_string">Default</string>
+    <string name="preferences_library_title">Library</string>
+    <string name="preferences_library_columns">Items per row</string>
+    <string name="portrait">Portrait</string>
+    <string name="landscape">Landscape</string>
+    <string name="preferences_library_category_display">Display</string>
+    <string name="preferences_library_category_updates">Updates</string>
+    <string name="preferences_library_auto_updates">Automatic updates</string>
+    <string name="preferences_library_update_restrictions">Updates restrictions</string>
+    <string name="none">None</string>
+    <string name="preferences_library_auto_updates_disabled">Disabled</string>
+    <string name="preferences_library_auto_updates_daily">Daily</string>
+    <string name="preferences_library_auto_updates_weekly">Weekly</string>
+    <string name="preferences_library_auto_updates_daily2">Every 2 days</string>
+    <string name="preferences_library_auto_updates_daily3">Every 3 days</string>
+    <string name="preferences_library_update_restrictions_wifionly">Wi-Fi only</string>
+    <string name="preferences_library_update_restrictions_cellularonly">Cellular network only</string>
+    <string name="preferences_library_update_restrictions_battery">When battery not low</string>
+    <string name="preferences_library_update_restrictions_subtitle">Restrictions : %s</string>
+    <string name="settings_tab_library_preferences_title">Library</string>
+    <string name="settings_tab_library_preferences_subtitle">Display, updates</string>
+    <string name="settings_tab_library_backup_preferences_title">Backup and restore</string>
+    <string name="settings_tab_library_backup_preferences_subtitle">Manual and automatic backups</string>
+    <string name="settings_tab_library_player_preferences_title">Player</string>
+    <string name="settings_tab_library_player_preferences_subtitle">Timeline configuration</string>
 
 </resources>

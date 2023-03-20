@@ -34,10 +34,11 @@ fun HomeNavGraph(
             AnimeSourcesScreen(navController = navController)
         }
         composable(route = HomeNavItems.Settings.route){
-            SettingsScreen()
+            SettingsScreen(navController = navController)
         }
         discoverNavGraph(navController)
         animeInfosNavGraph(navController)
+        settingsNavGraph(navController)
 
     }
 }

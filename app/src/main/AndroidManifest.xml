@@ -19,15 +19,6 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".ui.animeinfos.episode.EpisodeActivity"
-            android:configChanges="orientation|screenSize"
-            android:exported="false"
-            android:parentActivityName=".ui.main.MainActivity">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
             android:name=".ui.main.SplashActivity"
             android:exported="true"
             android:theme="@style/AnimeScraper.SplashTheme">
@@ -50,6 +41,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name=".ui.animeinfos.episode.EpisodeActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="true"
+            android:screenOrientation="userLandscape">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />

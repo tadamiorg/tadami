@@ -4,9 +4,6 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +14,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -154,21 +150,17 @@ fun VideoPlayer(
 
     ContentLoader(isLoading = playerScreenLoading, delay = 500) {
         Box(modifier = modifier) {
-            AnimatedVisibility(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .zIndex(5f),
-                visible = openDialog,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
+
+            if(episodeUiState.availableSources.isNotEmpty()){
                 QualityDialog(
+                    opened = openDialog,
                     sources = episodeUiState.availableSources,
                     onSelectSource = { playerViewModel.selectSource(it) },
                     selectedSource = episodeUiState.selectedSource,
-                    onOutsideClick = { openDialog = false }
+                    onDismissRequest = { openDialog = false }
                 )
             }
+
 
             DisposableEffect(
                 AndroidView(
@@ -308,7 +300,8 @@ fun VideoPlayer(
                         exoPlayer.clearMediaItems()
                         selectEpisode(previous)
                     }
-                }
+                },
+                videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty()
             )
         }
     }

@@ -32,10 +32,9 @@ fun PlayerControls(
     onCast: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
-    onForward: () -> Unit
+    onForward: () -> Unit,
+    videoSettingsEnabled : Boolean = false
 ) {
-
-
     val visible = remember(isVisible()) { isVisible() }
 
     AnimatedVisibility(
@@ -82,6 +81,7 @@ fun PlayerControls(
                 onNext = onNext,
                 onSkipOp = onSkipOp,
                 onSettings = onSettings,
+                videoSettingsEnabled = videoSettingsEnabled
             )
         }
     }

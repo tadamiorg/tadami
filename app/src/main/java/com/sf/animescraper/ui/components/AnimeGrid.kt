@@ -15,6 +15,8 @@ import com.sf.animescraper.domain.anime.Anime
 import com.sf.animescraper.domain.anime.toAnime
 import com.sf.animescraper.ui.base.widgets.ContentLoader
 import com.sf.animescraper.ui.components.data.FavoriteItem
+import com.sf.animescraper.ui.tabs.settings.model.rememberDataStoreState
+import com.sf.animescraper.ui.tabs.settings.screens.library.LibraryPreferences
 import com.sf.animescraper.ui.utils.CommonMangaItemDefaults
 import com.sf.animescraper.ui.utils.plus
 
@@ -27,6 +29,8 @@ fun AnimeGrid(
     lazyGridState: LazyGridState = rememberLazyGridState(),
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
+
+    val libraryPreferences by rememberDataStoreState(LibraryPreferences).value.collectAsState()
 
     var initialLoading by rememberSaveable {
         mutableStateOf(true)
@@ -43,14 +47,15 @@ fun AnimeGrid(
 
     val configuration = LocalConfiguration.current
 
-    val columns = when (configuration.orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> {
-            GridCells.Adaptive(128.dp)
+    val columns = {
+        val number = if(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE){
+            libraryPreferences.landscapeColumns
+        }else{
+            libraryPreferences.portraitColumns
         }
-        else -> {
-            GridCells.Fixed(3)
-        }
+        if(number==0) GridCells.Adaptive(128.dp) else GridCells.Fixed(number)
     }
+
 
     ContentLoader(
         modifier = modifier,
@@ -58,7 +63,7 @@ fun AnimeGrid(
     ) {
         LazyVerticalGrid(
             state = lazyGridState,
-            columns = columns,
+            columns = columns(),
             verticalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridVerticalSpacer),
             horizontalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridHorizontalSpacer),
             contentPadding = contentPadding + PaddingValues(8.dp)
@@ -93,21 +98,24 @@ fun FavoriteAnimeGrid(
     lazyGridState: LazyGridState = rememberLazyGridState(),
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
+
+    val libraryPreferences by rememberDataStoreState(LibraryPreferences).value.collectAsState()
+
     val configuration = LocalConfiguration.current
 
-    val columns = when (configuration.orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> {
-            GridCells.Adaptive(128.dp)
+    val columns = {
+        val number = if(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE){
+            libraryPreferences.landscapeColumns
+        }else{
+            libraryPreferences.portraitColumns
         }
-        else -> {
-            GridCells.Fixed(3)
-        }
+        if(number==0) GridCells.Adaptive(128.dp) else GridCells.Fixed(number)
     }
 
     LazyVerticalGrid(
         modifier = modifier,
         state = lazyGridState,
-        columns = columns,
+        columns = columns(),
         verticalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridVerticalSpacer),
         horizontalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridHorizontalSpacer),
         contentPadding = contentPadding + PaddingValues(8.dp)

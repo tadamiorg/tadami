@@ -21,8 +21,8 @@ open class App : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
         Injekt.importModule(AppModule(this))
+        Injekt.importModule(PreferencesModule(this))
         appContext = applicationContext
-
     }
 
     companion object {

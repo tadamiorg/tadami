@@ -32,6 +32,7 @@ fun BottomControls(
     onSettings: () -> Unit = {},
     onNext: () -> Unit = {},
     onPrevious: () -> Unit = {},
+    videoSettingsEnabled: Boolean = false
 ) {
 
     val duration = remember(totalDuration()) { totalDuration() }
@@ -48,13 +49,23 @@ fun BottomControls(
             contentAlignment = Alignment.CenterStart
         ) {
 
-            Row(modifier = Modifier.align(Alignment.CenterStart),verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.align(Alignment.CenterStart),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
 
                 // Video Settings Button
-                IconButton(modifier = Modifier, onClick = onSettings) {
+                IconButton(
+                    modifier = Modifier,
+                    onClick = onSettings,
+                    enabled = videoSettingsEnabled,
+                ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_video_settings),
-                        tint = MaterialTheme.colorScheme.onBackground,
+                        tint = if (videoSettingsEnabled) MaterialTheme.colorScheme.onBackground
+                        else MaterialTheme.colorScheme.onBackground.copy(
+                            alpha = 0.5f
+                        ),
                         contentDescription = "Settings"
                     )
                 }
@@ -72,7 +83,11 @@ fun BottomControls(
             }
 
 
-            Row(modifier = Modifier.align(Alignment.Center),verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(40.dp)) {
+            Row(
+                modifier = Modifier.align(Alignment.Center),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(40.dp)
+            ) {
 
                 // Previous episode
 
