@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Animes Scraper</string>
+
     <string name="settings_tab_title">Paramètres</string>
     <string name="favorites_tab_title">Favoris</string>
     <string name="sources_tab_title">Sources</string>
@@ -63,4 +63,16 @@
     <string name="settings_tab_library_backup_preferences_subtitle">Sauvegardes manuelles et automatiques</string>
     <string name="settings_tab_library_player_preferences_title">Lecteur vidéo</string>
     <string name="settings_tab_library_player_preferences_subtitle">Configuration de la timeline</string>
+    <string name="notification_library_updates">Mise à jour</string>
+    <string name="notification_library_group">Bibliothèque</string>
+    <string name="notification_updating">Mise à jour de la bibliothèque… (%1$d/%2$d)</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="notification_library_update_success_title">Nouveaux chapitres trouvés</string>
+    <plurals name="notification_library_update_success_summary">
+        <item quantity="one">Pour %d entrée</item>
+        <item quantity="many">Pour %d entrées</item>
+        <item quantity="other">Pour %d entrées</item>
+    </plurals>
+    <string name="update_starting">Mise à jour de la bibliothèque</string>
+    <string name="update_running">Mise à jour déja en cours</string>
 </resources>

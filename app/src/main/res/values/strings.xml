@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Animes Scraper</string>
+    <string name="app_name" translatable="false">Tadami</string>
     <string name="settings_tab_title">Settings</string>
     <string name="favorites_tab_title">Favorites</string>
     <string name="sources_tab_title">Sources</string>
@@ -64,5 +64,16 @@
     <string name="settings_tab_library_backup_preferences_subtitle">Manual and automatic backups</string>
     <string name="settings_tab_library_player_preferences_title">Player</string>
     <string name="settings_tab_library_player_preferences_subtitle">Timeline configuration</string>
+    <string name="notification_updating">Updating library… (%1$d/%2$d)</string>
+    <string name="notification_library_updates">Update</string>
+    <string name="notification_library_group">Library</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="notification_library_update_success_title">New chapters found</string>
+    <plurals name="notification_library_update_success_summary">
+        <item quantity="one">For %d entry</item>
+        <item quantity="other">For %d entries</item>
+    </plurals>
+    <string name="update_starting">Updating library</string>
+    <string name="update_running">Update already running</string>
 
 </resources>

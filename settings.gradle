@@ -13,6 +13,6 @@ dependencyResolutionManagement {
         maven { url 'https://jitpack.io' }
     }
 }
-rootProject.name = "AnimeScraper"
+rootProject.name = "Tadami"
 include ':app'
 include ':app:buildsrc'

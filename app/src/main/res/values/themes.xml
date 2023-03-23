@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.AnimeScraper" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.Tadami" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Disallow "Force dark theme" -->
         <item name="android:forceDarkAllowed" tools:targetApi="Q">false</item>
 
@@ -33,7 +33,7 @@
         <item name="colorErrorContainer">@color/errorContainer</item>
         <item name="colorOnErrorContainer">@color/onErrorContainer</item>
         <item name="android:listDivider">@drawable/line_divider</item>
-        <item name="materialDividerStyle">@style/Widget.AnimeScraper.MaterialDivider</item>
+        <item name="materialDividerStyle">@style/Widget.Tadami.MaterialDivider</item>
 
         <item name="android:divider">@color/divider_default</item>
 
@@ -67,25 +67,25 @@
 
 
         <item name="android:itemTextAppearance">@style/TextAppearance.Widget.Menu</item>
-        <item name="materialAlertDialogTheme">@style/ThemeOverlay.AnimeScraper.MaterialAlertDialog</item>
-        <item name="alertDialogTheme">@style/ThemeOverlay.AnimeScraper.MaterialAlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Tadami.MaterialAlertDialog</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.Tadami.MaterialAlertDialog</item>
         <item name="textAppearanceButton">@style/TextAppearance.Widget.Button</item>
 
-        <item name="actionOverflowButtonStyle">@style/Theme.AnimeScraper.ActionButton.Overflow</item>
+        <item name="actionOverflowButtonStyle">@style/Theme.Tadami.ActionButton.Overflow</item>
 
-        <item name="tabStyle">@style/Widget.AnimeScraper.TabLayout</item>
+        <item name="tabStyle">@style/Widget.Tadami.TabLayout</item>
 
         <!-- Preference text appearance -->
-        <item name="android:textViewStyle">@style/TextAppearance.AnimeScraper.Color</item>
+        <item name="android:textViewStyle">@style/TextAppearance.Tadami.Color</item>
         <item name="android:textAppearanceListItem">?attr/textAppearanceBodyLarge</item>
 
     </style>
 
     <!--== Default Theme ==-->
-    <style name="Theme.AnimeScraper" parent="Base.Theme.AnimeScraper" />
+    <style name="Theme.Tadami" parent="Base.Theme.Tadami" />
 
     <!--== Midnight Dusk Theme ==-->
-    <style name="Theme.AnimeScraper.MidnightDusk">
+    <style name="Theme.Tadami.MidnightDusk">
         <!-- Theme Colors -->
         <item name="colorPrimary">@color/midnightdusk_primary</item>
         <item name="colorOnPrimary">@color/midnightdusk_onPrimary</item>
@@ -112,9 +112,14 @@
         <item name="elevationOverlayColor">@color/midnightdusk_elevationOverlay</item>
     </style>
 
-    <style name="AnimeScraper.SplashTheme" parent="Base.Theme.AnimeScraper">
-        <item name="android:windowBackground">@drawable/splash_background</item>
+    <style name="Theme.Tadami.SplashScreen" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_tada_splash</item>
+        <item name="windowSplashScreenBackground">#202125</item>
+        <item name="postSplashScreenTheme">@style/Theme.Tadami</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
     </style>
-
 
 </resources>

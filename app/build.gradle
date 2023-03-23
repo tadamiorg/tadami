@@ -2,25 +2,24 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlinx-serialization'
-    id 'kotlin-parcelize'
     id "app.cash.sqldelight" version "2.0.0-alpha05"
 }
 
 sqldelight {
     databases {
         Database { // This will be the name of the generated database class.
-            packageName = "com.sf.animescraper"
+            packageName = "com.sf.tadami"
             dialect 'app.cash.sqldelight:sqlite-3-24-dialect:2.0.0-alpha05'
         }
     }
 }
 
 android {
-    namespace 'com.sf.animescraper'
+    namespace 'com.sf.tadami'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.sf.animescraper"
+        applicationId "com.sf.tadami"
         minSdk 28
         targetSdk 33
         versionCode 1
@@ -33,8 +32,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            debuggable true
+            shrinkResources true
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
         release {
-            debuggable = false
+            debuggable false
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -63,20 +68,16 @@ android {
 dependencies {
 
     implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.8.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.5.3'
-    implementation 'androidx.preference:preference-ktx:1.2.0'
+
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
+    // Kotlin Coroutines
+
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-rx3:1.6.4'
-    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 
     // Coil
 
@@ -87,7 +88,7 @@ dependencies {
 
     // Exoplayer Dependencies
 
-    def exoplayer_version = "2.18.3"
+    def exoplayer_version = "2.18.4"
 
     implementation "com.google.android.exoplayer:exoplayer:$exoplayer_version"
     implementation "com.google.android.exoplayer:exoplayer-dash:$exoplayer_version"
@@ -107,7 +108,6 @@ dependencies {
     implementation "androidx.compose.runtime:runtime:$compose_version"
     implementation "androidx.compose.runtime:runtime-saveable:$compose_version"
     implementation "androidx.compose.ui:ui:$compose_version"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1"
     implementation "androidx.navigation:navigation-runtime-ktx:$nav_version"
     implementation "androidx.navigation:navigation-compose:$nav_version"
 
@@ -134,7 +134,7 @@ dependencies {
 
     // ViewModel Dependencies
 
-    def lifecycle_version = "2.5.1"
+    def lifecycle_version = "2.6.0"
     // ViewModel
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     // ViewModel utilities for Compose
@@ -147,7 +147,7 @@ dependencies {
     // RX
 
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
-    implementation 'io.reactivex.rxjava3:rxjava:3.0.0'
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.2'
 
     // JSoup
 
@@ -163,7 +163,7 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1'
 
     // Network client okhttp
-    def okhttpVersion = "4.10.0"
+    def okhttpVersion = "5.0.0-alpha.11"
     implementation "com.squareup.okhttp3:okhttp:$okhttpVersion"
     implementation "com.squareup.okhttp3:logging-interceptor:$okhttpVersion"
     implementation "com.squareup.okhttp3:okhttp-dnsoverhttps:$okhttpVersion"
@@ -194,5 +194,14 @@ dependencies {
 
     implementation "com.github.commandiron:WheelPickerCompose:1.0.11"
 
+    // Worker
+
+    def work_version = "2.8.1"
+
+    implementation "androidx.work:work-runtime-ktx:$work_version"
+
+    // SplashScreen
+
+    implementation 'androidx.core:core-splashscreen:1.0.0-beta02'
 
 }
