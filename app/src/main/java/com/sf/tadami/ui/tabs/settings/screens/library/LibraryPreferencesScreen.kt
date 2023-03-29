@@ -1,31 +1,36 @@
 package com.sf.tadami.ui.tabs.settings.screens.library
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.commandiron.wheel_picker_compose.WheelPicker
+import com.commandiron.wheel_picker_compose.core.WheelPickerDefaults
+import com.commandiron.wheel_picker_compose.core.WheelTextPicker
 import com.sf.tadami.R
+import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
-import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.ui.tabs.settings.model.DataStoreState
 import com.sf.tadami.ui.tabs.settings.model.Preference
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.utils.defaultParser
 
-object UPDATE_RESTRICTIONS_ITEMS{
+object UPDATE_RESTRICTIONS_ITEMS {
     const val WIFI = "wifi"
     const val CELLULAR = "cellular"
     const val BATTERY = "battery"
@@ -56,9 +61,9 @@ class LibraryPreferencesScreen(
 
     @Composable
     fun getUpdateGroup(
-        prefState : DataStoreState<LibraryPreferences>,
-        prefs :  LibraryPreferences
-    ) : Preference.PreferenceCategory {
+        prefState: DataStoreState<LibraryPreferences>,
+        prefs: LibraryPreferences
+    ): Preference.PreferenceCategory {
         return Preference.PreferenceCategory(
             title = stringResource(id = R.string.preferences_library_category_updates),
             preferenceItems = listOf(
@@ -107,10 +112,9 @@ class LibraryPreferencesScreen(
 
     @Composable
     fun getDisplayGroup(
-        prefState : DataStoreState<LibraryPreferences>,
-        prefs :  LibraryPreferences
-    ) : Preference.PreferenceCategory
-    {
+        prefState: DataStoreState<LibraryPreferences>,
+        prefs: LibraryPreferences
+    ): Preference.PreferenceCategory {
         var showDialog by rememberSaveable { mutableStateOf(false) }
 
         if (showDialog) {
@@ -142,7 +146,7 @@ class LibraryPreferencesScreen(
             )
         )
     }
-        
+
     @Composable
     private fun LibraryColumnsDialog(
         initialPortrait: Int,
@@ -196,53 +200,37 @@ class LibraryPreferencesScreen(
                     ) {}
 
                     val size = DpSize(width = maxWidth / 2, height = 128.dp)
+                    val labels = (0..10).toList().mapIndexed { index, value ->
+                        if (index == 0) value.defaultParser()
+                        else value.toString()
+                    }
                     Row {
-                        WheelPicker(
-                            count = 11,
+                        WheelTextPicker(
+                            texts = labels,
+                            rowCount = 3,
                             size = size,
                             startIndex = portraitValue,
                             onScrollFinished = {
                                 portraitValue = it
                                 null
-                            }
-                        ) { index, snappedIndex ->
-                            ColumnPickerLabel(index = index, snappedIndex = snappedIndex)
-                        }
-                        WheelPicker(
-                            count = 11,
+                            },
+                            selectorProperties = WheelPickerDefaults.selectorProperties(false)
+                        )
+
+                        WheelTextPicker(
+                            texts = labels,
+                            rowCount = 3,
                             size = size,
                             startIndex = landscapeValue,
                             onScrollFinished = {
                                 landscapeValue = it
                                 null
-                            }
-                        ) { index, snappedIndex ->
-                            ColumnPickerLabel(index = index, snappedIndex = snappedIndex)
-                        }
+                            },
+                            selectorProperties = WheelPickerDefaults.selectorProperties(false)
+                        )
                     }
                 }
             }
         }
     }
-}
-
-
-@Composable
-private fun ColumnPickerLabel(
-    index: Int,
-    snappedIndex: Int,
-) {
-    Text(
-        modifier = Modifier.alpha(
-            when (snappedIndex) {
-                index + 1 -> 0.2f
-                index -> 1f
-                index - 1 -> 0.2f
-                else -> 0.2f
-            },
-        ),
-        text = index.defaultParser(),
-        style = MaterialTheme.typography.titleMedium,
-        maxLines = 1,
-    )
 }

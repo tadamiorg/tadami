@@ -194,7 +194,7 @@ dependencies {
 
     // Wheel Picker
 
-    implementation "com.github.commandiron:WheelPickerCompose:1.0.11"
+    implementation "com.github.commandiron:WheelPickerCompose:1.1.10"
 
     // Worker
 
