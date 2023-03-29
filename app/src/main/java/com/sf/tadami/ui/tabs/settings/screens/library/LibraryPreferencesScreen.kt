@@ -200,10 +200,7 @@ class LibraryPreferencesScreen(
                     ) {}
 
                     val size = DpSize(width = maxWidth / 2, height = 128.dp)
-                    val labels = (0..10).toList().mapIndexed { index, value ->
-                        if (index == 0) value.defaultParser()
-                        else value.toString()
-                    }
+                    val labels = (0..10).toList().map { value -> value.defaultParser() }
                     Row {
                         WheelTextPicker(
                             texts = labels,
