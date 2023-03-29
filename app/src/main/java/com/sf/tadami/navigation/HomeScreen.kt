@@ -115,6 +115,10 @@ fun HomeScreen(
                     navController = navController,
                     bottomNavDisplay = displayed.currentState,
                     setNavDisplay = { manualDisplay = it },
+                    librarySheetVisible =
+                    librarySheetState.isVisible
+                            || librarySheetState.targetValue == ModalBottomSheetValue.Expanded
+                            || librarySheetState.targetValue == ModalBottomSheetValue.HalfExpanded,
                     showLibrarySheet = {
                         coroutineScope.launch {
                             librarySheetState.show()

@@ -22,19 +22,23 @@ fun TadaBottomSheetLayout(
     sheetContent: @Composable ColumnScope.() -> Unit,
     sheetState: ModalBottomSheetState,
     scrimColor: Color = MaterialTheme.colorScheme.background.copy(alpha = 0.4f),
-    sheetBackgroundColor : Color = MaterialTheme.colorScheme.surface,
-    sheetContentColor : Color = MaterialTheme.colorScheme.contentColorFor(sheetBackgroundColor),
+    sheetBackgroundColor: Color = MaterialTheme.colorScheme.surface,
+    sheetContentColor: Color = MaterialTheme.colorScheme.contentColorFor(sheetBackgroundColor),
     content: @Composable () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    if(sheetState.isVisible){
-        BackHandler {
-            coroutineScope.launch{
-                sheetState.hide()
-            }
+
+    BackHandler(
+        sheetState.isVisible
+                || sheetState.targetValue == ModalBottomSheetValue.Expanded
+                || sheetState.targetValue == ModalBottomSheetValue.HalfExpanded
+    ) {
+        coroutineScope.launch {
+            sheetState.hide()
         }
     }
+
 
     ModalBottomSheetLayout(
         sheetState = sheetState,

@@ -34,13 +34,14 @@ fun SearchBarExpanded(
     onSearch: (value: String) -> Unit,
     onSearchChange: (value: String) -> Unit,
     actions: List<Action> = emptyList(),
+    backHandlerEnabled : Boolean = true,
     value : String
 ) {
     var initialFocus by rememberSaveable { mutableStateOf(false) }
 
     val focusRequester = remember { FocusRequester() }
 
-    BackHandler {
+    BackHandler(!backHandlerEnabled) {
         onSearchCancel()
     }
 
