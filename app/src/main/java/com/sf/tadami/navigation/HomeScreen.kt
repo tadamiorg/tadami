@@ -115,6 +115,7 @@ fun HomeScreen(
                     navController = navController,
                     bottomNavDisplay = displayed.currentState,
                     setNavDisplay = { manualDisplay = it },
+                    librarySheetVisible = librarySheetState.isVisible,
                     showLibrarySheet = {
                         coroutineScope.launch {
                             librarySheetState.show()

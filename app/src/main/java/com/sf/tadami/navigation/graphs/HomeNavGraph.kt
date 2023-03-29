@@ -16,6 +16,7 @@ fun HomeNavGraph(
     navController: NavHostController,
     bottomNavDisplay : Boolean,
     setNavDisplay : (display : Boolean) -> Unit,
+    librarySheetVisible : Boolean,
     showLibrarySheet : () -> Unit,
 ) {
     NavHost(
@@ -28,6 +29,7 @@ fun HomeNavGraph(
                 navController = navController,
                 setNavDisplay = setNavDisplay,
                 bottomNavDisplay = bottomNavDisplay,
+                librarySheetVisible = librarySheetVisible,
                 showLibrarySheet = showLibrarySheet
             )
         }

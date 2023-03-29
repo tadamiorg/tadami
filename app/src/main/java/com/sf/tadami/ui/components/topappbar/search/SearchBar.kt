@@ -21,7 +21,8 @@ fun SearchTopAppBar(
     onSearchChange: (value: String) -> Unit,
     onSearch: (value: String) -> Unit,
     searchValue : String,
-    actions: List<Action> = emptyList()
+    actions: List<Action> = emptyList(),
+    backHandlerEnabled : Boolean = true
 ) {
 
     Column(
@@ -34,6 +35,7 @@ fun SearchTopAppBar(
                 onSearchChange = onSearchChange,
                 onSearch = onSearch,
                 actions = actions,
+                backHandlerEnabled = backHandlerEnabled,
                 value = searchValue
             )
         } else {

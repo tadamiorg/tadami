@@ -20,6 +20,7 @@ import com.sf.tadami.ui.components.topappbar.search.SearchTopAppBar
 @Composable
 fun ContextualSearchTopAppBar(
     modifier: Modifier = Modifier,
+    backHandlerEnabled : Boolean = true,
     // For Search Mode
     title: @Composable () -> Unit,
     navigationIcon: @Composable () -> Unit = {},
@@ -81,7 +82,8 @@ fun ContextualSearchTopAppBar(
                     onSearchChange?.invoke(it)
                 },
                 actions = actions,
-                searchValue = searchValue
+                searchValue = searchValue,
+                backHandlerEnabled = backHandlerEnabled
             )
         }
     }

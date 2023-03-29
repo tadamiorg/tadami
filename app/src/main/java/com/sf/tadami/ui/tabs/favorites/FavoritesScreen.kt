@@ -10,9 +10,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -28,13 +32,14 @@ import com.sf.tadami.ui.tabs.favorites.bottomsheet.favoriteFilters
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun FavoritesScreen(
     navController: NavHostController,
     setNavDisplay: (display: Boolean) -> Unit,
     bottomNavDisplay: Boolean,
     showLibrarySheet: () -> Unit,
+    librarySheetVisible : Boolean,
     favoritesViewModel: FavoritesViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -43,6 +48,9 @@ fun FavoritesScreen(
     val searchFilter by favoritesViewModel.searchFilter.collectAsState()
     val libraryPreferences by rememberDataStoreState(customPrefs = LibraryPreferences).value.collectAsState()
 
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     val actions = remember(libraryPreferences.filterFlags.isFiltered) {
         listOf(
             Action.Drawable(
@@ -50,6 +58,8 @@ fun FavoritesScreen(
                 icon = R.drawable.ic_filter,
                 tint = if (libraryPreferences.filterFlags.isFiltered) Color.Yellow else null,
                 onClick = {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
                     showLibrarySheet()
                 }
             )
@@ -67,12 +77,11 @@ fun FavoritesScreen(
         }
     }
 
-    var isSearchMode by remember {
+    var isSearchMode by rememberSaveable {
         mutableStateOf(false)
     }
 
     val isRefreshing by favoritesViewModel.isRefreshing.collectAsState()
-
 
     Scaffold(
         topBar = {
@@ -100,6 +109,7 @@ fun FavoritesScreen(
                 onSearchCancel = {
                     isSearchMode = false
                 },
+                backHandlerEnabled = librarySheetVisible,
                 onSearchClicked = {
                     isSearchMode = true
                 }
