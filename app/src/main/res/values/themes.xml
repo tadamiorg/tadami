@@ -48,7 +48,7 @@
         <!-- Themes -->
 
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@color/surface_amoled</item>
+        <item name="android:navigationBarColor">@color/background_amoled</item>
         <item name="android:navigationBarDividerColor">@null</item>
         <item name="android:enforceNavigationBarContrast" tools:targetApi="Q">false</item>
         <item name="android:enforceStatusBarContrast" tools:targetApi="Q">false</item>

@@ -77,7 +77,7 @@ class LibraryUpdateNotifier(private val context: Context) {
 
                     }
 
-                    setSmallIcon(R.drawable.ic_launcher_foreground)
+                    setSmallIcon(R.drawable.ic_tada)
                     setLargeIcon(notificationBitmap)
 
                     setGroup(Notifications.LIBRARY_GROUP)

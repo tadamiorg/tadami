@@ -75,4 +75,13 @@
     </plurals>
     <string name="update_starting">Mise à jour de la bibliothèque</string>
     <string name="update_running">Mise à jour déja en cours</string>
+    <string name="library_sheet_filter">Filtrer</string>
+    <string name="library_sheet_sort">Trier</string>
+    <string name="library_sheet_filter_unread">Non lus</string>
+    <string name="library_sheet_filter_started">Commencé</string>
+    <string name="library_sheet_sort_unseen_count">Nombre de non vus</string>
+    <string name="library_sheet_sort_alphabet">Alphabétiquement</string>
+    <string name="library_sheet_sort_episode_count">Nombre d\'épisodes</string>
+    <string name="discover_search_sheet_reset">Réinitialiser</string>
+    <string name="discover_search_sheet_filter">Filtrer</string>
 </resources>

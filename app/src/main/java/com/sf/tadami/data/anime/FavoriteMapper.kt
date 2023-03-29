@@ -14,6 +14,7 @@ val favoriteMapper: (
     genres: List<String>?,
     favorite: Boolean,
     initialized: Boolean,
+    episodes : Long,
     unseen_episodes: Double
 ) -> FavoriteAnime =
     { id: Long,
@@ -27,6 +28,7 @@ val favoriteMapper: (
       genres: List<String>?,
       favorite: Boolean,
       initialized: Boolean,
+      episodes : Long,
       unseenEpisodes: Double
         ->
         FavoriteAnime(
@@ -41,6 +43,7 @@ val favoriteMapper: (
             genres = genres,
             favorite = favorite,
             initialized = initialized,
+            episodes = episodes,
             unseenEpisodes = unseenEpisodes.toLong()
         )
     }

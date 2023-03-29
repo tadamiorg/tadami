@@ -1,11 +1,12 @@
-package com.sf.tadami.ui.base.widgets.topbar
+package com.sf.tadami.ui.components.topappbar
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import com.sf.tadami.ui.components.toolbar.Action
+import com.sf.tadami.ui.components.data.Action
 
 @Composable
 fun ActionItem(
@@ -24,6 +25,7 @@ fun ActionItem(
             is Action.Drawable -> {
                 Icon(
                     painter = painterResource(id = action.icon),
+                    tint = action.tint ?: LocalContentColor.current,
                     contentDescription = stringResource(
                         id = action.title
                     )
@@ -32,6 +34,7 @@ fun ActionItem(
             is Action.Vector -> {
                 Icon(
                     imageVector = action.icon,
+                    tint = action.tint ?: LocalContentColor.current,
                     contentDescription = stringResource(
                         id = action.title
                     )

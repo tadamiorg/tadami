@@ -20,7 +20,6 @@ abstract class AnimeSource(val id : String) : AnimeSourceBase() {
 
     open val supportRecent : Boolean = true
 
-
     override fun getIconRes(): Int? = null
 
     // Filters

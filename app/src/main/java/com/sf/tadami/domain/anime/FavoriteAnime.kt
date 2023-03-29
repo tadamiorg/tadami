@@ -12,5 +12,6 @@ data class FavoriteAnime(
     val genres: List<String>?,
     val favorite: Boolean,
     val initialized: Boolean,
+    val episodes : Long,
     val unseenEpisodes: Long
 )

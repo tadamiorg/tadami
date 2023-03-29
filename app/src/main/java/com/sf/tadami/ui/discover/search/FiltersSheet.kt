@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.discover.search
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -11,28 +10,22 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.network.api.model.AnimeFilter
 import com.sf.tadami.network.api.model.AnimeFilterList
 import com.sf.tadami.ui.components.filters.Group
 import com.sf.tadami.ui.components.filters.Select
+import com.sf.tadami.R
 
 @Composable
 fun FiltersSheet(
-    hideSheet: () -> Unit,
-    isVisible: Boolean = false,
     filters : AnimeFilterList,
     onUpdateFilters : (filters : AnimeFilterList) -> Unit = {},
     onResetClicked : () -> Unit,
     search : () -> Unit
 ) {
     val scrollState = rememberScrollState()
-
-    if (isVisible) {
-        BackHandler {
-            hideSheet()
-        }
-    }
 
     // Filter sheet header
 
@@ -44,10 +37,10 @@ fun FiltersSheet(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         TextButton(onClick = onResetClicked) {
-            Text(text = "Reset")
+            Text(text = stringResource(id = R.string.discover_search_sheet_reset))
         }
         Button(onClick = search) {
-            Text(text = "filter")
+            Text(text = stringResource(id = R.string.discover_search_sheet_filter))
         }
     }
 

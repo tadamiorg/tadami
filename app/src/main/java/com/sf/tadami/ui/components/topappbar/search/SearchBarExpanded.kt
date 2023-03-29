@@ -1,7 +1,6 @@
-package com.sf.tadami.ui.discover.search
+package com.sf.tadami.ui.components.topappbar.search
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -21,61 +20,40 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import com.sf.tadami.R
-import com.sf.tadami.ui.base.widgets.topbar.ActionItem
-import com.sf.tadami.ui.components.toolbar.Action
+import com.sf.tadami.ui.components.topappbar.ActionItem
+import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.utils.AppKeyboardFocusManager
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
 
-@Composable
-fun SearchToolBar(
-    modifier: Modifier = Modifier,
-    title: String,
-    onBackClicked: () -> Unit,
-    onCancelActionMode: () -> Unit,
-    onSearchClicked: () -> Unit,
-    onSearch: () -> Unit,
-    onUpdateSearch: (value : String) -> Unit,
-    searchEnabled: Boolean = false
-
-) {
-
-    Column(
-        modifier = modifier,
-    ) {
-        if (searchEnabled) {
-            SearchToolBarExpanded(onCollapse = onCancelActionMode, onUpdateSearch = onUpdateSearch, onSearch = onSearch)
-        } else {
-            SearchToolBarCollapsed(
-                title = title,
-                onBackClicked = onBackClicked,
-                onExpand = onSearchClicked
-            )
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun SearchToolBarExpanded(
-    onCollapse: () -> Unit,
-    onSearch: () -> Unit,
-    onUpdateSearch: (value : String) -> Unit,
+fun SearchBarExpanded(
+    colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
+    onSearchCancel: () -> Unit,
+    onSearch: (value: String) -> Unit,
+    onSearchChange: (value: String) -> Unit,
+    actions: List<Action> = emptyList(),
+    value : String
 ) {
-    var value by rememberSaveable { mutableStateOf("") }
+    var initialFocus by rememberSaveable { mutableStateOf(false) }
 
     val focusRequester = remember { FocusRequester() }
 
     BackHandler {
-        onCollapse()
+        onSearchCancel()
     }
 
-    LaunchedEffect(focusRequester) {
-        delay(0.1.seconds)
-        focusRequester.requestFocus()
+    if (!initialFocus && value.isEmpty()) {
+        LaunchedEffect(focusRequester) {
+            delay(0.1.seconds)
+            focusRequester.requestFocus()
+            initialFocus = true
+        }
     }
 
     TopAppBar(
+        colors = colors,
         title = {
             AppKeyboardFocusManager()
             val focusManager = LocalFocusManager.current
@@ -83,13 +61,13 @@ fun SearchToolBarExpanded(
 
             val searchAndClearFocus: () -> Unit = f@{
                 if (value.isBlank()) return@f
-                onSearch()
+                onSearch(value)
                 focusManager.clearFocus()
                 keyboardController?.hide()
             }
 
             val resetAndFocus: () -> Unit = {
-                value = ""
+                onSearchChange("")
                 focusRequester.requestFocus()
             }
 
@@ -99,8 +77,7 @@ fun SearchToolBarExpanded(
                     .focusRequester(focusRequester),
                 value = value,
                 onValueChange = { newText ->
-                    onUpdateSearch(newText)
-                    value = newText
+                    onSearchChange(newText)
                 },
                 textStyle = MaterialTheme.typography.headlineSmall,
                 placeholder = { Text(text = stringResource(id = R.string.discover_search_screen_search_placeholder)) },
@@ -120,8 +97,13 @@ fun SearchToolBarExpanded(
                 }
             )
         },
+        actions = {
+            actions.forEach {
+                ActionItem(action = it)
+            }
+        },
         navigationIcon = {
-            IconButton(onClick = onCollapse) {
+            IconButton(onClick = onSearchCancel) {
                 Icon(
                     imageVector = Icons.Outlined.ArrowBack,
                     tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
@@ -131,46 +113,3 @@ fun SearchToolBarExpanded(
         },
     )
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SearchToolBarCollapsed(
-    title: String,
-    onBackClicked: () -> Unit,
-    onExpand: () -> Unit
-) {
-    val actions = remember {
-        listOf(
-            Action.Drawable(
-                title = R.string.stub_text,
-                icon = R.drawable.ic_search,
-                onClick = onExpand
-            )
-        )
-    }
-
-    TopAppBar(
-        title = { Text(text = title, style = MaterialTheme.typography.headlineSmall) },
-        actions = {
-            actions.forEach { action ->
-                ActionItem(action = action)
-            }
-        },
-        navigationIcon = {
-            IconButton(onClick = onBackClicked) {
-                Icon(
-                    imageVector = Icons.Outlined.ArrowBack,
-                    contentDescription = null,
-                )
-            }
-        },
-    )
-}
-
-
-
-
-
-
-
-

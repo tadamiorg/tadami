@@ -26,7 +26,6 @@ data class Anime(
         )
     }
 
-
     companion object {
         fun create() = Anime(
             id = -1L,

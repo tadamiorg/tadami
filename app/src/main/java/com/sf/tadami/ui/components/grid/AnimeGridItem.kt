@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.components
+package com.sf.tadami.ui.components.grid
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -73,6 +73,7 @@ fun AnimeGridItem(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CompactAnimeGridItem(
+    modifier: Modifier = Modifier,
     isSelected : Boolean = false,
     anime: Anime,
     unseenBadge: Long? = null,
@@ -80,7 +81,7 @@ fun CompactAnimeGridItem(
     onLongClick : () -> Unit = onClick
 ) {
 
-    Box(modifier = Modifier
+    Box(modifier = modifier
         .clip(MaterialTheme.shapes.small)
         .combinedClickable(
             onClick = onClick,

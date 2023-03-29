@@ -1,5 +1,5 @@
 CREATE VIEW Favorite AS
-SELECT Anime.*,TOTAL(Episode.seen = 0) AS unseen_episodes
+SELECT Anime.*,COUNT(*) AS episodes,TOTAL(Episode.seen = 0) AS unseen_episodes
 FROM Anime
 JOIN Episode ON Anime._id = Episode.anime_id
 WHERE Anime.favorite = 1

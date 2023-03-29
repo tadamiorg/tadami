@@ -4,10 +4,9 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import androidx.navigation.compose.rememberNavController
 import com.sf.tadami.R
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.ui.themes.TadamiTheme
@@ -17,8 +16,8 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
-    private var navLoaded : Boolean = true
-    @OptIn(ExperimentalAnimationApi::class)
+    private var navLoaded: Boolean = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -29,7 +28,7 @@ class MainActivity : ComponentActivity() {
             setTheme(R.style.Theme_Tadami)
         } else {
             installSplashScreen().apply {
-                setKeepOnScreenCondition{
+                setKeepOnScreenCondition {
                     navLoaded
                 }
             }
@@ -37,10 +36,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val coroutineScope = rememberCoroutineScope()
-
             TadamiTheme {
-                HomeScreen(navController =  rememberAnimatedNavController(),navLoaded = {
-                    if(this.navLoaded){
+                HomeScreen(navController = rememberNavController(), navLoaded = {
+                    if (this.navLoaded) {
                         coroutineScope.launch(Dispatchers.IO) {
                             delay(250)
                             this@MainActivity.navLoaded = false
@@ -59,7 +57,6 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
-        val STATE_NAV_LOADED = "nav_loaded"
+        const val STATE_NAV_LOADED = "nav_loaded"
     }
-
 }

@@ -15,7 +15,8 @@ import com.sf.tadami.ui.tabs.settings.SettingsScreen
 fun HomeNavGraph(
     navController: NavHostController,
     bottomNavDisplay : Boolean,
-    setNavDisplay : (display : Boolean) -> Unit
+    setNavDisplay : (display : Boolean) -> Unit,
+    showLibrarySheet : () -> Unit,
 ) {
     NavHost(
         navController = navController,
@@ -26,7 +27,8 @@ fun HomeNavGraph(
             FavoritesScreen(
                 navController = navController,
                 setNavDisplay = setNavDisplay,
-                bottomNavDisplay = bottomNavDisplay
+                bottomNavDisplay = bottomNavDisplay,
+                showLibrarySheet = showLibrarySheet
             )
         }
         composable(route = HomeNavItems.Sources.route){
@@ -41,7 +43,6 @@ fun HomeNavGraph(
 
     }
 }
-
 
 object GRAPH {
     const val HOME = "home_graph"

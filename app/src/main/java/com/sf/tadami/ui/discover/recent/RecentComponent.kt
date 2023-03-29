@@ -3,7 +3,7 @@ package com.sf.tadami.ui.discover.recent
 import androidx.compose.runtime.Composable
 import androidx.paging.compose.LazyPagingItems
 import com.sf.tadami.domain.anime.Anime
-import com.sf.tadami.ui.components.InfiniteAnimeGrid
+import com.sf.tadami.ui.components.grid.InfiniteAnimeGrid
 
 @Composable
 fun RecentComponent(

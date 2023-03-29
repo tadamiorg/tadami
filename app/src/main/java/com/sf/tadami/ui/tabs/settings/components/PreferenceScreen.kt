@@ -9,8 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.ui.tabs.settings.model.Preference
-import com.sf.tadami.ui.base.widgets.topbar.ActionItem
-import com.sf.tadami.ui.components.toolbar.Action
+import com.sf.tadami.ui.components.topappbar.ActionItem
+import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.R
 
 interface PreferenceScreen {

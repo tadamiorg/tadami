@@ -15,9 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.ui.components.toolbar.Action
-import com.sf.tadami.ui.components.toolbar.ContextualTopAppBar
+import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.R
+import com.sf.tadami.ui.components.topappbar.ContextualTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,7 +85,7 @@ fun DetailsToolbar(
                 .copy(alpha = animatedBgAlpha),
         ),
         actionModeCounter = actionModeCounter,
-        onCloseClicked = onCloseClicked,
+        onCloseActionModeClicked = onCloseClicked,
         onToggleAll = onToggleAll,
         onInverseAll = onInverseAll
     )

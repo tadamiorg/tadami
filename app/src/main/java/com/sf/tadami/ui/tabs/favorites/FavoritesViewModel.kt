@@ -1,7 +1,6 @@
 package com.sf.tadami.ui.tabs.favorites
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sf.tadami.R
@@ -29,6 +28,9 @@ class FavoritesViewModel : ViewModel() {
     private val _favoriteList : MutableStateFlow<List<FavoriteItem>> = MutableStateFlow(emptyList())
     val favoriteList = _favoriteList.asStateFlow()
 
+    private val _searchFilter : MutableStateFlow<String> = MutableStateFlow("")
+    val searchFilter = _searchFilter.asStateFlow()
+
     private val _isRefreshing : MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
@@ -40,6 +42,10 @@ class FavoritesViewModel : ViewModel() {
                 _favoriteList.update { favoriteList.toFavoriteItems() }
             }
         }
+    }
+
+    fun updateSearchFilter(value : String){
+        _searchFilter.update {value}
     }
 
     private fun toggleRefreshIndicator(){

@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.base.widgets
+package com.sf.tadami.ui.components.widgets
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween

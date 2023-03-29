@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.components
+package com.sf.tadami.ui.components.bottombar
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
@@ -13,8 +13,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.sf.tadami.ui.base.widgets.topbar.ActionItem
-import com.sf.tadami.ui.components.toolbar.Action
+import com.sf.tadami.ui.components.topappbar.ActionItem
+import com.sf.tadami.ui.components.data.Action
 
 @Composable
 fun ContextualBottomBar(

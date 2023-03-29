@@ -11,8 +11,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-
-open class ObserverAS<T : Any>(private val callback : Callback<T>? = null) : Observer<T>{
+open class TadaObserver<T : Any>(private val callback : Callback<T>? = null) : Observer<T>{
     override fun onSubscribe(d: Disposable) {}
 
     override fun onNext(data: T) {

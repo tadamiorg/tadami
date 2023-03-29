@@ -18,7 +18,7 @@ import com.sf.tadami.R
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
-import com.sf.tadami.ui.components.toolbar.Action
+import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.ui.tabs.settings.model.DataStoreState
 import com.sf.tadami.ui.tabs.settings.model.Preference
@@ -224,7 +224,6 @@ class LibraryPreferencesScreen(
             }
         }
     }
-
 }
 
 

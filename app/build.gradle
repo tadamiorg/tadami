@@ -56,7 +56,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.3.2'
+        kotlinCompilerExtensionVersion '1.4.4'
     }
     packagingOptions {
         resources {
@@ -78,6 +78,7 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-rx3:1.6.4'
+    implementation 'com.google.android.material:material:1.8.0'
 
     // Coil
 
@@ -88,7 +89,7 @@ dependencies {
 
     // Exoplayer Dependencies
 
-    def exoplayer_version = "2.18.4"
+    def exoplayer_version = "2.18.5"
 
     implementation "com.google.android.exoplayer:exoplayer:$exoplayer_version"
     implementation "com.google.android.exoplayer:exoplayer-dash:$exoplayer_version"
@@ -103,7 +104,7 @@ dependencies {
 
     // Compose nav dependencies
 
-    implementation 'androidx.activity:activity-compose:1.6.1'
+    implementation 'androidx.activity:activity-compose:1.7.0'
     implementation "androidx.compose.animation:animation:$compose_version"
     implementation "androidx.compose.runtime:runtime:$compose_version"
     implementation "androidx.compose.runtime:runtime-saveable:$compose_version"
@@ -118,14 +119,15 @@ dependencies {
     implementation "androidx.compose.material:material-icons-extended:1.3.1"
 
     // Other compose dependencies
-    def compose_accompanist = "0.28.0"
+    def compose_accompanist = "0.30.0"
 
-    implementation "androidx.compose.foundation:foundation:1.3.1"
-    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
+    implementation "androidx.compose.foundation:foundation:1.4.0"
+
     implementation "com.google.accompanist:accompanist-themeadapter-material3:$compose_accompanist"
     implementation "com.google.accompanist:accompanist-systemuicontroller:$compose_accompanist"
     implementation "com.google.accompanist:accompanist-flowlayout:$compose_accompanist"
-    implementation "com.google.accompanist:accompanist-navigation-animation:$compose_accompanist"
+
+    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     implementation "androidx.compose.ui:ui-util:$compose_version"
 
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
@@ -152,7 +154,7 @@ dependencies {
     // JSoup
 
     implementation 'org.jsoup:jsoup:1.15.3'
-    implementation 'androidx.webkit:webkit:1.6.0'
+    implementation 'androidx.webkit:webkit:1.6.1'
 
     // Injekt Dependency injection
 

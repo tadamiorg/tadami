@@ -9,7 +9,7 @@ import com.sf.tadami.data.interactors.UpdateAnimeInteractor
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.network.api.model.StreamSource
 import com.sf.tadami.network.api.online.AnimeSource
-import com.sf.tadami.network.requests.utils.ObserverAS
+import com.sf.tadami.network.requests.utils.TadaObserver
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.tadami.ui.utils.SaveableMutableSaveStateFlow
 import io.reactivex.rxjava3.disposables.Disposable
@@ -122,7 +122,7 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
         source.fetchEpisode(episode.url).subscribeOn(Schedulers.io())
             .subscribe(
-                object : ObserverAS<List<StreamSource>>() {
+                object : TadaObserver<List<StreamSource>>() {
                     override fun onNext(data: List<StreamSource>) {
                         _uiState.updateAndGet { currentState ->
                             currentState.copy(

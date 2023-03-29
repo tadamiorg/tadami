@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.components.toolbar
+package com.sf.tadami.ui.components.topappbar
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
-import com.sf.tadami.ui.base.widgets.topbar.ActionItem
+import com.sf.tadami.ui.components.data.Action
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,10 +25,10 @@ fun ContextualTopAppBar(
     title: @Composable () -> Unit,
     navigationIcon: @Composable () -> Unit = {},
     colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
-    actions: List<Action>? = null,
+    actions: List<Action> = emptyList(),
     // For Action Mode
     actionModeCounter: Int,
-    onCloseClicked: () -> Unit,
+    onCloseActionModeClicked: () -> Unit,
     onToggleAll: () -> Unit,
     onInverseAll: () -> Unit
 
@@ -38,7 +38,7 @@ fun ContextualTopAppBar(
     }
 
     if(isActionMode){
-        BackHandler(onBack = onCloseClicked)
+        BackHandler(onBack = onCloseActionModeClicked)
     }
 
     val generatedActions = if (isActionMode) {
@@ -75,7 +75,7 @@ fun ContextualTopAppBar(
             },
             navigationIcon = {
                 if (isActionMode) {
-                    IconButton(onClick = onCloseClicked) {
+                    IconButton(onClick = onCloseActionModeClicked) {
                         Icon(
                             imageVector = Icons.Outlined.Close,
                             contentDescription = null,
@@ -95,7 +95,7 @@ fun ContextualTopAppBar(
                 colors
             },
             actions = {
-                generatedActions?.forEach { action ->
+                generatedActions.forEach { action ->
                     ActionItem(action = action)
                 }
             }

@@ -106,7 +106,7 @@ class LibraryUpdateWorker(
         }
 
         notifier.cancelProgressNotification()
-        Log.e("Updates success",newUpdates.toString())
+
         if (newUpdates.isNotEmpty()) {
             notifier.showUpdateNotifications(newUpdates)
         }

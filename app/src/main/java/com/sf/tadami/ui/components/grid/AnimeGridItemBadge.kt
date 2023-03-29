@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.components
+package com.sf.tadami.ui.components.grid
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxScope

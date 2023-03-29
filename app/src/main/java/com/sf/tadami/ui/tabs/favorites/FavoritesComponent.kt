@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.ui.base.widgets.PullRefresh
-import com.sf.tadami.ui.components.FavoriteAnimeGrid
+import com.sf.tadami.ui.components.widgets.PullRefresh
+import com.sf.tadami.ui.components.grid.FavoriteAnimeGrid
 import com.sf.tadami.ui.components.data.FavoriteItem
 
 @Composable

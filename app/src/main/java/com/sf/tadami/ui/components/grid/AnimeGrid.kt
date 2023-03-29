@@ -1,6 +1,7 @@
-package com.sf.tadami.ui.components
+package com.sf.tadami.ui.components.grid
 
 import android.content.res.Configuration
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material3.CircularProgressIndicator
@@ -13,7 +14,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.toAnime
-import com.sf.tadami.ui.base.widgets.ContentLoader
+import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.components.data.FavoriteItem
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
@@ -89,6 +90,7 @@ fun AnimeGrid(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FavoriteAnimeGrid(
     modifier: Modifier = Modifier,
@@ -112,6 +114,12 @@ fun FavoriteAnimeGrid(
         if(number==0) GridCells.Adaptive(128.dp) else GridCells.Fixed(number)
     }
 
+    LaunchedEffect(key1 = animeList.firstOrNull()) {
+        if(animeList.firstOrNull() != null){
+            lazyGridState.animateScrollToItem(0)
+        }
+    }
+
     LazyVerticalGrid(
         modifier = modifier,
         state = lazyGridState,
@@ -120,8 +128,9 @@ fun FavoriteAnimeGrid(
         horizontalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridHorizontalSpacer),
         contentPadding = contentPadding + PaddingValues(8.dp)
     ) {
-        items(animeList) { favoriteItem ->
+        items(animeList,key= {it.anime.id}) { favoriteItem ->
             CompactAnimeGridItem(
+                modifier = Modifier.animateItemPlacement(),
                 isSelected = favoriteItem.selected,
                 anime = favoriteItem.anime.toAnime(),
                 unseenBadge = favoriteItem.anime.unseenEpisodes,

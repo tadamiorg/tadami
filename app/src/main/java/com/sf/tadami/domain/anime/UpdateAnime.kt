@@ -20,7 +20,6 @@ data class UpdateAnime(
     }
 }
 
-
 fun Anime.toUpdateAnime() : UpdateAnime {
     return UpdateAnime(
         id = id,
