@@ -109,7 +109,7 @@ fun FavoritesScreen(
                 onSearchCancel = {
                     isSearchMode = false
                 },
-                backHandlerEnabled = librarySheetVisible,
+                backHandlerEnabled = !librarySheetVisible,
                 onSearchClicked = {
                     isSearchMode = true
                 }

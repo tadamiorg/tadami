@@ -41,7 +41,7 @@ fun SearchBarExpanded(
 
     val focusRequester = remember { FocusRequester() }
 
-    BackHandler(!backHandlerEnabled) {
+    BackHandler(backHandlerEnabled) {
         onSearchCancel()
     }
 
