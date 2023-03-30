@@ -84,5 +84,9 @@
     <string name="library_sheet_sort_episode_count">Episode count</string>
     <string name="discover_search_sheet_reset">Reset</string>
     <string name="discover_search_sheet_filter">Filter</string>
+    <string name="preferences_player_title">Player</string>
+    <string name="preferences_player_timeline">Timeline</string>
+    <string name="preferences_player_seenthreshold">Seen threshold</string>
+    <string name="preferences_player_double_tap_length">Double tap skip length</string>
 
 </resources>

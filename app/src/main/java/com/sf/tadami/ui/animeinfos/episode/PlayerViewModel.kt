@@ -91,12 +91,12 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
     }
 
-    fun updateTime(episode: Episode?,totalTime : Long,timeSeen : Long){
+    fun updateTime(episode: Episode?,totalTime : Long,timeSeen : Long,threshold : Int){
         episode?.let { ep ->
             if(ep.seen) return
             viewModelScope.launch(Dispatchers.IO) {
                 if (totalTime > 0L && timeSeen > 999L) {
-                    val watched = (timeSeen.toDouble() / totalTime) * 100 > 92
+                    val watched = (timeSeen.toDouble() / totalTime) * 100 > threshold
                     if(watched){
                         updateAnimeInteractor.awaitSeenEpisodeUpdate(setOf(ep.id),true)
                     }else{

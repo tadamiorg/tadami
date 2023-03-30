@@ -35,6 +35,9 @@ import com.sf.tadami.ui.utils.UiToasts
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
 import com.sf.tadami.R
+import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
+import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferences
+
 @Composable
 fun VideoPlayer(
     modifier: Modifier = Modifier,
@@ -42,6 +45,8 @@ fun VideoPlayer(
     playerViewModel: PlayerViewModel = viewModel()
 ) {
     val context = LocalContext.current
+
+    val playerPreferences by rememberDataStoreState(customPrefs = PlayerPreferences).value.collectAsState()
 
     val playerScreenLoading by playerViewModel.playerScreenLoading.collectAsState()
 
@@ -82,8 +87,8 @@ fun VideoPlayer(
     val exoPlayer = remember {
         ExoPlayer.Builder(context)
             .apply {
-                setSeekBackIncrementMs(10000)
-                setSeekForwardIncrementMs(10000)
+                setSeekBackIncrementMs(playerPreferences.doubleTapLength)
+                setSeekForwardIncrementMs(playerPreferences.doubleTapLength)
                 setMediaSourceFactory(dataSourceFactory)
             }
             .build()
@@ -107,7 +112,7 @@ fun VideoPlayer(
     var openDialog by remember { mutableStateOf(false) }
 
     fun selectEpisode(episode: Episode) {
-        playerViewModel.updateTime(currentEpisode,totalDuration, currentTime)
+        playerViewModel.updateTime(currentEpisode,totalDuration, currentTime,playerPreferences.seenThreshold)
         playerViewModel.setCurrentEpisode(episode)
     }
 
@@ -226,7 +231,7 @@ fun VideoPlayer(
 
                     when (event) {
                         Lifecycle.Event.ON_PAUSE -> {
-                            playerViewModel.updateTime(currentEpisode,totalDuration, currentTime)
+                            playerViewModel.updateTime(currentEpisode,totalDuration, currentTime,playerPreferences.seenThreshold)
                             exoPlayer.pause()
                         }
                         Lifecycle.Event.ON_RESUME -> {
@@ -239,7 +244,7 @@ fun VideoPlayer(
                 lifecycle.addObserver(observer)
 
                 onDispose {
-                    playerViewModel.updateTime(currentEpisode,totalDuration, currentTime)
+                    playerViewModel.updateTime(currentEpisode,totalDuration, currentTime,playerPreferences.seenThreshold)
                     lifecycle.removeObserver(observer)
                     exoPlayer.removeListener(listener)
                     exoPlayer.release()

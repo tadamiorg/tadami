@@ -55,7 +55,7 @@ fun SettingsScreen(
                     subtitle = stringResource(id = R.string.settings_tab_library_player_preferences_subtitle),
                     icon = Icons.Outlined.OndemandVideo,
                     onClick = {
-
+                        navController.navigate(SettingsRoutes.PLAYER)
                     }
                 )
             )

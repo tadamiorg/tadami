@@ -33,7 +33,7 @@ fun <T : Any>SelectPreference(
     if(showDialog){
         CustomAlertDialog(
             title = {
-                    Text(text = title)
+                Text(text = title)
             },
             onDismissRequest = { 
                 showDialog = false

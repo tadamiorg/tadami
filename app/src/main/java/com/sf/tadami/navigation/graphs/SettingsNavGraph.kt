@@ -3,6 +3,7 @@ package com.sf.tadami.navigation.graphs
 import androidx.navigation.*
 import androidx.navigation.compose.composable
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferencesScreen
+import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferencesScreen
 
 fun NavGraphBuilder.settingsNavGraph(navController: NavHostController) {
 
@@ -10,7 +11,7 @@ fun NavGraphBuilder.settingsNavGraph(navController: NavHostController) {
         LibraryPreferencesScreen(navController).Content()
     }
     composable(route = SettingsRoutes.PLAYER) {
-
+        PlayerPreferencesScreen(navController).Content()
     }
     composable(route = SettingsRoutes.BACKUP) {
 
