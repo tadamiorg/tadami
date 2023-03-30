@@ -16,6 +16,7 @@ fun FavoritesComponent(
     onAnimeLongCLicked: (anime: FavoriteItem) -> Unit,
     onRefresh : () -> Unit,
     indicatorPadding : PaddingValues = PaddingValues(0.dp),
+    contentPadding : PaddingValues,
     isRefreshing : Boolean
 
 ) {

@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.favorites
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -38,6 +39,7 @@ fun FavoritesScreen(
     navController: NavHostController,
     setNavDisplay: (display: Boolean) -> Unit,
     bottomNavDisplay: Boolean,
+    bottomPadding : PaddingValues,
     showLibrarySheet: () -> Unit,
     librarySheetVisible : Boolean,
     favoritesViewModel: FavoritesViewModel = viewModel()
@@ -170,7 +172,8 @@ fun FavoritesScreen(
             indicatorPadding = innerPadding,
             onRefresh = {
                 favoritesViewModel.refreshAllFavorites(context)
-            }
+            },
+            contentPadding = bottomPadding
         )
     }
 }

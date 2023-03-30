@@ -12,6 +12,7 @@ import kotlinx.coroutines.SupervisorJob
 import uy.kohesive.injekt.api.InjektModule
 import uy.kohesive.injekt.api.InjektRegistrar
 import uy.kohesive.injekt.api.addSingleton
+import uy.kohesive.injekt.api.addSingletonFactory
 
 private const val USER_PREFERENCES = "user_preferences"
 
@@ -19,7 +20,7 @@ class PreferencesModule(private val app: Application) : InjektModule {
     override fun InjektRegistrar.registerInjectables() {
 
         // DataStore
-        addSingleton(
+        addSingletonFactory {
             PreferenceDataStoreFactory.create(
                 corruptionHandler = ReplaceFileCorruptionHandler(
                     produceNewData = { emptyPreferences() }
@@ -28,6 +29,6 @@ class PreferencesModule(private val app: Application) : InjektModule {
                 scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
                 produceFile = { app.preferencesDataStoreFile(USER_PREFERENCES) }
             )
-        )
+        }
     }
 }

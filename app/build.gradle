@@ -34,9 +34,9 @@ android {
     buildTypes {
         debug {
             debuggable true
-            shrinkResources true
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         release {
             debuggable false
@@ -158,7 +158,7 @@ dependencies {
 
     // Injekt Dependency injection
 
-    implementation "uy.kohesive.injekt:injekt-core:1.16.1"
+    implementation "com.github.inorichi.injekt:injekt-core:65b0440"
 
     // Json Serialization
 
