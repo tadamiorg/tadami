@@ -55,7 +55,7 @@ fun Group(
         ) {
             Text(
                 text = checkBoxGroup.name,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.labelLarge
             )
             Row(
                 modifier = Modifier.clickable(

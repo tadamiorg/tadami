@@ -3,6 +3,7 @@ package com.sf.tadami.ui.components.filters
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -17,7 +18,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun CheckBox(
     modifier: Modifier = Modifier,
-    textStyle: TextStyle = MaterialTheme.typography.labelMedium,
+    textStyle: TextStyle = MaterialTheme.typography.labelLarge,
     title: String,
     state: Boolean,
     onCheckedChange: (checked: Boolean) -> Unit
@@ -26,7 +27,16 @@ fun CheckBox(
     val interactionSource = remember {
         MutableInteractionSource()
     }
-    Row(modifier = Modifier.padding(0.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier = Modifier
+        .padding(0.dp)
+        .fillMaxWidth()
+        .clickable(
+            interactionSource = interactionSource,
+            indication = null
+        ) {
+            onCheckedChange(state.not())
+        }, verticalAlignment = Alignment.CenterVertically
+    ) {
         Checkbox(
             modifier = modifier,
             checked = state,
@@ -35,12 +45,7 @@ fun CheckBox(
             interactionSource = interactionSource
         )
         Text(
-            modifier = Modifier.clickable(
-                interactionSource = interactionSource,
-                indication = null
-            ) {
-                onCheckedChange(state.not())
-            }, text = title, style = textStyle
+            text = title, style = textStyle
         )
     }
 }

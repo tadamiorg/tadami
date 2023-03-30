@@ -5,7 +5,8 @@
 * Implement all library,backup and player preferences
 * Add new sources
 * Implement update notfications failure and skip
-* Finish filters implementation for the source search screen
+* ~~Finish filters implementation for the source search screen~~
+* Add webview to bypass anti bot protection in case the background one does not work
 
 ### Optional
 

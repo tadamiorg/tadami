@@ -37,7 +37,7 @@ fun Select(
                 .weight(1f)
                 .fillMaxWidth(),
             text = select.name.capFirstLetter(),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.labelLarge,
         )
         Box(
             modifier = Modifier
