@@ -15,11 +15,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.sf.tadami.ui.components.topappbar.ActionItem
 import com.sf.tadami.ui.components.data.Action
+import com.sf.tadami.ui.utils.clickableNoIndication
 
 @Composable
 fun ContextualBottomBar(
-    visible : Boolean,
-    actions : List<Action>
+    visible: Boolean,
+    actions: List<Action>
 ) {
     val visibleState = remember { MutableTransitionState(visible) }
 
@@ -27,7 +28,7 @@ fun ContextualBottomBar(
 
     var dismissingBottomBar by rememberSaveable { mutableStateOf(false) }
 
-    if(!visibleState.currentState && visibleState.isIdle){
+    if (!visibleState.currentState && visibleState.isIdle) {
         dismissingBottomBar = false
     }
 
@@ -36,11 +37,15 @@ fun ContextualBottomBar(
         enter = expandVertically(expandFrom = Alignment.Bottom),
         exit = shrinkVertically(shrinkTowards = Alignment.Bottom)
     ) {
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background), horizontalArrangement = Arrangement.SpaceEvenly) {
-            actions.forEach {action ->
-                ActionItem(action = action, enabled = !dismissingBottomBar){
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
+                .clickableNoIndication {  },
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            actions.forEach { action ->
+                ActionItem(action = action, enabled = !dismissingBottomBar && action.enabled) {
                     dismissingBottomBar = true
                 }
             }
