@@ -2,11 +2,11 @@
 <resources>
 
     <string name="settings_tab_title">Paramètres</string>
-    <string name="favorites_tab_title">Favoris</string>
+    <string name="library_tab_title">Bibliothèque</string>
     <string name="sources_tab_title">Sources</string>
-    <string name="favorites_tab_search_btn">Recherche</string>
-    <string name="favorites_tab_filter_btn">Filtrer</string>
-    <string name="favorites_tab_refresh_btn">Rafraichir</string>
+    <string name="library_tab_search_btn">Recherche</string>
+    <string name="library_tab_filter_btn">Filtrer</string>
+    <string name="library_tab_refresh_btn">Rafraichir</string>
     <string name="language_fr">Français</string>
     <string name="language_en">Anglais</string>
     <string name="language_others">Autres</string>

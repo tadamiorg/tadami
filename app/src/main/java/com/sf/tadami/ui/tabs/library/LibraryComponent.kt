@@ -1,19 +1,19 @@
-package com.sf.tadami.ui.tabs.favorites
+package com.sf.tadami.ui.tabs.library
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.ui.components.widgets.PullRefresh
-import com.sf.tadami.ui.components.grid.FavoriteAnimeGrid
-import com.sf.tadami.ui.components.data.FavoriteItem
+import com.sf.tadami.ui.components.grid.LibraryAnimeGrid
+import com.sf.tadami.ui.components.data.LibraryItem
 
 @Composable
-fun FavoritesComponent(
+fun LibraryComponent(
     modifier: Modifier = Modifier,
-    favoriteList: List<FavoriteItem>,
-    onAnimeCLicked: (anime: FavoriteItem) -> Unit,
-    onAnimeLongCLicked: (anime: FavoriteItem) -> Unit,
+    libraryList: List<LibraryItem>,
+    onAnimeCLicked: (anime: LibraryItem) -> Unit,
+    onAnimeLongCLicked: (anime: LibraryItem) -> Unit,
     onRefresh : () -> Unit,
     indicatorPadding : PaddingValues = PaddingValues(0.dp),
     contentPadding : PaddingValues,
@@ -25,11 +25,12 @@ fun FavoritesComponent(
         onRefresh = onRefresh,
         indicatorPadding = indicatorPadding
     ) {
-        FavoriteAnimeGrid(
+        LibraryAnimeGrid(
             modifier = modifier,
-            animeList = favoriteList,
+            animeList = libraryList,
             onAnimeCLicked = onAnimeCLicked,
-            onAnimeLongClicked = onAnimeLongCLicked
+            onAnimeLongClicked = onAnimeLongCLicked,
+            contentPadding = contentPadding
         )
     }
 }

@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.tabs.favorites
+package com.sf.tadami.ui.tabs.library
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,28 +26,28 @@ import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.AnimeInfosRoutes
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
-import com.sf.tadami.ui.components.data.FavoriteItem
+import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.components.topappbar.ContextualSearchTopAppBar
-import com.sf.tadami.ui.tabs.favorites.bottomsheet.sortComparator
-import com.sf.tadami.ui.tabs.favorites.bottomsheet.favoriteFilters
+import com.sf.tadami.ui.tabs.library.bottomsheet.sortComparator
+import com.sf.tadami.ui.tabs.library.bottomsheet.libraryFilters
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun FavoritesScreen(
+fun LibraryScreen(
     navController: NavHostController,
     setNavDisplay: (display: Boolean) -> Unit,
     bottomNavDisplay: Boolean,
     bottomPadding : PaddingValues,
     showLibrarySheet: () -> Unit,
     librarySheetVisible : Boolean,
-    favoritesViewModel: FavoritesViewModel = viewModel()
+    libraryViewModel: LibraryViewModel = viewModel()
 ) {
     val context = LocalContext.current
 
-    val favoriteList by favoritesViewModel.favoriteList.collectAsState()
-    val searchFilter by favoritesViewModel.searchFilter.collectAsState()
+    val libraryList by libraryViewModel.libraryList.collectAsState()
+    val searchFilter by libraryViewModel.searchFilter.collectAsState()
     val libraryPreferences by rememberDataStoreState(customPrefs = LibraryPreferences).value.collectAsState()
 
     val focusManager = LocalFocusManager.current
@@ -69,9 +69,9 @@ fun FavoritesScreen(
     }
 
 
-    val isActionMode by remember(favoriteList) {
+    val isActionMode by remember(libraryList) {
         derivedStateOf {
-            val count = favoriteList.count { it.selected }
+            val count = libraryList.count { it.selected }
             if (count == 0) {
                 setNavDisplay(true)
             }
@@ -83,29 +83,29 @@ fun FavoritesScreen(
         mutableStateOf(false)
     }
 
-    val isRefreshing by favoritesViewModel.isRefreshing.collectAsState()
+    val isRefreshing by libraryViewModel.isRefreshing.collectAsState()
 
     Scaffold(
         topBar = {
             ContextualSearchTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.favorites_tab_title)
+                        text = stringResource(id = R.string.library_tab_title)
                     )
                 },
                 actions = actions,
                 actionModeCounter = isActionMode,
                 onCloseActionModeClicked = {
-                    favoritesViewModel.toggleAllSelectedFavorites(false)
+                    libraryViewModel.toggleAllSelected(false)
                 },
                 onToggleAll = {
-                    favoritesViewModel.toggleAllSelectedFavorites(true)
+                    libraryViewModel.toggleAllSelected(true)
                 },
                 onInverseAll = {
-                    favoritesViewModel.inverseSelectedFavorites()
+                    libraryViewModel.inverseSelected()
                 },
                 onSearchChange = {
-                    favoritesViewModel.updateSearchFilter(it)
+                    libraryViewModel.updateSearchFilter(it)
                 },
                 isSearchMode = isSearchMode,
                 onSearchCancel = {
@@ -119,70 +119,70 @@ fun FavoritesScreen(
         },
         bottomBar = {
             ContextualBottomBar(
-                visible = favoriteList.fastAny { it.selected } && !bottomNavDisplay,
+                visible = libraryList.fastAny { it.selected } && !bottomNavDisplay,
                 actions = listOf(
                     Action.Vector(
                         title = R.string.stub_text,
                         icon = Icons.Outlined.DoneAll,
                         onClick = {
-                            favoritesViewModel.setSeenStatus(true)
+                            libraryViewModel.setSeenStatus(true)
                         },
                     ),
                     Action.Vector(
                         title = R.string.stub_text,
                         icon = Icons.Outlined.RemoveDone,
                         onClick = {
-                            favoritesViewModel.setSeenStatus(false)
+                            libraryViewModel.setSeenStatus(false)
                         },
                     ),
                     Action.Vector(
                         title = R.string.stub_text,
                         icon = Icons.Outlined.DeleteOutline,
                         onClick = {
-                            favoritesViewModel.unFavorite()
+                            libraryViewModel.unFavorite()
                         }
                     )
                 )
             )
         },
     ) { innerPadding ->
-        FavoritesComponent(
+        LibraryComponent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            favoriteList = favoriteList.addFilters(libraryPreferences,searchFilter),
-            onAnimeCLicked = { favorite ->
+            libraryList = libraryList.addFilters(libraryPreferences,searchFilter),
+            onAnimeCLicked = { libraryItem ->
                 when {
-                    favorite.selected -> {
-                        favoritesViewModel.toggleSelectedFavorite(favorite, false)
+                    libraryItem.selected -> {
+                        libraryViewModel.toggleSelected(libraryItem, false)
                     }
-                    favoriteList.fastAny { it.selected } -> {
-                        favoritesViewModel.toggleSelectedFavorite(favorite, true)
+                    libraryList.fastAny { it.selected } -> {
+                        libraryViewModel.toggleSelected(libraryItem, true)
                     }
                     else -> {
-                        navController.navigate("${AnimeInfosRoutes.DETAILS}/${favorite.anime.source}/${favorite.anime.id}")
+                        navController.navigate("${AnimeInfosRoutes.DETAILS}/${libraryItem.anime.source}/${libraryItem.anime.id}")
                     }
                 }
             },
-            onAnimeLongCLicked = { favorite ->
+            onAnimeLongCLicked = { libraryItem ->
                 setNavDisplay(false)
-                favoritesViewModel.toggleSelectedFavorite(favorite, true)
+                libraryViewModel.toggleSelected(libraryItem, true)
             },
             isRefreshing = isRefreshing,
             indicatorPadding = innerPadding,
             onRefresh = {
-                favoritesViewModel.refreshAllFavorites(context)
+                libraryViewModel.refreshLibrary(context)
             },
             contentPadding = bottomPadding
         )
     }
 }
 
-private fun List<FavoriteItem>.addFilters(prefs: LibraryPreferences,searchFilter : String): List<FavoriteItem> {
+private fun List<LibraryItem>.addFilters(prefs: LibraryPreferences, searchFilter : String): List<LibraryItem> {
     return this
         .filter {
             it.anime.title.contains(searchFilter, true)
         }
-        .favoriteFilters(prefs.filterFlags)
+        .libraryFilters(prefs.filterFlags)
         .sortedWith { a1, a2 -> sortComparator(prefs.sortFlags).invoke(a1,a2) }
 }

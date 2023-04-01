@@ -13,7 +13,7 @@ object CommonMangaItemDefaults {
     val GridHorizontalSpacer = 4.dp
     val GridVerticalSpacer = 4.dp
 
-    const val BrowseFavoriteCoverAlpha = 0.34f
+    const val BrowseLibraryCoverAlpha = 0.34f
 }
 object ImageDefaults {
     val CoverPlaceholderColor = Color(0x1F888888)

@@ -43,7 +43,7 @@ fun DetailsScreen(
                 title = uiState.details?.title ?: "",
                 episodesListState = episodesListState,
                 onBackClicked = { navHostController.navigateUp() },
-                onFavoriteClicked = {
+                onLibraryAnimeClicked = {
                     detailsViewModel.toggleFavorite()
                 },
                 actionModeCounter = uiState.episodes.count { it.selected },

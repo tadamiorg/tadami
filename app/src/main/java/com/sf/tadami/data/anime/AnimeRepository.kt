@@ -5,7 +5,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.domain.anime.Anime
-import com.sf.tadami.domain.anime.FavoriteAnime
+import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.UpdateAnime
 import com.sf.tadami.network.api.model.AnimeFilterList
 import com.sf.tadami.network.api.model.SAnime
@@ -21,9 +21,9 @@ interface AnimeRepository {
 
     suspend fun insertNetworkToLocalAnime(anime: Anime): Anime
 
-    fun getFavoriteAnimesAsFlow(): Flow<List<FavoriteAnime>>
+    fun getLibraryAnimesAsFlow(): Flow<List<LibraryAnime>>
 
-    suspend fun getFavoriteAnimes(): List<FavoriteAnime>
+    suspend fun getLibraryAnimes(): List<LibraryAnime>
 
     suspend fun getAnimeById(id: Long): Anime
 
@@ -89,13 +89,13 @@ class AnimeRepositoryImpl(
         }
     }
 
-    override fun getFavoriteAnimesAsFlow(): Flow<List<FavoriteAnime>> {
-        return handler.subscribeToList { favoriteQueries.getFavorites(favoriteMapper) }
+    override fun getLibraryAnimesAsFlow(): Flow<List<LibraryAnime>> {
+        return handler.subscribeToList { libraryQueries.getLibrary(libraryMapper) }
     }
 
-    override suspend fun getFavoriteAnimes(): List<FavoriteAnime> {
+    override suspend fun getLibraryAnimes(): List<LibraryAnime> {
         return handler.awaitList {
-            favoriteQueries.getFavorites(favoriteMapper)
+            libraryQueries.getLibrary(libraryMapper)
         }
     }
 

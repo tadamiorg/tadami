@@ -57,7 +57,7 @@ fun SAnime.toDomainAnime(source: String): Anime {
     )
 }
 
-fun FavoriteAnime.toAnime(): Anime {
+fun LibraryAnime.toAnime(): Anime {
     return Anime(
         id = id,
         source = source,

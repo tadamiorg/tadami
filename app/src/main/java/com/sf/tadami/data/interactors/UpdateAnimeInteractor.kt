@@ -18,18 +18,18 @@ class UpdateAnimeInteractor(
     private val episodeRepository: EpisodeRepository,
 ) {
 
-    suspend fun updateFavorite(
+    suspend fun updateLibraryAnime(
         anime: Anime,
         favorite: Boolean
     ) {
         animeRepository.updateAnime(UpdateAnime(id = anime.id, favorite = favorite))
     }
 
-    suspend fun updateAllFavorite(
-        favoriteIds: Set<Long>,
+    suspend fun updateLibrary(
+        libraryAnimeIds: Set<Long>,
         favorite: Boolean
     ) {
-        animeRepository.updateAll(favoriteIds.map { UpdateAnime(id = it, favorite = favorite) })
+        animeRepository.updateAll(libraryAnimeIds.map { UpdateAnime(id = it, favorite = favorite) })
     }
 
     suspend fun awaitUpdateFromSource(

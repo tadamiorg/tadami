@@ -25,7 +25,7 @@ fun DetailsToolbar(
     modifier: Modifier = Modifier,
     title: String,
     onBackClicked: () -> Unit,
-    onFavoriteClicked: () -> Unit,
+    onLibraryAnimeClicked: () -> Unit,
     episodesListState: LazyListState,
     isFavorited : Boolean? = false,
     // For Action Mode
@@ -62,7 +62,7 @@ fun DetailsToolbar(
             Action.Vector(
                 title = R.string.stub_text,
                 icon = if(isFavorited == true) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
-                onClick = onFavoriteClicked
+                onClick = onLibraryAnimeClicked
             ),
             Action.Drawable(
                 title = R.string.stub_text,

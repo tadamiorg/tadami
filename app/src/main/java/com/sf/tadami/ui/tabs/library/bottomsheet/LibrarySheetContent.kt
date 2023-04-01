@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.tabs.favorites.bottomsheet
+package com.sf.tadami.ui.tabs.library.bottomsheet
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
@@ -24,7 +24,7 @@ fun Long.setFlags(flag: Long, mask: Long): Long {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun FavoritesSheetContent() {
+fun LibrarySheetContent() {
     val libraryPreferencesStore = rememberDataStoreState(customPrefs = LibraryPreferences)
     val libraryPreferencesState by libraryPreferencesStore.value.collectAsState()
     val coroutineScope = rememberCoroutineScope()

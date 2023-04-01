@@ -1,9 +1,9 @@
-package com.sf.tadami.ui.tabs.favorites.bottomsheet
+package com.sf.tadami.ui.tabs.library.bottomsheet
 
-import com.sf.tadami.ui.components.data.FavoriteItem
+import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.tabs.settings.screens.library.LibrarySort
 
-fun sortComparator(sort: LibrarySort): (FavoriteItem, FavoriteItem) -> Int {
+fun sortComparator(sort: LibrarySort): (LibraryItem, LibraryItem) -> Int {
     return when (sort.sortType) {
         is LibrarySort.SortType.Alphabetical -> when (sort.isAscending) {
             true -> {

@@ -36,14 +36,13 @@ fun AnimeSourcesComponent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(15.dp,0.dp)
             .wrapContentSize(Alignment.Center)
     ) {
         LazyColumn {
             categories.keys.toList().forEach { lang ->
                 val language = categories[lang]
 
-                item { Text(text = stringResource(id = lang)) }
+                item { Text(modifier = Modifier.padding(16.dp,4.dp),text = stringResource(id = lang)) }
 
                 items(language!!.toList()) { source ->
                     AnimeSourceItem(

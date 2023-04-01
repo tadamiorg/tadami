@@ -1,8 +1,8 @@
 package com.sf.tadami.data.anime
 
-import com.sf.tadami.domain.anime.FavoriteAnime
+import com.sf.tadami.domain.anime.LibraryAnime
 
-val favoriteMapper: (
+val libraryMapper: (
     _id: Long,
     source: String,
     url: String,
@@ -16,7 +16,7 @@ val favoriteMapper: (
     initialized: Boolean,
     episodes : Long,
     unseen_episodes: Double
-) -> FavoriteAnime =
+) -> LibraryAnime =
     { id: Long,
       source: String,
       url: String,
@@ -31,7 +31,7 @@ val favoriteMapper: (
       episodes : Long,
       unseenEpisodes: Double
         ->
-        FavoriteAnime(
+        LibraryAnime(
             id = id,
             source = source,
             url = url,

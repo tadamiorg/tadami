@@ -1,11 +1,11 @@
-package com.sf.tadami.ui.tabs.favorites.bottomsheet
+package com.sf.tadami.ui.tabs.library.bottomsheet
 
 
 import androidx.compose.ui.state.ToggleableState
-import com.sf.tadami.ui.components.data.FavoriteItem
+import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryFilter
 
-fun List<FavoriteItem>.favoriteFilters(filters: LibraryFilter): List<FavoriteItem> {
+fun List<LibraryItem>.libraryFilters(filters: LibraryFilter): List<LibraryItem> {
     return this.filter {
         when (filters.readState) {
             ToggleableState.On -> it.anime.unseenEpisodes > 0L

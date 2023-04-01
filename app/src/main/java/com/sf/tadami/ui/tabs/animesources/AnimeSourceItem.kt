@@ -1,6 +1,8 @@
 package com.sf.tadami.ui.tabs.animesources
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -20,6 +22,7 @@ import com.sf.tadami.ui.utils.ImageDefaults.CoverPlaceholderColor
 import com.sf.tadami.ui.utils.capFirstLetter
 import java.util.*
 
+@OptIn(ExperimentalFoundationApi::class)
 @SuppressLint("DiscouragedApi")
 @Composable
 fun AnimeSourceItem(
@@ -29,7 +32,17 @@ fun AnimeSourceItem(
 ) {
     val context = LocalContext.current
 
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = {
+                    onSearchClicked()
+                }
+            )
+            .padding(PaddingValues(16.dp, 4.dp)),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         AsyncImage(
             model = ImageRequest.Builder(context)
                 .data(source.getIconRes())
@@ -43,7 +56,7 @@ fun AnimeSourceItem(
                 .aspectRatio(1f)
         )
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(16.dp))
 
         Column {
             Text(text = source.name.capFirstLetter(), style = MaterialTheme.typography.labelMedium)
@@ -52,15 +65,17 @@ fun AnimeSourceItem(
                 style = MaterialTheme.typography.labelMedium
             )
         }
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .weight(1f, false), horizontalArrangement = Arrangement.End) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, false), horizontalArrangement = Arrangement.End
+        ) {
             TextButton(onClick = onRecentClicked) {
                 Text(text = stringResource(id = R.string.anime_sources_screen_recents_btn))
             }
-            IconButton(onClick = onSearchClicked) {
+            IconButton(onClick = {}, enabled = false) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_search),
+                    painter = painterResource(id = R.drawable.ic_settings),
                     contentDescription = null
                 )
             }

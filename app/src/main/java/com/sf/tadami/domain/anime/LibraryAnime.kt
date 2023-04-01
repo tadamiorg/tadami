@@ -1,6 +1,6 @@
 package com.sf.tadami.domain.anime
 
-data class FavoriteAnime(
+data class LibraryAnime(
     val id: Long,
     val source: String,
     val url: String,

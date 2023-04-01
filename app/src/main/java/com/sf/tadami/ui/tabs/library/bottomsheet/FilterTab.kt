@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.tabs.favorites.bottomsheet
+package com.sf.tadami.ui.tabs.library.bottomsheet
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource

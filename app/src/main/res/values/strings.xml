@@ -1,11 +1,11 @@
 <resources>
     <string name="app_name" translatable="false">Tadami</string>
     <string name="settings_tab_title">Settings</string>
-    <string name="favorites_tab_title">Favorites</string>
+    <string name="library_tab_title">Library</string>
     <string name="sources_tab_title">Sources</string>
-    <string name="favorites_tab_search_btn">Search</string>
-    <string name="favorites_tab_filter_btn">Filter</string>
-    <string name="favorites_tab_refresh_btn">Refresh</string>
+    <string name="library_tab_search_btn">Search</string>
+    <string name="library_tab_filter_btn">Filter</string>
+    <string name="library_tab_refresh_btn">Refresh</string>
     <string name="language_fr">French</string>
     <string name="language_en">English</string>
     <string name="language_others">Others</string>

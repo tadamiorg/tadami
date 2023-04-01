@@ -27,7 +27,7 @@ import com.sf.tadami.navigation.bottomnav.BottomNavBar
 import com.sf.tadami.navigation.graphs.HomeNavGraph
 import com.sf.tadami.navigation.graphs.HomeNavItems
 import com.sf.tadami.ui.components.filters.TadaBottomSheetLayout
-import com.sf.tadami.ui.tabs.favorites.bottomsheet.FavoritesSheetContent
+import com.sf.tadami.ui.tabs.library.bottomsheet.LibrarySheetContent
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -41,7 +41,7 @@ fun HomeScreen(
 
     val items = remember {
         listOf(
-            HomeNavItems.Favorites,
+            HomeNavItems.Library,
             HomeNavItems.Sources,
             HomeNavItems.Settings
         )
@@ -69,7 +69,7 @@ fun HomeScreen(
     TadaBottomSheetLayout(
         sheetState = librarySheetState,
         sheetContent = {
-            FavoritesSheetContent()
+            LibrarySheetContent()
         }
     ) {
         Scaffold(

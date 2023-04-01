@@ -9,7 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.sf.tadami.R
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesScreen
-import com.sf.tadami.ui.tabs.favorites.FavoritesScreen
+import com.sf.tadami.ui.tabs.library.LibraryScreen
 import com.sf.tadami.ui.tabs.settings.SettingsScreen
 
 @Composable
@@ -24,10 +24,10 @@ fun HomeNavGraph(
     NavHost(
         navController = navController,
         route = GRAPH.HOME,
-        startDestination = HomeNavItems.Favorites.route
+        startDestination = HomeNavItems.Library.route
     ) {
-        composable(route = HomeNavItems.Favorites.route){
-            FavoritesScreen(
+        composable(route = HomeNavItems.Library.route){
+            LibraryScreen(
                 navController = navController,
                 setNavDisplay = setNavDisplay,
                 bottomNavDisplay = bottomNavDisplay,
@@ -54,7 +54,7 @@ object GRAPH {
 }
 
 sealed class HomeNavItems(val route: String, @StringRes val name: Int,@DrawableRes val icon: Int) {
-    object Favorites : HomeNavItems("favorite", R.string.favorites_tab_title,R.drawable.ic_favorites)
+    object Library : HomeNavItems("library", R.string.library_tab_title,R.drawable.ic_video_library)
     object Sources : HomeNavItems("anime_sources", R.string.sources_tab_title,R.drawable.ic_sources)
     object Settings : HomeNavItems("settings", R.string.settings_tab_title,R.drawable.ic_settings)
 }

@@ -13,7 +13,7 @@ import com.sf.tadami.data.anime.AnimeRepositoryImpl
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.episode.EpisodeRepositoryImpl
 import com.sf.tadami.data.interactors.AnimeWithEpisodesInteractor
-import com.sf.tadami.data.interactors.FavoriteInteractor
+import com.sf.tadami.data.interactors.LibraryInteractor
 import com.sf.tadami.data.interactors.UpdateAnimeInteractor
 import com.sf.tadami.network.database.listOfStringsAdapter
 import com.sf.tadami.network.requests.okhttp.HttpClient
@@ -82,7 +82,7 @@ class AppModule(private val app: Application) : InjektModule {
         }
 
         addSingletonFactory {
-            FavoriteInteractor(get())
+            LibraryInteractor(get())
         }
 
         // HttpClient

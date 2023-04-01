@@ -19,6 +19,7 @@ fun AnimeSourcesScreen(navController: NavHostController) {
         Action.Drawable(
             title = R.string.stub_text,
             icon = R.drawable.ic_search,
+            enabled = false,
             onClick = {})
     )
 

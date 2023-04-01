@@ -15,7 +15,7 @@ import androidx.paging.compose.LazyPagingItems
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.ui.components.widgets.ContentLoader
-import com.sf.tadami.ui.components.data.FavoriteItem
+import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
 import com.sf.tadami.ui.utils.CommonMangaItemDefaults
@@ -92,11 +92,11 @@ fun AnimeGrid(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun FavoriteAnimeGrid(
+fun LibraryAnimeGrid(
     modifier: Modifier = Modifier,
-    animeList: List<FavoriteItem>,
-    onAnimeCLicked: (anime: FavoriteItem) -> Unit,
-    onAnimeLongClicked: (anime: FavoriteItem) -> Unit,
+    animeList: List<LibraryItem>,
+    onAnimeCLicked: (anime: LibraryItem) -> Unit,
+    onAnimeLongClicked: (anime: LibraryItem) -> Unit,
     lazyGridState: LazyGridState = rememberLazyGridState(),
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
@@ -128,17 +128,17 @@ fun FavoriteAnimeGrid(
         horizontalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridHorizontalSpacer),
         contentPadding = contentPadding + PaddingValues(8.dp)
     ) {
-        items(animeList,key= {it.anime.id}) { favoriteItem ->
+        items(animeList,key= {it.anime.id}) { libraryItem ->
             CompactAnimeGridItem(
                 modifier = Modifier.animateItemPlacement(),
-                isSelected = favoriteItem.selected,
-                anime = favoriteItem.anime.toAnime(),
-                unseenBadge = favoriteItem.anime.unseenEpisodes,
+                isSelected = libraryItem.selected,
+                anime = libraryItem.anime.toAnime(),
+                unseenBadge = libraryItem.anime.unseenEpisodes,
                 onClick = {
-                    onAnimeCLicked(favoriteItem)
+                    onAnimeCLicked(libraryItem)
                 },
                 onLongClick = {
-                    onAnimeLongClicked(favoriteItem)
+                    onAnimeLongClicked(libraryItem)
                 }
             )
         }

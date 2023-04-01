@@ -1,14 +1,14 @@
-package com.sf.tadami.ui.tabs.favorites
+package com.sf.tadami.ui.tabs.library
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sf.tadami.R
-import com.sf.tadami.data.interactors.FavoriteInteractor
+import com.sf.tadami.data.interactors.LibraryInteractor
 import com.sf.tadami.data.interactors.UpdateAnimeInteractor
-import com.sf.tadami.domain.anime.FavoriteAnime
+import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
-import com.sf.tadami.ui.components.data.FavoriteItem
+import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.addOrRemove
 import kotlinx.coroutines.Dispatchers
@@ -21,12 +21,12 @@ import kotlinx.coroutines.launch
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class FavoritesViewModel : ViewModel() {
-    private val favoriteInteractor: FavoriteInteractor = Injekt.get()
+class LibraryViewModel : ViewModel() {
+    private val libraryInteractor: LibraryInteractor = Injekt.get()
     private val updateAnimeInteractor : UpdateAnimeInteractor = Injekt.get()
 
-    private val _favoriteList : MutableStateFlow<List<FavoriteItem>> = MutableStateFlow(emptyList())
-    val favoriteList = _favoriteList.asStateFlow()
+    private val _libraryList : MutableStateFlow<List<LibraryItem>> = MutableStateFlow(emptyList())
+    val libraryList = _libraryList.asStateFlow()
 
     private val _searchFilter : MutableStateFlow<String> = MutableStateFlow("")
     val searchFilter = _searchFilter.asStateFlow()
@@ -34,12 +34,12 @@ class FavoritesViewModel : ViewModel() {
     private val _isRefreshing : MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
-    private val selectedFavoriteIds : HashSet<Long> = HashSet()
+    private val selectedIds : HashSet<Long> = HashSet()
 
     init {
         viewModelScope.launch(Dispatchers.IO){
-            favoriteInteractor.subscribe().collectLatest { favoriteList ->
-                _favoriteList.update { favoriteList.toFavoriteItems() }
+            libraryInteractor.subscribe().collectLatest { libraryList ->
+                _libraryList.update { libraryList.toLibraryItems() }
             }
         }
     }
@@ -55,7 +55,7 @@ class FavoritesViewModel : ViewModel() {
             _isRefreshing.update { false }
         }
     }
-    fun refreshAllFavorites(context : Context){
+    fun refreshLibrary(context : Context){
         toggleRefreshIndicator()
         val started = LibraryUpdateWorker.startNow(context)
         viewModelScope.launch {
@@ -64,34 +64,34 @@ class FavoritesViewModel : ViewModel() {
         }
     }
 
-    fun toggleSelectedFavorite(favorite: FavoriteItem, selected: Boolean) {
-        val newFavorites = favoriteList.value.toMutableList().apply {
-            val selectedIndex = this.indexOfFirst { it.anime.id == favorite.anime.id }
+    fun toggleSelected(libraryItem: LibraryItem, selected: Boolean) {
+        val newLibraryItems = libraryList.value.toMutableList().apply {
+            val selectedIndex = this.indexOfFirst { it.anime.id == libraryItem.anime.id }
             if (selectedIndex < 0) return@apply
 
             val selectedItem = get(selectedIndex)
 
             set(selectedIndex, selectedItem.copy(selected = selected))
 
-            selectedFavoriteIds.addOrRemove(favorite.anime.id, selected)
+            selectedIds.addOrRemove(libraryItem.anime.id, selected)
 
         }
-        _favoriteList.update{ newFavorites }
+        _libraryList.update{ newLibraryItems }
     }
 
-    fun inverseSelectedFavorites() {
-        _favoriteList.update { currentState ->
+    fun inverseSelected() {
+        _libraryList.update { currentState ->
             currentState.map {
-                selectedFavoriteIds.addOrRemove(it.anime.id, !it.selected)
+                selectedIds.addOrRemove(it.anime.id, !it.selected)
                 it.copy(selected = !it.selected)
             }
         }
     }
 
-    fun toggleAllSelectedFavorites(selected: Boolean) {
-        _favoriteList.update { currentState ->
+    fun toggleAllSelected(selected: Boolean) {
+        _libraryList.update { currentState ->
             currentState.map {
-                selectedFavoriteIds.addOrRemove(it.anime.id, selected)
+                selectedIds.addOrRemove(it.anime.id, selected)
                 it.copy(selected = selected)
             }
         }
@@ -99,22 +99,22 @@ class FavoritesViewModel : ViewModel() {
 
     fun setSeenStatus(status : Boolean){
         viewModelScope.launch(Dispatchers.IO) {
-            updateAnimeInteractor.awaitSeenAnimeUpdate(selectedFavoriteIds, status)
-            toggleAllSelectedFavorites(false)
+            updateAnimeInteractor.awaitSeenAnimeUpdate(selectedIds, status)
+            toggleAllSelected(false)
         }
     }
     fun unFavorite(){
         viewModelScope.launch(Dispatchers.IO) {
-            updateAnimeInteractor.updateAllFavorite(selectedFavoriteIds,false)
-            toggleAllSelectedFavorites(false)
+            updateAnimeInteractor.updateLibrary(selectedIds,false)
+            toggleAllSelected(false)
         }
     }
 
-    private fun List<FavoriteAnime>.toFavoriteItems(): List<FavoriteItem> {
+    private fun List<LibraryAnime>.toLibraryItems(): List<LibraryItem> {
         return this.map {
-            FavoriteItem(
+            LibraryItem(
                 it,
-                it.id in selectedFavoriteIds
+                it.id in selectedIds
             )
         }
     }

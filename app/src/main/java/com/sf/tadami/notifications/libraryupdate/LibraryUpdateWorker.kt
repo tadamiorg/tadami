@@ -4,10 +4,10 @@ import android.content.Context
 import android.util.Log
 import androidx.work.*
 import com.sf.tadami.data.interactors.AnimeWithEpisodesInteractor
-import com.sf.tadami.data.interactors.FavoriteInteractor
+import com.sf.tadami.data.interactors.LibraryInteractor
 import com.sf.tadami.data.interactors.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
-import com.sf.tadami.domain.anime.FavoriteAnime
+import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
@@ -26,12 +26,12 @@ class LibraryUpdateWorker(
 ) : CoroutineWorker(context,params) {
 
     private val notifier = LibraryUpdateNotifier(context)
-    private val favoriteInteractor : FavoriteInteractor = Injekt.get()
+    private val libraryInteractor : LibraryInteractor = Injekt.get()
     private val sourcesManager : AnimeSourcesManager = Injekt.get()
     private val animeWithEpisodesInteractor : AnimeWithEpisodesInteractor = Injekt.get()
     private val updateAnimeInteractor : UpdateAnimeInteractor = Injekt.get()
 
-    private var animesToUpdate: List<FavoriteAnime> = mutableListOf()
+    private var animesToUpdate: List<LibraryAnime> = mutableListOf()
 
     override suspend fun doWork(): Result {
         try {
@@ -61,9 +61,9 @@ class LibraryUpdateWorker(
     }
 
     private fun addAnimesToQueue() {
-        val favoriteAnimes = runBlocking { favoriteInteractor.await() }
+        val libraryAnimes = runBlocking { libraryInteractor.await() }
 
-        animesToUpdate = favoriteAnimes.sortedBy { it.title }
+        animesToUpdate = libraryAnimes.sortedBy { it.title }
     }
 
 
@@ -78,8 +78,8 @@ class LibraryUpdateWorker(
                 .map { animeInSource ->
                     async {
                         semaphore.withPermit {
-                            animeInSource.forEach { favoriteAnime ->
-                                val anime = favoriteAnime.toAnime()
+                            animeInSource.forEach { libraryAnime ->
+                                val anime = libraryAnime.toAnime()
                                 ensureActive()
 
                                 if (!animeWithEpisodesInteractor.awaitAnime(anime.id).favorite) {
