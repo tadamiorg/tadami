@@ -115,7 +115,6 @@ fun HomeScreen(
                     navController = navController,
                     bottomNavDisplay = displayed.currentState,
                     setNavDisplay = { manualDisplay = it },
-                    bottomPadding = bottomPadding,
                     librarySheetVisible =
                     librarySheetState.isVisible
                             || librarySheetState.targetValue == ModalBottomSheetValue.Expanded

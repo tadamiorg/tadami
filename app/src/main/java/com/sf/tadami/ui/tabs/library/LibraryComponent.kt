@@ -16,7 +16,6 @@ fun LibraryComponent(
     onAnimeLongCLicked: (anime: LibraryItem) -> Unit,
     onRefresh : () -> Unit,
     indicatorPadding : PaddingValues = PaddingValues(0.dp),
-    contentPadding : PaddingValues,
     isRefreshing : Boolean
 
 ) {
@@ -30,7 +29,6 @@ fun LibraryComponent(
             animeList = libraryList,
             onAnimeCLicked = onAnimeCLicked,
             onAnimeLongClicked = onAnimeLongCLicked,
-            contentPadding = contentPadding
         )
     }
 }

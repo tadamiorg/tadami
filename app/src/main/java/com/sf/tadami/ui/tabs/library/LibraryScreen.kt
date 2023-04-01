@@ -39,7 +39,6 @@ fun LibraryScreen(
     navController: NavHostController,
     setNavDisplay: (display: Boolean) -> Unit,
     bottomNavDisplay: Boolean,
-    bottomPadding : PaddingValues,
     showLibrarySheet: () -> Unit,
     librarySheetVisible : Boolean,
     libraryViewModel: LibraryViewModel = viewModel()
@@ -172,8 +171,7 @@ fun LibraryScreen(
             indicatorPadding = innerPadding,
             onRefresh = {
                 libraryViewModel.refreshLibrary(context)
-            },
-            contentPadding = bottomPadding
+            }
         )
     }
 }

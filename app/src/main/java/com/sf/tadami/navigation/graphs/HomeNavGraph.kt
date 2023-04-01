@@ -16,7 +16,6 @@ import com.sf.tadami.ui.tabs.settings.SettingsScreen
 fun HomeNavGraph(
     navController: NavHostController,
     bottomNavDisplay : Boolean,
-    bottomPadding : PaddingValues,
     setNavDisplay : (display : Boolean) -> Unit,
     librarySheetVisible : Boolean,
     showLibrarySheet : () -> Unit,
@@ -31,7 +30,6 @@ fun HomeNavGraph(
                 navController = navController,
                 setNavDisplay = setNavDisplay,
                 bottomNavDisplay = bottomNavDisplay,
-                bottomPadding = bottomPadding,
                 librarySheetVisible = librarySheetVisible,
                 showLibrarySheet = showLibrarySheet
             )
