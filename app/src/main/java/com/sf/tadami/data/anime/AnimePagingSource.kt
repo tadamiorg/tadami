@@ -32,7 +32,7 @@ abstract class AnimePagingSource(
             withContext(Dispatchers.IO){
                 requestNextPage(page.toInt()).takeIf {
                     it.animes.isNotEmpty()
-                } ?: throw Exception()
+                } ?: throw NoResultException()
             }
         } catch (e: Exception) {
             return LoadResult.Error(e)
@@ -49,30 +49,15 @@ abstract class AnimePagingSource(
 
 class LatestPagingSource(source: AnimeSource) : AnimePagingSource(source) {
     override suspend fun requestNextPage(currentPage: Int): AnimesPage {
-        return try {
-            source.fetchLatest(currentPage).singleOrError().await()
-        }catch(e : Exception) {
-            Log.d("LatestPagingError",e.toString(),e)
-            AnimesPage(
-                emptyList(),
-                false
-            )
-        }
-
+        return source.fetchLatest(currentPage).singleOrError().await()
     }
 }
 
 class SearchPagingSource(source: AnimeSource, private val query: String, private val filters: AnimeFilterList) :
     AnimePagingSource(source) {
     override suspend fun requestNextPage(currentPage: Int): AnimesPage {
-        return try {
-            source.fetchSearch(currentPage, query, filters).singleOrError().await()
-        }catch(e : Exception) {
-            Log.e("SearchPagingError",e.stackTrace.toString())
-            AnimesPage(
-                emptyList(),
-                false
-            )
-        }
+        return source.fetchSearch(currentPage, query, filters).singleOrError().await()
     }
 }
+
+class NoResultException : Exception()

@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.tabs.library
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -21,15 +20,17 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.AnimeInfosRoutes
+import com.sf.tadami.navigation.graphs.HomeNavItems
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.components.topappbar.ContextualSearchTopAppBar
-import com.sf.tadami.ui.tabs.library.bottomsheet.sortComparator
 import com.sf.tadami.ui.tabs.library.bottomsheet.libraryFilters
+import com.sf.tadami.ui.tabs.library.bottomsheet.sortComparator
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
 
@@ -150,6 +151,7 @@ fun LibraryScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
             libraryList = libraryList.addFilters(libraryPreferences,searchFilter),
+            librarySize = libraryList.size,
             onAnimeCLicked = { libraryItem ->
                 when {
                     libraryItem.selected -> {
@@ -171,6 +173,16 @@ fun LibraryScreen(
             indicatorPadding = innerPadding,
             onRefresh = {
                 libraryViewModel.refreshLibrary(context)
+            },
+            onEmptyRefreshClicked = {
+                navController.navigate(HomeNavItems.Sources.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+
             }
         )
     }

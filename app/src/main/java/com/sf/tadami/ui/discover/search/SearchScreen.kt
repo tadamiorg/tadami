@@ -51,6 +51,8 @@ fun SearchScreen(
 
     val heightInDp = with(LocalDensity.current) { fabHeight.toDp() }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
     TadaBottomSheetLayout(
         sheetContent = {
             FiltersSheet(
@@ -121,12 +123,14 @@ fun SearchScreen(
                         )
                     }
                 }
-            }
+            },
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState)}
         ) { innerPadding ->
             SearchComponent(
                 modifier = Modifier.padding(innerPadding),
                 fabPadding = PaddingValues(bottom = heightInDp + 16.dp),
                 animeList = animeList,
+                snackbarHostState = snackbarHostState,
                 onAnimeClicked = {
                     navController.navigate("${AnimeInfosRoutes.DETAILS}/${it.source}/${it.id}")
                 }

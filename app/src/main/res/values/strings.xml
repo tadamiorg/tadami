@@ -3,9 +3,9 @@
     <string name="settings_tab_title">Settings</string>
     <string name="library_tab_title">Library</string>
     <string name="sources_tab_title">Sources</string>
-    <string name="library_tab_search_btn">Search</string>
-    <string name="library_tab_filter_btn">Filter</string>
-    <string name="library_tab_refresh_btn">Refresh</string>
+    <string name="search">Search</string>
+    <string name="filter">Filter</string>
+    <string name="refresh">Refresh</string>
     <string name="language_fr">French</string>
     <string name="language_en">English</string>
     <string name="language_others">Others</string>
@@ -88,5 +88,9 @@
     <string name="preferences_player_timeline">Timeline</string>
     <string name="preferences_player_seenthreshold">Seen threshold</string>
     <string name="preferences_player_double_tap_length">Double tap skip length</string>
+    <string name="empty_library_title">Your library is empty.</string>
+    <string name="empty_library_action">Discover animes</string>
+    <string name="retry">Retry</string>
+    <string name="pager_no_results">No results found</string>
 
 </resources>

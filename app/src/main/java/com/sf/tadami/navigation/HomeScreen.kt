@@ -103,6 +103,7 @@ fun HomeScreen(
                 derivedStateOf {
                     when {
                         displayed.isIdle && displayed.currentState -> bottomPadding
+                        displayed.targetState -> bottomPadding
                         else -> {
                             PaddingValues(0.dp)
                         }

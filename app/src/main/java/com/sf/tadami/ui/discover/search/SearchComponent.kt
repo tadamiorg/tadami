@@ -1,6 +1,7 @@
 package com.sf.tadami.ui.discover.search
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.paging.compose.LazyPagingItems
@@ -12,12 +13,14 @@ fun SearchComponent(
     modifier: Modifier = Modifier,
     animeList: LazyPagingItems<Anime>,
     onAnimeClicked: (anime: Anime) -> Unit,
+    snackbarHostState: SnackbarHostState,
     fabPadding: PaddingValues
 ) {
     InfiniteAnimeGrid(
         modifier = modifier,
         contentPadding = fabPadding,
         animeList = animeList,
+        snackbarHostState = snackbarHostState,
         onAnimeClicked = onAnimeClicked,
     )
 }
