@@ -1,7 +1,6 @@
 package com.sf.tadami
 
 import android.app.Application
-import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.cash.sqldelight.db.SqlDriver
@@ -19,6 +18,7 @@ import com.sf.tadami.network.database.listOfStringsAdapter
 import com.sf.tadami.network.requests.okhttp.HttpClient
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import data.Anime
+import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import uy.kohesive.injekt.api.*
@@ -37,10 +37,18 @@ class AppModule(private val app: Application) : InjektModule {
                 schema = Database.Schema,
                 context = app,
                 name = "tadami.db",
+                factory = RequerySQLiteOpenHelperFactory(),
                 callback = object : AndroidSqliteDriver.Callback(Database.Schema) {
                     override fun onOpen(db: SupportSQLiteDatabase) {
-                        Log.i("Database","Opened")
                         super.onOpen(db)
+                        setPragma(db, "foreign_keys = ON")
+                        setPragma(db, "journal_mode = WAL")
+                        setPragma(db, "synchronous = NORMAL")
+                    }
+                    private fun setPragma(db: SupportSQLiteDatabase, pragma: String) {
+                        val cursor = db.query("PRAGMA $pragma")
+                        cursor.moveToFirst()
+                        cursor.close()
                     }
                 },
             )
@@ -99,10 +107,8 @@ class AppModule(private val app: Application) : InjektModule {
         // Asynchronously init expensive components for a faster cold start
         ContextCompat.getMainExecutor(app).execute {
             get<HttpClient>()
-            get<Database>()
-            get<DataBaseHandler>()
-            get<AnimeRepository>()
             get<AnimeSourcesManager>()
+            get<Database>()
         }
     }
 }
