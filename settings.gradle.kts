@@ -10,9 +10,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
+        maven(url = "https://www.jitpack.io")
     }
 }
 rootProject.name = "Tadami"
-include ':app'
-include ':app:buildsrc'
+include (":app")
