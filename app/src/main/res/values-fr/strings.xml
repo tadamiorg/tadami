@@ -62,11 +62,11 @@
     <string name="settings_tab_library_backup_preferences_subtitle">Sauvegardes manuelles et automatiques</string>
     <string name="settings_tab_library_player_preferences_title">Lecteur vidéo</string>
     <string name="settings_tab_library_player_preferences_subtitle">Configuration de la timeline</string>
-    <string name="notification_library_updates">Mise à jour</string>
+    <string name="notification_library_updates_progress">Progression des mises à jour</string>
     <string name="notification_library_group">Bibliothèque</string>
-    <string name="notification_updating">Mise à jour de la bibliothèque… (%1$d/%2$d)</string>
+    <string name="notification_updating_library">Mise à jour de la bibliothèque… (%1$d/%2$d)</string>
     <string name="action_cancel">Annuler</string>
-    <string name="notification_library_update_success_title">Nouveaux chapitres trouvés</string>
+    <string name="notification_library_update_success_title">Nouveaux épisodes trouvés</string>
     <plurals name="notification_library_update_success_summary">
         <item quantity="one">Pour %d entrée</item>
         <item quantity="many">Pour %d entrées</item>
@@ -76,7 +76,7 @@
     <string name="update_running">Mise à jour déja en cours</string>
     <string name="library_sheet_filter">Filtrer</string>
     <string name="library_sheet_sort">Trier</string>
-    <string name="library_sheet_filter_unread">Non lus</string>
+    <string name="library_sheet_filter_unseen">Non vus</string>
     <string name="library_sheet_filter_started">Commencé</string>
     <string name="library_sheet_sort_unseen_count">Nombre de non vus</string>
     <string name="library_sheet_sort_alphabet">Alphabétiquement</string>
@@ -91,4 +91,14 @@
     <string name="empty_library_action">Découvrir des animes</string>
     <string name="retry">Réessayer</string>
     <string name="pager_no_results">Aucun résultat trouvé</string>
+    <string name="install">Installer</string>
+    <string name="later">Plus tard</string>
+    <string name="notification_library_updates_failure">Mises à jour échouées</string>
+    <string name="notification_library_updates_sucess">Mises à jour réussies</string>
+    <string name="notification_app_group">Application</string>
+    <string name="notification_app_update_progress">Progression du téléchargement de la MAJ</string>
+    <string name="notification_app_update_success">Installation de la mise à jour</string>
+    <string name="notification_downloading_app_update">Téléchargement de la mise à jour…</string>
+    <string name="notification_app_update_tap_install">Appuyer pour installer</string>
+    <string name="download">Télécharger</string>
 </resources>

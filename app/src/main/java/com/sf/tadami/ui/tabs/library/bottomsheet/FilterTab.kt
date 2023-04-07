@@ -10,7 +10,7 @@ import com.sf.tadami.ui.tabs.settings.screens.library.LibraryFilter
 @Composable
 fun FilterTab(filters: LibraryFilter, setFilters: (filterFlags: Long) -> Unit) {
     TriStateItem(
-        label = stringResource(id = R.string.library_sheet_filter_unread),
+        label = stringResource(id = R.string.library_sheet_filter_unseen),
         state = filters.readState
     ) {
         val newFilters = when (filters.readState) {

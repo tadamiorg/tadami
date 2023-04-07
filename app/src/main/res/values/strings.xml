@@ -64,11 +64,11 @@
     <string name="settings_tab_library_backup_preferences_subtitle">Manual and automatic backups</string>
     <string name="settings_tab_library_player_preferences_title">Player</string>
     <string name="settings_tab_library_player_preferences_subtitle">Timeline configuration</string>
-    <string name="notification_updating">Updating library… (%1$d/%2$d)</string>
-    <string name="notification_library_updates">Update</string>
+    <string name="notification_updating_library">Updating library… (%1$d/%2$d)</string>
+    <string name="notification_library_updates_progress">Update progress</string>
     <string name="notification_library_group">Library</string>
     <string name="action_cancel">Cancel</string>
-    <string name="notification_library_update_success_title">New chapters found</string>
+    <string name="notification_library_update_success_title">New episodes found</string>
     <plurals name="notification_library_update_success_summary">
         <item quantity="one">For %d entry</item>
         <item quantity="other">For %d entries</item>
@@ -77,7 +77,7 @@
     <string name="update_running">Update already running</string>
     <string name="library_sheet_filter">Filter</string>
     <string name="library_sheet_sort">Sort</string>
-    <string name="library_sheet_filter_unread">Unread</string>
+    <string name="library_sheet_filter_unseen">Unseen</string>
     <string name="library_sheet_filter_started">Started</string>
     <string name="library_sheet_sort_unseen_count">Unseen count</string>
     <string name="library_sheet_sort_alphabet">Alphabetically</string>
@@ -92,5 +92,15 @@
     <string name="empty_library_action">Discover animes</string>
     <string name="retry">Retry</string>
     <string name="pager_no_results">No results found</string>
+    <string name="install">Install</string>
+    <string name="later">Later</string>
+    <string name="notification_library_updates_failure">Failed updates</string>
+    <string name="notification_library_updates_sucess">Successful updates</string>
+    <string name="notification_app_group">Application</string>
+    <string name="notification_app_update_progress">Update download progress</string>
+    <string name="notification_app_update_success">Update install</string>
+    <string name="notification_downloading_app_update">Downloading update…</string>
+    <string name="notification_app_update_tap_install">Tap to install</string>
+    <string name="download">Download</string>
 
 </resources>

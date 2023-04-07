@@ -21,7 +21,7 @@ class LibraryUpdateNotifier(private val context: Context) {
         BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
     }
 
-    val progressNotificationBuilder by lazy {
+    private val progressNotificationBuilder by lazy {
         NotificationCompat.Builder(context, Notifications.LIBRARY_UPDATE_PROGRESS_CHANNEL).apply {
             setContentTitle(context.getString(R.string.app_name))
             setSmallIcon(R.drawable.ic_refresh)
@@ -35,7 +35,7 @@ class LibraryUpdateNotifier(private val context: Context) {
     fun showProgressNotification(current: Int, total: Int) {
         progressNotificationBuilder.setContentTitle(
             context.getString(
-                R.string.notification_updating,
+                R.string.notification_updating_library,
                 current,
                 total
             )
@@ -66,7 +66,6 @@ class LibraryUpdateNotifier(private val context: Context) {
                             )
                         )
 
-
                         setStyle(
                             NotificationCompat.BigTextStyle().bigText(
                                 updates.joinToString("\n") {
@@ -93,13 +92,7 @@ class LibraryUpdateNotifier(private val context: Context) {
     }
 
     fun showFailureNotifications(animeNumber: Int, uriCompat: Any) {
-        context.notificationManager.notify(
-            Notifications.LIBRARY_UPDATE_FAILURE_NOTIFICATION,
-            NotificationCompat.Builder(context, Notifications.LIBRARY_UPDATE_FAILURE_CHANNEL)
-                .apply {
-
-                }.build()
-        )
+        // TODO create failed notification for the library update
     }
 
     fun cancelProgressNotification() {
@@ -114,6 +107,4 @@ class LibraryUpdateNotifier(private val context: Context) {
     }
 }
 
-private const val NOTIF_MAX_CHAPTERS = 5
 private const val NOTIF_TITLE_MAX_LEN = 45
-private const val NOTIF_ICON_SIZE = 192

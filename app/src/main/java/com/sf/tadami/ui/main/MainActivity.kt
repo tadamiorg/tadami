@@ -2,12 +2,15 @@ package com.sf.tadami.ui.main
 
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.sf.tadami.R
+import com.sf.tadami.data.update.AppUpdater
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.ui.themes.TadamiTheme
 import kotlinx.coroutines.Dispatchers
@@ -36,7 +39,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val coroutineScope = rememberCoroutineScope()
+
             TadamiTheme {
+                AppUpdaterScreen()
                 HomeScreen(navController = rememberNavController(), navLoaded = {
                     if (this.navLoaded) {
                         coroutineScope.launch(Dispatchers.IO) {
