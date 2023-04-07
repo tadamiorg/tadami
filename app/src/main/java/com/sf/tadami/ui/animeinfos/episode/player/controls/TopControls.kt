@@ -71,7 +71,7 @@ fun TopControl(
         }
 
         IconButton(modifier = Modifier,onClick = onCastClicked, enabled = false) {
-            Icon(painter = painterResource(id = R.drawable.ic_cast), contentDescription = null,tint = MaterialTheme.colorScheme.onSurface)
+            Icon(painter = painterResource(id = R.drawable.ic_cast), contentDescription = null,tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
         }
 
     }
