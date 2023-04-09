@@ -32,6 +32,8 @@ fun PlayerControls(
     onCast: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
+    hasNext : () -> Boolean,
+    hasPrevious : () -> Boolean,
     onForward: () -> Unit,
     videoSettingsEnabled : Boolean = false
 ) {
@@ -79,6 +81,8 @@ fun PlayerControls(
                 onSeekChanged = onSeekChanged,
                 onPrevious = onPrevious,
                 onNext = onNext,
+                hasNext = hasNext,
+                hasPrevious = hasPrevious,
                 onSkipOp = onSkipOp,
                 onSettings = onSettings,
                 videoSettingsEnabled = videoSettingsEnabled

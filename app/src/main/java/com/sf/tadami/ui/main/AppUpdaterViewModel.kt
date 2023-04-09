@@ -13,16 +13,36 @@ import kotlinx.coroutines.launch
 
 class AppUpdaterViewModel : ViewModel() {
 
-    private val _updateInfos : MutableStateFlow<GithubUpdate?> = MutableStateFlow(null)
-    val updateInfos = _updateInfos.asStateFlow()
+    private val _appUpdaterUiState: MutableStateFlow<AppUpdaterUiState> = MutableStateFlow(
+        AppUpdaterUiState()
+    )
+    val appUpdaterUiState = _appUpdaterUiState.asStateFlow()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
             val update = AppUpdater().checkForUpdate()
 
             if(update is AppUpdate.NewUpdate){
-                _updateInfos.update { update.release }
+                _appUpdaterUiState.update {
+                    it.copy(
+                        updateInfos = update.release,
+                        shouldShowUpdateDialog = true
+                    )
+                }
             }
         }
     }
+
+    fun hideDialog(){
+        _appUpdaterUiState.update {
+            it.copy(
+                shouldShowUpdateDialog = false
+            )
+        }
+    }
 }
+
+data class AppUpdaterUiState(
+    val updateInfos : GithubUpdate? = null,
+    val shouldShowUpdateDialog : Boolean = false
+)

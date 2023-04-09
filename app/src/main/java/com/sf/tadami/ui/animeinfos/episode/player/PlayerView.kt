@@ -1,4 +1,5 @@
 package com.sf.tadami.ui.animeinfos.episode.player
+
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedDispatcher
@@ -111,7 +112,12 @@ fun VideoPlayer(
     var openDialog by remember { mutableStateOf(false) }
 
     fun selectEpisode(episode: Episode) {
-        playerViewModel.updateTime(currentEpisode,totalDuration, currentTime,playerPreferences.seenThreshold)
+        playerViewModel.updateTime(
+            currentEpisode,
+            totalDuration,
+            currentTime,
+            playerPreferences.seenThreshold
+        )
         playerViewModel.setCurrentEpisode(episode)
     }
 
@@ -125,7 +131,9 @@ fun VideoPlayer(
                 )
             }.build()
 
-            exoPlayer.setMediaItem(item, currentEpisode?.timeSeen.takeIf { it!! > 0 } ?: currentTime)
+            exoPlayer.setMediaItem(
+                item,
+                currentEpisode?.timeSeen.takeIf { it!! > 0 } ?: currentTime)
         }
     }
 
@@ -155,7 +163,7 @@ fun VideoPlayer(
     ContentLoader(isLoading = playerScreenLoading, delay = 500) {
         Box(modifier = modifier) {
 
-            if(episodeUiState.availableSources.isNotEmpty()){
+            if (episodeUiState.availableSources.isNotEmpty()) {
                 QualityDialog(
                     opened = openDialog,
                     sources = episodeUiState.availableSources,
@@ -230,7 +238,12 @@ fun VideoPlayer(
 
                     when (event) {
                         Lifecycle.Event.ON_PAUSE -> {
-                            playerViewModel.updateTime(currentEpisode,totalDuration, currentTime,playerPreferences.seenThreshold)
+                            playerViewModel.updateTime(
+                                currentEpisode,
+                                totalDuration,
+                                currentTime,
+                                playerPreferences.seenThreshold
+                            )
                             exoPlayer.pause()
                         }
                         Lifecycle.Event.ON_RESUME -> {
@@ -243,7 +256,12 @@ fun VideoPlayer(
                 lifecycle.addObserver(observer)
 
                 onDispose {
-                    playerViewModel.updateTime(currentEpisode,totalDuration, currentTime,playerPreferences.seenThreshold)
+                    playerViewModel.updateTime(
+                        currentEpisode,
+                        totalDuration,
+                        currentTime,
+                        playerPreferences.seenThreshold
+                    )
                     lifecycle.removeObserver(observer)
                     exoPlayer.removeListener(listener)
                     exoPlayer.release()
@@ -292,17 +310,27 @@ fun VideoPlayer(
 
                 },
                 onNext = {
-                    if (hasNextIterator.hasPrevious()) {
-                        val next = hasNextIterator.previous()
-                        exoPlayer.clearMediaItems()
-                        selectEpisode(next)
-                    }
+                    val next = hasNextIterator.previous()
+                    exoPlayer.clearMediaItems()
+                    selectEpisode(next)
                 },
                 onPrevious = {
-                    if (hasPreviousIterator.hasNext()) {
-                        val previous = hasPreviousIterator.next()
-                        exoPlayer.clearMediaItems()
-                        selectEpisode(previous)
+                    val previous = hasPreviousIterator.next()
+                    exoPlayer.clearMediaItems()
+                    selectEpisode(previous)
+                },
+                hasNext = {
+                    try {
+                        hasNextIterator.hasPrevious()
+                    } catch (e: Exception) {
+                        false
+                    }
+                },
+                hasPrevious = {
+                    try {
+                        hasPreviousIterator.hasNext()
+                    } catch (e: Exception) {
+                        false
                     }
                 },
                 videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty()

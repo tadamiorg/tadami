@@ -24,8 +24,8 @@ import com.sf.tadami.R
 import com.sf.tadami.data.anime.NoResultException
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.toAnime
-import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.components.data.LibraryItem
+import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
 import com.sf.tadami.ui.utils.CommonMangaItemDefaults
@@ -56,7 +56,6 @@ fun AnimeGrid(
     val getErrorMessage: (LoadState.Error) -> String = { state ->
         when {
             state.error is NoResultException -> context.getString(R.string.pager_no_results)
-            state.error.message.isNullOrEmpty() -> ""
             state.error.message.orEmpty().startsWith("HTTP error") -> "${state.error.message}: "
             else -> state.error.message.orEmpty()
         }

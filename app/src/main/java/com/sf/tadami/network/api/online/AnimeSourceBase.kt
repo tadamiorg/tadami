@@ -1,13 +1,14 @@
 package com.sf.tadami.network.api.online
 
-import androidx.annotation.DrawableRes
 import com.sf.tadami.domain.anime.Anime
-import com.sf.tadami.network.requests.utils.asJsoup
-import com.sf.tadami.network.api.model.StreamSource
-import com.sf.tadami.network.api.model.SAnime
 import com.sf.tadami.network.api.model.AnimeFilterList
+import com.sf.tadami.network.api.model.SAnime
 import com.sf.tadami.network.api.model.SEpisode
-import com.sf.tadami.network.requests.okhttp.*
+import com.sf.tadami.network.api.model.StreamSource
+import com.sf.tadami.network.requests.okhttp.HttpClient
+import com.sf.tadami.network.requests.okhttp.asCancelableObservable
+import com.sf.tadami.network.requests.okhttp.asObservable
+import com.sf.tadami.network.requests.utils.asJsoup
 import io.reactivex.rxjava3.core.Observable
 import okhttp3.Headers
 import okhttp3.Request
@@ -138,7 +139,6 @@ abstract class AnimeSourceBase {
 
     private fun animeDetailsParse(response: Response): SAnime {
         return animeDetailsParse(response.asJsoup())
-
     }
 
     protected abstract fun animeDetailsParse(document: Document): SAnime

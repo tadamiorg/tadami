@@ -12,7 +12,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -20,7 +19,6 @@ import com.sf.tadami.R
 import com.sf.tadami.ui.utils.formatMinSec
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
 fun BottomControls(
     modifier: Modifier = Modifier,
@@ -32,6 +30,8 @@ fun BottomControls(
     onSettings: () -> Unit = {},
     onNext: () -> Unit = {},
     onPrevious: () -> Unit = {},
+    hasNext : () -> Boolean,
+    hasPrevious : () -> Boolean,
     videoSettingsEnabled: Boolean = false
 ) {
 
@@ -91,21 +91,21 @@ fun BottomControls(
 
                 // Previous episode
 
-                IconButton(onClick = onPrevious) {
+                IconButton(enabled = hasPrevious(),onClick = onPrevious) {
                     Icon(
                         modifier = Modifier.size(40.dp),
                         painter = painterResource(id = R.drawable.ic_skip_previous),
-                        tint = MaterialTheme.colorScheme.onBackground,
+                        tint =  if(hasPrevious()) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         contentDescription = "Previous episode"
                     )
                 }
 
                 // Next episode
-                IconButton(onClick = onNext) {
+                IconButton(enabled = hasNext(),onClick = onNext) {
                     Icon(
                         modifier = Modifier.size(40.dp),
                         painter = painterResource(id = R.drawable.ic_skip_next),
-                        tint = MaterialTheme.colorScheme.onBackground,
+                        tint = if(hasNext()) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         contentDescription = "Next episode"
                     )
                 }

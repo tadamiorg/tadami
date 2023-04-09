@@ -3,7 +3,10 @@ package com.sf.tadami.ui.components.dialog.simple
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -12,12 +15,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.zIndex
 import com.sf.tadami.ui.components.dialog.alert.AlertDialogConstants.ButtonsCrossAxisSpacing
 import com.sf.tadami.ui.components.dialog.alert.AlertDialogConstants.ButtonsMainAxisSpacing
-import com.sf.tadami.ui.components.dialog.alert.AlertDialogConstants.DialogPadding
 import com.sf.tadami.ui.components.dialog.alert.AlertDialogContent
 import com.sf.tadami.ui.components.dialog.alert.AlertDialogFlowRow
 
@@ -28,11 +28,9 @@ fun SimpleDialog(
     confirmButton: @Composable () -> Unit,
     dismissButton: @Composable (() -> Unit)? = null,
     title: @Composable (() -> Unit)? = null,
-    shape: Shape = MaterialTheme.shapes.small,
     containerColor: Color = MaterialTheme.colorScheme.inverseSurface,
     titleContentColor: Color = AlertDialogDefaults.titleContentColor,
     textContentColor: Color = AlertDialogDefaults.textContentColor,
-    tonalElevation: Dp = AlertDialogDefaults.TonalElevation,
     onDismissRequest: () -> Unit,
     text: @Composable (() -> Unit)? = null,
 ) {
@@ -50,7 +48,7 @@ fun SimpleDialog(
                     color = MaterialTheme.colorScheme.background.copy(alpha = 0.6f)
                 ) {}
                 AlertDialogContent(
-                    modifier = modifier.wrapContentWidth().padding(DialogPadding).aspectRatio(1f),
+                    modifier = modifier.wrapContentWidth().aspectRatio(1f),
                     buttons = {
                         AlertDialogFlowRow(
                             mainAxisSpacing = ButtonsMainAxisSpacing,
@@ -62,9 +60,7 @@ fun SimpleDialog(
                     },
                     title = title,
                     text = text,
-                    shape = shape,
                     containerColor = containerColor,
-                    tonalElevation = tonalElevation,
                     buttonContentColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = titleContentColor,
                     textContentColor = textContentColor,

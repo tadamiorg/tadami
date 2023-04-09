@@ -7,7 +7,7 @@ import okhttp3.OkHttpClient
 
 class DoodExtractor(private val client: OkHttpClient) {
 
-    private fun videoFromUrl(
+    fun videoFromUrl(
         url: String,
         quality: String? = null,
         redirect: Boolean = true

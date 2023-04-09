@@ -7,6 +7,7 @@ import androidx.work.*
 import com.sf.tadami.BuildConfig
 import com.sf.tadami.network.requests.okhttp.*
 import com.sf.tadami.notifications.utils.okhttp.ProgressListener
+import com.sf.tadami.ui.utils.awaitSingleOrError
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -64,25 +65,20 @@ class AppUpdateWorker(
             }
         }
 
-        try {
-            // Download the new update.
-            val call: Call = network.client.newCachelessCallWithProgress(GET(updateLink),progressListener)
-            val response = call.await()
+        // Download the new update.
+        val call: Call = network.client.newCachelessCallWithProgress(GET(updateLink),progressListener)
+        val response = call.asObservableSuccess().awaitSingleOrError() ?: throw Exception("Error while making the call to download the apk")
 
-            // File where the apk will be saved.
-            val apkFile = File(context.externalCacheDir, "update.apk")
+        // File where the apk will be saved.
+        val apkFile = File(context.externalCacheDir, "update.apk")
 
-            if (response.isSuccessful) {
-                response.body.source().saveTo(apkFile)
-            } else {
-                response.close()
-                throw Exception("Unsuccessful response")
-            }
-            notifier.showInstallNotification(FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", apkFile))
-        } catch (e: Exception) {
-            notifier.cancelProgressNotification()
+        if (response.isSuccessful) {
+            response.body.source().saveTo(apkFile)
+        } else {
+            response.close()
+            throw Exception("Unsuccessful response")
         }
-
+        notifier.showInstallNotification(FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", apkFile))
     }
 
     companion object {

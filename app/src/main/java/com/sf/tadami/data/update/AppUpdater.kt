@@ -48,6 +48,6 @@ class AppUpdater {
     }
 
     companion object{
-        val GITHUB_REPO = "AnimeScraper/Tadami"
+        const val GITHUB_REPO = "AnimeScraper/Tadami"
     }
 }

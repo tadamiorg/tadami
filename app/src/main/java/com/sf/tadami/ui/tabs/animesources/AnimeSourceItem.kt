@@ -36,6 +36,7 @@ fun AnimeSourceItem(
         modifier = Modifier
             .fillMaxWidth()
             .combinedClickable(
+                enabled = source.supportSearch,
                 onClick = {
                     onSearchClicked()
                 }
@@ -70,8 +71,10 @@ fun AnimeSourceItem(
                 .fillMaxWidth()
                 .weight(1f, false), horizontalArrangement = Arrangement.End
         ) {
-            TextButton(onClick = onRecentClicked) {
-                Text(text = stringResource(id = R.string.anime_sources_screen_recents_btn))
+            if(source.supportRecent){
+                TextButton(onClick = onRecentClicked) {
+                    Text(text = stringResource(id = R.string.anime_sources_screen_recents_btn))
+                }
             }
             IconButton(onClick = {}, enabled = false) {
                 Icon(
