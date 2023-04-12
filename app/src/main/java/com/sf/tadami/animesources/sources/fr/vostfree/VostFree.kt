@@ -1,5 +1,6 @@
 package com.sf.tadami.animesources.sources.fr.vostfree
 
+import android.util.Log
 import com.sf.tadami.R
 import com.sf.tadami.animesources.extractors.DoodExtractor
 import com.sf.tadami.animesources.extractors.OkruExtractor
@@ -11,11 +12,11 @@ import com.sf.tadami.network.api.model.SEpisode
 import com.sf.tadami.network.api.model.StreamSource
 import com.sf.tadami.network.api.online.AnimeSource
 import com.sf.tadami.network.requests.okhttp.GET
+import com.sf.tadami.network.requests.okhttp.POST
 import com.sf.tadami.network.requests.utils.asJsoup
+import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.utils.Lang
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import okhttp3.*
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
@@ -28,8 +29,6 @@ class VostFree : AnimeSource("VostFree") {
     override val lang: Lang = Lang.FRENCH
 
     override val client: OkHttpClient = network.cloudflareClient
-
-    override val supportSearch: Boolean = false
 
     override fun getIconRes(): Int {
         return R.drawable.vostfree
@@ -49,23 +48,48 @@ class VostFree : AnimeSource("VostFree") {
         return anime
     }
 
-    override fun latestAnimesRequest(page: Int): Request = GET("$baseUrl/last-episode.html/page/$page")
+    override fun latestAnimesRequest(page: Int): Request =
+        GET("$baseUrl/last-episode.html/page/$page")
 
-    override fun searchSelector(): String {
-        TODO("Not yet implemented")
+    override fun searchSelector(): String = "div.search-result, div.movie-poster"
+
+    override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList): Request {
+        val formData = FormBody.Builder()
+            .add("do", "search")
+            .add("subaction", "search")
+            .add("search_start", "$page")
+            .add("story", query)
+            .build()
+
+        return when {
+            query.isNotBlank() -> {
+                if (query.length < 4) {
+                    UiToasts.showToast(R.string.vostfree_search_length_error)
+                }
+                return POST("$baseUrl/index.php?do=search", headers, formData)
+            }
+            else -> GET("$baseUrl/animes-vostfr/page/$page/")
+        }
     }
 
     override fun searchAnimeFromElement(element: Element): SAnime {
-        TODO("Not yet implemented")
+        return when {
+            element.select("div.search-result").toString() != "" -> latestAnimeFromElement(element)
+            else -> searchPopularAnimeFromElement(element)
+        }
     }
 
-    override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList): Request {
-        TODO("Not yet implemented")
+    private fun searchPopularAnimeFromElement(element: Element): SAnime {
+        val anime = SAnime.create()
+        anime.setUrlWithoutDomain(
+            element.select("div.play a").attr("href"),
+        )
+        anime.title = element.select("div.info.hidden div.title").text()
+        anime.thumbnailUrl = baseUrl + element.select("div.movie-poster span.image img").attr("src")
+        return anime
     }
 
-    override fun searchAnimeNextPageSelector(): String? {
-        TODO("Not yet implemented")
-    }
+    override fun searchAnimeNextPageSelector(): String = latestAnimeNextPageSelector()
 
     override fun animeDetailsParse(document: Document): SAnime {
         val anime = SAnime.create()
@@ -110,15 +134,18 @@ class VostFree : AnimeSource("VostFree") {
 
     override fun streamSourcesSelector(): String = throw Exception("Not used")
 
-    override fun streamSourcesFromElement(element: Element): List<StreamSource> = throw Exception("Not used")
+    override fun streamSourcesFromElement(element: Element): List<StreamSource> =
+        throw Exception("Not used")
 
     override fun episodeSourcesParse(response: Response): List<StreamSource> {
-        val epNum = response.request.url.toString().substringAfter("$baseUrl/?episode:").substringBefore("/")
+        val epNum = response.request.url.toString().substringAfter("$baseUrl/?episode:")
+            .substringBefore("/")
         val realUrl = response.request.url.toString().replace("$baseUrl/?episode:$epNum/", "")
 
         val document = client.newCall(GET(realUrl)).execute().asJsoup()
         val videoList = mutableListOf<StreamSource>()
-        val allPlayerIds = document.select("div.tab-content div div.new_player_top div.new_player_bottom div.button_box")[epNum.toInt()]
+        val allPlayerIds =
+            document.select("div.tab-content div div.new_player_top div.new_player_bottom div.button_box")[epNum.toInt()]
 
         allPlayerIds.select("div").forEach {
             val server = it.text()
@@ -127,21 +154,28 @@ class VostFree : AnimeSource("VostFree") {
                     .set("referer", "https://vudeo.io/")
                     .build()
                 val playerId = it.attr("id")
-                val url = document.select("div#player-tabs div.tab-blocks div.tab-content div div#content_$playerId").text()
+                val url =
+                    document.select("div#player-tabs div.tab-blocks div.tab-content div div#content_$playerId")
+                        .text()
                 try {
                     val video = VudeoExtractor(client).videosFromUrl(url, headers)
                     videoList.addAll(video)
-                } catch (_: java.lang.Exception) {}
+                } catch (_: java.lang.Exception) {
+                }
             }
             if (server.lowercase() == "ok") {
                 val playerId = it.attr("id")
-                val url = "https://ok.ru/videoembed/" + document.select("div#player-tabs div.tab-blocks div.tab-content div div#content_$playerId").text()
+                val url =
+                    "https://ok.ru/videoembed/" + document.select("div#player-tabs div.tab-blocks div.tab-content div div#content_$playerId")
+                        .text()
                 val video = OkruExtractor(client).videosFromUrl(url, "", false)
                 videoList.addAll(video)
             }
             if (server.lowercase() == "doodstream") {
                 val playerId = it.attr("id")
-                val url = document.select("div#player-tabs div.tab-blocks div.tab-content div div#content_$playerId").text()
+                val url =
+                    document.select("div#player-tabs div.tab-blocks div.tab-content div div#content_$playerId")
+                        .text()
                 val video = DoodExtractor(client).videoFromUrl(url, "DoodStream", false)
                 if (video != null) {
                     videoList.add(video)
@@ -149,7 +183,9 @@ class VostFree : AnimeSource("VostFree") {
             }
             if (server.lowercase() == "mytv" || server.lowercase() == "stream") {
                 val playerId = it.attr("id")
-                val url = "https://www.myvi.tv/embed/" + document.select("div#player-tabs div.tab-blocks div.tab-content div div#content_$playerId").text()
+                val url =
+                    "https://www.myvi.tv/embed/" + document.select("div#player-tabs div.tab-blocks div.tab-content div div#content_$playerId")
+                        .text()
                 val video = MyTvExtractor(client).videosFromUrl(url)
                 videoList.addAll(video)
             }
@@ -165,9 +201,6 @@ class VostFree : AnimeSource("VostFree") {
             compareBy { it.quality.contains(server) }
         ).reversed()
     }
-
-
-
 
 
 }

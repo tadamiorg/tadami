@@ -102,5 +102,6 @@
     <string name="notification_downloading_app_update">Downloading update…</string>
     <string name="notification_app_update_tap_install">Tap to install</string>
     <string name="download">Download</string>
+    <string name="vostfree_search_length_error">Search query must be at least 4 caracters long</string>
 
 </resources>
