@@ -19,8 +19,8 @@ android {
 
     defaultConfig {
         applicationId = "com.sf.tadami"
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -204,12 +204,9 @@ dependencies {
 
     implementation("androidx.core:core-splashscreen:1.0.0-beta02")
 
-    // Rich Text for Markdown mostly
+    // Mardown parser
 
-    val richtextVersion = "0.16.0"
-
-    implementation("com.halilibo.compose-richtext:richtext-ui-material3:${richtextVersion}")
-    implementation("com.halilibo.compose-richtext:richtext-commonmark:${richtextVersion}")
-
+    val mardownVersion = "0.3.2"
+    implementation("com.github.jeziellago:compose-markdown:$mardownVersion")
 
 }
