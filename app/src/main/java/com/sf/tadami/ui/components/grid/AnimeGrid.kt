@@ -76,10 +76,6 @@ fun AnimeGrid(
         mutableStateOf(true)
     }
 
-    var previousItems by rememberSaveable {
-        mutableStateOf(0)
-    }
-
     var isNavigated by rememberSaveable {
         mutableStateOf(false)
     }
@@ -88,23 +84,15 @@ fun AnimeGrid(
         mutableStateOf(configuration.orientation)
     }
 
-    LaunchedEffect(animeList) {
-        if (!isNavigated && configuration.orientation == rotationChanged) {
-            previousItems = animeList.itemCount
-        } else {
+    LaunchedEffect(animeList.itemCount){
+        if(!isNavigated && configuration.orientation == rotationChanged){
+            isLoading = animeList.itemCount == 0 && animeList.loadState.refresh is LoadState.Loading
+        }
+        else{
             isNavigated = false
             rotationChanged = configuration.orientation
         }
     }
-
-    LaunchedEffect(animeList.itemCount) {
-        if (previousItems < animeList.itemCount) {
-            previousItems = animeList.itemCount
-        }
-    }
-
-    isLoading = previousItems == 0 && animeList.loadState.refresh is LoadState.Loading
-
 
     val columns = {
         val number = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -155,7 +143,7 @@ fun AnimeGrid(
                     onLongClick = { onAnimeLongClicked(animeList[index]!!) }
                 )
             }
-            if (animeList.loadState.refresh is LoadState.Loading || animeList.loadState.append is LoadState.Loading) {
+            if (animeList.loadState.append is LoadState.Loading) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     LoadingItem()
                 }
