@@ -1,6 +1,5 @@
 package com.sf.tadami.animesources.sources.fr.vostfree
 
-import android.util.Log
 import com.sf.tadami.App
 import com.sf.tadami.R
 import com.sf.tadami.animesources.extractors.DoodExtractor
@@ -65,8 +64,6 @@ class VostFree : AnimeSource("VostFree") {
             .add("search_start", "$page")
             .add("story", query)
             .build()
-
-        Log.e("Query",query)
 
         return when {
             query.isNotBlank() -> {

@@ -43,12 +43,9 @@ fun AnimeGrid(
 ) {
 
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
 
     val libraryPreferences by rememberDataStoreState(LibraryPreferences).value.collectAsState()
-
-    var isLoading by rememberSaveable {
-        mutableStateOf(true)
-    }
 
     val errorState = animeList.loadState.refresh.takeIf { it is LoadState.Error }
         ?: animeList.loadState.append.takeIf { it is LoadState.Error }
@@ -75,9 +72,39 @@ fun AnimeGrid(
         }
     }
 
-    isLoading = animeList.itemCount == 0 && animeList.loadState.refresh is LoadState.Loading
+    var isLoading by rememberSaveable {
+        mutableStateOf(true)
+    }
 
-    val configuration = LocalConfiguration.current
+    var previousItems by rememberSaveable {
+        mutableStateOf(0)
+    }
+
+    var isNavigated by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var rotationChanged by rememberSaveable {
+        mutableStateOf(configuration.orientation)
+    }
+
+    LaunchedEffect(animeList) {
+        if (!isNavigated && configuration.orientation == rotationChanged) {
+            previousItems = animeList.itemCount
+        } else {
+            isNavigated = false
+            rotationChanged = configuration.orientation
+        }
+    }
+
+    LaunchedEffect(animeList.itemCount) {
+        if (previousItems < animeList.itemCount) {
+            previousItems = animeList.itemCount
+        }
+    }
+
+    isLoading = previousItems == 0 && animeList.loadState.refresh is LoadState.Loading
+
 
     val columns = {
         val number = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -121,7 +148,10 @@ fun AnimeGrid(
             items(animeList.itemCount) { index ->
                 CompactAnimeGridItem(
                     anime = animeList[index]!!,
-                    onClick = { onAnimeClicked(animeList[index]!!) },
+                    onClick = {
+                        onAnimeClicked(animeList[index]!!)
+                        isNavigated = true
+                    },
                     onLongClick = { onAnimeLongClicked(animeList[index]!!) }
                 )
             }
@@ -139,7 +169,7 @@ fun AnimeGrid(
 fun LibraryAnimeGrid(
     modifier: Modifier = Modifier,
     animeList: List<LibraryItem>,
-    librarySize : Int,
+    librarySize: Int,
     onAnimeCLicked: (anime: LibraryItem) -> Unit,
     onAnimeLongClicked: (anime: LibraryItem) -> Unit,
     lazyGridState: LazyGridState = rememberLazyGridState(),
