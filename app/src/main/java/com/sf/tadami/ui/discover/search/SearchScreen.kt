@@ -90,6 +90,7 @@ fun SearchScreen(
                         searchViewModel.updateQuery("")
                         searchViewModel.resetData()
                         searchEnabled = false
+                        searchValue = ""
                     },
                     onSearchOpen = {
                         searchEnabled = true

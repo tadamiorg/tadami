@@ -1,22 +1,23 @@
 package com.sf.tadami.animesources.sources.fr.vostfree
 
 import android.util.Log
+import com.sf.tadami.App
 import com.sf.tadami.R
 import com.sf.tadami.animesources.extractors.DoodExtractor
 import com.sf.tadami.animesources.extractors.OkruExtractor
 import com.sf.tadami.animesources.sources.fr.vostfree.extractors.MyTvExtractor
 import com.sf.tadami.animesources.sources.fr.vostfree.extractors.VudeoExtractor
-import com.sf.tadami.network.api.model.AnimeFilterList
-import com.sf.tadami.network.api.model.SAnime
-import com.sf.tadami.network.api.model.SEpisode
-import com.sf.tadami.network.api.model.StreamSource
+import com.sf.tadami.network.api.model.*
 import com.sf.tadami.network.api.online.AnimeSource
 import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.requests.okhttp.POST
 import com.sf.tadami.network.requests.utils.asJsoup
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.utils.Lang
-import okhttp3.*
+import okhttp3.FormBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
@@ -54,12 +55,18 @@ class VostFree : AnimeSource("VostFree") {
     override fun searchSelector(): String = "div.search-result, div.movie-poster"
 
     override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList): Request {
+
+        val genreFilter = filters.find { it is GenreList } as GenreList
+        val typeFilter = filters.find { it is TypeList } as TypeList
+
         val formData = FormBody.Builder()
             .add("do", "search")
             .add("subaction", "search")
             .add("search_start", "$page")
             .add("story", query)
             .build()
+
+        Log.e("Query",query)
 
         return when {
             query.isNotBlank() -> {
@@ -68,6 +75,8 @@ class VostFree : AnimeSource("VostFree") {
                 }
                 return POST("$baseUrl/index.php?do=search", headers, formData)
             }
+            genreFilter.state != 0 -> GET("$baseUrl/genre/${genreFilters[genreFilter.state].second}/page/$page/")
+            typeFilter.state != 0 -> GET("$baseUrl/${typeFilters[typeFilter.state].second}/page/$page/")
             else -> GET("$baseUrl/animes-vostfr/page/$page/")
         }
     }
@@ -194,6 +203,46 @@ class VostFree : AnimeSource("VostFree") {
         return videoList.sort()
     }
 
+    override fun getFilterList(): AnimeFilterList {
+        return AnimeFilterList(
+            AnimeFilter.Header(App.getAppContext()?.getString(R.string.discover_search_filters_independent) ?: "Each filters and search works independently"),
+            GenreList(genreFilters),
+            TypeList(typeFilters)
+        )
+    }
+
+    private class GenreList(values: Array<Pair<String, String>>) :
+        AnimeFilter.Select("Genre", values.map { it.first }.toTypedArray())
+
+
+    private val genreFilters =
+        arrayOf(
+            Pair(App.getAppContext()?.getString(R.string.discover_search_screen_filters_group_selected_text) ?: "select",""),
+            Pair("Action", "Action"),
+            Pair("Comédie", "Comédie"),
+            Pair("Drame", "Drame"),
+            Pair("Surnaturel", "Surnaturel"),
+            Pair("Shonen", "Shonen"),
+            Pair("Romance", "Romance"),
+            Pair("Tranche de vie", "Tranche+de+vie"),
+            Pair("Fantasy", "Fantasy"),
+            Pair("Mystère", "Mystère"),
+            Pair("Psychologique", "Psychologique"),
+            Pair("Sci-Fi", "Sci-Fi"),
+        )
+
+    private class TypeList(values: Array<Pair<String, String>>) :
+        AnimeFilter.Select("Type", values.map { it.first }.toTypedArray())
+
+    private val typeFilters =
+        arrayOf(
+            Pair(App.getAppContext()?.getString(R.string.discover_search_screen_filters_group_selected_text) ?: "select",""),
+            Pair("Animes VOSTFR", "animes-vostfr"),
+            Pair("Animes VF", "animes-vf"),
+            Pair("Films", "films-vf-vostfr"),
+        )
+
+
     private fun List<StreamSource>.sort(): List<StreamSource> {
         val server = "Mytv"
 
@@ -201,6 +250,4 @@ class VostFree : AnimeSource("VostFree") {
             compareBy { it.quality.contains(server) }
         ).reversed()
     }
-
-
 }

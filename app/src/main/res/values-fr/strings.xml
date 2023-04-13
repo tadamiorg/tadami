@@ -102,4 +102,5 @@
     <string name="notification_app_update_tap_install">Appuyer pour installer</string>
     <string name="download">Télécharger</string>
     <string name="vostfree_search_length_error">La recherche doit faire au moins 4 caractères</string>
+    <string name="discover_search_filters_independent">Les filtres et la recherche s\'ignorent</string>
 </resources>
