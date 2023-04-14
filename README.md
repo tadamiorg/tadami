@@ -10,20 +10,20 @@ Get the app from the [releases page](https://github.com/AnimeScraper/Tadami/rele
 
 ### Library
 
-![Library Screen](https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExZGIzNWUxM2NlYTA2MDIyYjUwN2YxMDgzMTE0NTkwMDk4Y2UyNWFiYSZjdD1n/S5tKaUOSDvuzMvb75S/giphy.gif)
+![Library Screen](https://drive.google.com/uc?id=1kRLHRz3BGFvzsvW06hXmxB5lxGJM7Yrr)
 
 ### Sources
 
-![Sources Screen](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGYyYWNlMzg4MmNkNzQwYThjYjllMmE1YzE1YjgwNDQ1YjEwNzM4YSZjdD1n/VOolNM029NT6TIxIr9/giphy.gif)
+![Sources Screen](https://drive.google.com/uc?id=17Xr_98r_kwacnRBskuoN_At9qMr5i9Jy)
 
 ### Player
 
-![Player Screen](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjgzOTFiYzE3MGY2Y2M3YTc1N2FkN2VhZjYwODJmNDZiZjZlM2E5ZSZjdD1n/c31cPapg38OxAKn8JB/giphy.gif)
+![Player Screen](https://drive.google.com/uc?id=1ImD_0gkX4fwCccGv_e1FJm36sMHmlXI3)
 
 ### Anime details
 
-![Anime Details Screen](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExZGIyMjZmZmQ0ZjMzM2QwMDA5ZWYzZGNiOTM5MDc0NWVhOTRmNzA5NCZjdD1n/dhoQ5Ll7ukL0rspdAs/giphy.gif)
+![Anime Details Screen](https://drive.google.com/uc?id=1T6Fss6CrqaJXve4tQbeXAY3UqPkjgN82)
 
 ### Settings
 
-![Settings Screen](https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZmI4MTE3YTcyZThiNWE1MWJiMmVkMTVhODllYTlhY2EzMjA0MmM5NSZjdD1n/9JhDQX0jfqKhPBUAH5/giphy.gif)
+![Settings Screen](https://drive.google.com/uc?id=11wAy3DedJt78pbCNQTmrCsjWHdAR2Xyo)
