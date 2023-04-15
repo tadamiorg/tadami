@@ -76,7 +76,7 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
             animeWithEpisodesInteractor.subscribe(selectedEpisode.animeId).collectLatest {(anime, episodes) ->
                 _animeTitle.update { anime.title }
-                _episodesList.update { episodes }
+                _episodesList.update { episodes.sortedBy { it.sourceOrder } }
             }
         }
     }

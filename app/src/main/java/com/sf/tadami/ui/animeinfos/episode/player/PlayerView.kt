@@ -205,7 +205,7 @@ fun VideoPlayer(
                                 ViewGroup.LayoutParams.MATCH_PARENT
                             )
                             setShowBuffering(StyledPlayerView.SHOW_BUFFERING_ALWAYS)
-
+                            keepScreenOn = true
                             fitsSystemWindows = true
                         }
                     }
