@@ -44,6 +44,20 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     private val _episodesList: MutableStateFlow<List<Episode>> = MutableStateFlow(emptyList())
     val episodes = _episodesList.asStateFlow()
 
+    val hasNextIterator = combine(currentEpisode,episodes){ ep,epList ->
+        when{
+            ep != null && epList.isNotEmpty() -> epList.listIterator(epList.indexOfFirst { it.id == ep.id })
+            else -> {epList.listIterator()}
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, _episodesList.value.listIterator())
+
+    val hasPreviousIterator = combine(currentEpisode,episodes){ ep,epList ->
+        when{
+            ep != null && epList.isNotEmpty() -> epList.listIterator(epList.indexOfFirst { it.id == ep.id } + 1)
+            else -> {epList.listIterator()}
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, _episodesList.value.listIterator())
+
     private val _animeTitle: MutableStateFlow<String> = MutableStateFlow("")
     val animeTitle = _animeTitle.asStateFlow()
 

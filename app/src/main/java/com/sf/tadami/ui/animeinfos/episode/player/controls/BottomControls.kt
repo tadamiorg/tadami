@@ -42,7 +42,10 @@ fun BottomControls(
     val buffer = remember(bufferPercentage()) { bufferPercentage() }
     val interactionSource = remember { MutableInteractionSource() }
 
+    val hasNextEp = remember(hasNext()) { hasNext() }
 
+    val hasPreviousEp = remember(hasPrevious()) { hasPrevious() }
+    
     Column(modifier = modifier) {
         Box(
             modifier = Modifier.fillMaxWidth(),
@@ -91,21 +94,21 @@ fun BottomControls(
 
                 // Previous episode
 
-                IconButton(enabled = hasPrevious(),onClick = onPrevious) {
+                IconButton(enabled = hasPreviousEp,onClick = onPrevious) {
                     Icon(
                         modifier = Modifier.size(40.dp),
                         painter = painterResource(id = R.drawable.ic_skip_previous),
-                        tint =  if(hasPrevious()) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                        tint =  if(hasPreviousEp) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         contentDescription = "Previous episode"
                     )
                 }
 
                 // Next episode
-                IconButton(enabled = hasNext(),onClick = onNext) {
+                IconButton(enabled = hasNextEp,onClick = onNext) {
                     Icon(
                         modifier = Modifier.size(40.dp),
                         painter = painterResource(id = R.drawable.ic_skip_next),
-                        tint = if(hasNext()) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                        tint = if(hasNextEp) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         contentDescription = "Next episode"
                     )
                 }

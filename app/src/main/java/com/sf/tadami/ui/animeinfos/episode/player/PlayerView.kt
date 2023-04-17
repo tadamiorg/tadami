@@ -57,9 +57,10 @@ fun VideoPlayer(
 
     val animeTitle by playerViewModel.animeTitle.collectAsState()
 
-    val episodesList by playerViewModel.episodes.collectAsState()
-
     val upstreamDataSource = DefaultHttpDataSource.Factory()
+
+    val hasNextIterator by playerViewModel.hasNextIterator.collectAsState()
+    val hasPreviousIterator by playerViewModel.hasPreviousIterator.collectAsState()
 
     val resolvingDataSource = ResolvingDataSource.Factory(
         upstreamDataSource
@@ -143,18 +144,6 @@ fun VideoPlayer(
                 currentTime = exoPlayer.currentPosition.coerceAtLeast(0L)
                 delay(1.seconds / 30)
             }
-        }
-    }
-
-    val hasNextIterator by remember(episodesList, currentEpisode) {
-        derivedStateOf {
-            episodesList.listIterator(episodesList.indexOf(currentEpisode))
-        }
-    }
-
-    val hasPreviousIterator by remember(episodesList, currentEpisode) {
-        derivedStateOf {
-            episodesList.listIterator(episodesList.indexOf(currentEpisode) + 1)
         }
     }
 
@@ -320,18 +309,10 @@ fun VideoPlayer(
                     selectEpisode(previous)
                 },
                 hasNext = {
-                    try {
-                        hasNextIterator.hasPrevious()
-                    } catch (e: Exception) {
-                        false
-                    }
+                    hasNextIterator.hasPrevious()
                 },
                 hasPrevious = {
-                    try {
-                        hasPreviousIterator.hasNext()
-                    } catch (e: Exception) {
-                        false
-                    }
+                    hasPreviousIterator.hasNext()
                 },
                 videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty()
             )
