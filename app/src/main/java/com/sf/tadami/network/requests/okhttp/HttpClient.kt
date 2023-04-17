@@ -23,6 +23,7 @@ class HttpClient(private val context : Context) {
                 .cookieJar(cookieManager)
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
+                .callTimeout(2, TimeUnit.MINUTES)
                 .addInterceptor(UserAgentInterceptor())
         }
 
@@ -30,7 +31,7 @@ class HttpClient(private val context : Context) {
 
     val cloudflareClient by lazy {
         client.newBuilder()
-            .addInterceptor(CloudflareInterceptor(context))
+            .addInterceptor(CloudflareInterceptor(context,cookieManager))
             .build()
     }
 }

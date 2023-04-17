@@ -11,7 +11,7 @@ import com.sf.tadami.network.api.online.AnimeSource
 import com.sf.tadami.ui.components.data.EpisodeItem
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.tadami.ui.utils.addOrRemove
-import com.sf.tadami.ui.utils.awaitSingleOrError
+import com.sf.tadami.ui.utils.awaitSingleOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -82,7 +82,7 @@ class DetailsViewModel(
 
     private suspend fun fetchAnimeDetailsFromSource(anime: Anime) {
         val networkDetails = source.fetchAnimeDetails(anime)
-            .awaitSingleOrError { _detailsRefreshing.update { false } }
+            .awaitSingleOrNull { _detailsRefreshing.update { false } }
         networkDetails?.let {
             updateAnimeInteractor.awaitUpdateFromSource(anime, it)
             _detailsRefreshing.update { false }
@@ -91,7 +91,7 @@ class DetailsViewModel(
 
     private suspend fun fetchEpisodesFromSource(anime: Anime) {
         val networkEpisodes = source.fetchEpisodesList(anime)
-            .awaitSingleOrError { _episodesRefreshing.update { false } }
+            .awaitSingleOrNull { _episodesRefreshing.update { false } }
         networkEpisodes?.let {
             updateAnimeInteractor.awaitEpisodesSyncFromSource(anime, networkEpisodes)
             _episodesRefreshing.update { false }

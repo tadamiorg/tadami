@@ -2,6 +2,7 @@ package com.sf.tadami.ui.animeinfos.details.episodes
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.util.fastAny
 import com.sf.tadami.ui.animeinfos.details.DetailsScreenItem
 import com.sf.tadami.ui.components.data.EpisodeItem
@@ -44,10 +45,10 @@ fun LazyListScope.episodeItems(
                 },
             date = when {
                 episodeItem.episode.dateUpload > 0L -> {
-                    Date(episodeItem.episode.dateUpload).toRelativeString()
+                    Date(episodeItem.episode.dateUpload).toRelativeString(LocalContext.current)
                 }
                 episodeItem.episode.dateFetch > 0L -> {
-                    Date(episodeItem.episode.dateFetch).toRelativeString()
+                    Date(episodeItem.episode.dateFetch).toRelativeString(LocalContext.current)
                 }
                 else -> null
             },

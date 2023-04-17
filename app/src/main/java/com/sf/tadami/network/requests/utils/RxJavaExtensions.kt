@@ -11,12 +11,12 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-open class TadaObserver<T : Any>(private val callback : Callback<T>? = null) : Observer<T>{
+open class TadaObserver<T : Any>(private val callback: Callback<T>? = null) : Observer<T> {
     override fun onSubscribe(d: Disposable) {}
 
     override fun onNext(data: T) {
         runBlocking {
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main) {
                 callback?.onData(data)
             }
         }
@@ -25,24 +25,29 @@ open class TadaObserver<T : Any>(private val callback : Callback<T>? = null) : O
 
     override fun onError(e: Throwable) {
         runBlocking {
-            withContext(Dispatchers.Main){
-                when(e){
+            withContext(Dispatchers.Main) {
+                when (e) {
                     is HttpError.Failure -> {
-                        App.getAppContext()?.let { UiToasts.showToast(
-                            R.string.request_error_response,
-                            "${e.statusCode}"
-                        )}
-                        callback?.onError(e.message,e.statusCode)
+                        App.getAppContext()?.let {
+                            UiToasts.showToast(
+                                stringRes = R.string.request_error_response,
+                                args = arrayOf("${e.statusCode}")
+                            )
+                        }
+                        callback?.onError(e.message, e.statusCode)
                     }
-                    is HttpError.CloudflareError ->{
-                        App.getAppContext()?.let { UiToasts.showToast(R.string.request_bypass_cloudflare_failure) }
+                    is HttpError.CloudflareError -> {
+                        App.getAppContext()
+                            ?.let { UiToasts.showToast(R.string.request_bypass_cloudflare_failure) }
                         callback?.onError(e.msg)
                     }
-                    else ->{
-                        App.getAppContext()?.let{ UiToasts.showToast(
-                            R.string.request_unknown_error,
-                            "${e.message}"
-                        )}
+                    else -> {
+                        App.getAppContext()?.let {
+                            UiToasts.showToast(
+                                stringRes = R.string.request_unknown_error,
+                                args = arrayOf("${e.message}")
+                            )
+                        }
                         callback?.onError(e.message)
                         e.printStackTrace()
                     }

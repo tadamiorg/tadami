@@ -2,12 +2,11 @@ package com.sf.tadami.notifications.appupdate
 
 import android.content.Context
 import android.util.Log
-import androidx.core.content.FileProvider
 import androidx.work.*
-import com.sf.tadami.BuildConfig
 import com.sf.tadami.network.requests.okhttp.*
 import com.sf.tadami.notifications.utils.okhttp.ProgressListener
-import com.sf.tadami.ui.utils.awaitSingleOrError
+import com.sf.tadami.ui.utils.awaitSingleOrNull
+import com.sf.tadami.ui.utils.getUriCompat
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -67,7 +66,7 @@ class AppUpdateWorker(
 
         // Download the new update.
         val call: Call = network.client.newCachelessCallWithProgress(GET(updateLink),progressListener)
-        val response = call.asObservableSuccess().awaitSingleOrError() ?: throw Exception("Error while making the call to download the apk")
+        val response = call.asObservableSuccess().awaitSingleOrNull() ?: throw Exception("Error while making the call to download the apk")
 
         // File where the apk will be saved.
         val apkFile = File(context.externalCacheDir, "update.apk")
@@ -78,7 +77,7 @@ class AppUpdateWorker(
             response.close()
             throw Exception("Unsuccessful response")
         }
-        notifier.showInstallNotification(FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", apkFile))
+        notifier.showInstallNotification(apkFile.getUriCompat(context))
     }
 
     companion object {

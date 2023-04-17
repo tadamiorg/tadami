@@ -104,5 +104,19 @@
     <string name="download">Download</string>
     <string name="vostfree_search_length_error">Search query must be at least 4 caracters long</string>
     <string name="discover_search_filters_independent">Filters ignores each other</string>
+    <string name="webview_required">Webview is required for Tadami</string>
+    <string name="webview_outdated">Please update the WebView app for better compatibility</string>
+    <string name="notification_library_update_skipped_not_caught_up">Skipped because there are unseen episodes</string>
+    <string name="notification_library_updates_skipped">Skipped updates</string>
+    <string name="notification_library_update_skipped_result">%1$d update(s) skipped</string>
+    <string name="tap_learn_more">Tap to learn more</string>
+    <string name="tap_see_details">Tap to see details</string>
+    <string name="notification_library_update_failed_result">%1$d update(s) failed</string>
+    <string name="recently">Recently</string>
+    <string name="relative_time_today">Today</string>
+    <plurals name="relative_time">
+        <item quantity="one">Yesterday</item>
+        <item quantity="other">%1$d days ago</item>
+    </plurals>
 
 </resources>

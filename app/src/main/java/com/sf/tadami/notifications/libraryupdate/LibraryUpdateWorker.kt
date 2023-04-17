@@ -3,6 +3,7 @@ package com.sf.tadami.notifications.libraryupdate
 import android.content.Context
 import android.util.Log
 import androidx.work.*
+import com.sf.tadami.R
 import com.sf.tadami.data.interactors.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.LibraryInteractor
 import com.sf.tadami.data.interactors.UpdateAnimeInteractor
@@ -12,32 +13,35 @@ import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.tadami.ui.utils.awaitSingleOrError
+import com.sf.tadami.ui.utils.getUriCompat
+import com.sf.tadami.utils.createFileInCacheDir
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicInteger
 
 class LibraryUpdateWorker(
-    private val context : Context,
-    params : WorkerParameters
-) : CoroutineWorker(context,params) {
+    private val context: Context,
+    params: WorkerParameters
+) : CoroutineWorker(context, params) {
 
     private val notifier = LibraryUpdateNotifier(context)
-    private val libraryInteractor : LibraryInteractor = Injekt.get()
-    private val sourcesManager : AnimeSourcesManager = Injekt.get()
-    private val animeWithEpisodesInteractor : AnimeWithEpisodesInteractor = Injekt.get()
-    private val updateAnimeInteractor : UpdateAnimeInteractor = Injekt.get()
+    private val libraryInteractor: LibraryInteractor = Injekt.get()
+    private val sourcesManager: AnimeSourcesManager = Injekt.get()
+    private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
+    private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
 
     private var animesToUpdate: List<LibraryAnime> = mutableListOf()
 
     override suspend fun doWork(): Result {
         try {
-            setForeground(getForegroundInfo())
+            setForegroundAsync(getForegroundInfo())
         } catch (e: IllegalStateException) {
-            Log.d("Worker error", "Not allowed to set foreground job", e)
+            Log.d("Worker error", "Job could not be set in foreground", e)
         }
 
         addAnimesToQueue()
@@ -60,6 +64,13 @@ class LibraryUpdateWorker(
         }
     }
 
+    /* override suspend fun getForegroundInfo(): ForegroundInfo {
+         return ForegroundInfo(
+             Notifications.LIBRARY_UPDATE_PROGRESS_NOTIFICATION,
+             notifier.progressNotificationBuilder.build()
+         )
+     }*/
+
     private fun addAnimesToQueue() {
         val libraryAnimes = runBlocking { libraryInteractor.await() }
 
@@ -72,7 +83,7 @@ class LibraryUpdateWorker(
         val progressCount = AtomicInteger(0)
         val newUpdates = CopyOnWriteArrayList<Pair<Anime, Array<Episode>>>()
         val skippedUpdates = CopyOnWriteArrayList<Pair<Anime, String?>>()
-        val failedUpdates = CopyOnWriteArrayList<Pair<Episode, String?>>()
+        val failedUpdates = CopyOnWriteArrayList<Pair<Anime, String?>>()
         coroutineScope {
             animesToUpdate.groupBy { it.source }.values
                 .map { animeInSource ->
@@ -82,20 +93,24 @@ class LibraryUpdateWorker(
                                 val anime = libraryAnime.toAnime()
                                 ensureActive()
 
-                                if (!animeWithEpisodesInteractor.awaitAnime(anime.id).favorite) {
-                                    return@forEach
-                                }
-
-                                withUpdateNotification(
-                                    progressCount,
-                                ) {
-                                    try {
-                                        val newEpisodes = updateAnime(anime)
-                                        if (newEpisodes.isNotEmpty()) {
-                                            newUpdates.add(anime to newEpisodes.toTypedArray())
+                                if (animeWithEpisodesInteractor.awaitAnime(anime.id).favorite) {
+                                    withUpdateNotification(
+                                        progressCount,
+                                    ) {
+                                        when {
+                                            libraryAnime.unseenEpisodes != 0L ->
+                                                skippedUpdates.add(anime to context.getString(R.string.notification_library_update_skipped_not_caught_up))
+                                            else -> {
+                                                try {
+                                                    val newEpisodes = updateAnime(anime)
+                                                    if (newEpisodes.isNotEmpty()) {
+                                                        newUpdates.add(anime to newEpisodes.toTypedArray())
+                                                    }
+                                                } catch (e: Throwable) {
+                                                    failedUpdates.add(anime to e.message)
+                                                }
+                                            }
                                         }
-                                    } catch (e: Throwable) {
-                                        Log.e("Update failed", e.message.toString())
                                     }
                                 }
                             }
@@ -104,38 +119,42 @@ class LibraryUpdateWorker(
                 }
                 .awaitAll()
         }
-
         notifier.cancelProgressNotification()
 
         if (newUpdates.isNotEmpty()) {
             notifier.showUpdateNotifications(newUpdates)
         }
 
-        /*if (failedUpdates.isNotEmpty()) {
+        if (failedUpdates.isNotEmpty()) {
             val errorFile = writeErrorFile(failedUpdates)
             notifier.showFailureNotifications(
                 failedUpdates.size,
                 errorFile.getUriCompat(context),
             )
-        }*/
+        }
 
+        if (skippedUpdates.isNotEmpty()) {
+            val skippedFile = writeSkippedFile(skippedUpdates)
+            notifier.showSkippedNotifications(
+                skippedUpdates.size,
+                skippedFile.getUriCompat(context)
+            )
+        }
     }
+
     private suspend fun withUpdateNotification(
         completed: AtomicInteger,
         block: suspend () -> Unit,
-    ) {
+
+        ) {
         coroutineScope {
             ensureActive()
-
             notifier.showProgressNotification(
                 completed.get(),
                 animesToUpdate.size,
             )
-
             block()
-
             ensureActive()
-
             completed.getAndIncrement()
             notifier.showProgressNotification(
                 completed.get(),
@@ -144,15 +163,60 @@ class LibraryUpdateWorker(
         }
     }
 
-    private suspend fun updateAnime(anime: Anime) : List<Episode> {
+    private suspend fun updateAnime(anime: Anime): List<Episode> {
         val source = sourcesManager.getExtensionById(anime.source) ?: return emptyList()
-        val episodes = source.fetchEpisodesList(anime).awaitSingleOrError() ?: return emptyList()
-        val dbAnime = animeWithEpisodesInteractor.awaitAnime(anime.id).takeIf { it.favorite } ?: return emptyList()
+        val episodes = source.fetchEpisodesList(anime).awaitSingleOrError()
+        val dbAnime = animeWithEpisodesInteractor.awaitAnime(anime.id).takeIf { it.favorite }
+            ?: return emptyList()
 
-        return updateAnimeInteractor.awaitEpisodesSyncFromSource(dbAnime,episodes)
+        return updateAnimeInteractor.awaitEpisodesSyncFromSource(dbAnime, episodes)
     }
 
-    companion object{
+    private fun writeErrorFile(errors: List<Pair<Anime, String?>>): File {
+        try {
+            if (errors.isNotEmpty()) {
+                val file = context.createFileInCacheDir("tadami_update_errors.txt")
+                file.bufferedWriter().use { out ->
+                    errors.groupBy({ it.second }, { it.first }).forEach { (error, animes) ->
+                        out.write("\n! ${error}\n")
+                        animes.groupBy { it.source }.forEach { (srcId, animes) ->
+                            out.write("  # $srcId\n")
+                            animes.forEach {
+                                out.write("    - ${it.title}\n")
+                            }
+                        }
+                    }
+                }
+                return file
+            }
+        } catch (_: Exception) {
+        }
+        return File("")
+    }
+
+    private fun writeSkippedFile(skipped: List<Pair<Anime, String?>>): File {
+        try {
+            if (skipped.isNotEmpty()) {
+                val file = context.createFileInCacheDir("tadami_update_skipped.txt")
+                file.bufferedWriter().use { out ->
+                    skipped.groupBy({ it.second }, { it.first }).forEach { (skipReason, animes) ->
+                        out.write("\n! ${skipReason}\n")
+                        animes.groupBy { it.source }.forEach { (srcId, animes) ->
+                            out.write("  # $srcId\n")
+                            animes.forEach {
+                                out.write("    - ${it.title}\n")
+                            }
+                        }
+                    }
+                }
+                return file
+            }
+        } catch (_: Exception) {
+        }
+        return File("")
+    }
+
+    companion object {
         private const val TAG = "LibraryUpdate"
         private const val WORK_NAME = "library_update_work"
 
@@ -185,5 +249,6 @@ class LibraryUpdateWorker(
                     wm.cancelWorkById(it.id)
                 }
         }
+
     }
 }

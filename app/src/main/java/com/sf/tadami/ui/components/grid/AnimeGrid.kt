@@ -84,7 +84,7 @@ fun AnimeGrid(
         mutableStateOf(configuration.orientation)
     }
 
-    LaunchedEffect(animeList.itemCount){
+    LaunchedEffect(animeList.itemCount,animeList.loadState.refresh){
         if(!isNavigated && configuration.orientation == rotationChanged){
             isLoading = animeList.itemCount == 0 && animeList.loadState.refresh is LoadState.Loading
         }

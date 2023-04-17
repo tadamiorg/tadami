@@ -5,7 +5,7 @@ import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.requests.okhttp.HttpClient
 import com.sf.tadami.network.requests.okhttp.asObservableSuccess
 import com.sf.tadami.network.requests.okhttp.parseAs
-import com.sf.tadami.ui.utils.awaitSingleOrError
+import com.sf.tadami.ui.utils.awaitSingleOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
@@ -19,7 +19,7 @@ class AppUpdater {
             val response = httpClient.client
                 .newCall(GET("https://api.github.com/repos/$GITHUB_REPO/releases/latest"))
                 .asObservableSuccess()
-                .awaitSingleOrError() ?: return@withContext AppUpdate.NoNewUpdate
+                .awaitSingleOrNull(printErrors = false) ?: return@withContext AppUpdate.NoNewUpdate
             try{
                 response.parseAs<GithubUpdate>().let{
                     val isNewversion = checkNewVersion(it.version)

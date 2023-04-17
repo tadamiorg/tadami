@@ -99,8 +99,23 @@
     <string name="notification_app_update_progress">Progression du téléchargement de la MAJ</string>
     <string name="notification_app_update_success">Installation de la mise à jour</string>
     <string name="notification_downloading_app_update">Téléchargement de la mise à jour…</string>
-    <string name="notification_app_update_tap_install">Appuyer pour installer</string>
+    <string name="notification_app_update_tap_install"> Appuyez pour installer</string>
     <string name="download">Télécharger</string>
     <string name="vostfree_search_length_error">La recherche doit faire au moins 4 caractères</string>
     <string name="discover_search_filters_independent">Les filtres et la recherche s\'ignorent</string>
+    <string name="webview_required">WebView est requis par Tadami</string>
+    <string name="webview_outdated">Veuillez mettre à jour l\'application WebView pour une meilleure compatibilité</string>
+    <string name="notification_library_update_skipped_not_caught_up">Passé car il y a des épisodes non vus</string>
+    <string name="notification_library_updates_skipped">Mises à jour passées</string>
+    <string name="notification_library_update_skipped_result">%1$d mise(s) à jour ignorée(s)</string>
+    <string name="tap_learn_more">Appuyez pour en savoir plus</string>
+    <string name="tap_see_details">Appuyez pour voir les détails</string>
+    <string name="notification_library_update_failed_result">Échec de %1$d mise(s) à jour</string>
+    <string name="recently">Récemment</string>
+    <string name="relative_time_today">Aujourd\'hui</string>
+    <plurals name="relative_time">
+        <item quantity="one">Hier</item>
+        <item quantity="many">Il y a %1$d jours</item>
+        <item quantity="other">Il y a %1$d jours</item>
+    </plurals>
 </resources>

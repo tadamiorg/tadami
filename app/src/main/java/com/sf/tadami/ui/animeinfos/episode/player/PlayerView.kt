@@ -219,8 +219,8 @@ fun VideoPlayer(
                             player.clearMediaItems()
                             player.prepare()
                             UiToasts.showToast(
-                                R.string.player_screen_source_load_error,
-                                "${episodeUiState.selectedSource?.quality}"
+                                stringRes = R.string.player_screen_source_load_error,
+                                args = arrayOf("${episodeUiState.selectedSource?.quality}")
                             )
                         } else {
                             super.onEvents(player, events)

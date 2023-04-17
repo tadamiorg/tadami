@@ -16,6 +16,8 @@ object Notifications {
     const val LIBRARY_UPDATE_SUCCESS_NOTIFICATION = 101
     const val LIBRARY_UPDATE_FAILURE_CHANNEL = "library_update_failure_channel"
     const val LIBRARY_UPDATE_FAILURE_NOTIFICATION = 102
+    const val LIBRARY_UPDATE_SKIP_CHANNEL = "library_update_skip_channel"
+    const val LIBRARY_UPDATE_SKIP_NOTIFICATION = 103
     // App notifications
     const val APP_GROUP = "app_group"
     const val APP_UPDATE_DOWNLOAD_PROGRESS_CHANNEL = "app_update_download_progress_channel"
@@ -57,7 +59,7 @@ object Notifications {
         val libraryGroupChannels = listOf(
             NotificationChannelCompat.Builder(
                 LIBRARY_UPDATE_PROGRESS_CHANNEL,
-                NotificationManagerCompat.IMPORTANCE_DEFAULT
+                NotificationManagerCompat.IMPORTANCE_LOW
             ).apply {
                 setGroup(LIBRARY_GROUP)
                 setName(context.getString(R.string.notification_library_updates_progress))
@@ -71,10 +73,17 @@ object Notifications {
             }.build(),
             NotificationChannelCompat.Builder(
                 LIBRARY_UPDATE_FAILURE_CHANNEL,
-                NotificationManagerCompat.IMPORTANCE_DEFAULT
+                NotificationManagerCompat.IMPORTANCE_LOW
             ).apply {
                 setGroup(LIBRARY_GROUP)
                 setName(context.getString(R.string.notification_library_updates_failure))
+            }.build(),
+            NotificationChannelCompat.Builder(
+                LIBRARY_UPDATE_SKIP_CHANNEL,
+                NotificationManagerCompat.IMPORTANCE_LOW
+            ).apply {
+                setGroup(LIBRARY_GROUP)
+                setName(context.getString(R.string.notification_library_updates_skipped))
             }.build()
         )
 

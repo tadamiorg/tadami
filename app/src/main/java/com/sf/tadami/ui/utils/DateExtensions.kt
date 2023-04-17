@@ -1,12 +1,14 @@
 package com.sf.tadami.ui.utils
 
+import android.content.Context
+import com.sf.tadami.R
 import java.text.DateFormat
 import java.util.*
 
 private const val MILLISECONDS_IN_DAY = 86_400_000L
 
 fun Date.toRelativeString(
-/*    context: Context,*/
+    context: Context,
     range: Int = 7,
     dateFormat: DateFormat = DateFormat.getDateInstance(DateFormat.SHORT),
 ): String {
@@ -20,13 +22,13 @@ fun Date.toRelativeString(
         )
     val days = difference.floorDiv(MILLISECONDS_IN_DAY).toInt()
     return when {
-        /*difference < 0 -> context.getString(R.string.recently)
+        difference < 0 -> context.getString(R.string.recently)
         difference < MILLISECONDS_IN_DAY -> context.getString(R.string.relative_time_today)
         difference < MILLISECONDS_IN_DAY.times(range) -> context.resources.getQuantityString(
             R.plurals.relative_time,
             days,
             days,
-        )*/
+        )
         else -> dateFormat.format(this)
     }
 }

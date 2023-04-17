@@ -4,6 +4,9 @@ import android.content.Context
 import android.os.Build
 import android.webkit.WebSettings
 import android.webkit.WebView
+import android.widget.Toast
+import com.sf.tadami.R
+import com.sf.tadami.network.api.online.AnimeSourceBase
 import com.sf.tadami.network.requests.utils.WebViewUtil
 import com.sf.tadami.network.requests.utils.setDefaultSettings
 import com.sf.tadami.ui.utils.UiToasts
@@ -50,7 +53,7 @@ abstract class WebViewInterceptor(private val context: Context) : Interceptor {
         }
 
         if (!WebViewUtil.supportsWebView(context)) {
-            UiToasts.showToast("Webview required")
+            UiToasts.showToast(R.string.webview_required, Toast.LENGTH_LONG)
 
             return response
         }
@@ -77,7 +80,7 @@ abstract class WebViewInterceptor(private val context: Context) : Interceptor {
         return WebView(context).apply {
             setDefaultSettings()
             // Avoid sending empty User-Agent, Chromium WebView will reset to default if empty
-            settings.userAgentString = request.header("User-Agent") ?: ""
+            settings.userAgentString = request.header("User-Agent") ?: AnimeSourceBase.DEFAULT_USER_AGENT
         }
     }
 }
