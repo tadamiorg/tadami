@@ -25,7 +25,7 @@ class StreamSBExtractor(private val client: OkHttpClient) {
     // animension, asianload and dramacool uses "common = false"
     private fun fixUrl(url: String, common: Boolean): String {
         val host = url.toHttpUrl().host
-        val sbUrl = "https://$host/sources15"
+        val sbUrl = "https://$host/sources16"
         val id = url.substringAfter(host)
             .substringAfter("/e/")
             .substringAfter("/embed-")
@@ -41,13 +41,14 @@ class StreamSBExtractor(private val client: OkHttpClient) {
     }
 
     fun videosFromUrl(url: String, headers: Headers, prefix: String = "", suffix: String = "", common: Boolean = true, manualData: Boolean = false): List<StreamSource> {
+        val trimmedUrl = url.trim()
         val newHeaders = if(manualData) headers else headers.newBuilder()
-            .set("referer", url)
+            .set("referer", trimmedUrl)
             .set("watchsb", "sbstream")
             .set("authority", "embedsb.com")
             .build()
         return try {
-            val master = if(manualData) url else fixUrl(url, common)
+            val master = if(manualData) trimmedUrl else fixUrl(trimmedUrl, common)
             val json = Json { ignoreUnknownKeys = true }.decodeFromString<Response>(
                 client.newCall(GET(master, newHeaders))
                     .execute()
