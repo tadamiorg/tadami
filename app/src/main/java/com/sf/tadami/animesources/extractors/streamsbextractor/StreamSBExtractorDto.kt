@@ -1,13 +1,14 @@
 package com.sf.tadami.animesources.extractors.streamsbextractor
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Response(
-    val stream_data: ResponseObject
+    @SerialName("stream_data") val stream_data: ResponseObject
 ) {
     @Serializable
     data class ResponseObject(
-        val file: String,
+        @SerialName("file") val file: String,
     )
 }
