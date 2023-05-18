@@ -24,7 +24,7 @@ class GogoAnime : AnimeSource("GogoAnime") {
 
     override val name: String = "GogoAnime"
 
-    override val baseUrl: String = "https://gogoanime.gr"
+    override val baseUrl: String = "https://gogoanime.cl"
 
     override val lang: Lang = Lang.ENGLISH
 
@@ -209,11 +209,11 @@ class GogoAnime : AnimeSource("GogoAnime") {
         // GogoCdn:
         document.select("div.anime_muti_link > ul > li.vidcdn > a")
             .firstOrNull()?.attr("data-video")
-            ?.let { streamSourcesList.addAll(extractor.videosFromUrl("https:$it")) }
+            ?.let { streamSourcesList.addAll(extractor.videosFromUrl(it.isFullUrl())) }
         // Vidstreaming:
         document.select("div.anime_muti_link > ul > li.anime > a")
             .firstOrNull()?.attr("data-video")
-            ?.let { streamSourcesList.addAll(extractor.videosFromUrl("https:$it")) }
+            ?.let { streamSourcesList.addAll(extractor.videosFromUrl(it.isFullUrl())) }
         // Doodstream mirror:
         document.select("div.anime_muti_link > ul > li.doodstream > a")
             .firstOrNull()?.attr("data-video")
@@ -223,6 +223,14 @@ class GogoAnime : AnimeSource("GogoAnime") {
             .firstOrNull()?.attr("data-video")
             ?.let { streamSourcesList.addAll(StreamSBExtractor(client).videosFromUrl(it, headers)) }
         return streamSourcesList.sort()
+    }
+
+    private fun String.isFullUrl() : String{
+        return if(startsWith("https") || startsWith("http")){
+            this
+        }else{
+            "https:${this}"
+        }
     }
 
     // Filters
