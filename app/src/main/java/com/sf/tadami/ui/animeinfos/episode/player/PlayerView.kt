@@ -28,6 +28,7 @@ import com.google.android.exoplayer2.upstream.ResolvingDataSource
 import com.sf.tadami.R
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.network.api.online.AnimeSourceBase
+import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.animeinfos.episode.PlayerViewModel
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
 import com.sf.tadami.ui.animeinfos.episode.player.controls.QualityDialog
@@ -42,7 +43,7 @@ import kotlin.time.Duration.Companion.seconds
 fun VideoPlayer(
     modifier: Modifier = Modifier,
     dispatcher: OnBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current!!.onBackPressedDispatcher,
-    playerViewModel: PlayerViewModel = viewModel()
+    playerViewModel: PlayerViewModel = viewModel(LocalContext.current as EpisodeActivity)
 ) {
     val context = LocalContext.current
 
@@ -112,29 +113,35 @@ fun VideoPlayer(
 
     var openDialog by remember { mutableStateOf(false) }
 
-    fun selectEpisode(episode: Episode) {
+    fun updateTime() {
         playerViewModel.updateTime(
             currentEpisode,
             totalDuration,
             currentTime,
             playerPreferences.seenThreshold
         )
+    }
+
+    fun selectEpisode(episode: Episode) {
+        updateTime()
         playerViewModel.setCurrentEpisode(episode)
     }
 
     LaunchedEffect(key1 = episodeUiState.selectedSource) {
         episodeUiState.selectedSource?.let {
-            exoPlayer.prepare()
-            exoPlayer.playWhenReady = true
-            val item = MediaItem.Builder().apply {
-                setUri(
-                    it.url
-                )
-            }.build()
+            playerViewModel.getDbEpisodeTime { timeSeen ->
+                exoPlayer.prepare()
+                exoPlayer.playWhenReady = true
+                val item = MediaItem.Builder().apply {
+                    setUri(
+                        it.url
+                    )
+                }.build()
 
-            exoPlayer.setMediaItem(
-                item,
-                currentEpisode?.timeSeen.takeIf { it!! > 0 } ?: currentTime)
+                exoPlayer.setMediaItem(
+                    item,
+                    timeSeen.takeIf { it > 0 } ?: currentTime)
+            }
         }
     }
 
@@ -156,7 +163,10 @@ fun VideoPlayer(
                 QualityDialog(
                     opened = openDialog,
                     sources = episodeUiState.availableSources,
-                    onSelectSource = { playerViewModel.selectSource(it) },
+                    onSelectSource = {
+                        updateTime()
+                        playerViewModel.selectSource(it)
+                    },
                     selectedSource = episodeUiState.selectedSource,
                     onDismissRequest = { openDialog = false }
                 )
@@ -195,7 +205,6 @@ fun VideoPlayer(
                             )
                             setShowBuffering(StyledPlayerView.SHOW_BUFFERING_ALWAYS)
                             keepScreenOn = true
-                            fitsSystemWindows = true
                         }
                     }
                 )
@@ -227,12 +236,7 @@ fun VideoPlayer(
 
                     when (event) {
                         Lifecycle.Event.ON_PAUSE -> {
-                            playerViewModel.updateTime(
-                                currentEpisode,
-                                totalDuration,
-                                currentTime,
-                                playerPreferences.seenThreshold
-                            )
+                            updateTime()
                             exoPlayer.pause()
                         }
                         Lifecycle.Event.ON_RESUME -> {
@@ -245,12 +249,7 @@ fun VideoPlayer(
                 lifecycle.addObserver(observer)
 
                 onDispose {
-                    playerViewModel.updateTime(
-                        currentEpisode,
-                        totalDuration,
-                        currentTime,
-                        playerPreferences.seenThreshold
-                    )
+                    updateTime()
                     lifecycle.removeObserver(observer)
                     exoPlayer.removeListener(listener)
                     exoPlayer.release()
@@ -295,9 +294,7 @@ fun VideoPlayer(
                     exoPlayer.release()
                     dispatcher.onBackPressed()
                 },
-                onCast = {
-
-                },
+                onCast = {},
                 onNext = {
                     val next = hasNextIterator.previous()
                     exoPlayer.clearMediaItems()

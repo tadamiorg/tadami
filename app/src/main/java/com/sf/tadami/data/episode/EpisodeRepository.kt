@@ -9,6 +9,7 @@ interface EpisodeRepository {
     suspend fun addAll(episodes: List<Episode>): List<Episode>
     suspend fun getEpisodesByAnimeId(animeId: Long): List<Episode>
     suspend fun getEpisodeById(episodeId: Long): Episode
+    fun getEpisodeByIdAsFlow(episodeId: Long): Flow<Episode>
     fun getEpisodesByAnimeIdAsFlow(animeId: Long): Flow<List<Episode>>
     suspend fun deleteEpisodesById(ids: List<Long>)
     suspend fun updateAll(episodes: List<UpdateEpisode>)
@@ -60,6 +61,11 @@ class EpisodeRepositoryImpl(
     override suspend fun getEpisodeById(episodeId: Long): Episode {
         return handler.awaitOne { episodeQueries.getEpisodeById(episodeId, episodeMapper) }
     }
+
+    override fun getEpisodeByIdAsFlow(episodeId: Long): Flow<Episode> {
+        return handler.subscribeToOne { episodeQueries.getEpisodeById(episodeId, episodeMapper) }
+    }
+
 
     override fun getEpisodesByAnimeIdAsFlow(animeId: Long): Flow<List<Episode>> {
         return handler.subscribeToList {

@@ -17,6 +17,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -24,7 +25,7 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     private val episodeRepository: EpisodeRepository = Injekt.get()
     private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
-    private val updateAnimeInteractor : UpdateAnimeInteractor = Injekt.get()
+    private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
     private val sourcesManager: AnimeSourcesManager = Injekt.get()
 
     private val sourceId: String = checkNotNull(savedStateHandle["sourceId"])
@@ -44,17 +45,21 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     private val _episodesList: MutableStateFlow<List<Episode>> = MutableStateFlow(emptyList())
     val episodes = _episodesList.asStateFlow()
 
-    val hasNextIterator = combine(currentEpisode,episodes){ ep,epList ->
-        when{
+    val hasNextIterator = combine(currentEpisode, episodes) { ep, epList ->
+        when {
             ep != null && epList.isNotEmpty() -> epList.listIterator(epList.indexOfFirst { it.id == ep.id })
-            else -> {epList.listIterator()}
+            else -> {
+                epList.listIterator()
+            }
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, _episodesList.value.listIterator())
 
-    val hasPreviousIterator = combine(currentEpisode,episodes){ ep,epList ->
-        when{
+    val hasPreviousIterator = combine(currentEpisode, episodes) { ep, epList ->
+        when {
             ep != null && epList.isNotEmpty() -> epList.listIterator(epList.indexOfFirst { it.id == ep.id } + 1)
-            else -> {epList.listIterator()}
+            else -> {
+                epList.listIterator()
+            }
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, _episodesList.value.listIterator())
 
@@ -88,9 +93,19 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
             _currentEpisode.update { selectedEpisode }
 
-            animeWithEpisodesInteractor.subscribe(selectedEpisode.animeId).collectLatest {(anime, episodes) ->
-                _animeTitle.update { anime.title }
-                _episodesList.update { episodes.sortedBy { it.sourceOrder } }
+            animeWithEpisodesInteractor.subscribe(selectedEpisode.animeId)
+                .collectLatest { (anime, episodes) ->
+                    _animeTitle.update { anime.title }
+                    _episodesList.update { episodes.sortedBy { it.sourceOrder } }
+                }
+        }
+    }
+
+    fun getDbEpisodeTime(callback: (time: Long) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val selectedEpisode = currentEpisode.value?.let { episodeRepository.getEpisodeById(it.id) }
+            withContext(Dispatchers.Main) {
+                callback(selectedEpisode?.timeSeen ?: 0)
             }
         }
     }
@@ -105,15 +120,15 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
     }
 
-    fun updateTime(episode: Episode?,totalTime : Long,timeSeen : Long,threshold : Int){
+    fun updateTime(episode: Episode?, totalTime: Long, timeSeen: Long, threshold: Int) {
         episode?.let { ep ->
-            if(ep.seen) return
+            if (ep.seen) return
             viewModelScope.launch(Dispatchers.IO) {
                 if (totalTime > 0L && timeSeen > 999L) {
                     val watched = (timeSeen.toDouble() / totalTime) * 100 > threshold
-                    if(watched){
-                        updateAnimeInteractor.awaitSeenEpisodeUpdate(setOf(ep.id),true)
-                    }else{
+                    if (watched) {
+                        updateAnimeInteractor.awaitSeenEpisodeUpdate(setOf(ep.id), true)
+                    } else {
                         updateAnimeInteractor.awaitSeenEpisodeTimeUpdate(ep, totalTime, timeSeen)
                     }
                 }

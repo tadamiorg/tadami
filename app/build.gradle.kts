@@ -50,6 +50,7 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.4"
@@ -88,7 +89,6 @@ dependencies {
     val exoplayerVersion = "2.18.5"
 
     implementation("com.google.android.exoplayer:exoplayer:$exoplayerVersion")
-    implementation("com.google.android.exoplayer:extension-cast:$exoplayerVersion")
     implementation("com.google.android.exoplayer:exoplayer-dash:$exoplayerVersion")
     implementation("com.google.android.exoplayer:exoplayer-hls:$exoplayerVersion")
     implementation("com.google.android.exoplayer:exoplayer-smoothstreaming:$exoplayerVersion")
@@ -208,5 +208,18 @@ dependencies {
 
     val mardownVersion = "0.3.2"
     implementation("com.github.jeziellago:compose-markdown:$mardownVersion")
+
+    // Cast Dependencies
+
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.mediarouter:mediarouter:1.4.0")
+    implementation("com.google.android.gms:play-services-cast-framework:21.1.0")
+
+    // Http4k proxy to cast streams
+
+    implementation(platform("org.http4k:http4k-bom:4.42.1.0"))
+    implementation("org.http4k:http4k-core")
+    implementation("org.http4k:http4k-client-okhttp")
+    implementation("org.http4k:http4k-server-ktorcio")
 
 }
