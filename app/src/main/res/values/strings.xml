@@ -118,5 +118,8 @@
         <item quantity="one">Yesterday</item>
         <item quantity="other">%1$d days ago</item>
     </plurals>
+    <string name="notification_cast_status_text">A proxy server is running to send request to your chromecast device</string>
+    <string name="notification_cast_group" translatable="false">Chromecast</string>
+    <string name="notification_cast_proxy_status">Proxy server used to cast</string>
 
 </resources>

@@ -21,6 +21,7 @@ import androidx.navigation.NavHostController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.AnimeInfosRoutes
+import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.filters.TadaBottomSheetLayout
 import com.sf.tadami.ui.components.topappbar.search.SearchTopAppBar
 import kotlinx.coroutines.launch
@@ -103,6 +104,9 @@ fun SearchScreen(
                         searchValue = it
                         searchViewModel.updateQuery(it)
                     },
+                    actions = listOf(
+                        Action.CastButton()
+                    ),
                     searchValue = searchValue
                 )
             },

@@ -13,6 +13,8 @@ import androidx.navigation.NavHostController
 import com.sf.tadami.navigation.graphs.SettingsRoutes
 import com.sf.tadami.ui.tabs.settings.model.Preference
 import com.sf.tadami.R
+import com.sf.tadami.ui.components.data.Action
+import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,13 +23,16 @@ fun SettingsScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
+            TadaTopAppBar(
                 title = {
                     Text(
                         text = stringResource(id = R.string.settings_tab_title),
                         style = MaterialTheme.typography.headlineSmall
                     )
-                }
+                },
+                actions = listOf(
+                    Action.CastButton()
+                )
             )
         }
     ) {

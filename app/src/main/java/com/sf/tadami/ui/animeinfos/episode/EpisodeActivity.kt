@@ -1,8 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode
 
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -13,7 +11,6 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaMetadata
@@ -21,23 +18,17 @@ import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
 import com.sf.tadami.domain.episode.Episode
-import com.sf.tadami.navigation.graphs.EpisodeNavGraph
 import com.sf.tadami.network.api.model.StreamSource
-import com.sf.tadami.ui.animeinfos.episode.cast.ProxyServer
+import com.sf.tadami.notifications.cast.CastProxyService
+import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
+import com.sf.tadami.ui.animeinfos.episode.player.VideoPlayer
 import com.sf.tadami.ui.themes.TadamiTheme
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import android.net.wifi.WifiManager
-import android.text.format.Formatter
-import java.net.Inet4Address
-import java.net.InetAddress
-import java.net.NetworkInterface
 
 class EpisodeActivity : AppCompatActivity() {
     private var castSession: CastSession? = null
-    private var castProxyServer: ProxyServer? = null
     private lateinit var castContext: CastContext
     private var castSessionManagerListener: SessionManagerListener<CastSession>? = null
     private var availableSources: List<StreamSource>? = null
@@ -45,7 +36,7 @@ class EpisodeActivity : AppCompatActivity() {
     private var animeTitle: String? = null
     private var currentEpisode: Episode? = null
 
-    val playerViewModel: PlayerViewModel by viewModels()
+    private val playerViewModel: PlayerViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -62,22 +53,14 @@ class EpisodeActivity : AppCompatActivity() {
 
         castContext = CastContext.getSharedInstance(this)
         castSession = castContext.sessionManager.currentCastSession
+
         setupCastListener()
 
         observeData()
 
-        val extras = intent.extras
-
-        val initialEpisode = checkNotNull(extras?.getLong("episode"))
-        val sourceId = checkNotNull(extras?.getString("sourceId"))
-
         setContent {
             TadamiTheme {
-                EpisodeNavGraph(
-                    navController = rememberNavController(),
-                    episode = initialEpisode,
-                    sourceId = sourceId
-                )
+                VideoPlayer()
             }
         }
     }
@@ -90,7 +73,7 @@ class EpisodeActivity : AppCompatActivity() {
                         availableSources = uiState.availableSources
                         selectedSource = uiState.selectedSource
                         if (castSession?.isConnected == true && availableSources!!.isNotEmpty()) {
-                            loadRemoteMedia( true)
+                            loadRemoteMedia(true)
                         }
                     }
                 }
@@ -125,19 +108,8 @@ class EpisodeActivity : AppCompatActivity() {
         castSession = null
     }
 
-    fun startCastProxy() {
-        if (castProxyServer != null) return
-        castProxyServer = ProxyServer()
-        castProxyServer!!.start()
-    }
-
-    fun stopCastProxy() {
-        castProxyServer?.stop()
-        castProxyServer = null
-    }
-
     private fun loadRemoteMedia(autoPlay: Boolean) {
-        if (castSession == null || selectedSource == null) {
+        if (castSession == null || selectedSource == null || currentEpisode == null) {
             return
         }
 
@@ -147,12 +119,16 @@ class EpisodeActivity : AppCompatActivity() {
         val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
 
         movieMetadata.putString(MediaMetadata.KEY_TITLE, animeTitle ?: "Anime Title")
+       /* movieMetadata.addImage(WebImage(Uri.parse("https://static.actu.fr/uploads/2022/04/cbl-1-960x640.jpg")))*/
         movieMetadata.putString(
             MediaMetadata.KEY_SUBTITLE,
-            currentEpisode?.name ?: "Episode number"
+            currentEpisode!!.name
         )
 
-        val customData = JSONObject().put("proxyIp", ipv4)
+        val customData = JSONObject()
+            .put("proxyIp", ipv4)
+            .put("animeId", currentEpisode!!.animeId)
+            .put("episodeId", currentEpisode!!.id)
 
         if (selectedSource!!.headers != null) {
             val headers = JSONObject()
@@ -176,26 +152,6 @@ class EpisodeActivity : AppCompatActivity() {
                 .setAutoplay(autoPlay)
                 .build()
         )
-    }
-
-    private fun getLocalIPAddress(): String? {
-        try {
-            val en = NetworkInterface.getNetworkInterfaces()
-            while (en.hasMoreElements()) {
-                val networkInterface = en.nextElement()
-                val enu = networkInterface.inetAddresses
-                while (enu.hasMoreElements()) {
-                    val inetAddress = enu.nextElement()
-                    if (!inetAddress.isLoopbackAddress && inetAddress is Inet4Address) {
-                        return inetAddress.getHostAddress()
-                    }
-                }
-            }
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
-
-        return null
     }
 
     private fun setupCastListener() {
@@ -225,13 +181,14 @@ class EpisodeActivity : AppCompatActivity() {
             override fun onSessionResuming(session: CastSession, sessionId: String) {}
             override fun onSessionSuspended(session: CastSession, reason: Int) {}
             private fun onApplicationConnected(castSession: CastSession) {
-                startCastProxy()
+                CastProxyService.startNow(this@EpisodeActivity)
                 this@EpisodeActivity.castSession = castSession
                 loadRemoteMedia(true)
             }
 
             private fun onApplicationDisconnected(session: CastSession) {
-                stopCastProxy()
+                CastProxyService.stop(this@EpisodeActivity)
+                this@EpisodeActivity.castSession = null
             }
         }
     }

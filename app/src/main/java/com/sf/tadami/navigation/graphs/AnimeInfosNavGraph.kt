@@ -7,7 +7,7 @@ import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 
 fun NavGraphBuilder.animeInfosNavGraph(navController: NavHostController) {
     navigation(
-        route = "InfosRoutes",
+        route = AnimeInfosRoutes.INFOS_GRAPH,
         startDestination = "${AnimeInfosRoutes.DETAILS}/{sourceId}/{animeId}"
     ) {
 
@@ -35,4 +35,5 @@ fun NavGraphBuilder.animeInfosNavGraph(navController: NavHostController) {
 object AnimeInfosRoutes {
     const val EPISODE = "episode"
     const val DETAILS = "details"
+    const val INFOS_GRAPH = "infos_graph"
 }

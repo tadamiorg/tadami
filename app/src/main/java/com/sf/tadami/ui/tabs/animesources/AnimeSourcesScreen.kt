@@ -20,7 +20,8 @@ fun AnimeSourcesScreen(navController: NavHostController) {
             title = R.string.stub_text,
             icon = R.drawable.ic_search,
             enabled = false,
-            onClick = {})
+            onClick = {}),
+        Action.CastButton()
     )
 
     Scaffold(

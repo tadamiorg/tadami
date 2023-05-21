@@ -2,10 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-sdk
-        android:minSdkVersion="28"
-        android:targetSdkVersion="33" />
-
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -42,18 +38,22 @@
         </activity>
         <activity
             android:name=".ui.animeinfos.episode.EpisodeActivity"
-            android:configChanges="orientation|screenSize"
-            android:exported="true"
-            android:screenOrientation="userLandscape">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-            </intent-filter>
+            android:configChanges="orientation|keyboard|keyboardHidden|screenSize|screenLayout|uiMode"
+            android:launchMode="singleTask"
+            android:screenOrientation="userLandscape"
+            android:parentActivityName=".ui.main.MainActivity"
+            android:exported="true">
         </activity>
 
         <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
             android:value="com.sf.tadami.ui.animeinfos.episode.cast.CastOptionsProvider" />
 
+        <service
+            android:name=".notifications.cast.CastProxyService"
+            android:exported="false" />
+
+        <receiver android:name=".notifications.cast.CastReceiver" />
         <receiver android:name=".notifications.libraryupdate.LibraryUpdateReceiver" />
         <receiver android:name=".notifications.appupdate.AppUpdateReceiver" />
         <provider
