@@ -1,12 +1,14 @@
 package com.sf.tadami.ui.animeinfos.episode.cast
 
-import android.util.Log
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import org.http4k.core.*
+import org.http4k.filter.AllowAll
+import org.http4k.filter.CorsPolicy
+import org.http4k.filter.OriginPolicy
 import org.http4k.filter.ServerFilters
 import org.http4k.routing.bind
 import org.http4k.routing.routes
@@ -22,12 +24,11 @@ class ProxyServer {
 
     private val logFilter: Filter = Filter { next ->
         { request ->
-            Log.e("Request made",request.uri.toString())
             next(request)
         }
     }
 
-    private var requestClient : OkHttpClient? = OkHttpClient.Builder().build()
+    private var requestClient: OkHttpClient? = OkHttpClient.Builder().build()
 
     private val app = ServerFilters.RequestTracing()
         .then(
@@ -66,15 +67,16 @@ class ProxyServer {
 
                         }
                     }
-
-                    val videoRequest = okhttp3.Request.Builder().url(url.toString()).headers(sourceHeaders.build()).build()
-                    if(requestClient != null){
+                    val videoRequest =
+                        okhttp3.Request.Builder().url(url.toString()).headers(sourceHeaders.build())
+                            .build()
+                    if (requestClient != null) {
                         val videoResponse = requestClient!!.newCall(videoRequest).execute()
                         val streamBody = StreamBody(videoResponse.body.byteStream())
-                        Response(Status(videoResponse.code,videoResponse.message))
+                        Response(Status(videoResponse.code, videoResponse.message))
                             .headers(videoResponse.headers.toList())
                             .body(streamBody)
-                    }else{
+                    } else {
                         Response(Status.GONE)
                     }
 
@@ -85,12 +87,19 @@ class ProxyServer {
             )
         )
 
-    fun isRunning() = proxyServer != null
-
     fun start(port: Int = 8000) {
         if (proxyServer != null) return
         proxyServer = ServerFilters.CatchAll()
             .then(logFilter)
+            .then(
+                ServerFilters.Cors.invoke(
+                    CorsPolicy(
+                        originPolicy = OriginPolicy.AllowAll(),
+                        methods = listOf(Method.GET),
+                        headers = listOf("*")
+                    )
+                )
+            )
             .then(app)
             .asServer(KtorCIO(port))
             .start()

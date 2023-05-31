@@ -7,26 +7,21 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.google.android.exoplayer2.Player.STATE_ENDED
-import com.sf.tadami.ui.themes.ComposeRippleTheme
 import com.sf.tadami.R
+import com.sf.tadami.ui.themes.ComposeRippleTheme
 
 @Composable
 fun CenterControls(
     modifier: Modifier = Modifier,
-    isPlaying: () -> Boolean,
-    playbackState: () -> Int,
+    isPlaying: Boolean,
     onReplay: () -> Unit,
     onPauseToggle: () -> Unit,
     onForward : () -> Unit,
 ) {
-    val isVideoPlaying = remember(isPlaying()) { isPlaying() }
-    val playerState = remember(playbackState()) { playbackState() }
     val size = 50.dp
 
     Row(
@@ -50,11 +45,8 @@ fun CenterControls(
                 Icon(
                     modifier = Modifier.fillMaxSize(),
                     painter = when {
-                        isVideoPlaying -> {
+                        isPlaying -> {
                             painterResource(id = R.drawable.ic_pause)
-                        }
-                        isVideoPlaying.not() && playerState == STATE_ENDED -> {
-                            painterResource(id = R.drawable.ic_replay)
                         }
                         else -> {
                             painterResource(id = R.drawable.ic_play)

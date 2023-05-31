@@ -26,6 +26,7 @@ fun BottomControls(
     currentTime: () -> Long = { 0 },
     bufferPercentage: () -> Int = { 0 },
     onSeekChanged: (timeMs: Float) -> Unit = {},
+    onSeekEnd : () -> Unit = {},
     onSkipOp: () -> Unit = {},
     onSettings: () -> Unit = {},
     onNext: () -> Unit = {},
@@ -145,6 +146,7 @@ fun BottomControls(
                     modifier = Modifier.fillMaxWidth(),
                     value = videoTime.toFloat(),
                     onValueChange = onSeekChanged,
+                    onValueChangeFinished = onSeekEnd,
                     valueRange = 0f..duration.toFloat(),
                     thumb = {
                         SliderDefaults.Thumb(
@@ -168,6 +170,4 @@ fun BottomControls(
 
         }
     }
-
-
 }

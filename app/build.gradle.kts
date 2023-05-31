@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("kotlinx-serialization")
+    kotlin("plugin.serialization")
     id("app.cash.sqldelight") version "2.0.0-alpha05"
 }
 
@@ -151,7 +151,7 @@ dependencies {
     // JSoup
 
     implementation("org.jsoup:jsoup:1.15.3")
-    implementation("androidx.webkit:webkit:1.6.1")
+    implementation("androidx.webkit:webkit:1.7.0")
 
     // Injekt Dependency injection
 
@@ -219,7 +219,6 @@ dependencies {
 
     implementation(platform("org.http4k:http4k-bom:4.42.1.0"))
     implementation("org.http4k:http4k-core")
-    implementation("org.http4k:http4k-client-okhttp")
     implementation("org.http4k:http4k-server-ktorcio")
 
 }

@@ -20,9 +20,9 @@ import com.sf.tadami.ui.animeinfos.details.episodes.EpisodesHeader
 import com.sf.tadami.ui.animeinfos.details.episodes.episodeItems
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeInfosBox
 import com.sf.tadami.ui.animeinfos.details.infos.description.ExpandableAnimeDescription
-import com.sf.tadami.ui.components.widgets.PullRefresh
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
+import com.sf.tadami.ui.components.widgets.PullRefresh
 import com.sf.tadami.ui.components.widgets.VerticalFastScroller
 
 @OptIn(ExperimentalMaterial3Api::class)

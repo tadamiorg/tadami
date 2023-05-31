@@ -1,10 +1,14 @@
 package com.sf.tadami.ui.animeinfos.episode
 
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -17,26 +21,40 @@ import com.google.android.gms.cast.MediaMetadata
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
+import com.google.android.gms.common.images.WebImage
+import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.network.api.model.StreamSource
 import com.sf.tadami.notifications.cast.CastProxyService
 import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
+import com.sf.tadami.ui.animeinfos.episode.player.CastVideoPlayer
 import com.sf.tadami.ui.animeinfos.episode.player.VideoPlayer
 import com.sf.tadami.ui.themes.TadamiTheme
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.json.JSONObject
 
 class EpisodeActivity : AppCompatActivity() {
+
+    private val json: Json = Json
+
+
     private var castSession: CastSession? = null
+    private val isCasting = mutableStateOf(false)
     private lateinit var castContext: CastContext
     private var castSessionManagerListener: SessionManagerListener<CastSession>? = null
     private var availableSources: List<StreamSource>? = null
     private var selectedSource: StreamSource? = null
-    private var animeTitle: String? = null
+    private var episodeUrl: String? = null
+    private var anime: Anime? = null
     private var currentEpisode: Episode? = null
+    private var updateTimeJob: Job? = null
 
-    private val playerViewModel: PlayerViewModel by viewModels()
+    private lateinit var playerViewModel: PlayerViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -53,6 +71,46 @@ class EpisodeActivity : AppCompatActivity() {
 
         castContext = CastContext.getSharedInstance(this)
         castSession = castContext.sessionManager.currentCastSession
+        isCasting.value = castSession?.isConnected ?: false
+        if (castSession?.remoteMediaClient?.mediaInfo?.customData != null) {
+            try {
+                val customDataSources =
+                    castSession?.remoteMediaClient?.mediaInfo?.customData!!.get("availableSources") as String
+                val selectedSource =
+                    castSession?.remoteMediaClient?.mediaInfo?.customData!!.get("selectedSource") as String
+
+                val rawUrl = castSession?.remoteMediaClient?.mediaInfo?.customData!!.get("episodeUrl") as String
+                val episodeId = castSession?.remoteMediaClient?.mediaInfo?.customData!!.get("episodeId") as Int
+                val intentEpisodeId = checkNotNull(intent.extras?.getLong("episode")).toInt()
+                val isResumedFromCast = episodeId == intentEpisodeId
+                val viewModel: PlayerViewModel by viewModels(factoryProducer =  {
+                    PlayerViewModelFactory(isResumedFromCast)
+                })
+                playerViewModel = viewModel
+                if(isResumedFromCast){
+                    playerViewModel.setResumeFromCastSession(
+                        rawUrl = rawUrl,
+                        selectedSource = json.decodeFromString(
+                            selectedSource
+                        ),
+                        availableSources = json.decodeFromString(
+                            customDataSources
+                        )
+
+                    )
+                }
+            }catch (e : Exception){
+                e.printStackTrace()
+                Log.e("No customdata found","Yeah")
+            }
+
+        }
+        else{
+            val viewModel: PlayerViewModel by viewModels(factoryProducer =  {
+                PlayerViewModelFactory()
+            })
+            playerViewModel = viewModel
+        }
 
         setupCastListener()
 
@@ -60,7 +118,12 @@ class EpisodeActivity : AppCompatActivity() {
 
         setContent {
             TadamiTheme {
-                VideoPlayer()
+                val casting by isCasting
+                if (casting) {
+                    CastVideoPlayer(castSession = castSession!!)
+                } else {
+                    VideoPlayer()
+                }
             }
         }
     }
@@ -72,14 +135,27 @@ class EpisodeActivity : AppCompatActivity() {
                     playerViewModel.uiState.collectLatest { uiState ->
                         availableSources = uiState.availableSources
                         selectedSource = uiState.selectedSource
-                        if (castSession?.isConnected == true && availableSources!!.isNotEmpty()) {
-                            loadRemoteMedia(true)
+                        episodeUrl = uiState.rawUrl
+
+                        if (castSession != null && castSession!!.isConnected && castSession!!.remoteMediaClient != null) {
+                            if(castSession!!.remoteMediaClient!!.mediaInfo == null){
+                                loadRemoteMedia(true)
+                            }else{
+                                val castMedia = castSession!!.remoteMediaClient?.mediaInfo?.customData
+                                val episodeId = castMedia?.get("episodeId") as Int
+                                val source : StreamSource = json.decodeFromString(
+                                    castSession!!.remoteMediaClient!!.mediaInfo!!.customData!!.get("selectedSource") as String
+                                )
+                                if(episodeId != currentEpisode?.id?.toInt() || source.url != selectedSource?.url){
+                                    loadRemoteMedia(true)
+                                }
+                            }
                         }
                     }
                 }
                 launch {
-                    playerViewModel.animeTitle.collectLatest { title ->
-                        animeTitle = title
+                    playerViewModel.anime.collectLatest { anime ->
+                        this@EpisodeActivity.anime = anime
                     }
                 }
                 launch {
@@ -108,6 +184,23 @@ class EpisodeActivity : AppCompatActivity() {
         castSession = null
     }
 
+    fun setUpdateTimeJob(job: Job?) {
+        this.updateTimeJob?.cancel()
+        this.updateTimeJob = job
+    }
+
+    private fun checkUpdateTimeJobEnded(callback: () -> Unit) {
+        if (this.updateTimeJob == null) return callback()
+        this.updateTimeJob!!.invokeOnCompletion { cancellation ->
+            if (cancellation == null) {
+                callback()
+                this@EpisodeActivity.updateTimeJob = null
+            }else{
+                Log.e("Error Update Time : ", cancellation.message.toString())
+            }
+        }
+    }
+
     private fun loadRemoteMedia(autoPlay: Boolean) {
         if (castSession == null || selectedSource == null || currentEpisode == null) {
             return
@@ -118,8 +211,8 @@ class EpisodeActivity : AppCompatActivity() {
 
         val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
 
-        movieMetadata.putString(MediaMetadata.KEY_TITLE, animeTitle ?: "Anime Title")
-       /* movieMetadata.addImage(WebImage(Uri.parse("https://static.actu.fr/uploads/2022/04/cbl-1-960x640.jpg")))*/
+        movieMetadata.putString(MediaMetadata.KEY_TITLE, anime?.title ?: "Anime Title")
+        movieMetadata.addImage(WebImage(Uri.parse(anime?.thumbnailUrl)))
         movieMetadata.putString(
             MediaMetadata.KEY_SUBTITLE,
             currentEpisode!!.name
@@ -130,13 +223,14 @@ class EpisodeActivity : AppCompatActivity() {
             .put("animeId", currentEpisode!!.animeId)
             .put("episodeId", currentEpisode!!.id)
 
-        if (selectedSource!!.headers != null) {
-            val headers = JSONObject()
-            selectedSource!!.headers!!.forEach { (key, value) ->
-                headers.put(key, value)
-            }
-            customData.put("headers", headers)
+        if (availableSources != null) {
+            customData.put("availableSources", json.encodeToString(availableSources))
         }
+
+        customData.put("episodeUrl", episodeUrl)
+
+        customData.put("selectedSource", json.encodeToString(selectedSource))
+
 
         val mediaInfos = MediaInfo.Builder(selectedSource!!.url)
             .setContentUrl(selectedSource!!.url)
@@ -145,19 +239,23 @@ class EpisodeActivity : AppCompatActivity() {
             .setCustomData(customData)
             .build()
 
-        remoteMediaClient.load(
-            MediaLoadRequestData.Builder()
-                .setMediaInfo(mediaInfos)
-                .setCurrentTime(currentEpisode?.timeSeen ?: 0)
-                .setAutoplay(autoPlay)
-                .build()
-        )
+        checkUpdateTimeJobEnded {
+            playerViewModel.getDbEpisodeTime { time ->
+                remoteMediaClient.load(
+                    MediaLoadRequestData.Builder()
+                        .setMediaInfo(mediaInfos)
+                        .setCurrentTime(time)
+                        .setAutoplay(autoPlay)
+                        .build()
+                )
+            }
+        }
     }
 
     private fun setupCastListener() {
         castSessionManagerListener = object : SessionManagerListener<CastSession> {
             override fun onSessionEnded(session: CastSession, error: Int) {
-                onApplicationDisconnected(session)
+                onApplicationDisconnected()
             }
 
             override fun onSessionResumed(session: CastSession, wasSuspended: Boolean) {
@@ -165,7 +263,7 @@ class EpisodeActivity : AppCompatActivity() {
             }
 
             override fun onSessionResumeFailed(session: CastSession, error: Int) {
-                onApplicationDisconnected(session)
+                onApplicationDisconnected()
             }
 
             override fun onSessionStarted(session: CastSession, sessionId: String) {
@@ -173,7 +271,7 @@ class EpisodeActivity : AppCompatActivity() {
             }
 
             override fun onSessionStartFailed(session: CastSession, error: Int) {
-                onApplicationDisconnected(session)
+                onApplicationDisconnected()
             }
 
             override fun onSessionStarting(session: CastSession) {}
@@ -181,12 +279,14 @@ class EpisodeActivity : AppCompatActivity() {
             override fun onSessionResuming(session: CastSession, sessionId: String) {}
             override fun onSessionSuspended(session: CastSession, reason: Int) {}
             private fun onApplicationConnected(castSession: CastSession) {
-                CastProxyService.startNow(this@EpisodeActivity)
+                isCasting.value = true
                 this@EpisodeActivity.castSession = castSession
+                CastProxyService.startNow(this@EpisodeActivity)
                 loadRemoteMedia(true)
             }
 
-            private fun onApplicationDisconnected(session: CastSession) {
+            private fun onApplicationDisconnected() {
+                isCasting.value = false
                 CastProxyService.stop(this@EpisodeActivity)
                 this@EpisodeActivity.castSession = null
             }

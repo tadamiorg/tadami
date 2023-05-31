@@ -56,7 +56,7 @@ fun VideoPlayer(
 
     val isFetchingSources by playerViewModel.isFetchingSources.collectAsState()
 
-    val animeTitle by playerViewModel.animeTitle.collectAsState()
+    val anime by playerViewModel.anime.collectAsState()
 
     val upstreamDataSource = DefaultHttpDataSource.Factory()
 
@@ -114,11 +114,13 @@ fun VideoPlayer(
     var openDialog by remember { mutableStateOf(false) }
 
     fun updateTime() {
-        playerViewModel.updateTime(
-            currentEpisode,
-            totalDuration,
-            currentTime,
-            playerPreferences.seenThreshold
+        (context as EpisodeActivity).setUpdateTimeJob(
+            playerViewModel.updateTime(
+                currentEpisode,
+                totalDuration,
+                currentTime,
+                playerPreferences.seenThreshold
+            )
         )
     }
 
@@ -261,10 +263,9 @@ fun VideoPlayer(
             PlayerControls(
                 modifier = Modifier.fillMaxSize(),
                 isVisible = { shouldShowControls },
-                isPlaying = { isPlaying },
-                title = { animeTitle },
+                isPlaying = isPlaying,
+                title = { anime?.title ?: "" },
                 episode = "${stringResource(id = R.string.player_screen_episode_label)} $episodeNumber",
-                playbackState = { playbackState },
                 onReplay = { exoPlayer.seekBack() },
                 onSkipOp = { exoPlayer.seekTo(currentTime + 85000) },
                 onForward = { exoPlayer.seekForward() },

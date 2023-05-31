@@ -1,11 +1,11 @@
 package com.sf.tadami.ui.animeinfos.episode
 
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.interactors.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.UpdateAnimeInteractor
+import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.network.api.model.StreamSource
 import com.sf.tadami.network.api.online.AnimeSource
@@ -15,13 +15,22 @@ import com.sf.tadami.ui.utils.SaveableMutableSaveStateFlow
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
+
+class PlayerViewModelFactory(
+    private var isResumedFromCast : Boolean = false
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+        return PlayerViewModel(extras.createSavedStateHandle(), isResumedFromCast) as T
+    }
+}
+class PlayerViewModel(savedStateHandle: SavedStateHandle,private var isResumedFromCast: Boolean = false) : ViewModel() {
 
     private val episodeRepository: EpisodeRepository = Injekt.get()
     private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
@@ -63,14 +72,14 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, _episodesList.value.listIterator())
 
-    private val _animeTitle: MutableStateFlow<String> = MutableStateFlow("")
-    val animeTitle = _animeTitle.asStateFlow()
+    private val _anime: MutableStateFlow<Anime?> = MutableStateFlow(null)
+    val anime = _anime.asStateFlow()
 
     private val _isFetchingSources: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isFetchingSources = _isFetchingSources.asStateFlow()
 
-    val playerScreenLoading = combine(animeTitle, episodes) { title, episodes ->
-        title.isEmpty() || episodes.isEmpty()
+    val playerScreenLoading = combine(anime, episodes) { anime, episodes ->
+        anime?.title?.isEmpty() ?: false || episodes.isEmpty()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     private var fetchEpisodeDisposable: Disposable? = null
@@ -83,7 +92,11 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             updatedEpisode.collectLatest {
                 it?.let {
                     _episodeId.value = it.id
-                    selectEpisode(it)
+                    if(!isResumedFromCast){
+                        selectEpisode(it)
+                    }else{
+                        isResumedFromCast = false
+                    }
                 }
             }
         }
@@ -95,7 +108,7 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
             animeWithEpisodesInteractor.subscribe(selectedEpisode.animeId)
                 .collectLatest { (anime, episodes) ->
-                    _animeTitle.update { anime.title }
+                    _anime.update { anime }
                     _episodesList.update { episodes.sortedBy { it.sourceOrder } }
                 }
         }
@@ -120,10 +133,10 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
     }
 
-    fun updateTime(episode: Episode?, totalTime: Long, timeSeen: Long, threshold: Int) {
+    fun updateTime(episode: Episode?, totalTime: Long, timeSeen: Long, threshold: Int) : Job? {
         episode?.let { ep ->
-            if (ep.seen) return
-            viewModelScope.launch(Dispatchers.IO) {
+            if (ep.seen) return null
+            return viewModelScope.launch(Dispatchers.IO) {
                 if (totalTime > 0L && timeSeen > 999L) {
                     val watched = (timeSeen.toDouble() / totalTime) * 100 > threshold
                     if (watched) {
@@ -133,6 +146,13 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     }
                 }
             }
+        }
+        return null
+    }
+
+    fun setResumeFromCastSession(rawUrl : String,selectedSource : StreamSource,availableSources : List<StreamSource>){
+        _uiState.update {currentState ->
+            currentState.copy(rawUrl = rawUrl,selectedSource = selectedSource, availableSources = availableSources)
         }
     }
 
