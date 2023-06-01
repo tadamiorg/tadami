@@ -31,7 +31,7 @@ fun CenterControls(
         //replay button
         CompositionLocalProvider(LocalRippleTheme provides ComposeRippleTheme) {
 
-            IconButton(modifier = Modifier.size(size), onClick = onReplay) {
+            IconButton(modifier = Modifier.size(size),onClick = onReplay) {
                 Icon(
                     modifier = Modifier.fillMaxSize(),
                     painter = painterResource(id = R.drawable.ic_replay_10),
@@ -58,7 +58,7 @@ fun CenterControls(
             }
 
             // Forward button
-            IconButton(modifier = Modifier.size(size), onClick = onForward) {
+            IconButton(modifier = Modifier.size(size),onClick = onForward) {
                 Icon(
                     modifier = Modifier.fillMaxSize(),
                     painter = painterResource(id = R.drawable.ic_forward_10),

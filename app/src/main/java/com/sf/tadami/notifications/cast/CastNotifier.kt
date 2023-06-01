@@ -1,5 +1,6 @@
 package com.sf.tadami.notifications.cast
 
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -19,13 +20,16 @@ class CastNotifier(private val context: Context) {
 
     val castStatusNotificationBuilder by lazy {
         NotificationCompat.Builder(context, Notifications.CAST_PROXY_STATUS_CHANNEL).apply {
-            setContentTitle(context.getString(R.string.app_name))
+            setContentTitle("${context.getString(R.string.app_name)} Cast")
             setContentIntent(getMainActivityIntent())
             setSmallIcon(R.drawable.ic_tada)
             setLargeIcon(notificationBitmap)
             setOngoing(true)
-            setContentText(context.getString(R.string.notification_cast_status_text))
+            setContentText(context.getString(R.string.notification_cast_status_title))
+            setStyle(NotificationCompat.BigTextStyle().bigText(context.getString(R.string.notification_cast_status_text)))
             setOnlyAlertOnce(true)
+            color = context.getColor(R.color.midnightdusk_primary)
+            priority = NotificationManager.IMPORTANCE_HIGH
             addAction(R.drawable.ic_close, context.getString(R.string.action_cancel), cancelIntent)
         }
     }

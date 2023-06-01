@@ -13,6 +13,8 @@ import com.google.android.gms.cast.framework.SessionManagerListener
 import com.sf.tadami.R
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.notifications.cast.CastProxyService
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.SeekChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
 import com.sf.tadami.ui.themes.TadamiTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -24,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private var castSession: CastSession? = null
     private var castSessionManagerListener: SessionManagerListener<CastSession>? = null
     private lateinit var castContext: CastContext
+    private val seekChannel = SeekChannel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,7 +93,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupCastListener() {
         castSessionManagerListener = object : SessionManagerListener<CastSession> {
             override fun onSessionEnded(session: CastSession, error: Int) {
-                onApplicationDisconnected(session)
+                onApplicationDisconnected()
             }
 
             override fun onSessionResumed(session: CastSession, wasSuspended: Boolean) {
@@ -98,7 +101,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onSessionResumeFailed(session: CastSession, error: Int) {
-                onApplicationDisconnected(session)
+                onApplicationDisconnected()
             }
 
             override fun onSessionStarted(session: CastSession, sessionId: String) {
@@ -106,19 +109,20 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onSessionStartFailed(session: CastSession, error: Int) {
-                onApplicationDisconnected(session)
+                onApplicationDisconnected()
             }
 
             override fun onSessionStarting(session: CastSession) {}
             override fun onSessionEnding(session: CastSession) {}
             override fun onSessionResuming(session: CastSession, sessionId: String) {}
             override fun onSessionSuspended(session: CastSession, reason: Int) {}
-            private fun onApplicationConnected(castSession: CastSession) {
+            private fun onApplicationConnected(session: CastSession) {
+                setCastCustomChannel(session,seekChannel)
                 CastProxyService.startNow(this@MainActivity)
-                this@MainActivity.castSession = castSession
+                this@MainActivity.castSession = session
             }
 
-            private fun onApplicationDisconnected(session: CastSession) {
+            private fun onApplicationDisconnected() {
                 CastProxyService.stop(this@MainActivity)
                 this@MainActivity.castSession = null
             }

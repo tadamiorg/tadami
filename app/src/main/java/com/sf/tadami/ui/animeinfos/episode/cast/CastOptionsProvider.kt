@@ -9,19 +9,25 @@ import com.google.android.gms.cast.framework.SessionProvider
 import com.google.android.gms.cast.framework.media.CastMediaOptions
 import com.google.android.gms.cast.framework.media.MediaIntentReceiver
 import com.google.android.gms.cast.framework.media.NotificationOptions
-import com.google.android.gms.cast.framework.media.widget.ExpandedControllerActivity
-import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.main.MainActivity
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
 
-/**
- * Implements [OptionsProvider] to provide [CastOptions].
- */
 class CastOptionsProvider : OptionsProvider {
     override fun getCastOptions(context: Context): CastOptions {
+        val buttonActions: MutableList<String> = ArrayList()
+        buttonActions.add(MediaIntentReceiver.ACTION_REWIND)
+        buttonActions.add(MediaIntentReceiver.ACTION_TOGGLE_PLAYBACK)
+        buttonActions.add(MediaIntentReceiver.ACTION_FORWARD)
+        buttonActions.add(MediaIntentReceiver.ACTION_STOP_CASTING)
+
+        // Showing "play/pause" and "stop casting" in the compat view of the notification.
+        val compatButtonActionsIndices = intArrayOf(1, 3)
+
+        // Builds a notification with the above actions. Each tap on the "rewind" and "forward" buttons skips 30 seconds.
+
         val notificationOptions = NotificationOptions.Builder()
             .setTargetActivityClassName(MainActivity::class.java.name)
+            .setActions(buttonActions, compatButtonActionsIndices)
+            .setSkipStepMs(30 * DateUtils.SECOND_IN_MILLIS)
             .build()
         val mediaOptions = CastMediaOptions.Builder()
             .setNotificationOptions(notificationOptions)

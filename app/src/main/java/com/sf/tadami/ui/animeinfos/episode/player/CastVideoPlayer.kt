@@ -1,11 +1,12 @@
 package com.sf.tadami.ui.animeinfos.episode.player
 
+import android.content.pm.ActivityInfo
+import android.util.Log
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -31,8 +32,10 @@ import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferences
 import com.sf.tadami.ui.utils.ImageDefaults
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun CastVideoPlayer(
@@ -41,6 +44,7 @@ fun CastVideoPlayer(
     playerViewModel: PlayerViewModel = viewModel(LocalContext.current as EpisodeActivity),
     castSession: CastSession
 ) {
+
     val activityContext = LocalContext.current as EpisodeActivity
 
     val playerPreferences by rememberDataStoreState(customPrefs = PlayerPreferences).value.collectAsState()
@@ -67,6 +71,9 @@ fun CastVideoPlayer(
 
     var openDialog by remember { mutableStateOf(false) }
 
+    var debounceSeekJob : Job? by remember { mutableStateOf(null) }
+    val coroutineScope = rememberCoroutineScope()
+
     fun updateTime() {
         activityContext.setUpdateTimeJob(
             playerViewModel.updateTime(
@@ -84,6 +91,7 @@ fun CastVideoPlayer(
     }
 
     DisposableEffect(Unit){
+        activityContext.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
         val mediaCallback = object : Callback() {
             override fun onStatusUpdated() {
                 super.onStatusUpdated()
@@ -92,6 +100,7 @@ fun CastVideoPlayer(
 
             override fun onMediaError(error: MediaError) {
                 super.onMediaError(error)
+                Log.e("Playback error", error.toJson().toString())
             }
         }
 
@@ -103,11 +112,12 @@ fun CastVideoPlayer(
         }
 
         castSession.remoteMediaClient?.registerCallback(mediaCallback)
-        castSession.remoteMediaClient?.addProgressListener(progressListener,(1.seconds/15).toLong(DurationUnit.MILLISECONDS))
+        castSession.remoteMediaClient?.addProgressListener(progressListener,1000L)
         onDispose {
             updateTime()
             castSession.remoteMediaClient?.removeProgressListener(progressListener)
             castSession.remoteMediaClient?.unregisterCallback(mediaCallback)
+            activityContext.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
         }
     }
 
@@ -133,7 +143,7 @@ fun CastVideoPlayer(
                 error = painterResource(R.drawable.cover_error),
                 contentDescription = null,
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .aspectRatio(2f / 3f)
                     .clip(MaterialTheme.shapes.small),
                 contentScale = ContentScale.Crop,
@@ -148,18 +158,35 @@ fun CastVideoPlayer(
                 title = { anime?.title ?: "" },
                 episode = "${stringResource(id = R.string.player_screen_episode_label)} $episodeNumber",
                 onReplay = {
-                    castSession.remoteMediaClient!!.seek(getSeek(time = 0))
+                    debounceSeekJob?.cancel()
+                    if(isPlaying){
+                        isPlaying = false
+                        castSession.remoteMediaClient!!.pause()
+                    }
+                    currentTime = (currentTime - playerPreferences.doubleTapLength).coerceAtLeast(0L)
+                    debounceSeekJob = coroutineScope.launch {
+                        delay(500.milliseconds)
+                        castSession.remoteMediaClient!!.seek(getSeek(currentTime))
+                    }
                 },
                 onSkipOp = {
-                    castSession.remoteMediaClient!!.seek(getSeek(currentTime, 85000))
+                    if(castSession.remoteMediaClient?.isPaused == false){
+                        castSession.remoteMediaClient!!.pause()
+                    }
+                    currentTime+=85000
+                    castSession.remoteMediaClient!!.seek(getSeek(currentTime))
                 },
                 onForward = {
-                    castSession.remoteMediaClient!!.seek(
-                        getSeek(
-                            currentTime,
-                            playerPreferences.doubleTapLength
-                        )
-                    )
+                    debounceSeekJob?.cancel()
+                    if(isPlaying){
+                        isPlaying = false
+                        castSession.remoteMediaClient!!.pause()
+                    }
+                    debounceSeekJob = coroutineScope.launch {
+                        delay(500.milliseconds)
+                        castSession.remoteMediaClient!!.seek(getSeek(currentTime))
+                    }
+                    currentTime += playerPreferences.doubleTapLength
                 },
                 onPauseToggle = {
                     when (castSession.remoteMediaClient!!.isPlaying) {
@@ -176,13 +203,18 @@ fun CastVideoPlayer(
                 currentTime = { currentTime },
                 bufferedPercentage = { 0 },
                 onSeekChanged = { timeMs: Float ->
-                    if(castSession.remoteMediaClient?.isPaused == false){
+                    if(isPlaying){
+                        isPlaying = false
                         castSession.remoteMediaClient!!.pause()
                     }
                     currentTime = timeMs.toLong()
                 },
                 onSeekEnd = {
-                    castSession.remoteMediaClient!!.seek(getSeek(time = currentTime))
+                    debounceSeekJob?.cancel()
+                    debounceSeekJob = coroutineScope.launch {
+                        delay(500.milliseconds)
+                        castSession.remoteMediaClient!!.seek(getSeek(currentTime))
+                    }
                 },
                 onBack = {
                     dispatcher.onBackPressed()
@@ -207,14 +239,10 @@ fun CastVideoPlayer(
     }
 }
 
-private fun getSeek(currentTime: Long? = null, time: Long): MediaSeekOptions {
+private fun getSeek(time: Long): MediaSeekOptions {
     return MediaSeekOptions.Builder().apply {
         setPosition(
-            if (currentTime != null) {
-                currentTime + time
-            } else {
-                time
-            }
+           time
         )
         setResumeState(RESUME_STATE_PLAY)
     }.build()

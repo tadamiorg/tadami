@@ -101,7 +101,7 @@ object Notifications {
         val castChannels = listOf(
             NotificationChannelCompat.Builder(
                 CAST_PROXY_STATUS_CHANNEL,
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 setGroup(CAST_GROUP)
                 setName(context.getString(R.string.notification_cast_proxy_status))

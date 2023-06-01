@@ -118,6 +118,7 @@
         <item quantity="many">Il y a %1$d jours</item>
         <item quantity="other">Il y a %1$d jours</item>
     </plurals>
-    <string name="notification_cast_status_text">Un serveur proxy tourne dans le but de communiquer avec votre appareil chromecast</string>
+    <string name="notification_cast_status_text">Un serveur proxy tourne dans le but de communiquer avec votre appareil Chromecast</string>
     <string name="notification_cast_proxy_status">Serveur proxy utilisé pour caster</string>
+    <string name="notification_cast_status_title">Serveur proxy en cours d\'exécution</string>
 </resources>
