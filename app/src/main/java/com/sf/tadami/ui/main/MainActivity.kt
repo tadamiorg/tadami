@@ -13,7 +13,7 @@ import com.google.android.gms.cast.framework.SessionManagerListener
 import com.sf.tadami.R
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.notifications.cast.CastProxyService
-import com.sf.tadami.ui.animeinfos.episode.cast.channels.SeekChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
 import com.sf.tadami.ui.themes.TadamiTheme
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
     private var castSession: CastSession? = null
     private var castSessionManagerListener: SessionManagerListener<CastSession>? = null
     private lateinit var castContext: CastContext
-    private val seekChannel = SeekChannel()
+    private val errorChannel = ErrorChannel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -117,7 +117,7 @@ class MainActivity : AppCompatActivity() {
             override fun onSessionResuming(session: CastSession, sessionId: String) {}
             override fun onSessionSuspended(session: CastSession, reason: Int) {}
             private fun onApplicationConnected(session: CastSession) {
-                setCastCustomChannel(session,seekChannel)
+                setCastCustomChannel(session,errorChannel)
                 CastProxyService.startNow(this@MainActivity)
                 this@MainActivity.castSession = session
             }

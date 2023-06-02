@@ -9,6 +9,7 @@ import com.google.android.gms.cast.framework.SessionProvider
 import com.google.android.gms.cast.framework.media.CastMediaOptions
 import com.google.android.gms.cast.framework.media.MediaIntentReceiver
 import com.google.android.gms.cast.framework.media.NotificationOptions
+import com.sf.tadami.R
 import com.sf.tadami.ui.main.MainActivity
 
 class CastOptionsProvider : OptionsProvider {
@@ -37,7 +38,7 @@ class CastOptionsProvider : OptionsProvider {
             .build()
         return CastOptions.Builder()
             .setLaunchOptions(launchOptions)
-            .setReceiverApplicationId("DA2F4B1A")
+            .setReceiverApplicationId(context.getString(R.string.cast_receiver_id))
             .setCastMediaOptions(mediaOptions)
             .build()
     }

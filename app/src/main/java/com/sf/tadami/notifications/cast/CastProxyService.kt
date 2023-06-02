@@ -121,9 +121,10 @@ class CastProxyService : Service() {
                 val mediaClient = session.remoteMediaClient
                 if(mediaClient != null && mediaClient.mediaInfo !=null && mediaClient.mediaInfo!!.customData != null){
                     val episodeId = mediaClient.mediaInfo!!.customData!!.getLong("episodeId")
+                    val episodeSeen = mediaClient.mediaInfo!!.customData!!.getBoolean("seen")
                     val totalTime = mediaClient.streamDuration
                     val timeSeen = mediaClient.approximateStreamPosition
-                    updateTime(episode = Episode.create().copy(id = episodeId),totalTime = totalTime, timeSeen = timeSeen, threshold = playerPreferences.seenThreshold)
+                    updateTime(episode = Episode.create().copy(id = episodeId, seen = episodeSeen),totalTime = totalTime, timeSeen = timeSeen, threshold = playerPreferences.seenThreshold)
                 }
             }
             override fun onSessionResuming(session: CastSession, sessionId: String) {}

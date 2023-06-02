@@ -1,5 +1,7 @@
 package com.sf.tadami.ui.animeinfos.episode.player
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.ActivityInfo
 import android.util.Log
 import androidx.activity.OnBackPressedDispatcher
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +29,10 @@ import com.sf.tadami.R
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.animeinfos.episode.PlayerViewModel
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.CastErrorCode
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.TadamiCastError
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.tadamiCastMessageCallback
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
 import com.sf.tadami.ui.animeinfos.episode.player.controls.QualityDialog
 import com.sf.tadami.ui.components.widgets.ContentLoader
@@ -37,11 +44,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
+@SuppressLint("SourceLockedOrientationActivity")
 @Composable
 fun CastVideoPlayer(
     modifier: Modifier = Modifier,
     dispatcher: OnBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current!!.onBackPressedDispatcher,
     playerViewModel: PlayerViewModel = viewModel(LocalContext.current as EpisodeActivity),
+    snackbarHostState: SnackbarHostState,
     castSession: CastSession
 ) {
 
@@ -71,7 +80,7 @@ fun CastVideoPlayer(
 
     var openDialog by remember { mutableStateOf(false) }
 
-    var debounceSeekJob : Job? by remember { mutableStateOf(null) }
+    var debounceSeekJob: Job? by remember { mutableStateOf(null) }
     val coroutineScope = rememberCoroutineScope()
 
     fun updateTime() {
@@ -90,31 +99,54 @@ fun CastVideoPlayer(
         playerViewModel.setCurrentEpisode(episode)
     }
 
-    DisposableEffect(Unit){
+    DisposableEffect(Unit) {
         activityContext.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
         val mediaCallback = object : Callback() {
             override fun onStatusUpdated() {
                 super.onStatusUpdated()
                 isPlaying = castSession.remoteMediaClient!!.isPlaying
+
             }
 
             override fun onMediaError(error: MediaError) {
                 super.onMediaError(error)
-                Log.e("Playback error", error.toJson().toString())
+                when (error.reason) {
+                    MediaError.ERROR_REASON_APP_ERROR -> {
+                        Log.e("Media Error", error.toJson().toString())
+                    }
+                    else -> {
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar(
+                                getErrorMessage(
+                                    activityContext,
+                                    error.detailedErrorCode
+                                )
+                            )
+                        }
+                    }
+                }
             }
         }
 
         val progressListener = ProgressListener { progress, duration ->
-            if(isPlaying){
+            if (castSession.isConnected && !castSession.isConnecting && isPlaying) {
                 currentTime = progress.coerceAtLeast(0)
                 totalDuration = duration.coerceAtLeast(0)
             }
         }
 
+        val messageReceiverCallback = tadamiCastMessageCallback { _, _, message: TadamiCastError ->
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(getErrorMessage(activityContext, message.errorCode))
+            }
+        }
+
+        castSession.setMessageReceivedCallbacks(ErrorChannel.NAMESPACE, messageReceiverCallback)
         castSession.remoteMediaClient?.registerCallback(mediaCallback)
-        castSession.remoteMediaClient?.addProgressListener(progressListener,1000L)
+        castSession.remoteMediaClient?.addProgressListener(progressListener, 1000L)
         onDispose {
             updateTime()
+            castSession.removeMessageReceivedCallbacks(ErrorChannel.NAMESPACE)
             castSession.remoteMediaClient?.removeProgressListener(progressListener)
             castSession.remoteMediaClient?.unregisterCallback(mediaCallback)
             activityContext.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
@@ -154,31 +186,37 @@ fun CastVideoPlayer(
             PlayerControls(
                 modifier = Modifier.fillMaxSize(),
                 isVisible = { true },
-                isPlaying = isPlaying ,
+                isPlaying = isPlaying,
                 title = { anime?.title ?: "" },
                 episode = "${stringResource(id = R.string.player_screen_episode_label)} $episodeNumber",
                 onReplay = {
                     debounceSeekJob?.cancel()
-                    if(isPlaying){
+                    if (isPlaying) {
                         isPlaying = false
                         castSession.remoteMediaClient!!.pause()
                     }
-                    currentTime = (currentTime - playerPreferences.doubleTapLength).coerceAtLeast(0L)
+                    currentTime =
+                        (currentTime - playerPreferences.doubleTapLength).coerceAtLeast(0L)
                     debounceSeekJob = coroutineScope.launch {
                         delay(500.milliseconds)
                         castSession.remoteMediaClient!!.seek(getSeek(currentTime))
                     }
                 },
                 onSkipOp = {
-                    if(castSession.remoteMediaClient?.isPaused == false){
+                    debounceSeekJob?.cancel()
+                    if (isPlaying) {
+                        isPlaying = false
                         castSession.remoteMediaClient!!.pause()
                     }
-                    currentTime+=85000
-                    castSession.remoteMediaClient!!.seek(getSeek(currentTime))
+                    currentTime += 85000
+                    debounceSeekJob = coroutineScope.launch {
+                        delay(500.milliseconds)
+                        castSession.remoteMediaClient!!.seek(getSeek(currentTime))
+                    }
                 },
                 onForward = {
                     debounceSeekJob?.cancel()
-                    if(isPlaying){
+                    if (isPlaying) {
                         isPlaying = false
                         castSession.remoteMediaClient!!.pause()
                     }
@@ -203,7 +241,7 @@ fun CastVideoPlayer(
                 currentTime = { currentTime },
                 bufferedPercentage = { 0 },
                 onSeekChanged = { timeMs: Float ->
-                    if(isPlaying){
+                    if (isPlaying) {
                         isPlaying = false
                         castSession.remoteMediaClient!!.pause()
                     }
@@ -239,11 +277,26 @@ fun CastVideoPlayer(
     }
 }
 
+private fun getErrorMessage(context: Context, errorCode: Int?): String {
+    return when (errorCode) {
+        CastErrorCode.COMMUNICATION.code -> {
+            context.resources.getString(R.string.cast_error_communication, errorCode)
+        }
+        CastErrorCode.UNSUPPORTED.code -> {
+            context.getString(R.string.cast_error_unsupported)
+        }
+        CastErrorCode.LOAD_FAILED.code -> {
+            context.getString(R.string.cast_error_load_failed)
+        }
+        else -> {
+            context.resources.getString(R.string.cast_error_unknown, errorCode)
+        }
+    }
+}
+
 private fun getSeek(time: Long): MediaSeekOptions {
     return MediaSeekOptions.Builder().apply {
-        setPosition(
-           time
-        )
+        setPosition(time)
         setResumeState(RESUME_STATE_PLAY)
     }.build()
 }

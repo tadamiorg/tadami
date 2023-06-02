@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -7,8 +8,13 @@ import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -18,15 +24,13 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaMetadata
-import com.google.android.gms.cast.framework.CastContext
-import com.google.android.gms.cast.framework.CastSession
-import com.google.android.gms.cast.framework.SessionManagerListener
+import com.google.android.gms.cast.framework.*
 import com.google.android.gms.common.images.WebImage
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.network.api.model.StreamSource
 import com.sf.tadami.notifications.cast.CastProxyService
-import com.sf.tadami.ui.animeinfos.episode.cast.channels.SeekChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
 import com.sf.tadami.ui.animeinfos.episode.player.CastVideoPlayer
@@ -40,25 +44,27 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.json.JSONObject
 
+
 class EpisodeActivity : AppCompatActivity() {
 
     private val json: Json = Json
-
-
     private var castSession: CastSession? = null
     private val isCasting = mutableStateOf(false)
     private lateinit var castContext: CastContext
     private var castSessionManagerListener: SessionManagerListener<CastSession>? = null
+    private var castStateListener : CastStateListener? = null
     private var availableSources: List<StreamSource>? = null
     private var selectedSource: StreamSource? = null
     private var episodeUrl: String? = null
     private var anime: Anime? = null
     private var currentEpisode: Episode? = null
     private var updateTimeJob: Job? = null
-    private val seekChannel = SeekChannel()
+    private val errorChannel = ErrorChannel()
 
     private lateinit var playerViewModel: PlayerViewModel
 
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -121,12 +127,18 @@ class EpisodeActivity : AppCompatActivity() {
 
         setContent {
             TadamiTheme {
-                val casting by isCasting
-                if (casting) {
-                    CastVideoPlayer(castSession = castSession!!)
-                } else {
-                    VideoPlayer()
+                val snackbarHostState = remember { SnackbarHostState() }
+                Scaffold(
+                    snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+                ) {
+                    val casting by remember(isCasting.value) { mutableStateOf(isCasting.value) }
+                    if (casting) {
+                        CastVideoPlayer(castSession = castSession!!, snackbarHostState = snackbarHostState)
+                    } else {
+                        VideoPlayer()
+                    }
                 }
+
             }
         }
     }
@@ -172,20 +184,25 @@ class EpisodeActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-        castContext.sessionManager.addSessionManagerListener(
-            castSessionManagerListener!!,
-            CastSession::class.java
-        )
-        isCasting.value = !(castSession != null && castSession!!.isDisconnected)
+        castSessionManagerListener?.let{ listener ->
+            castContext.sessionManager.addSessionManagerListener(
+                listener,
+                CastSession::class.java
+            )
+        }
+        castStateListener?.let { castContext.addCastStateListener(it) }
         super.onResume()
     }
 
     override fun onPause() {
         super.onPause()
-        castContext.sessionManager.removeSessionManagerListener(
-            castSessionManagerListener!!,
-            CastSession::class.java
-        )
+        castSessionManagerListener?.let{ listener ->
+            castContext.sessionManager.removeSessionManagerListener(
+                listener,
+                CastSession::class.java
+            )
+        }
+        castStateListener?.let { castContext.removeCastStateListener(it) }
         castSession = null
     }
 
@@ -201,7 +218,7 @@ class EpisodeActivity : AppCompatActivity() {
                 callback()
                 this@EpisodeActivity.updateTimeJob = null
             } else {
-                Log.e("Error Update Time : ", cancellation.message.toString())
+                Log.e("Error while updating time : ", cancellation.message.toString())
             }
         }
     }
@@ -227,13 +244,13 @@ class EpisodeActivity : AppCompatActivity() {
             .put("proxyIp", ipv4)
             .put("animeId", currentEpisode!!.animeId)
             .put("episodeId", currentEpisode!!.id)
+            .put("seen", currentEpisode!!.seen)
 
         if (availableSources != null) {
             customData.put("availableSources", json.encodeToString(availableSources))
         }
 
         customData.put("episodeUrl", episodeUrl)
-
         customData.put("selectedSource", json.encodeToString(selectedSource))
 
         val mediaInfos = MediaInfo.Builder(selectedSource!!.url)
@@ -259,6 +276,12 @@ class EpisodeActivity : AppCompatActivity() {
     }
 
     private fun setupCastListener() {
+        castStateListener = CastStateListener { state ->
+            if(state ==  CastState.CONNECTING || state ==  CastState.NOT_CONNECTED){
+                isCasting.value = false
+            }
+        }
+
         castSessionManagerListener = object : SessionManagerListener<CastSession> {
             override fun onSessionEnded(session: CastSession, error: Int) {
                 onApplicationDisconnected()
@@ -287,14 +310,13 @@ class EpisodeActivity : AppCompatActivity() {
             private fun onApplicationConnected(session: CastSession) {
                 isCasting.value = true
                 this@EpisodeActivity.castSession = session
-                setCastCustomChannel(session, seekChannel)
+                setCastCustomChannel(session, errorChannel)
                 CastProxyService.startNow(this@EpisodeActivity)
                 loadRemoteMedia()
             }
 
             private fun onApplicationDisconnected() {
                 isCasting.value = false
-                CastProxyService.stop(this@EpisodeActivity)
                 this@EpisodeActivity.castSession = null
             }
         }
