@@ -64,6 +64,7 @@ fun DetailsToolbar(
                 icon = if(isFavorited == true) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
                 onClick = onLibraryAnimeClicked
             ),
+            Action.CastButton(),
             Action.Drawable(
                 title = R.string.stub_text,
                 icon = R.drawable.ic_vertical_settings,

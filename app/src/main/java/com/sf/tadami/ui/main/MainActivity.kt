@@ -2,24 +2,39 @@ package com.sf.tadami.ui.main
 
 import android.os.Bundle
 import android.os.PersistableBundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.cast.framework.CastContext
+import com.google.android.gms.cast.framework.CastSession
+import com.google.android.gms.cast.framework.SessionManagerListener
 import com.sf.tadami.R
 import com.sf.tadami.navigation.HomeScreen
+import com.sf.tadami.notifications.cast.CastProxyService
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
 import com.sf.tadami.ui.themes.TadamiTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private var navLoaded: Boolean = true
+    private var castSession: CastSession? = null
+    private var castSessionManagerListener: SessionManagerListener<CastSession>? = null
+    private lateinit var castContext: CastContext
+    private val errorChannel = ErrorChannel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        castContext = CastContext.getSharedInstance(this)
+        castSession = castContext.sessionManager.currentCastSession
+
+        setupCastListener()
 
         if (savedInstanceState != null) {
             with(savedInstanceState) {
@@ -56,6 +71,62 @@ class MainActivity : ComponentActivity() {
             putBoolean(STATE_NAV_LOADED, navLoaded)
         }
         super.onSaveInstanceState(outState, outPersistentState)
+    }
+
+    override fun onResume() {
+        castContext.sessionManager.addSessionManagerListener(
+            castSessionManagerListener!!,
+            CastSession::class.java
+        )
+        super.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        castContext.sessionManager.removeSessionManagerListener(
+            castSessionManagerListener!!,
+            CastSession::class.java
+        )
+        castSession = null
+    }
+
+    private fun setupCastListener() {
+        castSessionManagerListener = object : SessionManagerListener<CastSession> {
+            override fun onSessionEnded(session: CastSession, error: Int) {
+                onApplicationDisconnected()
+            }
+
+            override fun onSessionResumed(session: CastSession, wasSuspended: Boolean) {
+                onApplicationConnected(session)
+            }
+
+            override fun onSessionResumeFailed(session: CastSession, error: Int) {
+                onApplicationDisconnected()
+            }
+
+            override fun onSessionStarted(session: CastSession, sessionId: String) {
+                onApplicationConnected(session)
+            }
+
+            override fun onSessionStartFailed(session: CastSession, error: Int) {
+                onApplicationDisconnected()
+            }
+
+            override fun onSessionStarting(session: CastSession) {}
+            override fun onSessionEnding(session: CastSession) {}
+            override fun onSessionResuming(session: CastSession, sessionId: String) {}
+            override fun onSessionSuspended(session: CastSession, reason: Int) {}
+            private fun onApplicationConnected(session: CastSession) {
+                setCastCustomChannel(session,errorChannel)
+                CastProxyService.startNow(this@MainActivity)
+                this@MainActivity.castSession = session
+            }
+
+            private fun onApplicationDisconnected() {
+                CastProxyService.stop(this@MainActivity)
+                this@MainActivity.castSession = null
+            }
+        }
     }
 
     companion object {

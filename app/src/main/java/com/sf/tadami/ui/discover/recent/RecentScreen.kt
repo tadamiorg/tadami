@@ -14,6 +14,7 @@ import androidx.navigation.NavHostController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.AnimeInfosRoutes
+import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,6 +33,9 @@ fun RecentScreen(
                 title = {
                     Text(text = "${stringResource(id = R.string.discover_recents_screen_title)} - ${recentViewModel.source.name}")
                 },
+                actions = listOf(
+                    Action.CastButton()
+                ),
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(

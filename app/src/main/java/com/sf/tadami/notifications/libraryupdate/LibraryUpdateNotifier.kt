@@ -23,13 +23,14 @@ class LibraryUpdateNotifier(private val context: Context) {
         BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
     }
 
-    val progressNotificationBuilder by lazy {
+    private val progressNotificationBuilder by lazy {
         NotificationCompat.Builder(context, Notifications.LIBRARY_UPDATE_PROGRESS_CHANNEL).apply {
             setContentTitle(context.getString(R.string.app_name))
             setSmallIcon(R.drawable.ic_refresh)
             setLargeIcon(notificationBitmap)
             setOngoing(true)
             setOnlyAlertOnce(true)
+            color = context.getColor(R.color.midnightdusk_primary)
             addAction(R.drawable.ic_close, context.getString(R.string.action_cancel), cancelIntent)
         }
     }
@@ -85,7 +86,7 @@ class LibraryUpdateNotifier(private val context: Context) {
                     setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
                     setGroupSummary(true)
                     priority = NotificationCompat.PRIORITY_HIGH
-
+                    color = context.getColor(R.color.midnightdusk_primary)
                     setContentIntent(getMainActivityIntent())
                     setAutoCancel(true)
 
@@ -108,7 +109,7 @@ class LibraryUpdateNotifier(private val context: Context) {
                     )
                     setContentText(context.getString(R.string.tap_see_details))
                     setSmallIcon(R.drawable.ic_tada)
-
+                    color = context.getColor(R.color.midnightdusk_primary)
                     setContentIntent(getLogIntent(context, uriCompat))
                 }.build()
         context.notify(Notifications.LIBRARY_UPDATE_FAILURE_NOTIFICATION, failedNotification)
@@ -127,6 +128,7 @@ class LibraryUpdateNotifier(private val context: Context) {
                         animeNumber
                     )
                 )
+                color = context.getColor(R.color.midnightdusk_primary)
                 setContentText(context.getString(R.string.tap_see_details))
                 setSmallIcon(R.drawable.ic_tada)
                 setContentIntent(getLogIntent(context, uriCompat))

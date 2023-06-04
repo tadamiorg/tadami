@@ -64,7 +64,8 @@ fun LibraryScreen(
                     keyboardController?.hide()
                     showLibrarySheet()
                 }
-            )
+            ),
+            Action.CastButton()
         )
     }
 

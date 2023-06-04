@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("kotlinx-serialization")
+    kotlin("plugin.serialization")
     id("app.cash.sqldelight") version "2.0.0-alpha05"
 }
 
@@ -19,8 +19,8 @@ android {
 
     defaultConfig {
         applicationId = "com.sf.tadami"
-        versionCode = 10
-        versionName = "1.0.9"
+        versionCode = 11
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -50,6 +50,7 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.4"
@@ -88,7 +89,6 @@ dependencies {
     val exoplayerVersion = "2.18.5"
 
     implementation("com.google.android.exoplayer:exoplayer:$exoplayerVersion")
-    implementation("com.google.android.exoplayer:extension-cast:$exoplayerVersion")
     implementation("com.google.android.exoplayer:exoplayer-dash:$exoplayerVersion")
     implementation("com.google.android.exoplayer:exoplayer-hls:$exoplayerVersion")
     implementation("com.google.android.exoplayer:exoplayer-smoothstreaming:$exoplayerVersion")
@@ -151,7 +151,7 @@ dependencies {
     // JSoup
 
     implementation("org.jsoup:jsoup:1.15.3")
-    implementation("androidx.webkit:webkit:1.6.1")
+    implementation("androidx.webkit:webkit:1.7.0")
 
     // Injekt Dependency injection
 
@@ -208,5 +208,17 @@ dependencies {
 
     val mardownVersion = "0.3.2"
     implementation("com.github.jeziellago:compose-markdown:$mardownVersion")
+
+    // Cast Dependencies
+
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.mediarouter:mediarouter:1.4.0")
+    implementation("com.google.android.gms:play-services-cast-framework:21.1.0")
+
+    // Http4k proxy to cast streams
+
+    implementation(platform("org.http4k:http4k-bom:4.42.1.0"))
+    implementation("org.http4k:http4k-core")
+    implementation("org.http4k:http4k-server-ktorcio")
 
 }

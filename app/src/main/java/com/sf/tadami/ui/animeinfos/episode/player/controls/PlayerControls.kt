@@ -16,20 +16,22 @@ import androidx.compose.ui.Modifier
 fun PlayerControls(
     modifier: Modifier = Modifier,
     isVisible: () -> Boolean,
-    isPlaying: () -> Boolean,
+    isPlaying: Boolean,
     title: () -> String,
     episode: String,
     onReplay: () -> Unit,
     onSkipOp: () -> Unit,
     onPauseToggle: () -> Unit,
+    isIdle : Boolean = false,
+    idleLock : Boolean = false,
     totalDuration: () -> Long,
     currentTime: () -> Long,
     bufferedPercentage: () -> Int,
-    playbackState: () -> Int,
     onSeekChanged: (timeMs: Float) -> Unit,
+    onSeekEnd: () -> Unit = {},
     onSettings: () -> Unit,
     onBack: () -> Unit,
-    onCast: () -> Unit,
+    onCast: () -> Unit = {},
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     hasNext : () -> Boolean,
@@ -63,11 +65,11 @@ fun PlayerControls(
                     .align(Alignment.Center)
                     .fillMaxWidth(),
                 isPlaying = isPlaying,
-                playbackState = playbackState,
                 onReplay = onReplay,
                 onPauseToggle = onPauseToggle,
                 onForward = onForward,
-
+                isIdle = isIdle,
+                idleLock = idleLock
             )
 
             // bottom controls
@@ -79,12 +81,14 @@ fun PlayerControls(
                 currentTime = currentTime,
                 bufferPercentage = bufferedPercentage,
                 onSeekChanged = onSeekChanged,
+                onSeekEnd = onSeekEnd,
                 onPrevious = onPrevious,
                 onNext = onNext,
                 hasNext = hasNext,
                 hasPrevious = hasPrevious,
                 onSkipOp = onSkipOp,
                 onSettings = onSettings,
+                isSeekable = !isIdle,
                 videoSettingsEnabled = videoSettingsEnabled
             )
         }

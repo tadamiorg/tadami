@@ -118,5 +118,13 @@
         <item quantity="one">Yesterday</item>
         <item quantity="other">%1$d days ago</item>
     </plurals>
+    <string name="notification_cast_status_text">A proxy server is running to communicate with your Chromecast device</string>
+    <string name="notification_cast_group" translatable="false">Chromecast</string>
+    <string name="notification_cast_proxy_status">Proxy server used to cast</string>
+    <string name="notification_cast_status_title">Proxy server running</string>
+    <string name="cast_error_communication">Communication error : %1$d</string>
+    <string name="cast_error_unsupported">Video source is not supported by the Chromecast device</string>
+    <string name="cast_error_load_failed">The episode could not be played</string>
+    <string name="cast_error_unknown">Unknown error : %1$d</string>
 
 </resources>

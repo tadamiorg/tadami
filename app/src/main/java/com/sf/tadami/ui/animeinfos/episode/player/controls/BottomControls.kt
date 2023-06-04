@@ -26,12 +26,14 @@ fun BottomControls(
     currentTime: () -> Long = { 0 },
     bufferPercentage: () -> Int = { 0 },
     onSeekChanged: (timeMs: Float) -> Unit = {},
+    onSeekEnd : () -> Unit = {},
     onSkipOp: () -> Unit = {},
     onSettings: () -> Unit = {},
     onNext: () -> Unit = {},
     onPrevious: () -> Unit = {},
     hasNext : () -> Boolean,
     hasPrevious : () -> Boolean,
+    isSeekable : Boolean = true,
     videoSettingsEnabled: Boolean = false
 ) {
 
@@ -74,7 +76,7 @@ fun BottomControls(
                 }
 
                 // Ignore Opening Button
-                TextButton(onClick = onSkipOp) {
+                TextButton(onClick = onSkipOp, enabled = isSeekable) {
                     Text(
                         text = stringResource(id = R.string.player_screen_controls_forward_85),
                         softWrap = false,
@@ -144,7 +146,9 @@ fun BottomControls(
                 Slider(
                     modifier = Modifier.fillMaxWidth(),
                     value = videoTime.toFloat(),
+                    enabled = isSeekable,
                     onValueChange = onSeekChanged,
+                    onValueChangeFinished = onSeekEnd,
                     valueRange = 0f..duration.toFloat(),
                     thumb = {
                         SliderDefaults.Thumb(
@@ -154,7 +158,8 @@ fun BottomControls(
                         )
                     },
                     colors = SliderDefaults.colors(
-                        inactiveTrackColor = Color.Transparent
+                        inactiveTrackColor = Color.Transparent,
+                        disabledActiveTrackColor = MaterialTheme.colorScheme.primary
                     )
                 )
             }
@@ -168,6 +173,4 @@ fun BottomControls(
 
         }
     }
-
-
 }
