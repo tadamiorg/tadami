@@ -189,7 +189,8 @@ class EpisodeActivity : AppCompatActivity() {
                             val castMedia = castSession!!.remoteMediaClient!!.mediaInfo?.customData
                             if(castMedia!= null){
                                 val episodeId = castMedia.get("episodeId") as Int
-                                if(episodeId != currentEpisode?.id?.toInt()){
+                                val currentEpisodeId = currentEpisode?.id?.toInt()
+                                if(currentEpisodeId != null && episodeId != currentEpisodeId){
                                     stopCastEpisode()
                                 }
                             }
@@ -259,8 +260,6 @@ class EpisodeActivity : AppCompatActivity() {
         val ipv4 = getLocalIPAddress() ?: return
         val remoteMediaClient = castSession!!.remoteMediaClient ?: return
 
-        remoteMediaClient.stop()
-
         val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
 
         movieMetadata.putString(MediaMetadata.KEY_TITLE, anime?.title ?: "Anime Title")
@@ -290,7 +289,7 @@ class EpisodeActivity : AppCompatActivity() {
             .setCustomData(customData)
             .build()
 
-
+        stopCastEpisode()
 
         checkUpdateTimeJobEnded {
             playerViewModel.getDbEpisodeTime { time ->
