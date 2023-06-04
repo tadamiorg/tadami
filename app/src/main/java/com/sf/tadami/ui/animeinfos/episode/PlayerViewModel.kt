@@ -87,6 +87,9 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle,private var isResumedFr
     private val _uiState = MutableStateFlow(EpisodeUiState())
     val uiState: StateFlow<EpisodeUiState> = _uiState.asStateFlow()
 
+    private val _idleLock = MutableStateFlow(false)
+    val idleLock = _idleLock.asStateFlow()
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             updatedEpisode.collectLatest {
@@ -94,9 +97,8 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle,private var isResumedFr
                     _episodeId.value = it.id
                     if(!isResumedFromCast){
                         selectEpisode(it)
-                    }else{
-                        isResumedFromCast = false
                     }
+                    isResumedFromCast = false
                 }
             }
         }
@@ -128,6 +130,7 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle,private var isResumedFr
     }
 
     fun selectSource(source: StreamSource?) {
+        setIdleLock(true)
         _uiState.update { currentState ->
             currentState.copy(selectedSource = source)
         }
@@ -156,9 +159,14 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle,private var isResumedFr
         }
     }
 
+    fun setIdleLock(locked : Boolean){
+        _idleLock.update { locked }
+    }
+
     private fun selectEpisode(
         episode: Episode
     ) {
+        setIdleLock(true)
         _uiState.updateAndGet { currentState ->
             currentState.copy(
                 rawUrl = null,

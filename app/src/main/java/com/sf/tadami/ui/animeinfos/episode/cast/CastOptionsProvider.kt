@@ -1,7 +1,8 @@
 package com.sf.tadami.ui.animeinfos.episode.cast
 
 import android.content.Context
-import android.text.format.DateUtils
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import com.google.android.gms.cast.LaunchOptions
 import com.google.android.gms.cast.framework.CastOptions
 import com.google.android.gms.cast.framework.OptionsProvider
@@ -11,8 +12,21 @@ import com.google.android.gms.cast.framework.media.MediaIntentReceiver
 import com.google.android.gms.cast.framework.media.NotificationOptions
 import com.sf.tadami.R
 import com.sf.tadami.ui.main.MainActivity
+import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferences
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 class CastOptionsProvider : OptionsProvider {
+    private val dataStore: DataStore<Preferences> = Injekt.get()
+    private var playerPreferences : PlayerPreferences = runBlocking {
+        dataStore.data.map { preferences ->
+            PlayerPreferences.transform(preferences)
+        }.first()
+    }
+
     override fun getCastOptions(context: Context): CastOptions {
         val buttonActions: MutableList<String> = ArrayList()
         buttonActions.add(MediaIntentReceiver.ACTION_REWIND)
@@ -20,15 +34,12 @@ class CastOptionsProvider : OptionsProvider {
         buttonActions.add(MediaIntentReceiver.ACTION_FORWARD)
         buttonActions.add(MediaIntentReceiver.ACTION_STOP_CASTING)
 
-        // Showing "play/pause" and "stop casting" in the compat view of the notification.
-        val compatButtonActionsIndices = intArrayOf(1, 3)
-
         // Builds a notification with the above actions. Each tap on the "rewind" and "forward" buttons skips 30 seconds.
 
         val notificationOptions = NotificationOptions.Builder()
             .setTargetActivityClassName(MainActivity::class.java.name)
-            .setActions(buttonActions, compatButtonActionsIndices)
-            .setSkipStepMs(30 * DateUtils.SECOND_IN_MILLIS)
+            .setActions(buttonActions, intArrayOf(0,1,2,3))
+            .setSkipStepMs(playerPreferences.doubleTapLength)
             .build()
         val mediaOptions = CastMediaOptions.Builder()
             .setNotificationOptions(notificationOptions)

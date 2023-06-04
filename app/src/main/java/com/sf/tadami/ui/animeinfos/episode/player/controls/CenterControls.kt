@@ -19,6 +19,8 @@ fun CenterControls(
     modifier: Modifier = Modifier,
     isPlaying: Boolean,
     onReplay: () -> Unit,
+    isIdle : Boolean,
+    idleLock : Boolean,
     onPauseToggle: () -> Unit,
     onForward : () -> Unit,
 ) {
@@ -31,7 +33,7 @@ fun CenterControls(
         //replay button
         CompositionLocalProvider(LocalRippleTheme provides ComposeRippleTheme) {
 
-            IconButton(modifier = Modifier.size(size),onClick = onReplay) {
+            IconButton(modifier = Modifier.size(size), enabled = !isIdle,onClick = onReplay) {
                 Icon(
                     modifier = Modifier.fillMaxSize(),
                     painter = painterResource(id = R.drawable.ic_replay_10),
@@ -48,6 +50,9 @@ fun CenterControls(
                         isPlaying -> {
                             painterResource(id = R.drawable.ic_pause)
                         }
+                        isIdle && !idleLock -> {
+                            painterResource(id = R.drawable.ic_replay)
+                        }
                         else -> {
                             painterResource(id = R.drawable.ic_play)
                         }
@@ -58,7 +63,7 @@ fun CenterControls(
             }
 
             // Forward button
-            IconButton(modifier = Modifier.size(size),onClick = onForward) {
+            IconButton(modifier = Modifier.size(size), enabled = !isIdle,onClick = onForward) {
                 Icon(
                     modifier = Modifier.fillMaxSize(),
                     painter = painterResource(id = R.drawable.ic_forward_10),

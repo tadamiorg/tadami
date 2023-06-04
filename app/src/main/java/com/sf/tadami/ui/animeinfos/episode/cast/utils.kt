@@ -1,11 +1,18 @@
 package com.sf.tadami.ui.animeinfos.episode.cast
 
+import android.annotation.SuppressLint
 import android.util.Log
+import com.google.android.gms.cast.MediaStatus
 import com.google.android.gms.cast.framework.CastSession
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.CustomCastChannel
 import okio.IOException
 import java.net.Inet4Address
 import java.net.NetworkInterface
+
+@SuppressLint("VisibleForTests")
+fun isCastMediaFinished(playerState : Int?): Boolean {
+    return playerState == MediaStatus.IDLE_REASON_FINISHED || playerState == MediaStatus.IDLE_REASON_ERROR
+}
 
 fun getLocalIPAddress(): String? {
     try {

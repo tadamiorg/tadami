@@ -8,6 +8,7 @@ import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -15,6 +16,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -25,6 +28,9 @@ import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaMetadata
 import com.google.android.gms.cast.framework.*
+import com.google.android.gms.cast.framework.media.RemoteMediaClient
+import com.google.android.gms.common.api.PendingResult
+import com.google.android.gms.common.api.Status
 import com.google.android.gms.common.images.WebImage
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
@@ -52,7 +58,7 @@ class EpisodeActivity : AppCompatActivity() {
     private val isCasting = mutableStateOf(false)
     private lateinit var castContext: CastContext
     private var castSessionManagerListener: SessionManagerListener<CastSession>? = null
-    private var castStateListener : CastStateListener? = null
+    private var castStateListener: CastStateListener? = null
     private var availableSources: List<StreamSource>? = null
     private var selectedSource: StreamSource? = null
     private var episodeUrl: String? = null
@@ -129,11 +135,14 @@ class EpisodeActivity : AppCompatActivity() {
             TadamiTheme {
                 val snackbarHostState = remember { SnackbarHostState() }
                 Scaffold(
-                    snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+                    snackbarHost = { SnackbarHost(modifier = Modifier.padding(bottom = 100.dp),hostState = snackbarHostState) }
                 ) {
                     val casting by remember(isCasting.value) { mutableStateOf(isCasting.value) }
                     if (casting) {
-                        CastVideoPlayer(castSession = castSession!!, snackbarHostState = snackbarHostState)
+                        CastVideoPlayer(
+                            castSession = castSession!!,
+                            snackbarHostState = snackbarHostState
+                        )
                     } else {
                         VideoPlayer()
                     }
@@ -162,7 +171,7 @@ class EpisodeActivity : AppCompatActivity() {
                                 val source: StreamSource = json.decodeFromString(
                                     castSession!!.remoteMediaClient!!.mediaInfo!!.customData!!.get("selectedSource") as String
                                 )
-                                if (episodeId != currentEpisode?.id?.toInt() || source.url != selectedSource?.url) {
+                                if (episodeId != currentEpisode?.id?.toInt() || source.url != selectedSource?.url || source.quality != selectedSource?.quality) {
                                     loadRemoteMedia()
                                 }
                             }
@@ -176,6 +185,15 @@ class EpisodeActivity : AppCompatActivity() {
                 }
                 launch {
                     playerViewModel.currentEpisode.collectLatest { episode ->
+                        if(castSession != null && castSession!!.remoteMediaClient != null){
+                            val castMedia = castSession!!.remoteMediaClient!!.mediaInfo?.customData
+                            if(castMedia!= null){
+                                val episodeId = castMedia.get("episodeId") as Int
+                                if(episodeId != currentEpisode?.id?.toInt()){
+                                    stopCastEpisode()
+                                }
+                            }
+                        }
                         currentEpisode = episode
                     }
                 }
@@ -184,7 +202,7 @@ class EpisodeActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-        castSessionManagerListener?.let{ listener ->
+        castSessionManagerListener?.let { listener ->
             castContext.sessionManager.addSessionManagerListener(
                 listener,
                 CastSession::class.java
@@ -196,7 +214,7 @@ class EpisodeActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        castSessionManagerListener?.let{ listener ->
+        castSessionManagerListener?.let { listener ->
             castContext.sessionManager.removeSessionManagerListener(
                 listener,
                 CastSession::class.java
@@ -223,6 +241,16 @@ class EpisodeActivity : AppCompatActivity() {
         }
     }
 
+    fun retryLoadRequest(){
+        playerViewModel.setIdleLock(true)
+        loadRemoteMedia()
+    }
+
+    fun stopCastEpisode(): PendingResult<RemoteMediaClient.MediaChannelResult>? {
+       return castSession?.remoteMediaClient?.stop()
+    }
+
+    @SuppressLint("VisibleForTests")
     private fun loadRemoteMedia() {
         if (castSession == null || selectedSource == null || currentEpisode == null) {
             return
@@ -230,6 +258,8 @@ class EpisodeActivity : AppCompatActivity() {
 
         val ipv4 = getLocalIPAddress() ?: return
         val remoteMediaClient = castSession!!.remoteMediaClient ?: return
+
+        remoteMediaClient.stop()
 
         val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
 
@@ -260,7 +290,7 @@ class EpisodeActivity : AppCompatActivity() {
             .setCustomData(customData)
             .build()
 
-        remoteMediaClient.stop()
+
 
         checkUpdateTimeJobEnded {
             playerViewModel.getDbEpisodeTime { time ->
@@ -270,14 +300,18 @@ class EpisodeActivity : AppCompatActivity() {
                         .setCurrentTime(time)
                         .setAutoplay(true)
                         .build()
-                )
+                ).setResultCallback { result ->
+                    if(result.status == Status.RESULT_SUCCESS){
+                        playerViewModel.setIdleLock(false)
+                    }
+                }
             }
         }
     }
 
     private fun setupCastListener() {
         castStateListener = CastStateListener { state ->
-            if(state ==  CastState.CONNECTING || state ==  CastState.NOT_CONNECTED){
+            if (state == CastState.CONNECTING || state == CastState.NOT_CONNECTED) {
                 isCasting.value = false
             }
         }

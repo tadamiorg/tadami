@@ -269,6 +269,7 @@ fun VideoPlayer(
                 onReplay = { exoPlayer.seekBack() },
                 onSkipOp = { exoPlayer.seekTo(currentTime + 85000) },
                 onForward = { exoPlayer.seekForward() },
+                isIdle = exoPlayer.isPlaying.not() && playbackState == STATE_ENDED,
                 onPauseToggle = {
                     when {
                         exoPlayer.isPlaying -> {

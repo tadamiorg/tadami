@@ -22,6 +22,8 @@ fun PlayerControls(
     onReplay: () -> Unit,
     onSkipOp: () -> Unit,
     onPauseToggle: () -> Unit,
+    isIdle : Boolean = false,
+    idleLock : Boolean = false,
     totalDuration: () -> Long,
     currentTime: () -> Long,
     bufferedPercentage: () -> Int,
@@ -66,6 +68,8 @@ fun PlayerControls(
                 onReplay = onReplay,
                 onPauseToggle = onPauseToggle,
                 onForward = onForward,
+                isIdle = isIdle,
+                idleLock = idleLock
             )
 
             // bottom controls
@@ -84,6 +88,7 @@ fun PlayerControls(
                 hasPrevious = hasPrevious,
                 onSkipOp = onSkipOp,
                 onSettings = onSettings,
+                isSeekable = !isIdle,
                 videoSettingsEnabled = videoSettingsEnabled
             )
         }

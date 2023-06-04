@@ -33,6 +33,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.channels.CastErrorCode
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TadamiCastError
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.tadamiCastMessageCallback
+import com.sf.tadami.ui.animeinfos.episode.cast.isCastMediaFinished
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
 import com.sf.tadami.ui.animeinfos.episode.player.controls.QualityDialog
 import com.sf.tadami.ui.components.widgets.ContentLoader
@@ -83,6 +84,10 @@ fun CastVideoPlayer(
     var debounceSeekJob: Job? by remember { mutableStateOf(null) }
     val coroutineScope = rememberCoroutineScope()
 
+    val idleLock by playerViewModel.idleLock.collectAsState()
+
+    var isIdle by remember{ mutableStateOf( isCastMediaFinished(castSession.remoteMediaClient?.idleReason) ) }
+
     fun updateTime() {
         activityContext.setUpdateTimeJob(
             playerViewModel.updateTime(
@@ -94,8 +99,16 @@ fun CastVideoPlayer(
         )
     }
 
+    fun resetTimers(){
+        activityContext.stopCastEpisode()?.setResultCallback {
+            currentTime = 0
+            totalDuration = 0
+        }
+    }
+
     fun selectEpisode(episode: Episode) {
         updateTime()
+        resetTimers()
         playerViewModel.setCurrentEpisode(episode)
     }
 
@@ -105,7 +118,7 @@ fun CastVideoPlayer(
             override fun onStatusUpdated() {
                 super.onStatusUpdated()
                 isPlaying = castSession.remoteMediaClient!!.isPlaying
-
+                isIdle = isCastMediaFinished(castSession.remoteMediaClient!!.idleReason) && castSession.remoteMediaClient!!.loadingItem == null
             }
 
             override fun onMediaError(error: MediaError) {
@@ -153,6 +166,13 @@ fun CastVideoPlayer(
         }
     }
 
+    LaunchedEffect(idleLock){
+        if(idleLock){
+            totalDuration = 0
+            currentTime = 0
+        }
+    }
+
     ContentLoader(isLoading = playerScreenLoading, delay = 500) {
         Box(modifier = modifier) {
 
@@ -189,14 +209,15 @@ fun CastVideoPlayer(
                 isPlaying = isPlaying,
                 title = { anime?.title ?: "" },
                 episode = "${stringResource(id = R.string.player_screen_episode_label)} $episodeNumber",
+                isIdle = isIdle && !idleLock,
+                idleLock = idleLock,
                 onReplay = {
                     debounceSeekJob?.cancel()
                     if (isPlaying) {
                         isPlaying = false
                         castSession.remoteMediaClient!!.pause()
                     }
-                    currentTime =
-                        (currentTime - playerPreferences.doubleTapLength).coerceAtLeast(0L)
+                    currentTime = (currentTime - playerPreferences.doubleTapLength).coerceAtLeast(0L)
                     debounceSeekJob = coroutineScope.launch {
                         delay(500.milliseconds)
                         castSession.remoteMediaClient!!.seek(getSeek(currentTime))
@@ -208,7 +229,7 @@ fun CastVideoPlayer(
                         isPlaying = false
                         castSession.remoteMediaClient!!.pause()
                     }
-                    currentTime += 85000
+                    currentTime = (currentTime + 85000).coerceAtMost(totalDuration)
                     debounceSeekJob = coroutineScope.launch {
                         delay(500.milliseconds)
                         castSession.remoteMediaClient!!.seek(getSeek(currentTime))
@@ -220,20 +241,18 @@ fun CastVideoPlayer(
                         isPlaying = false
                         castSession.remoteMediaClient!!.pause()
                     }
+                    currentTime = (currentTime + playerPreferences.doubleTapLength).coerceAtMost(totalDuration)
                     debounceSeekJob = coroutineScope.launch {
                         delay(500.milliseconds)
                         castSession.remoteMediaClient!!.seek(getSeek(currentTime))
                     }
-                    currentTime += playerPreferences.doubleTapLength
                 },
                 onPauseToggle = {
-                    when (castSession.remoteMediaClient!!.isPlaying) {
-                        true -> {
-                            castSession.remoteMediaClient!!.pause()
-                        }
-                        false -> {
-                            castSession.remoteMediaClient!!.play()
-                        }
+                    if(isIdle && !idleLock){
+                        updateTime()
+                        activityContext.retryLoadRequest()
+                    }else{
+                        castSession.remoteMediaClient!!.togglePlayback()
                     }
                 },
                 onSettings = { openDialog = openDialog.not() },

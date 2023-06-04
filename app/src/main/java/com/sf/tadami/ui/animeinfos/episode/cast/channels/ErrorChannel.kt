@@ -1,13 +1,7 @@
 package com.sf.tadami.ui.animeinfos.episode.cast.channels
 
-import android.util.Log
-import com.google.android.gms.cast.Cast
 import com.google.android.gms.cast.CastDevice
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 
 class ErrorChannel : CustomCastChannel() {
     override val namespace: String
