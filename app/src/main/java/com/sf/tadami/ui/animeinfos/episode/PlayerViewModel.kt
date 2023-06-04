@@ -97,8 +97,9 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle,private var isResumedFr
                     _episodeId.value = it.id
                     if(!isResumedFromCast){
                         selectEpisode(it)
+                    }else{
+                        isResumedFromCast = false
                     }
-                    isResumedFromCast = false
                 }
             }
         }
