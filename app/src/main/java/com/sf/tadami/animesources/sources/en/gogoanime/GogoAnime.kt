@@ -4,12 +4,14 @@ import com.sf.tadami.R
 import com.sf.tadami.animesources.extractors.DoodExtractor
 import com.sf.tadami.animesources.extractors.streamsbextractor.StreamSBExtractor
 import com.sf.tadami.animesources.sources.en.gogoanime.extractors.GogoCdnExtractor
+import com.sf.tadami.animesources.sources.en.gogoanime.extractors.Mp4uploadExtractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.network.api.model.*
 import com.sf.tadami.network.api.online.AnimeSource
 import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.requests.okhttp.asObservable
 import com.sf.tadami.network.requests.utils.asJsoup
+import com.sf.tadami.ui.utils.parallelMap
 import com.sf.tadami.utils.Lang
 import io.reactivex.rxjava3.core.Observable
 import kotlinx.serialization.json.Json
@@ -204,24 +206,38 @@ class GogoAnime : AnimeSource("GogoAnime") {
 
     override fun episodeSourcesParse(response: Response): List<StreamSource> {
         val document = response.asJsoup()
-        val extractor = GogoCdnExtractor(network.client, json)
+        val gogoExtractor = GogoCdnExtractor(network.client, json)
         val streamSourcesList = mutableListOf<StreamSource>()
-        // GogoCdn:
-        document.select("div.anime_muti_link > ul > li.vidcdn > a")
-            .firstOrNull()?.attr("data-video")
-            ?.let { streamSourcesList.addAll(extractor.videosFromUrl(it.isFullUrl())) }
-        // Vidstreaming:
-        document.select("div.anime_muti_link > ul > li.anime > a")
-            .firstOrNull()?.attr("data-video")
-            ?.let { streamSourcesList.addAll(extractor.videosFromUrl(it.isFullUrl())) }
-        // Doodstream mirror:
-        document.select("div.anime_muti_link > ul > li.doodstream > a")
-            .firstOrNull()?.attr("data-video")
-            ?.let { streamSourcesList.addAll(DoodExtractor(client).videosFromUrl(it)) }
-        // StreamSB mirror:
-        document.select("div.anime_muti_link > ul > li.streamsb > a")
-            .firstOrNull()?.attr("data-video")
-            ?.let { streamSourcesList.addAll(StreamSBExtractor(client).videosFromUrl(it, headers)) }
+        streamSourcesList.addAll(
+            document.select("div.anime_muti_link > ul > li").parallelMap { server ->
+                runCatching {
+                    val className = server.className()
+                    val serverUrl = server.selectFirst("a")
+                        ?.attr("data-video")
+                        ?.replace(Regex("^//"), "https://")
+                        ?: return@runCatching null
+                    when (className) {
+                        "anime" -> {
+                            gogoExtractor.videosFromUrl(serverUrl)
+                        }
+                        "vidcdn" -> {
+                            gogoExtractor.videosFromUrl(serverUrl)
+                        }
+                        "streamsb" -> {
+                            StreamSBExtractor(client).videosFromUrl(serverUrl, headers)
+                        }
+                        "doodstream" -> {
+                            DoodExtractor(client).videosFromUrl(serverUrl)
+                        }
+                        "mp4upload" -> {
+                            val headers = headers.newBuilder().set("Referer", "https://mp4upload.com/").build()
+                            Mp4uploadExtractor(client).getVideoFromUrl(serverUrl, headers)
+                        }
+                        else -> null
+                    }
+                }.getOrNull()
+            }.filterNotNull().flatten(),
+        )
         return streamSourcesList.sort()
     }
 
