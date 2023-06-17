@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.mediarouter.app.MediaRouteButton
 import com.google.android.gms.cast.framework.CastButtonFactory
-import com.sf.tadami.App
 import com.sf.tadami.R
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 
@@ -30,8 +29,7 @@ fun TopControl(
     modifier: Modifier = Modifier,
     title: () -> String,
     episode: String,
-    onBackClicked: () -> Unit,
-    onCastClicked: () -> Unit
+    onBackClicked: () -> Unit
 ) {
     val videoTitle = remember(title()) { title() }
     val episodeNumber = remember(episode) { episode }
@@ -92,8 +90,10 @@ fun TopControl(
 @Preview
 @Composable
 fun PreviewTopControl() {
-    TopControl(Modifier.fillMaxWidth(),
+    TopControl(
+        Modifier.fillMaxWidth(),
         { "Ore ga ojô-sama gakkô ni 'shomin sample' toshite gettsu sareta ken" },
-        "episode 5", onBackClicked = {}, onCastClicked = {})
+        "episode 5"
+    ) {}
 
 }

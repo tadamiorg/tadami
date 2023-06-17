@@ -19,8 +19,8 @@ android {
 
     defaultConfig {
         applicationId = "com.sf.tadami"
-        versionCode = 12
-        versionName = "1.1.1"
+        versionCode = 13
+        versionName = "1.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -220,5 +220,9 @@ dependencies {
     implementation(platform("org.http4k:http4k-bom:4.42.1.0"))
     implementation("org.http4k:http4k-core")
     implementation("org.http4k:http4k-server-ktorcio")
+
+    // JSUnpacker
+
+    implementation("dev.datlag.jsunpacker:jsunpacker:1.0.1")
 
 }

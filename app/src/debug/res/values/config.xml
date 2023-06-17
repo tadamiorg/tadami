@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="cast_receiver_id" translatable="false">B649767E</string>
+    <!--<string name="cast_receiver_id" translatable="false">B649767E</string>-->
+    <string name="cast_receiver_id" translatable="false">DA2F4B1A</string>
 </resources>

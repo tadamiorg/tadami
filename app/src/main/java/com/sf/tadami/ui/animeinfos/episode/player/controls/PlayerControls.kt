@@ -55,8 +55,7 @@ fun PlayerControls(
                     .fillMaxWidth(),
                 title = title,
                 episode = episode,
-                onBackClicked = onBack,
-                onCastClicked = onCast
+                onBackClicked = onBack
             )
 
             // center player controls
