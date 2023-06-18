@@ -1,5 +1,8 @@
 package com.sf.tadami.ui.animeinfos.details
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -9,8 +12,13 @@ import androidx.compose.material.icons.outlined.RemoveDone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -24,6 +32,7 @@ import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.widgets.PullRefresh
 import com.sf.tadami.ui.components.widgets.VerticalFastScroller
+import com.sf.tadami.ui.utils.isScrollingUp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +45,12 @@ fun DetailsScreen(
     val isRefreshing by detailsViewModel.isRefreshing.collectAsState()
 
     val episodesListState = rememberLazyListState()
+
+    var fabHeight by remember {
+        mutableStateOf(0)
+    }
+
+    val fabHeightInDp = with(LocalDensity.current) { fabHeight.toDp() }
 
     Scaffold(
         topBar = {
@@ -58,6 +73,48 @@ fun DetailsScreen(
                 },
                 isFavorited = uiState.details?.favorite
             )
+        },
+        floatingActionButton = {
+            AnimatedVisibility(
+                visible = uiState.episodes.fastAll { !it.selected } && uiState.episodes.fastAny { !it.episode.seen },
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                DisposableEffect(
+                    ExtendedFloatingActionButton(
+                        modifier = Modifier.onGloballyPositioned {
+                            fabHeight = it.size.height
+                        },
+                        text = {
+                            Text(
+                                text = if (uiState.episodes.fastAny { it.episode.seen })
+                                    stringResource(id = R.string.details_screen_resume_button)
+                                else stringResource(id = R.string.details_screen_start_button)
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_play),
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            val resumedEpisode = uiState.episodes.reversed().find { !it.episode.seen }
+                            resumedEpisode?.let{
+                                navHostController.navigate("${AnimeInfosRoutes.EPISODE}/${detailsViewModel.source.id}/${it.episode.id}")
+                            }
+                        },
+                        expanded = episodesListState.isScrollingUp()
+
+                    )
+                ) {
+                    onDispose {
+                        fabHeight = 0
+                    }
+                }
+
+            }
+
         },
         bottomBar = {
             ContextualBottomBar(
@@ -110,7 +167,7 @@ fun DetailsScreen(
                     contentPadding = PaddingValues(
                         start = contentPadding.calculateStartPadding(layoutDirection),
                         end = contentPadding.calculateEndPadding(layoutDirection),
-                        bottom = contentPadding.calculateBottomPadding(),
+                        bottom = contentPadding.calculateBottomPadding() + fabHeightInDp + 15.dp,
                     ),
                 ) {
                     item(

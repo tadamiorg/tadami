@@ -4,6 +4,7 @@ import com.sf.tadami.App
 import com.sf.tadami.R
 import com.sf.tadami.animesources.extractors.DoodExtractor
 import com.sf.tadami.animesources.extractors.OkruExtractor
+import com.sf.tadami.animesources.extractors.streamsbextractor.StreamSBExtractor
 import com.sf.tadami.animesources.sources.fr.vostfree.extractors.MyTvExtractor
 import com.sf.tadami.animesources.sources.fr.vostfree.extractors.VudeoExtractor
 import com.sf.tadami.network.api.model.*
@@ -12,6 +13,7 @@ import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.requests.okhttp.POST
 import com.sf.tadami.network.requests.utils.asJsoup
 import com.sf.tadami.ui.utils.UiToasts
+import com.sf.tadami.ui.utils.parallelMap
 import com.sf.tadami.utils.Lang
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
@@ -150,52 +152,39 @@ class VostFree : AnimeSource("VostFree") {
 
         val document = client.newCall(GET(realUrl)).execute().asJsoup()
         val videoList = mutableListOf<StreamSource>()
-        val allPlayerIds =
-            document.select("div.tab-content div div.new_player_top div.new_player_bottom div.button_box")[epNum.toInt()]
-
-        allPlayerIds.select("div").forEach {
-            val server = it.text()
-            if (server.lowercase() == "vudeo") {
-                val headers = headers.newBuilder()
-                    .set("referer", "https://vudeo.io/")
-                    .build()
-                val playerId = it.attr("id")
-                val url =
-                    document.select("div#player-tabs div.tab-blocks div.tab-content div div#content_$playerId")
-                        .text()
-                try {
-                    val video = VudeoExtractor(client).videosFromUrl(url, headers)
-                    videoList.addAll(video)
-                } catch (_: java.lang.Exception) {
-                }
-            }
-            if (server.lowercase() == "ok") {
-                val playerId = it.attr("id")
-                val url =
-                    "https://ok.ru/videoembed/" + document.select("div#player-tabs div.tab-blocks div.tab-content div div#content_$playerId")
-                        .text()
-                val video = OkruExtractor(client).videosFromUrl(url, "", false)
-                videoList.addAll(video)
-            }
-            if (server.lowercase() == "doodstream") {
-                val playerId = it.attr("id")
-                val url =
-                    document.select("div#player-tabs div.tab-blocks div.tab-content div div#content_$playerId")
-                        .text()
-                val video = DoodExtractor(client).videoFromUrl(url, "DoodStream", false)
-                if (video != null) {
-                    videoList.add(video)
-                }
-            }
-            if (server.lowercase() == "mytv" || server.lowercase() == "stream") {
-                val playerId = it.attr("id")
-                val url =
-                    "https://www.myvi.tv/embed/" + document.select("div#player-tabs div.tab-blocks div.tab-content div div#content_$playerId")
-                        .text()
-                val video = MyTvExtractor(client).videosFromUrl(url)
-                videoList.addAll(video)
-            }
-        }
+        val allPlayerIds = document.select("div.tab-content div div.new_player_top div.new_player_bottom div.button_box")[epNum.toInt()]
+        videoList.addAll(
+            allPlayerIds.select("div").parallelMap { serverDiv ->
+                runCatching {
+                    val server = serverDiv.text().lowercase()
+                    val playerId = serverDiv.attr("id")
+                    val playerFragmentUrl =  document.select("div#player-tabs div.tab-blocks div.tab-content div div#content_$playerId").text()
+                    when (server) {
+                        "vudeo" -> {
+                            val headers = headers.newBuilder()
+                                .set("referer", "https://vudeo.io/")
+                                .build()
+                            VudeoExtractor(client).videosFromUrl(playerFragmentUrl, headers)
+                        }
+                        "ok" -> {
+                            val url = "https://ok.ru/videoembed/$playerFragmentUrl"
+                            OkruExtractor(client).videosFromUrl(url, "", false)
+                        }
+                        "doodstream" -> {
+                            DoodExtractor(client).videosFromUrl(playerFragmentUrl, "DoodStream", false)
+                        }
+                        "mytv", "stream" -> {
+                            val url = "https://www.myvi.tv/embed/$playerFragmentUrl"
+                            MyTvExtractor(client).videosFromUrl(url)
+                        }
+                        "streamsb" -> {
+                            StreamSBExtractor(client).videosFromUrl(playerFragmentUrl,headers)
+                        }
+                        else -> null
+                    }
+                }.getOrNull()
+            }.filterNotNull().flatten(),
+        )
 
         return videoList.sort()
     }
