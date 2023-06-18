@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.utils
 
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.*
 import androidx.paging.compose.LazyPagingItems
@@ -15,4 +16,22 @@ fun <T : Any> LazyPagingItems<T>.rememberLazyGridState(): LazyGridState {
         // Return rememberLazyListState (normal case).
         else -> androidx.compose.foundation.lazy.grid.rememberLazyGridState()
     }
+}
+
+@Composable
+fun LazyListState.isScrollingUp(): Boolean {
+    var previousIndex by remember(this) { mutableStateOf(firstVisibleItemIndex) }
+    var previousScrollOffset by remember(this) { mutableStateOf(firstVisibleItemScrollOffset) }
+    return remember(this) {
+        derivedStateOf {
+            if (previousIndex != firstVisibleItemIndex) {
+                previousIndex > firstVisibleItemIndex
+            } else {
+                previousScrollOffset >= firstVisibleItemScrollOffset
+            }.also {
+                previousIndex = firstVisibleItemIndex
+                previousScrollOffset = firstVisibleItemScrollOffset
+            }
+        }
+    }.value
 }

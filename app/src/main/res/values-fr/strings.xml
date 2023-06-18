@@ -125,4 +125,6 @@
     <string name="cast_error_unsupported">La source vidéo n\'est pas prise en charge par l\'appareil Chromecast</string>
     <string name="cast_error_load_failed">L\'épisode n\'a pas pu être joué</string>
     <string name="cast_error_unknown">Erreur inconnue : %1$d</string>
+    <string name="details_screen_start_button">Commencer</string>
+    <string name="details_screen_resume_button">Reprendre</string>
 </resources>

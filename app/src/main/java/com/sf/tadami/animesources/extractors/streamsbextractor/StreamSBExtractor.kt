@@ -126,7 +126,7 @@ class StreamSBExtractor(private val client: OkHttpClient) {
                     .substringBefore("\n")
                     .substringAfter("x")
                     .substringBefore(",") + "p"
-                val quality = ("StreamSB:" + resolution).let {
+                val quality = ("StreamSB: $resolution").let {
                     buildString {
                         if (prefix.isNotBlank()) append("$prefix ")
                         append(it)

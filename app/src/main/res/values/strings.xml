@@ -126,5 +126,7 @@
     <string name="cast_error_unsupported">Video source is not supported by the Chromecast device</string>
     <string name="cast_error_load_failed">The episode could not be played</string>
     <string name="cast_error_unknown">Unknown error : %1$d</string>
+    <string name="details_screen_start_button">Start</string>
+    <string name="details_screen_resume_button">Resume</string>
 
 </resources>
