@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
+import com.sf.tadami.navigation.graphs.DiscoverRoutes
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 
@@ -19,8 +20,10 @@ fun AnimeSourcesScreen(navController: NavHostController) {
         Action.Drawable(
             title = R.string.stub_text,
             icon = R.drawable.ic_search,
-            enabled = false,
-            onClick = {}),
+            enabled = true,
+            onClick = {
+                navController.navigate(DiscoverRoutes.GLOBAL_SEARCH)
+            }),
         Action.CastButton()
     )
 

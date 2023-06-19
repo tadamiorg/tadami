@@ -11,8 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.dp
 import com.sf.tadami.ui.utils.minimumTouchTargetSize
+import com.sf.tadami.ui.utils.padding
 
 @Composable
 fun DialogButtonRow(
@@ -38,7 +38,7 @@ fun DialogButtonRow(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge.merge(),
-            modifier = Modifier.padding(start = 24.dp),
+            modifier = Modifier.padding(start = MaterialTheme.padding.large),
         )
     }
 }

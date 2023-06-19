@@ -101,7 +101,7 @@ abstract class AnimeSourceBase {
 
     protected abstract fun searchAnimeFromElement(element: Element): SAnime
 
-    protected abstract fun searchAnimeRequest(page: Int,query: String,filters : AnimeFilterList): Request
+    protected abstract fun searchAnimeRequest(page: Int,query: String,filters : AnimeFilterList,noToasts : Boolean): Request
 
     protected abstract fun searchAnimeNextPageSelector(): String?
 
@@ -120,8 +120,8 @@ abstract class AnimeSourceBase {
         return AnimesPage(animes, hasNextPage)
     }
 
-    open fun fetchSearch(page: Int,query : String,filters: AnimeFilterList): Observable<AnimesPage> {
-        return client.newCall(searchAnimeRequest(page,query,filters))
+    open fun fetchSearch(page: Int,query : String,filters: AnimeFilterList,noToasts : Boolean = false): Observable<AnimesPage> {
+        return client.newCall(searchAnimeRequest(page,query,filters,noToasts))
             .asObservable()
             .map { response ->
                 searchAnimeParse(response)

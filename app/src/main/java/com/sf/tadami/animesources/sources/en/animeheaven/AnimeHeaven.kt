@@ -51,7 +51,12 @@ class AnimeHeaven : AnimeSource("AnimeHeaven") {
         return SAnime.create()
     }
 
-    override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList): Request {
+    override fun searchAnimeRequest(
+        page: Int,
+        query: String,
+        filters: AnimeFilterList,
+        noToasts: Boolean
+    ): Request {
         return GET(baseUrl,headers)
     }
 

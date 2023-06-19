@@ -46,6 +46,7 @@ import androidx.compose.ui.util.fastFirstOrNull
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMaxBy
 import com.sf.tadami.ui.components.widgets.Scroller.STICKY_HEADER_KEY_PREFIX
+import com.sf.tadami.ui.utils.padding
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -164,7 +165,7 @@ fun VerticalFastScroller(
                         },
                     )
                     .height(ThumbLength)
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = MaterialTheme.padding.extraSmall)
                     .padding(end = endContentPadding)
                     .width(ThumbThickness)
                     .alpha(alpha.value)
@@ -344,7 +345,7 @@ fun VerticalGridFastScroller(
                         },
                     )
                     .height(ThumbLength)
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = MaterialTheme.padding.extraSmall)
                     .padding(end = endContentPadding)
                     .width(ThumbThickness)
                     .alpha(alpha.value)

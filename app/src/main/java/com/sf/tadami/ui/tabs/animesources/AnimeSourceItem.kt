@@ -20,6 +20,7 @@ import com.sf.tadami.R
 import com.sf.tadami.network.api.online.AnimeSource
 import com.sf.tadami.ui.utils.ImageDefaults.CoverPlaceholderColor
 import com.sf.tadami.ui.utils.capFirstLetter
+import com.sf.tadami.ui.utils.padding
 import java.util.*
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -41,7 +42,7 @@ fun AnimeSourceItem(
                     onSearchClicked()
                 }
             )
-            .padding(PaddingValues(16.dp, 4.dp)),
+            .padding(PaddingValues(MaterialTheme.padding.medium, MaterialTheme.padding.tiny)),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
@@ -57,7 +58,7 @@ fun AnimeSourceItem(
                 .aspectRatio(1f)
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(MaterialTheme.padding.medium))
 
         Column {
             Text(text = source.name.capFirstLetter(), style = MaterialTheme.typography.labelMedium)

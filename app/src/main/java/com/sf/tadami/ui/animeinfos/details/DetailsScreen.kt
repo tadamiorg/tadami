@@ -33,6 +33,7 @@ import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.widgets.PullRefresh
 import com.sf.tadami.ui.components.widgets.VerticalFastScroller
 import com.sf.tadami.ui.utils.isScrollingUp
+import com.sf.tadami.ui.utils.padding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -201,7 +202,7 @@ fun DetailsScreen(
                         contentType = DetailsScreenItem.EPISODE_HEADER,
                     ) {
                         EpisodesHeader(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(MaterialTheme.padding.medium),
                             episodesNumber = uiState.episodes.size
                         )
                     }

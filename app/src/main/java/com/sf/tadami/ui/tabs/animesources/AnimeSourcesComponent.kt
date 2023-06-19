@@ -6,16 +6,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.sf.tadami.navigation.graphs.DiscoverRoutes
 import com.sf.tadami.network.api.online.AnimeSource
+import com.sf.tadami.ui.utils.padding
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -42,7 +43,7 @@ fun AnimeSourcesComponent(
             categories.keys.toList().forEach { lang ->
                 val language = categories[lang]
 
-                item { Text(modifier = Modifier.padding(16.dp,4.dp),text = stringResource(id = lang)) }
+                item { Text(modifier = Modifier.padding(MaterialTheme.padding.medium,MaterialTheme.padding.tiny),text = stringResource(id = lang)) }
 
                 items(language!!.toList()) { source ->
                     AnimeSourceItem(

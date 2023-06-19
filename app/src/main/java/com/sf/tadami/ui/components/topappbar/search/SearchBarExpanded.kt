@@ -107,7 +107,7 @@ fun SearchBarExpanded(
             IconButton(onClick = onSearchCancel) {
                 Icon(
                     imageVector = Icons.Outlined.ArrowBack,
-                    tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                    tint = if(backHandlerEnabled) MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onBackground,
                     contentDescription = null,
                 )
             }

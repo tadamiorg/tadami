@@ -15,6 +15,7 @@ import com.sf.tadami.ui.components.filters.Group
 import com.sf.tadami.ui.components.filters.Select
 import com.sf.tadami.ui.components.filters.CheckBox
 import com.sf.tadami.R
+import com.sf.tadami.ui.utils.padding
 
 @Composable
 fun FiltersSheet(
@@ -31,7 +32,7 @@ fun FiltersSheet(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 5.dp),
+                .padding(horizontal = MaterialTheme.padding.medium, vertical = MaterialTheme.padding.tiny),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -50,7 +51,7 @@ fun FiltersSheet(
         Column(
             modifier = Modifier
                 .verticalScroll(scrollState, true)
-                .padding(8.dp)
+                .padding(MaterialTheme.padding.extraSmall)
         ) {
             filters.forEachIndexed { index, animeFilter ->
                 when (animeFilter) {
@@ -77,7 +78,7 @@ fun FiltersSheet(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(
-                                    vertical = 8.dp
+                                    vertical = MaterialTheme.padding.extraSmall
                                 ),
                             text = animeFilter.name,
                             maxLines = 1,

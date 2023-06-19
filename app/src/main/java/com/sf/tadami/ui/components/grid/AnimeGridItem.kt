@@ -12,7 +12,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -21,17 +20,18 @@ import com.sf.tadami.R
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.ui.utils.GridSelectedCoverAlpha
 import com.sf.tadami.ui.utils.ImageDefaults.CoverPlaceholderColor
+import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.selectedBorderBackground
 
 @Composable
 fun AnimeGridItem(
     anime: Anime,
+    modifier: Modifier = Modifier,
     unseenBadge: Long? = null,
     onAnimeClicked: (anime: Anime) -> Unit
 ) {
     Column(
-        modifier = Modifier
-            .padding(7.dp, 0.dp, 7.dp, 7.dp)
+        modifier = modifier
             .clickable {
                 onAnimeClicked(anime)
             },
@@ -60,10 +60,9 @@ fun AnimeGridItem(
 
         Text(
             modifier = Modifier
-                .sizeIn(minHeight = with(LocalDensity.current) { (MaterialTheme.typography.labelMedium.lineHeight * 3).toDp() })
                 .padding(5.dp, 5.dp, 0.dp, 0.dp),
             text = anime.title,
-            maxLines = 2,
+            maxLines = 1,
             style = MaterialTheme.typography.labelMedium,
             overflow = TextOverflow.Ellipsis
         )
@@ -88,7 +87,7 @@ fun CompactAnimeGridItem(
             onLongClick = onLongClick
         )
         .selectedBorderBackground(isSelected)
-        .padding(4.dp)
+        .padding(MaterialTheme.padding.tiny)
     ) {
         AsyncImage(
             model = anime.thumbnailUrl,

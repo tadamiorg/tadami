@@ -15,7 +15,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -24,12 +23,14 @@ import com.sf.tadami.navigation.graphs.AnimeInfosRoutes
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.filters.TadaBottomSheetLayout
 import com.sf.tadami.ui.components.topappbar.search.SearchTopAppBar
+import com.sf.tadami.ui.utils.padding
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun SearchScreen(
     navController: NavHostController,
+    baseQuery : String? = "",
     searchViewModel: SearchViewModel = viewModel()
 ) {
     val animeListState by searchViewModel.animeList.collectAsState()
@@ -37,7 +38,18 @@ fun SearchScreen(
     val sourceFilters = searchViewModel.sourceFilters.collectAsState()
 
     var searchEnabled by rememberSaveable { mutableStateOf(false) }
-    var searchValue by rememberSaveable { mutableStateOf("") }
+    var searchValue by rememberSaveable { mutableStateOf(baseQuery ?: "") }
+    var globalSearched by rememberSaveable { mutableStateOf(baseQuery!=null) }
+    if(globalSearched){
+        LaunchedEffect(Unit){
+            if(baseQuery!=null){
+                globalSearched = false
+                searchEnabled = true
+                searchViewModel.resetData()
+            }
+        }
+    }
+
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -133,7 +145,7 @@ fun SearchScreen(
         ) { innerPadding ->
             SearchComponent(
                 modifier = Modifier.padding(innerPadding),
-                fabPadding = PaddingValues(bottom = heightInDp + 16.dp),
+                fabPadding = PaddingValues(bottom = heightInDp + MaterialTheme.padding.medium),
                 animeList = animeList,
                 snackbarHostState = snackbarHostState,
                 onAnimeClicked = {

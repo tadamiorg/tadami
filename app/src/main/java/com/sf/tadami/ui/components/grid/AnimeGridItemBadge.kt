@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.sf.tadami.ui.utils.padding
 
 @Composable
 fun BoxScope.AnimeItemBadge(
@@ -20,7 +21,7 @@ fun BoxScope.AnimeItemBadge(
 ) {
     Row(
         modifier = modifier
-            .padding(4.dp)
+            .padding(MaterialTheme.padding.tiny)
             .align(Alignment.TopStart)
             .clip(MaterialTheme.shapes.small)
     ){

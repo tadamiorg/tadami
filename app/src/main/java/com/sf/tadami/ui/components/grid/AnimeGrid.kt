@@ -7,10 +7,7 @@ import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -29,6 +26,7 @@ import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
 import com.sf.tadami.ui.utils.CommonMangaItemDefaults
+import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.plus
 
 @Composable
@@ -126,7 +124,7 @@ fun AnimeGrid(
             columns = columns(),
             verticalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridVerticalSpacer),
             horizontalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridHorizontalSpacer),
-            contentPadding = contentPadding + PaddingValues(8.dp)
+            contentPadding = contentPadding + PaddingValues(MaterialTheme.padding.extraSmall)
         ) {
             if (animeList.loadState.prepend is LoadState.Loading) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
@@ -191,7 +189,7 @@ fun LibraryAnimeGrid(
             columns = columns(),
             verticalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridVerticalSpacer),
             horizontalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridHorizontalSpacer),
-            contentPadding = contentPadding + PaddingValues(8.dp)
+            contentPadding = contentPadding + PaddingValues(MaterialTheme.padding.extraSmall)
         ) {
             items(animeList, key = { it.anime.id }) { libraryItem ->
                 CompactAnimeGridItem(
@@ -227,7 +225,7 @@ private fun LoadingItem() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
+            .padding(vertical = MaterialTheme.padding.medium),
         horizontalArrangement = Arrangement.Center,
     ) {
         CircularProgressIndicator()
