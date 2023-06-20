@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.ui.utils.secondaryItemAlpha
 import com.sf.tadami.R
+import com.sf.tadami.ui.utils.padding
 
 @Composable
 fun AnimeAndSourceTitles(
@@ -29,7 +30,7 @@ fun AnimeAndSourceTitles(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, top = appBarPadding + 16.dp, end = 16.dp),
+            .padding(start = MaterialTheme.padding.medium, top = appBarPadding + MaterialTheme.padding.medium, end = MaterialTheme.padding.medium),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         AnimeCover.Book(
@@ -39,7 +40,7 @@ fun AnimeAndSourceTitles(
             data = cover(),
             contentDescription = "",
         )
-        Column(modifier = Modifier.padding(start = 16.dp)) {
+        Column(modifier = Modifier.padding(start = MaterialTheme.padding.medium)) {
             Text(
                 text = title.ifBlank { "" }, style = MaterialTheme.typography.titleLarge
             )
@@ -67,7 +68,7 @@ fun AnimeAndSourceTitles(
                     painter = painterResource(id = R.drawable.ic_status_clock),
                     contentDescription = null,
                     modifier = Modifier
-                        .padding(end = 4.dp)
+                        .padding(end = MaterialTheme.padding.tiny)
                         .size(16.dp),
                 )
                 ProvideTextStyle(MaterialTheme.typography.bodyMedium) {

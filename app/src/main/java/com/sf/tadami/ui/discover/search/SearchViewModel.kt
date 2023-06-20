@@ -29,7 +29,7 @@ class SearchViewModel(
 
     val sourceFilters: StateFlow<AnimeFilterList> = _sourceFilters.asStateFlow()
 
-    private val _query = MutableStateFlow("")
+    private val _query = MutableStateFlow(stateHandle["baseQuery"] ?: "")
     val query: StateFlow<String> = _query.asStateFlow()
 
     private fun getPager(): Flow<PagingData<Anime>> {

@@ -19,7 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.state.ToggleableState
-import androidx.compose.ui.unit.dp
+import com.sf.tadami.ui.utils.padding
 
 @Composable
 fun TriStateItem(
@@ -41,9 +41,9 @@ fun TriStateItem(
                 setFilters()
             }
             .fillMaxWidth()
-            .padding(horizontal = TabbedBottomSheetContentPadding.Horizontal, vertical = 12.dp),
+            .padding(horizontal = TabbedBottomSheetContentPadding.Horizontal, vertical = MaterialTheme.padding.small),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(24.dp),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.large),
     ) {
         Icon(
             imageVector = when (state) {

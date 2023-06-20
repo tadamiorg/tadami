@@ -12,12 +12,12 @@ import com.sf.tadami.ui.components.data.Action
 @Composable
 fun SearchTopAppBar(
     modifier: Modifier = Modifier,
-    title: @Composable () -> Unit,
+    title: @Composable () -> Unit = {},
     navigationIcon: @Composable () -> Unit = {},
     colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
     searchOpened: Boolean = false,
-    onSearchCancel: () -> Unit,
-    onSearchOpen: () -> Unit,
+    onSearchCancel: () -> Unit = {},
+    onSearchOpen: () -> Unit = {},
     onSearchChange: (value: String) -> Unit,
     onSearch: (value: String) -> Unit,
     searchValue : String,

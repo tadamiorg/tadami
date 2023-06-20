@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import com.sf.tadami.ui.animeinfos.details.infos.DotSeparatorText
 import com.sf.tadami.ui.utils.SeenItemAlpha
 import com.sf.tadami.ui.utils.SecondaryItemAlpha
+import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.selectedBackground
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -40,7 +41,7 @@ fun EpisodeListItem(
                 onClick = onClick,
                 onLongClick = onLongClick
             )
-            .padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 12.dp),
+            .padding(start = MaterialTheme.padding.medium, top = MaterialTheme.padding.small, end = MaterialTheme.padding.extraSmall, bottom = MaterialTheme.padding.small),
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {

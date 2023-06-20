@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.flowlayout.FlowRow
 import com.sf.tadami.R
 import com.sf.tadami.ui.utils.clickableNoIndication
+import com.sf.tadami.ui.utils.padding
 
 private val whitespaceLineRegex = Regex("[\\r\\n]{2,}", setOf(RegexOption.MULTILINE))
 
@@ -39,22 +40,22 @@ fun ExpandableAnimeDescription(
             shrunkDescription = trimmedDescription,
             expanded = expanded,
             modifier = Modifier
-                .padding(top = 8.dp)
-                .padding(horizontal = 16.dp)
+                .padding(top = MaterialTheme.padding.extraSmall)
+                .padding(horizontal = MaterialTheme.padding.medium)
                 .clickableNoIndication(onClick = { onExpanded(!expanded) }),
         )
         val tags = tagsProvider()
         if (!tags.isNullOrEmpty()) {
             Box(
                 modifier = Modifier
-                    .padding(top = 8.dp)
-                    .padding(vertical = 12.dp)
+                    .padding(top = MaterialTheme.padding.extraSmall)
+                    .padding(vertical = MaterialTheme.padding.small)
                     .animateContentSize(),
             ) {
                 FlowRow(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    mainAxisSpacing = 4.dp,
-                    crossAxisSpacing = 8.dp,
+                    modifier = Modifier.padding(horizontal = MaterialTheme.padding.medium),
+                    mainAxisSpacing = MaterialTheme.padding.tiny,
+                    crossAxisSpacing = MaterialTheme.padding.extraSmall,
                 ) {
                     tags.forEach {
                         TagsChip(

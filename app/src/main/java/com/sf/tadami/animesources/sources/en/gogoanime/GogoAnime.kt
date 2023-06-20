@@ -82,7 +82,12 @@ class GogoAnime : AnimeSource("GogoAnime") {
         return anime
     }
 
-    override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList): Request {
+    override fun searchAnimeRequest(
+        page: Int,
+        query: String,
+        filters: AnimeFilterList,
+        noToasts: Boolean
+    ): Request {
         val filterList = if (filters.isEmpty()) getFilterList() else filters
         val genreFilter = filterList.find { it is GenreList } as GenreList
         val statusFilter = filterList.find { it is StatusList } as StatusList
@@ -239,14 +244,6 @@ class GogoAnime : AnimeSource("GogoAnime") {
             }.filterNotNull().flatten(),
         )
         return streamSourcesList.sort()
-    }
-
-    private fun String.isFullUrl() : String{
-        return if(startsWith("https") || startsWith("http")){
-            this
-        }else{
-            "https:${this}"
-        }
     }
 
     // Filters

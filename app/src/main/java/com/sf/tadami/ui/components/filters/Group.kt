@@ -20,6 +20,7 @@ import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 import com.sf.tadami.ui.utils.capFirstLetter
 import com.sf.tadami.ui.utils.lowFirstLetter
+import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.toInt
 
 @Composable
@@ -107,7 +108,7 @@ fun Group(
                         .heightIn(0.dp, (screenHeight / 2).dp),
                     state = lazyGridState,
                     columns = GridCells.Adaptive(130.dp),
-                    contentPadding = PaddingValues(end = 8.dp)
+                    contentPadding = PaddingValues(end = MaterialTheme.padding.extraSmall)
                 ) {
                     itemsIndexed(items = checkBoxGroup.state, key = { index, _ ->
                         index

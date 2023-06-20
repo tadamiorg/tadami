@@ -8,7 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.sf.tadami.ui.utils.padding
 
 @Composable
 fun PreferenceCategory(title: String) {
@@ -16,7 +16,7 @@ fun PreferenceCategory(title: String) {
         contentAlignment = Alignment.CenterStart,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 8.dp, top = 14.dp),
+            .padding(bottom = MaterialTheme.padding.extraSmall, top = MaterialTheme.padding.medium),
     ) {
         Text(
             text = title,

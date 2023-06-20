@@ -10,8 +10,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.verticalGradientBackground
 
 @Composable
@@ -36,7 +36,7 @@ fun BoxScope.AnimeGridItemTitleOverlay(
             Text(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(8.dp),
+                    .padding(MaterialTheme.padding.extraSmall),
                 text = title,
                 fontSize = 12.sp,
                 lineHeight = 18.sp,

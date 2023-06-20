@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sf.tadami.ui.utils.padding
 
 @Composable
 internal fun BasePreference(
@@ -29,7 +30,7 @@ internal fun BasePreference(
     ) {
         if (icon != null) {
             Box(
-                modifier = Modifier.padding(start = PrefsHorizontalPadding, end = 8.dp),
+                modifier = Modifier.padding(start = PrefsHorizontalPadding, end = MaterialTheme.padding.extraSmall),
                 content = { icon() },
             )
         }

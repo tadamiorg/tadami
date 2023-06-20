@@ -55,7 +55,7 @@ class VostFree : AnimeSource("VostFree") {
 
     override fun searchSelector(): String = "div.search-result, div.movie-poster"
 
-    override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList): Request {
+    override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList,noToasts : Boolean): Request {
 
         val genreFilter = filters.find { it is GenreList } as GenreList
         val typeFilter = filters.find { it is TypeList } as TypeList
@@ -70,7 +70,9 @@ class VostFree : AnimeSource("VostFree") {
         return when {
             query.isNotBlank() -> {
                 if (query.length < 4) {
-                    UiToasts.showToast(R.string.vostfree_search_length_error)
+                    if(!noToasts){
+                        UiToasts.showToast(R.string.vostfree_search_length_error)
+                    }
                 }
                 return POST("$baseUrl/index.php?do=search", headers, formData)
             }

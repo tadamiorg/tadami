@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.sf.tadami.ui.utils.padding
 
 @Composable
 fun EmptyScreen(
@@ -22,7 +23,7 @@ fun EmptyScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = MaterialTheme.padding.large),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -30,11 +31,11 @@ fun EmptyScreen(
         Row(
             modifier = Modifier
                 .padding(
-                    top = 24.dp,
-                    start = 24.dp,
-                    end = 24.dp,
+                    top = MaterialTheme.padding.large,
+                    start = MaterialTheme.padding.large,
+                    end = MaterialTheme.padding.large,
                 ),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.medium)
         ) {
             actions.forEach { action ->
                 Action(
