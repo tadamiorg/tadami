@@ -10,7 +10,7 @@ class StreamTapeExtractor(private val client: OkHttpClient) {
         val baseUrl = "https://streamtape.com/e/"
         val newUrl = if (!url.startsWith(baseUrl)) {
             // ["https", "", "<domain>", "<???>", "<id>", ...]
-            val id = runCatching { url.split("/").get(4) }.getOrNull() ?: return null
+            val id = url.split("/").getOrNull(4) ?: return null
             baseUrl + id
         } else { url }
         val document = client.newCall(GET(newUrl)).execute().asJsoup()
@@ -21,6 +21,15 @@ class StreamTapeExtractor(private val client: OkHttpClient) {
             ?: return null
         val videoUrl = "https:" + script.substringBefore("'") +
                 script.substringAfter("+ ('xcd").substringBefore("'")
-        return StreamSource(videoUrl, quality)
+        val response = client.newBuilder().followRedirects(false).build().newCall(GET(videoUrl)).execute()
+        response.use { res ->
+            // Process the response
+            if (res.code == 302 && res.header("Location") != null) {
+                val newURL = res.header("Location")
+                return StreamSource(newURL!!, quality)
+            } else {
+                return StreamSource(videoUrl, quality)
+            }
+        }
     }
 }

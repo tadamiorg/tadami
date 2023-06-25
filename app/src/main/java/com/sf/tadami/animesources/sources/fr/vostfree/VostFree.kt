@@ -5,7 +5,7 @@ import com.sf.tadami.R
 import com.sf.tadami.animesources.extractors.DoodExtractor
 import com.sf.tadami.animesources.extractors.OkruExtractor
 import com.sf.tadami.animesources.extractors.streamsbextractor.StreamSBExtractor
-import com.sf.tadami.animesources.sources.fr.vostfree.extractors.MyTvExtractor
+import com.sf.tadami.animesources.sources.fr.vostfree.extractors.MyViExtractor
 import com.sf.tadami.animesources.sources.fr.vostfree.extractors.VudeoExtractor
 import com.sf.tadami.network.api.model.*
 import com.sf.tadami.network.api.online.AnimeSource
@@ -177,7 +177,7 @@ class VostFree : AnimeSource("VostFree") {
                         }
                         "mytv", "stream" -> {
                             val url = "https://www.myvi.tv/embed/$playerFragmentUrl"
-                            MyTvExtractor(client).videosFromUrl(url)
+                            MyViExtractor(client).videosFromUrl(url)
                         }
                         "streamsb" -> {
                             StreamSBExtractor(client).videosFromUrl(playerFragmentUrl,headers)
@@ -193,7 +193,7 @@ class VostFree : AnimeSource("VostFree") {
 
     override fun getFilterList(): AnimeFilterList {
         return AnimeFilterList(
-            AnimeFilter.Header(App.getAppContext()?.getString(R.string.discover_search_filters_independent) ?: "Each filters and search works independently"),
+            AnimeFilter.Header(App.getAppContext()?.getString(R.string.discover_search_filters_independent) ?: "Filters ingores each other"),
             GenreList(genreFilters),
             TypeList(typeFilters)
         )
