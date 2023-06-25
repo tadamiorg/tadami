@@ -105,7 +105,7 @@ abstract class AnimeSourceBase {
 
     protected abstract fun searchAnimeNextPageSelector(): String?
 
-    private fun searchAnimeParse(response: Response): AnimesPage {
+    protected open fun searchAnimeParse(response: Response): AnimesPage {
         val document = response.asJsoup()
 
         val animes = document.select(searchSelector()).map { element ->

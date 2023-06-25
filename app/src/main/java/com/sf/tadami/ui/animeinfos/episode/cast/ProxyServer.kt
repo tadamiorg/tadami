@@ -3,7 +3,6 @@ package com.sf.tadami.ui.animeinfos.episode.cast
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import org.http4k.core.*
 import org.http4k.filter.AllowAll
@@ -35,7 +34,7 @@ class ProxyServer {
             routes(
                 "/" bind Method.GET to { request: Request ->
                     val originalHeaders =
-                        request.headers.filter { (key, _) -> key.lowercase() != "accept-language" }
+                        request.headers.filter { (key, _) -> key.lowercase() != "accept-language" && key.lowercase() != "host" && key.lowercase() != "origin"}
                     val url = request.query("url")
 
                     val sourceHeadersString = request.query("headers")
@@ -50,23 +49,15 @@ class ProxyServer {
 
                         originalHeaders.forEach { (key, value) ->
                             if (sourceHeaders[key] == null && sourceHeaders[key.lowercase()] == null) {
-                                if (key.lowercase() == "host") {
-                                    sourceHeaders.add(key, url!!.toHttpUrl().host)
-                                } else {
-                                    sourceHeaders.add(key, value.toString())
-                                }
+                                sourceHeaders.add(key, value.toString())
                             }
                         }
                     } else {
                         originalHeaders.forEach { (key, value) ->
-                            if (key.lowercase() == "host") {
-                                sourceHeaders.add(key, url!!.toHttpUrl().host)
-                            } else {
-                                sourceHeaders.add(key, value.toString())
-                            }
-
+                            sourceHeaders.add(key, value.toString())
                         }
                     }
+
                     val videoRequest =
                         okhttp3.Request.Builder().url(url.toString()).headers(sourceHeaders.build())
                             .build()

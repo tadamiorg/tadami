@@ -129,5 +129,6 @@
     <string name="details_screen_start_button">Start</string>
     <string name="details_screen_resume_button">Resume</string>
     <string name="unknown_error">Unknown error</string>
+    <string name="discover_search_ingores_filters">Search ignores filters</string>
 
 </resources>

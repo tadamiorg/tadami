@@ -11,7 +11,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-open class TadaObserver<T : Any>(private val callback: Callback<T>? = null) : Observer<T> {
+open class TadaObserver<T : Any>(private val callback: Callback<T>? = null,private val showUnknownError: Boolean = true) : Observer<T> {
     override fun onSubscribe(d: Disposable) {}
 
     override fun onNext(data: T) {
@@ -42,11 +42,13 @@ open class TadaObserver<T : Any>(private val callback: Callback<T>? = null) : Ob
                         callback?.onError(e.msg)
                     }
                     else -> {
-                        App.getAppContext()?.let {
-                            UiToasts.showToast(
-                                stringRes = R.string.request_unknown_error,
-                                args = arrayOf("${e.message}")
-                            )
+                        if(showUnknownError){
+                            App.getAppContext()?.let {
+                                UiToasts.showToast(
+                                    stringRes = R.string.request_unknown_error,
+                                    args = arrayOf("${e.message}")
+                                )
+                            }
                         }
                         callback?.onError(e.message)
                         e.printStackTrace()

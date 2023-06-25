@@ -128,4 +128,5 @@
     <string name="details_screen_start_button">Commencer</string>
     <string name="details_screen_resume_button">Reprendre</string>
     <string name="unknown_error">Erreur inconnue</string>
+    <string name="discover_search_ingores_filters">La recherche ignore les filtres</string>
 </resources>
