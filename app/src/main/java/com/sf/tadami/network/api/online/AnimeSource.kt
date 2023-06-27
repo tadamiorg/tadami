@@ -2,11 +2,10 @@ package com.sf.tadami.network.api.online
 
 
 import com.sf.tadami.domain.anime.Anime
-import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.api.model.AnimeFilterList
+import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.utils.Lang
 import okhttp3.Request
-
 
 abstract class AnimeSource(val id : String) : AnimeSourceBase() {
 

@@ -34,6 +34,7 @@ import com.google.android.gms.common.api.Status
 import com.google.android.gms.common.images.WebImage
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.network.api.model.OkhttpHeadersSerializer
 import com.sf.tadami.network.api.model.StreamSource
 import com.sf.tadami.notifications.cast.CastProxyService
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
@@ -49,6 +50,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.json.JSONObject
+import java.net.URLEncoder
 
 
 class EpisodeActivity : AppCompatActivity() {
@@ -282,8 +284,20 @@ class EpisodeActivity : AppCompatActivity() {
         customData.put("episodeUrl", episodeUrl)
         customData.put("selectedSource", json.encodeToString(selectedSource))
 
-        val mediaInfos = MediaInfo.Builder(selectedSource!!.url)
-            .setContentUrl(selectedSource!!.url)
+        var contentUrl = selectedSource!!.url
+
+        if(selectedSource!!.url.substringAfterLast("/").contains(".mp4") && selectedSource!!.headers != null){
+            val proxyUrl = "http://$ipv4:8000"
+
+            val headersString = selectedSource?.headers?.let{
+                "&headers=${URLEncoder.encode(json.encodeToString(serializer = OkhttpHeadersSerializer,it),"UTF-8")}"
+            } ?: ""
+
+            contentUrl = "$proxyUrl?url=${URLEncoder.encode(selectedSource!!.url,"UTF-8")}$headersString"
+        }
+
+        val mediaInfos = MediaInfo.Builder(contentUrl)
+            .setContentUrl(contentUrl)
             .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
             .setMetadata(movieMetadata)
             .setCustomData(customData)

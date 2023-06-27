@@ -1,9 +1,10 @@
-package com.sf.tadami.animesources.sources.en.gogoanime.extractors
+package com.sf.tadami.animesources.sources.en.animedao.extractors
 
 import android.util.Base64
 import com.sf.tadami.network.api.model.StreamSource
 import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.requests.utils.asJsoup
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -16,10 +17,49 @@ import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
-class GogoCdnExtractor(private val client: OkHttpClient,private val json : Json) {
-    fun videosFromUrl(serverUrl: String): List<StreamSource> {
+@ExperimentalSerializationApi
+class VidstreamingExtractor(private val client: OkHttpClient, private val json: Json) {
+    fun videosFromUrl(serverUrl: String, prefix: String = ""): List<StreamSource> {
         try {
-            val document = client.newCall(GET(serverUrl)).execute().asJsoup()
+            var document = client.newCall(GET(serverUrl)).execute().asJsoup()
+            var newUrl = serverUrl
+            if (serverUrl.contains("/embedded/") && document.selectFirst("body")!!.childrenSize() == 1) {
+                newUrl = document.selectFirst("iframe")!!.attr("src")
+                document = client.newCall(
+                    GET(newUrl),
+                ).execute().asJsoup()
+            }
+
+            val script = document.selectFirst("script:containsData(playerInstance)")
+            if (script != null) {
+                val url = script.data().substringAfter("\"file\": '").substringBefore("'")
+                val headers = Headers.headersOf(
+                    "Accept",
+                    "*/*",
+                    "Host",
+                    url.toHttpUrl().host,
+                    "Origin",
+                    "https://${newUrl.toHttpUrl().host}",
+                )
+
+                val videoList = mutableListOf<StreamSource>()
+                val masterPlaylist = client.newCall(GET(url, headers = headers)).execute().body.string()
+
+                if (masterPlaylist.contains("#EXT-X-STREAM-INF:")) {
+                    masterPlaylist.substringAfter("#EXT-X-STREAM-INF:")
+                        .split("#EXT-X-STREAM-INF:").forEach {
+                            val quality = it.substringAfter("RESOLUTION=").substringAfter("x").substringBefore(",").substringBefore("\n") + "p"
+                            var videoUrl = it.substringAfter("\n").substringBefore("\n")
+                            if (!videoUrl.startsWith("http")) {
+                                videoUrl = url.substringBeforeLast("/") + "/$videoUrl"
+                            }
+                            videoList.add(StreamSource(videoUrl, "$prefix: $quality (VidStreaming)"))
+                        }
+                } else {
+                    videoList.add(StreamSource(url, "$prefix (VidStreaming)"))
+                }
+                return videoList
+            }
             val iv = document.select("div.wrapper")
                 .attr("class").substringAfter("container-")
                 .filter { it.isDigit() }.toByteArray()
@@ -37,12 +77,12 @@ class GogoCdnExtractor(private val client: OkHttpClient,private val json : Json)
                 false,
             ).substringAfter("&")
 
-            val httpUrl = serverUrl.toHttpUrl()
+            val httpUrl = newUrl.toHttpUrl()
             val host = "https://" + httpUrl.host + "/"
             val id = httpUrl.queryParameter("id") ?: throw Exception("error getting id")
             val encryptedId = cryptoHandler(id, iv, secretKey)
             val token = httpUrl.queryParameter("token")
-            val qualityPrefix = if (token != null) "Gogostream: " else "Vidstreaming: "
+            val qualitySuffix = if (token != null) " (Gogostream)" else " (Vidstreaming)"
 
             val jsonResponse = client.newCall(
                 GET(
@@ -53,6 +93,7 @@ class GogoCdnExtractor(private val client: OkHttpClient,private val json : Json)
                     ),
                 ),
             ).execute().body.string()
+
             val data = json.parseToJsonElement(jsonResponse).jsonObject["data"]!!.jsonPrimitive.content
             val decryptedData = cryptoHandler(data, iv, decryptionKey, false)
             val videoList = mutableListOf<StreamSource>()
@@ -60,43 +101,37 @@ class GogoCdnExtractor(private val client: OkHttpClient,private val json : Json)
             val array = json.parseToJsonElement(decryptedData).jsonObject["source"]!!.jsonArray
             if (array.size == 1 && array[0].jsonObject["type"]!!.jsonPrimitive.content == "hls") {
                 val fileURL = array[0].jsonObject["file"].toString().trim('"')
-                val separator = "#EXT-X-STREAM-INF:"
-
                 val masterPlaylist = client.newCall(GET(fileURL)).execute().body.string()
-                if (masterPlaylist.contains(separator)) {
-                    masterPlaylist.substringAfter(separator)
-                        .split(separator).forEach {
-                            val quality = it.substringAfter("RESOLUTION=").substringAfter("x").substringBefore(",").substringBefore("\n") + "p"
-                            var videoUrl = it.substringAfter("\n").substringBefore("\n")
-                            if (!videoUrl.startsWith("http")) {
-                                videoUrl = fileURL.substringBeforeLast("/") + "/$videoUrl"
-                            }
-                            videoList.add(StreamSource(videoUrl, qualityPrefix + quality))
+                masterPlaylist.substringAfter("#EXT-X-STREAM-INF:")
+                    .split("#EXT-X-STREAM-INF:").forEach {
+                        val quality = it.substringAfter("RESOLUTION=").substringAfter("x").substringBefore(",").substringBefore("\n") + "p"
+                        var videoUrl = it.substringAfter("\n").substringBefore("\n")
+                        if (!videoUrl.startsWith("http")) {
+                            videoUrl = fileURL.substringBeforeLast("/") + "/$videoUrl"
                         }
-                } else {
-                    videoList.add(StreamSource(fileURL, "${qualityPrefix}Original"))
-                }
+                        videoList.add(StreamSource(videoUrl, "$prefix: $quality $qualitySuffix"))
+                    }
             } else {
                 array.forEach {
                     val label = it.jsonObject["label"].toString().lowercase(Locale.ROOT)
                         .trim('"').replace(" ", "")
                     val fileURL = it.jsonObject["file"].toString().trim('"')
-                    val videoHeaders = Headers.headersOf("Referer", serverUrl)
+                    val videoHeaders = Headers.headersOf("Referer", newUrl)
                     if (label == "auto") {
                         autoList.add(
                             StreamSource(
                                 fileURL,
-                                qualityPrefix + label,
+                                "$prefix: $label $qualitySuffix",
                                 headers = videoHeaders,
                             ),
                         )
                     } else {
-                        videoList.add(StreamSource(fileURL, qualityPrefix + label, headers = videoHeaders))
+                        videoList.add(StreamSource(fileURL, "$prefix: $label $qualitySuffix", headers = videoHeaders))
                     }
                 }
             }
             return videoList.sortedByDescending {
-                it.quality.substringAfter(qualityPrefix).substringBefore("p").toIntOrNull() ?: -1
+                it.quality.substringBefore(qualitySuffix).substringBefore("p").toIntOrNull() ?: -1
             } + autoList
         } catch (e: Exception) {
             return emptyList()

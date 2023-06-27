@@ -1,7 +1,7 @@
 # RoadMap Tadami
 
 * ~~Modify favorite tab to filter results~~
-* Add source global search
+* ~~Add source global search~~
 * Implement all library,backup and ~~player preferences~~
 * ~~Add new sources~~
 * ~~Implement library update notfications failure and skip~~

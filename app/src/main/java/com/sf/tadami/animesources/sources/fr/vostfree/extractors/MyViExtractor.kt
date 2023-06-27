@@ -5,7 +5,7 @@ import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.requests.utils.asJsoup
 import okhttp3.OkHttpClient
 
-class MyTvExtractor(private val client: OkHttpClient) {
+class MyViExtractor(private val client: OkHttpClient) {
     fun videosFromUrl(url: String): List<StreamSource> {
         val document = client.newCall(GET(url)).execute().asJsoup()
         val videoList = mutableListOf<StreamSource>()
@@ -17,7 +17,7 @@ class MyTvExtractor(private val client: OkHttpClient) {
                     videoUrl = "https:$videoUrl"
                     videoList.add(StreamSource(videoUrl, "Stream"))
                 } else {
-                    videoList.add(StreamSource(videoUrl, "Mytv"))
+                    videoList.add(StreamSource(videoUrl, "MyVi"))
                 }
             }
         }

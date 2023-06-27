@@ -2,9 +2,9 @@ package com.sf.tadami.animesources.sources.en.gogoanime
 
 import com.sf.tadami.R
 import com.sf.tadami.animesources.extractors.DoodExtractor
+import com.sf.tadami.animesources.extractors.Mp4uploadExtractor
 import com.sf.tadami.animesources.extractors.streamsbextractor.StreamSBExtractor
 import com.sf.tadami.animesources.sources.en.gogoanime.extractors.GogoCdnExtractor
-import com.sf.tadami.animesources.sources.en.gogoanime.extractors.Mp4uploadExtractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.network.api.model.*
 import com.sf.tadami.network.api.online.AnimeSource
@@ -236,7 +236,7 @@ class GogoAnime : AnimeSource("GogoAnime") {
                         }
                         "mp4upload" -> {
                             val headers = headers.newBuilder().set("Referer", "https://mp4upload.com/").build()
-                            Mp4uploadExtractor(client).getVideoFromUrl(serverUrl, headers)
+                            Mp4uploadExtractor(client).videosFromUrl(serverUrl, headers)
                         }
                         else -> null
                     }

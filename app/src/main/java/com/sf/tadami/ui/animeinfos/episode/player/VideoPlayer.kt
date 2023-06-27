@@ -67,7 +67,7 @@ fun VideoPlayer(
         upstreamDataSource
     ) { dataSpec ->
         if (episodeUiState.selectedSource?.headers == null) {
-            dataSpec.withAdditionalHeaders(
+            dataSpec.withRequestHeaders(
                 mapOf(
                     Pair(
                         "User-Agent",
