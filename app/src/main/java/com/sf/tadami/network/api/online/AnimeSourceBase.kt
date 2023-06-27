@@ -137,7 +137,7 @@ abstract class AnimeSourceBase {
 
     protected abstract fun animeDetailsRequest(anime: Anime): Request
 
-    private fun animeDetailsParse(response: Response): SAnime {
+    protected fun animeDetailsParse(response: Response): SAnime {
         return animeDetailsParse(response.asJsoup())
     }
 

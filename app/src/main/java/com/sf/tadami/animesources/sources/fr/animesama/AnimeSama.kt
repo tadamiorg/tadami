@@ -17,6 +17,7 @@ import com.sf.tadami.network.requests.okhttp.POST
 import com.sf.tadami.network.requests.okhttp.asCancelableObservable
 import com.sf.tadami.network.requests.okhttp.asObservable
 import com.sf.tadami.network.requests.utils.asJsoup
+import com.sf.tadami.ui.utils.capFirstLetter
 import com.sf.tadami.ui.utils.parallelMap
 import com.sf.tadami.utils.Lang
 import io.reactivex.rxjava3.core.Observable
@@ -88,16 +89,32 @@ class AnimeSama : AnimeSource("AnimeSama") {
                             val seasonsMatches = seasonScript?.let {
                                 Regex("""[^(/*)]panneauAnime\("(.*?)",\s*"(.*?)"\)""").findAll(it)
                             }
+
+                            val kaiSeasonDiv =
+                                doc.selectFirst("h2:contains(Anime Version Kai) ~ div:has(script)")
+                            val kaiSeasonScript =
+                                kaiSeasonDiv?.selectFirst("script")?.data()?.trimIndent()
+                            val kaiSeasonsMatches = kaiSeasonScript?.let {
+                                Regex("""[^(/*)]panneauAnime\("(.*?)",\s*"(.*?)"\)""").findAll(it)
+                            }
+
                             val seasons = seasonsMatches?.map { matchResult ->
                                 val (param1, param2) = matchResult.destructured
                                 param1 to param2
+                            }?.toMutableList()
+
+                            val kaiSeasons = kaiSeasonsMatches?.map { matchResult ->
+                                val (param1, param2) = matchResult.destructured
+                                param1 to param2
                             }?.toList()
+
+                            seasons?.addAll(kaiSeasons ?: emptyList())
 
                             seasons?.map { (seasonName, seasonUrl) ->
                                 val animeSeason = SAnime.create()
                                 animeSeason.url = "${anime.url}/$seasonUrl"
                                 animeSeason.thumbnailUrl = anime.thumbnailUrl
-                                animeSeason.title = "$seasonName - ${anime.title}"
+                                animeSeason.title = "${parseSeason(seasonUrl).takeIf { it.isNotBlank() } ?: seasonName} - ${anime.title}"
                                 animeSeason
                             } ?: emptyList<SAnime>()
                         }
@@ -146,18 +163,120 @@ class AnimeSama : AnimeSource("AnimeSama") {
         return GET(baseUrl + anime.url + "/../..", headers)
     }
 
-    override fun animeDetailsParse(document: Document): SAnime {
+    override fun fetchAnimeDetails(anime: Anime): Observable<SAnime> {
+        return client.newCall(animeDetailsRequest(anime))
+            .asObservable()
+            .map { response ->
+                animeDetailsParse(response.asJsoup(), parseSeason(anime.url))
+            }
+    }
+
+    private fun parseSeason(seasonUrl: String?): String {
+        if (seasonUrl == null) return ""
+        val pathSegments = seasonUrl.split("/").takeIf { it.size >= 2 }
+        val seasonPath = pathSegments?.get(pathSegments.size - 2) ?: return ""
+
+        val seasonRegex = Regex("""(\D+)(\d*)""")
+        val regexResults = seasonRegex.find(seasonPath) ?: return ""
+        val firstPart = regexResults.groupValues.getOrNull(1) ?: return ""
+
+        val secondPart = regexResults.groupValues.getOrNull(2)
+
+        var season = firstPart.capFirstLetter()
+        if (secondPart != null) {
+            season += " $secondPart"
+        }
+
+        return season.trim()
+    }
+
+    private fun animeDetailsParse(document: Document, season: String): SAnime {
         val anime = SAnime.create()
-        anime.title = document.selectFirst("#titreOeuvre")!!.text()
-        anime.description = document.selectFirst("meta[name=description]")?.attr("content")
-        anime.genres = document.selectFirst("h2:contains(Genres) ~ a")?.text()?.trim()?.split(",")
+        anime.title = "$season - " + document.selectFirst("#titreOeuvre")!!.text()
+        anime.description = document.selectFirst("h2:contains(Synopsis) ~ p.text-sm.text-gray-400.mt-2")?.text()
+        anime.genres = document.selectFirst("h2:contains(Genres) ~ a")?.text()?.trim()?.split(Regex("""( - )|,"""))
         anime.thumbnailUrl = document.selectFirst("meta[itemprop=image]")?.attr("content")
         return anime
     }
 
+    override fun animeDetailsParse(document: Document): SAnime = throw Exception("Not used")
+
     override fun episodesSelector(): String = throw Exception("Not used")
 
     override fun episodeFromElement(element: Element): SEpisode = throw Exception("Not used")
+
+    private fun getEpisodesTrueNames(document: Document): List<Pair<String,List<String>>> {
+        val resultList = mutableListOf<Pair<String,List<String>>>()
+        val scriptRegex = Regex("""<script>([^<]*(?:(?!<\/script>)<[^<]*)*)<\/script>""")
+        val scripts = scriptRegex.findAll(document.html())
+
+        scripts.forEach { script ->
+            val code = script.groupValues.getOrNull(1)?.substringAfter(">")
+                ?.takeIf { !it.contains("#avOeuvre") && it.contains("resetListe();") }
+            if (code != null) {
+                val commentsRegex = Regex("""\/\*.*?\*\/""", RegexOption.DOT_MATCHES_ALL)
+                val codeWithoutComments = code.replace(commentsRegex, "").trimIndent()
+                val functionCalls =
+                    codeWithoutComments
+                        .substringAfter("resetListe();")
+                        .substringBefore("});")
+                        .substringBeforeLast(";")
+                        .split(";")
+
+                functionCalls.forEach { call ->
+                    val functionName = call.substringBefore("(").trim()
+                    val parameters = call.substringAfter("(").substringBefore(")")
+                        .trim()
+                        .split(Regex(""",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*${'$'})"""))
+                        .map { it.removeSurrounding("\"").trim() }
+                    resultList.add(functionName to parameters)
+                }
+                return resultList
+            }
+        }
+        return resultList
+    }
+
+    private fun parseEpisodesTrueNames(
+        names: List<Pair<String,List<String>>>,
+        totalEpisodes: Int?
+    ): List<String> {
+        if (totalEpisodes == null) return emptyList()
+        val episodesNames = mutableListOf<String>()
+        var epRetards = 0
+        try {
+            names.forEach { (function, parameters) ->
+                when (function) {
+                    "newSPF" -> {
+                        epRetards++
+                        episodesNames.add(parameters[0])
+                    }
+                    "newSP" -> {
+                        epRetards++
+                        episodesNames.add("Episode ${parameters[0]}")
+                    }
+                    "creerListe" -> {
+                        val debut = parameters[0].toInt()
+                        val fin = parameters[1].toInt()
+                        for (i in debut..fin) {
+                            episodesNames.add("Episode $i")
+                        }
+                    }
+                    "finirListe" -> {
+                        val debut = parameters[0].toInt()
+                        for (i in debut..(totalEpisodes - epRetards)) {
+                            episodesNames.add("Episode $i")
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return emptyList()
+        }
+
+        return episodesNames
+    }
 
     override fun fetchEpisodesList(anime: Anime): Observable<List<SEpisode>> {
         return client.newCall(episodesRequest(anime))
@@ -187,11 +306,18 @@ class AnimeSama : AnimeSource("AnimeSama") {
                         }
                         val episodesList: MutableList<SEpisode> = mutableListOf()
                         val variableWithMostLinks = variableLinkCounts.maxByOrNull { it.value }
-
+                        val trueNames = parseEpisodesTrueNames(
+                            getEpisodesTrueNames(document),
+                            variableWithMostLinks?.value
+                        )
                         for (i in 1..(variableWithMostLinks?.value?.minus(1) ?: 0)) {
                             val episode = SEpisode.create()
                             episode.episodeNumber = i.toFloat()
-                            episode.name = "Episode ${i.toFloat()}"
+                            episode.name = if (trueNames.getOrNull(i-1) != null) {
+                                trueNames[i-1]
+                            } else {
+                                "Episode ${i.toFloat()}"
+                            }
                             episode.url = "${anime.url}?number=$i"
                             episodesList.add(episode)
                         }
