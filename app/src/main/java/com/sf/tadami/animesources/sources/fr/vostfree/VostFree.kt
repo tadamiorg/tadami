@@ -2,9 +2,8 @@ package com.sf.tadami.animesources.sources.fr.vostfree
 
 import com.sf.tadami.App
 import com.sf.tadami.R
-import com.sf.tadami.animesources.extractors.DoodExtractor
-import com.sf.tadami.animesources.extractors.OkruExtractor
-import com.sf.tadami.animesources.extractors.streamsbextractor.StreamSBExtractor
+import com.sf.tadami.animesources.extractors.*
+import com.sf.tadami.animesources.extractors.unused.streamsbextractor.StreamSBExtractor
 import com.sf.tadami.animesources.sources.fr.vostfree.extractors.MyViExtractor
 import com.sf.tadami.animesources.sources.fr.vostfree.extractors.VudeoExtractor
 import com.sf.tadami.network.api.model.*
@@ -175,13 +174,24 @@ class VostFree : AnimeSource("VostFree") {
                         "doodstream" -> {
                             DoodExtractor(client).videosFromUrl(playerFragmentUrl, "DoodStream", false)
                         }
-                        "mytv", "stream" -> {
+                        "sibnet" -> {
+                            val url = "https://video.sibnet.ru/shell.php?videoid=$playerFragmentUrl"
+                            SibnetExtractor(client).videosFromUrl(url)
+                        }
+                        "uqload" -> {
+                            val url = "https://uqload.io/embed-$playerFragmentUrl.html"
+                            UqloadExtractor(client).videosFromUrl(url)
+                        }
+                        "voe" -> {
+                            VoeExtractor(client).videosFromUrl(playerFragmentUrl)
+                        }
+                        /*"mytv", "stream" -> {
                             val url = "https://www.myvi.tv/embed/$playerFragmentUrl"
                             MyViExtractor(client).videosFromUrl(url)
-                        }
-                        "streamsb" -> {
+                        }*/
+                        /*"streamsb" -> {
                             StreamSBExtractor(client).videosFromUrl(playerFragmentUrl,headers)
-                        }
+                        }*/
                         else -> null
                     }
                 }.getOrNull()

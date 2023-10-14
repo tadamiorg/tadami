@@ -6,14 +6,14 @@ import com.sf.tadami.network.api.model.StreamSource
 import okhttp3.OkHttpClient
 
 class VoeExtractor(private val client: OkHttpClient) {
-    fun videoFromUrl(url: String, quality: String? = null): StreamSource? {
+    fun videosFromUrl(url: String, quality: String? = null): List<StreamSource> {
         val document = client.newCall(GET(url)).execute().asJsoup()
         val script = document.selectFirst("script:containsData(const sources),script:containsData(var sources)")
             ?.data()
-            ?: return null
+            ?: return emptyList()
         val videoUrl = script.substringAfter("hls': '").substringBefore("'")
         val resolution = script.substringAfter("video_height': ").substringBefore(",")
         val qualityStr = quality ?: "VoeCDN(${resolution}p)"
-        return StreamSource(videoUrl, qualityStr)
+        return listOf(StreamSource(videoUrl, qualityStr))
     }
 }

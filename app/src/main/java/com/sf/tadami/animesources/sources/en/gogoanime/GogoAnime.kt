@@ -3,8 +3,9 @@ package com.sf.tadami.animesources.sources.en.gogoanime
 import com.sf.tadami.R
 import com.sf.tadami.animesources.extractors.DoodExtractor
 import com.sf.tadami.animesources.extractors.Mp4uploadExtractor
-import com.sf.tadami.animesources.extractors.streamsbextractor.StreamSBExtractor
 import com.sf.tadami.animesources.sources.en.gogoanime.extractors.GogoCdnExtractor
+import com.sf.tadami.animesources.sources.en.gogoanime.extractors.StreamWishExtractor
+import com.sf.tadami.animesources.sources.en.gogoanime.filters.GogoAnimeFilters
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.network.api.model.*
 import com.sf.tadami.network.api.online.AnimeSource
@@ -26,7 +27,7 @@ class GogoAnime : AnimeSource("GogoAnime") {
 
     override val name: String = "GogoAnime"
 
-    override val baseUrl: String = "https://gogoanime.cl"
+    override val baseUrl: String = "https://gogoanimehd.io/"
 
     override val lang: Lang = Lang.ENGLISH
 
@@ -88,52 +89,14 @@ class GogoAnime : AnimeSource("GogoAnime") {
         filters: AnimeFilterList,
         noToasts: Boolean
     ): Request {
-        val filterList = if (filters.isEmpty()) getFilterList() else filters
-        val genreFilter = filterList.find { it is GenreList } as GenreList
-        val statusFilter = filterList.find { it is StatusList } as StatusList
-        val yearsFilter = filterList.find { it is YearsList } as YearsList
-        val sortFilter = filterList.find { it is SortList } as SortList
-        val seasonsFilters = filterList.find { it is SeasonList } as SeasonList
+        val params = GogoAnimeFilters.getSearchParameters(filters)
 
-        var searchRequest = "$baseUrl/filter.html?keyword=$query"
-
-        if (genreFilter.state.isNotEmpty()) {
-            genreFilter.state.forEach {
-                if (it.state) {
-                    searchRequest += "&genre[]=${(it as MultiChoices).value}"
-                }
-            }
+        return when {
+            params.genre.isNotEmpty() -> GET("$baseUrl/genre/${params.genre}?page=$page", headers)
+            params.recent.isNotEmpty() -> GET("https://ajax.gogo-load.com/ajax/page-recent-release.html?page=$page&type=${params.recent}", headers)
+            params.season.isNotEmpty() -> GET("$baseUrl/${params.season}?page=$page", headers)
+            else -> GET("$baseUrl/filter.html?keyword=$query&${params.filter}&page=$page", headers)
         }
-
-        if (seasonsFilters.state.isNotEmpty()) {
-            seasonsFilters.state.forEach {
-                if (it.state) {
-                    searchRequest += "&season[]=${(it as MultiChoices).value}"
-                }
-            }
-        }
-
-        if (yearsFilter.state.isNotEmpty()) {
-            yearsFilter.state.forEach {
-                if (it.state) {
-                    searchRequest += "&year[]=${(it as MultiChoices).value}"
-                }
-            }
-        }
-
-        if (statusFilter.state.isNotEmpty()) {
-            statusFilter.state.forEach {
-                if (it.state) {
-                    searchRequest += "&status[]=${(it as MultiChoices).value}"
-                }
-            }
-        }
-
-        searchRequest += "&sort=${sortFilters()[sortFilter.state].second}"
-
-        searchRequest += "&page=$page"
-
-        return GET(searchRequest, headers)
     }
 
     // Details
@@ -212,6 +175,7 @@ class GogoAnime : AnimeSource("GogoAnime") {
     override fun episodeSourcesParse(response: Response): List<StreamSource> {
         val document = response.asJsoup()
         val gogoExtractor = GogoCdnExtractor(network.client, json)
+        val streamwishExtractor = StreamWishExtractor(client, headers)
         val streamSourcesList = mutableListOf<StreamSource>()
         streamSourcesList.addAll(
             document.select("div.anime_muti_link > ul > li").parallelMap { server ->
@@ -222,21 +186,19 @@ class GogoAnime : AnimeSource("GogoAnime") {
                         ?.replace(Regex("^//"), "https://")
                         ?: return@runCatching null
                     when (className) {
-                        "anime" -> {
+                        "anime", "vidcdn" -> {
                             gogoExtractor.videosFromUrl(serverUrl)
                         }
-                        "vidcdn" -> {
-                            gogoExtractor.videosFromUrl(serverUrl)
-                        }
-                        "streamsb" -> {
-                            StreamSBExtractor(client).videosFromUrl(serverUrl, headers)
-                        }
+                        "streamwish" -> streamwishExtractor.videosFromUrl(serverUrl)
                         "doodstream" -> {
                             DoodExtractor(client).videosFromUrl(serverUrl)
                         }
                         "mp4upload" -> {
                             val headers = headers.newBuilder().set("Referer", "https://mp4upload.com/").build()
                             Mp4uploadExtractor(client).videosFromUrl(serverUrl, headers)
+                        }
+                        "filelions" -> {
+                            streamwishExtractor.videosFromUrl(serverUrl, videoNameGen = { quality -> "FileLions - $quality" })
                         }
                         else -> null
                     }
@@ -248,159 +210,5 @@ class GogoAnime : AnimeSource("GogoAnime") {
 
     // Filters
 
-    override fun getFilterList(): AnimeFilterList = AnimeFilterList(
-        SortList(sortFilters()),
-        GenreList(genresFilters()),
-        StatusList(statusFilters()),
-        YearsList(yearsFilters()),
-        SeasonList(seasonsFilters())
-    )
-
-    private class MultiChoices(title: String, val value: String) : AnimeFilter.CheckBox(title)
-
-    private class GenreList(genres: MutableList<MultiChoices>) :
-        AnimeFilter.CheckBoxGroup("Genres", genres)
-
-    private class StatusList(status: MutableList<MultiChoices>) :
-        AnimeFilter.CheckBoxGroup("Status", status)
-
-    private class YearsList(years: MutableList<MultiChoices>) :
-        AnimeFilter.CheckBoxGroup("Year", years)
-
-    private class SeasonList(seasons: MutableList<MultiChoices>) :
-        AnimeFilter.CheckBoxGroup("Season", seasons)
-
-    private class SortList(values: Array<Pair<String, String>>) :
-        AnimeFilter.Select("Sort", values.map { it.first }.toTypedArray())
-
-    //REGEX : { name: ("[-\w\s]*"), value: ("[-\w\s]*"), },
-
-    private fun sortFilters() = arrayOf(
-        Pair("Name A-Z", "title_az"),
-        Pair("Recently updated", "recently_updated"),
-        Pair("Recently added", "recently_added"),
-        Pair("Release date", "release_date")
-    )
-
-    private fun seasonsFilters() = arrayListOf(
-        MultiChoices("Fall", "fall"),
-        MultiChoices("Summer", "summer"),
-        MultiChoices("Spring", "spring"),
-        MultiChoices("Winter", "winter"),
-    )
-
-    private fun statusFilters() = arrayListOf(
-        MultiChoices("Ongoing", "Ongoing"),
-        MultiChoices("Not Yet Aired", "Upcoming"),
-        MultiChoices("Completed", "Completed"),
-    )
-
-    private fun yearsFilters() = arrayListOf(
-        MultiChoices("2023", "2023"),
-        MultiChoices("2022", "2022"),
-        MultiChoices("2021", "2021"),
-        MultiChoices("2020", "2020"),
-        MultiChoices("2019", "2019"),
-        MultiChoices("2018", "2018"),
-        MultiChoices("2017", "2017"),
-        MultiChoices("2016", "2016"),
-        MultiChoices("2015", "2015"),
-        MultiChoices("2014", "2014"),
-        MultiChoices("2013", "2013"),
-        MultiChoices("2012", "2012"),
-        MultiChoices("2011", "2011"),
-        MultiChoices("2010", "2010"),
-        MultiChoices("2009", "2009"),
-        MultiChoices("2008", "2008"),
-        MultiChoices("2007", "2007"),
-        MultiChoices("2006", "2006"),
-        MultiChoices("2005", "2005"),
-        MultiChoices("2004", "2004"),
-        MultiChoices("2003", "2003"),
-        MultiChoices("2002", "2002"),
-        MultiChoices("2001", "2001"),
-        MultiChoices("2000", "2000"),
-        MultiChoices("1999", "1999")
-    )
-
-    private fun genresFilters() = arrayListOf(
-        MultiChoices("Action", "action"),
-        MultiChoices("Adult Cast", "adult-cast"),
-        MultiChoices("Adventure", "adventure"),
-        MultiChoices("Anthropomorphic", "anthropomorphic"),
-        MultiChoices("Avant Garde", "avant-garde"),
-        MultiChoices("Boys Love", "shounen-ai"),
-        MultiChoices("Cars", "cars"),
-        MultiChoices("CGDCT", "cgdct"),
-        MultiChoices("Childcare", "childcare"),
-        MultiChoices("Comedy", "comedy"),
-        MultiChoices("Comic", "comic"),
-        MultiChoices("Crime", "crime"),
-        MultiChoices("Crossdressing", "crossdressing"),
-        MultiChoices("Delinquents", "delinquents"),
-        MultiChoices("Dementia", "dementia"),
-        MultiChoices("Demons", "demons"),
-        MultiChoices("Detective", "detective"),
-        MultiChoices("Drama", "drama"),
-        MultiChoices("Dub", "dub"),
-        MultiChoices("Ecchi", "ecchi"),
-        MultiChoices("Erotica", "erotica"),
-        MultiChoices("Family", "family"),
-        MultiChoices("Fantasy", "fantasy"),
-        MultiChoices("Gag Humor", "gag-humor"),
-        MultiChoices("Game", "game"),
-        MultiChoices("Gender Bender", "gender-bender"),
-        MultiChoices("Gore", "gore"),
-        MultiChoices("Gourmet", "gourmet"),
-        MultiChoices("Harem", "harem"),
-        MultiChoices("Hentai", "hentai"),
-        MultiChoices("High Stakes Game", "high-stakes-game"),
-        MultiChoices("Historical", "historical"),
-        MultiChoices("Horror", "horror"),
-        MultiChoices("Isekai", "isekai"),
-        MultiChoices("Iyashikei", "iyashikei"),
-        MultiChoices("Josei", "josei"),
-        MultiChoices("Kids", "kids"),
-        MultiChoices("Magic", "magic"),
-        MultiChoices("Magical Sex Shift", "magical-sex-shift"),
-        MultiChoices("Mahou Shoujo", "mahou-shoujo"),
-        MultiChoices("Martial Arts", "martial-arts"),
-        MultiChoices("Mecha", "mecha"),
-        MultiChoices("Medical", "medical"),
-        MultiChoices("Military", "military"),
-        MultiChoices("Music", "music"),
-        MultiChoices("Mystery", "mystery"),
-        MultiChoices("Mythology", "mythology"),
-        MultiChoices("Organized Crime", "organized-crime"),
-        MultiChoices("Parody", "parody"),
-        MultiChoices("Performing Arts", "performing-arts"),
-        MultiChoices("Pets", "pets"),
-        MultiChoices("Police", "police"),
-        MultiChoices("Psychological", "psychological"),
-        MultiChoices("Reincarnation", "reincarnation"),
-        MultiChoices("Romance", "romance"),
-        MultiChoices("Romantic Subtext", "romantic-subtext"),
-        MultiChoices("Samurai", "samurai"),
-        MultiChoices("School", "school"),
-        MultiChoices("Sci-Fi", "sci-fi"),
-        MultiChoices("Seinen", "seinen"),
-        MultiChoices("Shoujo", "shoujo"),
-        MultiChoices("Shoujo Ai", "shoujo-ai"),
-        MultiChoices("Shounen", "shounen"),
-        MultiChoices("Slice of Life", "slice-of-life"),
-        MultiChoices("Space", "space"),
-        MultiChoices("Sports", "sports"),
-        MultiChoices("Strategy Game", "strategy-game"),
-        MultiChoices("Super Power", "super-power"),
-        MultiChoices("Supernatural", "supernatural"),
-        MultiChoices("Suspense", "suspense"),
-        MultiChoices("Team Sports", "team-sports"),
-        MultiChoices("Thriller", "thriller"),
-        MultiChoices("Time Travel", "time-travel"),
-        MultiChoices("Vampire", "vampire"),
-        MultiChoices("Work Life", "work-life"),
-        MultiChoices("Workplace", "workplace"),
-        MultiChoices("Yaoi", "yaoi"),
-        MultiChoices("Yuri", "yuri")
-    )
+    override fun getFilterList(): AnimeFilterList = GogoAnimeFilters.FILTER_LIST
 }

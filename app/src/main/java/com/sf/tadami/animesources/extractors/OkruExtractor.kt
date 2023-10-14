@@ -9,12 +9,14 @@ class OkruExtractor(private val client: OkHttpClient) {
 
     private fun fixQuality(quality: String): String {
         val qualities = listOf(
+            Pair("ultra", "2160p"),
+            Pair("quad", "1440p"),
             Pair("full", "1080p"),
             Pair("hd", "720p"),
             Pair("sd", "480p"),
             Pair("low", "360p"),
             Pair("lowest", "240p"),
-            Pair("mobile", "144p")
+            Pair("mobile", "144p"),
         )
         return qualities.find { it.first == quality }?.second ?: quality
     }
@@ -25,22 +27,30 @@ class OkruExtractor(private val client: OkHttpClient) {
             ?.attr("data-options")
             ?.substringAfter("\\\"videos\\\":[{\\\"name\\\":\\\"")
             ?.substringBefore("]")
-            ?: return emptyList()
+            ?: return emptyList<StreamSource>()
         return videosString.split("{\\\"name\\\":\\\"").reversed().mapNotNull {
             val videoUrl = it.substringAfter("url\\\":\\\"")
                 .substringBefore("\\\"")
                 .replace("\\\\u0026", "&")
             val quality = it.substringBefore("\\\"").let {
-                if (fixQualities) fixQuality(it)
-                else it
+                if (fixQualities) {
+                    fixQuality(it)
+                } else {
+                    it
+                }
             }
-            val videoQuality = ("Okru:$quality").let {
-                if (prefix.isNotBlank()) "$prefix $it"
-                else it
+            val videoQuality = ("Okru:" + quality).let {
+                if (prefix.isNotBlank()) {
+                    "$prefix $it"
+                } else {
+                    it
+                }
             }
-            if (videoUrl.startsWith("https://"))
+            if (videoUrl.startsWith("https://")) {
                 StreamSource(videoUrl, videoQuality)
-            else null
+            } else {
+                null
+            }
         }
     }
 }

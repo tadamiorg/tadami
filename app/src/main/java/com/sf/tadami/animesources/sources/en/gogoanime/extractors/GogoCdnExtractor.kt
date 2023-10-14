@@ -42,7 +42,7 @@ class GogoCdnExtractor(private val client: OkHttpClient,private val json : Json)
             val id = httpUrl.queryParameter("id") ?: throw Exception("error getting id")
             val encryptedId = cryptoHandler(id, iv, secretKey)
             val token = httpUrl.queryParameter("token")
-            val qualityPrefix = if (token != null) "Gogostream: " else "Vidstreaming: "
+            val qualityPrefix = if (token != null) "Gogostream - " else "Vidstreaming - "
 
             val jsonResponse = client.newCall(
                 GET(
@@ -58,8 +58,10 @@ class GogoCdnExtractor(private val client: OkHttpClient,private val json : Json)
             val videoList = mutableListOf<StreamSource>()
             val autoList = mutableListOf<StreamSource>()
             val array = json.parseToJsonElement(decryptedData).jsonObject["source"]!!.jsonArray
+
             if (array.size == 1 && array[0].jsonObject["type"]!!.jsonPrimitive.content == "hls") {
                 val fileURL = array[0].jsonObject["file"].toString().trim('"')
+
                 val separator = "#EXT-X-STREAM-INF:"
 
                 val masterPlaylist = client.newCall(GET(fileURL)).execute().body.string()

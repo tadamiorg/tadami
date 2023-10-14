@@ -1,4 +1,4 @@
-package com.sf.tadami.animesources.extractors.streamsbextractor
+package com.sf.tadami.animesources.extractors.unused.streamsbextractor
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences

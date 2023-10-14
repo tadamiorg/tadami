@@ -21,15 +21,6 @@ class StreamTapeExtractor(private val client: OkHttpClient) {
             ?: return null
         val videoUrl = "https:" + script.substringBefore("'") +
                 script.substringAfter("+ ('xcd").substringBefore("'")
-        val response = client.newBuilder().followRedirects(false).build().newCall(GET(videoUrl)).execute()
-        response.use { res ->
-            // Process the response
-            if (res.code == 302 && res.header("Location") != null) {
-                val newURL = res.header("Location")
-                return StreamSource(newURL!!, quality)
-            } else {
-                return StreamSource(videoUrl, quality)
-            }
-        }
+        return StreamSource(videoUrl, quality)
     }
 }

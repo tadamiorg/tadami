@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.tabs.animesources
 
-import com.sf.tadami.animesources.sources.en.animedao.AnimeDao
 import com.sf.tadami.animesources.sources.en.gogoanime.GogoAnime
 import com.sf.tadami.animesources.sources.fr.animesama.AnimeSama
 import com.sf.tadami.animesources.sources.fr.vostfree.VostFree
@@ -10,7 +9,6 @@ class AnimeSourcesManager{
 
     private val extensions = listOf(
         GogoAnime(),
-        AnimeDao(),
         AnimeSama(),
         VostFree()
     )
