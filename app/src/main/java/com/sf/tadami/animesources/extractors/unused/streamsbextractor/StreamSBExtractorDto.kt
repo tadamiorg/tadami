@@ -1,4 +1,4 @@
-package com.sf.tadami.animesources.extractors.streamsbextractor
+package com.sf.tadami.animesources.extractors.unused.streamsbextractor
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
