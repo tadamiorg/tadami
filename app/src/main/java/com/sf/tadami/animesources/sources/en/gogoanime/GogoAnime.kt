@@ -1,5 +1,6 @@
 package com.sf.tadami.animesources.sources.en.gogoanime
 
+import android.util.Log
 import com.sf.tadami.R
 import com.sf.tadami.animesources.extractors.DoodExtractor
 import com.sf.tadami.animesources.extractors.Mp4uploadExtractor
@@ -27,7 +28,7 @@ class GogoAnime : AnimeSource("GogoAnime") {
 
     override val name: String = "GogoAnime"
 
-    override val baseUrl: String = "https://gogoanimehd.io/"
+    override val baseUrl: String = "https://gogoanimehd.io"
 
     override val lang: Lang = Lang.ENGLISH
 
@@ -91,12 +92,14 @@ class GogoAnime : AnimeSource("GogoAnime") {
     ): Request {
         val params = GogoAnimeFilters.getSearchParameters(filters)
 
-        return when {
+        val request = when {
             params.genre.isNotEmpty() -> GET("$baseUrl/genre/${params.genre}?page=$page", headers)
             params.recent.isNotEmpty() -> GET("https://ajax.gogo-load.com/ajax/page-recent-release.html?page=$page&type=${params.recent}", headers)
             params.season.isNotEmpty() -> GET("$baseUrl/${params.season}?page=$page", headers)
             else -> GET("$baseUrl/filter.html?keyword=$query&${params.filter}&page=$page", headers)
         }
+        Log.e("Search", request.url.toString())
+        return request
     }
 
     // Details
