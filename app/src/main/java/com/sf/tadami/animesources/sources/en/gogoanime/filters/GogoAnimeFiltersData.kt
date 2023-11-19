@@ -1,5 +1,8 @@
 package com.sf.tadami.animesources.sources.en.gogoanime.filters
 
+import com.sf.tadami.App
+import com.sf.tadami.R
+
 object GogoAnimeFiltersData {
     val GENRE_SEARCH_LIST = arrayOf(
         Pair("Action", "action"),
@@ -171,6 +174,7 @@ object GogoAnimeFiltersData {
     // copy($("div.dropdown-menu > a.dropdown-item").map((i,el) => `Pair("${$(el).text().trim()}", "${$(el).attr('href').trim().slice(18)}")`).get().join(',\n'))
     // on /
     val GENRE_LIST = arrayOf(
+        Pair(App.getAppContext()?.getString(R.string.discover_search_screen_filters_group_selected_text) ?: "select",""),
         Pair("Action", "action"),
         Pair("Adult Cast", "adult-cast"),
         Pair("Adventure", "adventure"),
@@ -256,12 +260,14 @@ object GogoAnimeFiltersData {
     )
 
     val RECENT_LIST = arrayOf(
+        Pair(App.getAppContext()?.getString(R.string.discover_search_screen_filters_group_selected_text) ?: "select",""),
         Pair("Recent Release", "1"),
         Pair("Recent Dub", "2"),
         Pair("Recent Chinese", "3"),
     )
 
     val SEASON_LIST = arrayOf(
+        Pair(App.getAppContext()?.getString(R.string.discover_search_screen_filters_group_selected_text) ?: "select",""),
         Pair("Latest season", "new-season.html"),
         Pair("Summer 2023", "sub-category/summer-2023-anime"),
         Pair("Spring 2023", "sub-category/spring-2023-anime"),
