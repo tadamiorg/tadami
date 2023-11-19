@@ -1,70 +1,53 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.kts.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
-
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
-
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable,Signature
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
-
 -dontobfuscate
 
-# Keep `Companion` object fields of serializable classes.
-# This avoids serializer lookup through `getDeclaredClasses` as done for named companion objects.
--if @kotlinx.serialization.Serializable class **
--keepclassmembers class <1> {
-   static <1>$Companion Companion;
+-keep,allowoptimization class com.sf.tadami.**
+
+# Keep common dependencies used in extensions
+-keep,allowoptimization class androidx.preference.** { public protected *; }
+-keep,allowoptimization class kotlin.** { public protected *; }
+-keep,allowoptimization class kotlinx.coroutines.** { public protected *; }
+-keep,allowoptimization class kotlinx.serialization.** { public protected *; }
+-keep,allowoptimization class kotlin.time.** { public protected *; }
+-keep,allowoptimization class okhttp3.** { public protected *; }
+-keep,allowoptimization class okio.** { public protected *; }
+-keep,allowoptimization class org.jsoup.** { public protected *; }
+-keep,allowoptimization class rx.** { public protected *; }
+-keep,allowoptimization class app.cash.quickjs.** { public protected *; }
+-keep,allowoptimization class uy.kohesive.injekt.** { public protected *; }
+
+# From extensions-lib
+-keep,allowoptimization class com.sf.tadami.network.requests.okhttp.HttpClient { public protected *; }
+-keep,allowoptimization class com.sf.tadami.network.requests.okhttp.OkHttpExtensionsKt { public protected *; }
+-keep,allowoptimization class com.sf.tadami.network.requests.okhttp.RequestsKt { public protected *; }
+
+##---------------Begin: proguard configuration for kotlinx.serialization  ----------
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt # core serialization annotations
+
+# kotlinx-serialization-json specific. Add this if you have java.lang.NoClassDefFoundError kotlinx.serialization.json.JsonObjectSerializer
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+-keepclasseswithmembers class kotlinx.serialization.json.** {
+    kotlinx.serialization.KSerializer serializer(...);
 }
 
-# Keep `serializer()` on companion objects (both default and named) of serializable classes.
--if @kotlinx.serialization.Serializable class ** {
-   static **$* *;
+-keep,includedescriptorclasses class eu.kanade.**$$serializer { *; }
+-keepclassmembers class eu.kanade.** {
+    *** Companion;
 }
--keepclassmembers class <2>$<3> {
-   kotlinx.serialization.KSerializer serializer(...);
-}
-
-# Keep `INSTANCE.serializer()` of serializable objects.
--if @kotlinx.serialization.Serializable class ** {
-   public static ** INSTANCE;
-}
--keepclassmembers class <1> {
-   public static <1> INSTANCE;
-   kotlinx.serialization.KSerializer serializer(...);
+-keepclasseswithmembers class eu.kanade.** {
+    kotlinx.serialization.KSerializer serializer(...);
 }
 
-# @Serializable and @Polymorphic are used at runtime for polymorphic serialization.
--keepattributes RuntimeVisibleAnnotations,AnnotationDefault
+-keep class kotlinx.serialization.**
+-keepclassmembers class kotlinx.serialization.** {
+    <methods>;
+}
 
-# JSR 305 annotations are for embedding nullability information.
--dontwarn javax.annotation.**
+##---------------End: proguard configuration for kotlinx.serialization  ----------
 
-# A resource is loaded with a relative path so the package of this class must be preserved.
--adaptresourcefilenames okhttp3/internal/publicsuffix/PublicSuffixDatabase.gz
-
-# Animal Sniffer compileOnly dependency to ensure APIs are compatible with older versions of Java.
--dontwarn org.codehaus.mojo.animal_sniffer.*
-
-# OkHttp platform used only on JVM and when Conscrypt and other security providers are available.
--dontwarn okhttp3.internal.platform.**
--dontwarn org.conscrypt.**
--dontwarn org.bouncycastle.**
--dontwarn org.openjsse.**
-
-# Animal Sniffer compileOnly dependency to ensure APIs are compatible with older versions of Java.
--dontwarn org.codehaus.mojo.animal_sniffer.*
+# XmlUtil
+-keep public enum nl.adaptivity.xmlutil.EventType { *; }
 
 

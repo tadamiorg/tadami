@@ -3,6 +3,9 @@ import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.BasePlugin
 
 buildscript {
+    dependencies {
+        classpath(libs.sqldelight.gradle)
+    }
     repositories {
         google()
         mavenCentral()
@@ -10,16 +13,16 @@ buildscript {
 }
 
 plugins {
-    id("com.android.application") version "7.4.1" apply false
-    id("com.android.library") version "7.4.1" apply false
-    id("org.jetbrains.kotlin.android") version "1.8.10" apply false
-    kotlin("plugin.serialization") version "1.8.10"
+    alias(androidx.plugins.com.android.application) apply false
+    alias(androidx.plugins.com.android.library) apply false
+    alias(kotlinx.plugins.android) apply false
+    alias(kotlinx.plugins.serialization) apply false
 }
 
 subprojects {
     tasks.withType<KotlinJvmCompile> {
         kotlinOptions {
-            jvmTarget = JavaVersion.VERSION_1_8.toString()
+            jvmTarget = JavaVersion.VERSION_17.toString()
         }
     }
 
@@ -34,15 +37,15 @@ subprojects {
 
     plugins.withType<BasePlugin> {
         configure<BaseExtension> {
-            compileSdkVersion(33)
+            compileSdkVersion(34)
             defaultConfig {
                 minSdk = 28
                 targetSdk = 33
             }
 
             compileOptions {
-                sourceCompatibility = JavaVersion.VERSION_1_8
-                targetCompatibility = JavaVersion.VERSION_1_8
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
             }
         }
     }

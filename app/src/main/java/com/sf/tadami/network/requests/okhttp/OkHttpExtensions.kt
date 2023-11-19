@@ -125,8 +125,9 @@ suspend fun Call.await(): Response {
     return await(callStack)
 }
 
+context(Json)
 inline fun <reified T> Response.parseAs(): T {
-    return Injekt.get<Json>().decodeFromString(serializer(),this.body.string())
+    return decodeFromString(serializer(),this.body.string())
 }
 
 fun BufferedSource.saveTo(file: File) {

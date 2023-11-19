@@ -29,11 +29,13 @@ fun LibrarySheetContent() {
     val libraryPreferencesState by libraryPreferencesStore.value.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
-    val pagerState = rememberPagerState()
     val pages = listOf(
         stringResource(id = R.string.library_sheet_filter),
         stringResource(id = R.string.library_sheet_sort)
     )
+    val pagerState = rememberPagerState(pageCount = {
+        pages.size
+    })
 
     TabRow(
         selectedTabIndex = pagerState.currentPage,
@@ -54,7 +56,6 @@ fun LibrarySheetContent() {
 
     HorizontalPager(
         modifier = Modifier.fillMaxSize(),
-        pageCount = pages.size,
         state = pagerState,
     ) { page ->
         Column(
