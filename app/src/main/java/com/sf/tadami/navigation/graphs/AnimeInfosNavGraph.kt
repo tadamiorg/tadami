@@ -1,5 +1,11 @@
 package com.sf.tadami.navigation.graphs
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.navigation.*
 import androidx.navigation.compose.composable
 import com.sf.tadami.ui.animeinfos.details.DetailsScreen
@@ -11,16 +17,19 @@ fun NavGraphBuilder.animeInfosNavGraph(navController: NavHostController) {
         startDestination = "${AnimeInfosRoutes.DETAILS}/{sourceId}/{animeId}"
     ) {
 
-        composable(route = "${AnimeInfosRoutes.DETAILS}/{sourceId}/{animeId}", arguments = listOf(
-            navArgument("sourceId") { type = NavType.StringType },
-            navArgument("animeId") { type = NavType.LongType }
-        )) {
+        composable(
+            route = "${AnimeInfosRoutes.DETAILS}/{sourceId}/{animeId}",
+            arguments = listOf(
+                navArgument("sourceId") { type = NavType.StringType },
+                navArgument("animeId") { type = NavType.LongType }
+            )
+        ) {
             DetailsScreen(navController)
         }
 
         activity("${AnimeInfosRoutes.EPISODE}/{sourceId}/{episode}") {
             this.activityClass = EpisodeActivity::class
-            argument("sourceId"){
+            argument("sourceId") {
                 this.nullable = false
                 this.type = NavType.StringType
             }

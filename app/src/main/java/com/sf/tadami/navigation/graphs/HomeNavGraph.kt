@@ -1,7 +1,14 @@
 package com.sf.tadami.navigation.graphs
 
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,17 +25,19 @@ import com.sf.tadami.ui.tabs.settings.SettingsScreen
 @Composable
 fun HomeNavGraph(
     navController: NavHostController,
-    bottomNavDisplay : Boolean,
-    setNavDisplay : (display : Boolean) -> Unit,
-    librarySheetVisible : Boolean,
-    showLibrarySheet : () -> Unit,
+    bottomNavDisplay: Boolean,
+    setNavDisplay: (display: Boolean) -> Unit,
+    librarySheetVisible: Boolean,
+    showLibrarySheet: () -> Unit,
 ) {
     NavHost(
         navController = navController,
         route = GRAPH.HOME,
         startDestination = HomeNavItems.Library.route
     ) {
-        composable(route = HomeNavItems.Library.route){
+        composable(
+            route = HomeNavItems.Library.route,
+        ) {
             LibraryScreen(
                 navController = navController,
                 setNavDisplay = setNavDisplay,
@@ -37,10 +46,14 @@ fun HomeNavGraph(
                 showLibrarySheet = showLibrarySheet
             )
         }
-        composable(route = HomeNavItems.Sources.route){
+        composable(
+            route = HomeNavItems.Sources.route,
+        ) {
             AnimeSourcesScreen(navController = navController)
         }
-        composable(route = HomeNavItems.Settings.route){
+        composable(
+            route = HomeNavItems.Settings.route,
+        ) {
             SettingsScreen(navController = navController)
         }
         discoverNavGraph(navController)
@@ -54,9 +67,13 @@ object GRAPH {
     const val HOME = "home_graph"
 }
 
-sealed class HomeNavItems(val route: String, @StringRes val name: Int,@DrawableRes val icon: Int) {
-    object Library : HomeNavItems("library", R.string.library_tab_title,R.drawable.ic_video_library)
-    object Sources : HomeNavItems("anime_sources", R.string.sources_tab_title,R.drawable.ic_sources)
-    object Settings : HomeNavItems("settings", R.string.settings_tab_title,R.drawable.ic_settings)
+sealed class HomeNavItems(val route: String, @StringRes val name: Int, @DrawableRes val icon: Int) {
+    object Library :
+        HomeNavItems("library", R.string.library_tab_title, R.drawable.ic_video_library)
+
+    object Sources :
+        HomeNavItems("anime_sources", R.string.sources_tab_title, R.drawable.ic_sources)
+
+    object Settings : HomeNavItems("settings", R.string.settings_tab_title, R.drawable.ic_settings)
 }
 

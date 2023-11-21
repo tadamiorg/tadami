@@ -10,7 +10,7 @@ webkit_version = "1.8.0"
 datastore_version = "1.0.0"
 cast_mediarouter_version = "1.4.0"
 cast_framework_version="21.1.0"
-navigation-version = "2.7.5"
+navigation-version = "2.6.0"
 
 # Test
 junit = "4.13.2"
