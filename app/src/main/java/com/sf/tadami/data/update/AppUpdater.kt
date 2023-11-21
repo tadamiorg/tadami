@@ -8,11 +8,13 @@ import com.sf.tadami.network.requests.okhttp.parseAs
 import com.sf.tadami.ui.utils.awaitSingleOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class AppUpdater {
     private val httpClient : HttpClient = Injekt.get()
+    private val json : Json = Injekt.get()
 
     suspend fun checkForUpdate() : AppUpdate{
         return withContext(Dispatchers.IO) {
@@ -21,11 +23,14 @@ class AppUpdater {
                 .asObservableSuccess()
                 .awaitSingleOrNull(printErrors = false) ?: return@withContext AppUpdate.NoNewUpdate
             try{
-                response.parseAs<GithubUpdate>().let{
-                    val isNewversion = checkNewVersion(it.version)
-                    if(isNewversion) AppUpdate.NewUpdate(it)
-                    else AppUpdate.NoNewUpdate
+                with(json){
+                    response.parseAs<GithubUpdate>().let{
+                        val isNewversion = checkNewVersion(it.version)
+                        if(isNewversion) AppUpdate.NewUpdate(it)
+                        else AppUpdate.NoNewUpdate
+                    }
                 }
+
             } catch(e : Exception) {
                 AppUpdate.NoNewUpdate
             }

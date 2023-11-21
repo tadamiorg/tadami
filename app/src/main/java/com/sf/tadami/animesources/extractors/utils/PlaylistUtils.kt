@@ -31,14 +31,14 @@ class PlaylistUtils(private val client: OkHttpClient, private val headers: Heade
         referer: String = "",
         masterHeaders: Headers,
         videoHeaders: Headers,
-        videoNameGen: (String) -> String = { quality -> quality }
+        videoNameGen: (String) -> String = { quality -> quality },
     ): List<StreamSource> {
         return extractFromHls(
             playlistUrl,
             referer,
             { _, _ -> masterHeaders },
             { _, _, _ -> videoHeaders },
-            videoNameGen
+            videoNameGen,
         )
     }
 
@@ -69,16 +69,15 @@ class PlaylistUtils(private val client: OkHttpClient, private val headers: Heade
         masterHeadersGen: (Headers, String) -> Headers = { baseHeaders, referer ->
             generateMasterHeaders(baseHeaders, referer)
         },
-        videoHeadersGen: (Headers, String, String) -> Headers = { baseHeaders, referer, _ ->
+        videoHeadersGen: (Headers, String, String) -> Headers = { baseHeaders, referer, videoUrl ->
             generateMasterHeaders(baseHeaders, referer)
         },
-        videoNameGen: (String) -> String = { quality -> quality }
+        videoNameGen: (String) -> String = { quality -> quality },
     ): List<StreamSource> {
         val masterHeaders = masterHeadersGen(headers, referer)
 
-        val masterPlaylist = client.newCall(
-            GET(playlistUrl, headers = masterHeaders)
-        ).execute().body.string()
+        val masterPlaylist = client.newCall(GET(playlistUrl, masterHeaders)).execute()
+            .use { it.body.string() }
 
         // Check if there isn't multiple streams available
         if (PLAYLIST_SEPARATOR !in masterPlaylist) {
@@ -89,8 +88,15 @@ class PlaylistUtils(private val client: OkHttpClient, private val headers: Heade
             )
         }
 
-        val masterBase = "https://${playlistUrl.toHttpUrl().host}${playlistUrl.toHttpUrl().encodedPath}"
-            .substringBeforeLast("/") + "/"
+        val playlistHttpUrl = playlistUrl.toHttpUrl()
+
+        val masterUrlBasePath = playlistHttpUrl.newBuilder().apply {
+            removePathSegment(playlistHttpUrl.pathSize - 1)
+            addPathSegment("")
+            query(null)
+            fragment(null)
+        }.build().toString()
+
 
         return masterPlaylist.substringAfter(PLAYLIST_SEPARATOR).split(PLAYLIST_SEPARATOR).mapNotNull {
             val resolution = it.substringAfter("RESOLUTION=")
@@ -99,13 +105,14 @@ class PlaylistUtils(private val client: OkHttpClient, private val headers: Heade
                 .substringBefore(",") + "p"
 
             val videoUrl = it.substringAfter("\n").substringBefore("\n").let { url ->
-                getAbsoluteUrl(url, playlistUrl, masterBase)
+                getAbsoluteUrl(url, playlistUrl, masterUrlBasePath )
             } ?: return@mapNotNull null
+
+
 
             StreamSource(
                 videoUrl, videoNameGen(resolution),
-                headers = videoHeadersGen(headers, referer, videoUrl)
-
+                headers = videoHeadersGen(headers, referer, videoUrl),
             )
         }
     }
@@ -115,17 +122,18 @@ class PlaylistUtils(private val client: OkHttpClient, private val headers: Heade
             url.isEmpty() -> null
             url.startsWith("http") -> url
             url.startsWith("//") -> "https:$url"
-            url.startsWith("/") -> "https://" + playlistUrl.toHttpUrl().host + url
+            url.startsWith("/") -> playlistUrl.toHttpUrl().newBuilder().encodedPath("/").build().toString()
+                .substringBeforeLast("/") + url
             else -> masterBase + url
         }
     }
 
     fun generateMasterHeaders(baseHeaders: Headers, referer: String): Headers {
         return baseHeaders.newBuilder().apply {
-            add("Accept", "*/*")
+            set("Accept", "*/*")
             if (referer.isNotEmpty()) {
-                add("Origin", "https://${referer.toHttpUrl().host}")
-                add("Referer", referer)
+                set("Origin", "https://${referer.toHttpUrl().host}")
+                set("Referer", referer)
             }
         }.build()
     }
@@ -151,7 +159,7 @@ class PlaylistUtils(private val client: OkHttpClient, private val headers: Heade
         videoNameGen: (String) -> String,
         mpdHeaders: Headers,
         videoHeaders: Headers,
-        referer: String = ""
+        referer: String = "",
     ): List<StreamSource> {
         return extractFromDash(
             mpdUrl,
@@ -160,7 +168,7 @@ class PlaylistUtils(private val client: OkHttpClient, private val headers: Heade
             },
             referer,
             { _, _ -> mpdHeaders},
-            { _, _, _ -> videoHeaders}
+            { _, _, _ -> videoHeaders},
         )
     }
 
@@ -192,9 +200,10 @@ class PlaylistUtils(private val client: OkHttpClient, private val headers: Heade
         mpdHeadersGen: (Headers, String) -> Headers = { baseHeaders, referer ->
             generateMasterHeaders(baseHeaders, referer)
         },
-        videoHeadersGen: (Headers, String, String) -> Headers = { baseHeaders, referer, _ ->
+        videoHeadersGen: (Headers, String, String) -> Headers = { baseHeaders, referer, videoUrl ->
             generateMasterHeaders(baseHeaders, referer)
-        }
+        },
+
     ): List<StreamSource> {
         return extractFromDash(
             mpdUrl,
@@ -203,7 +212,7 @@ class PlaylistUtils(private val client: OkHttpClient, private val headers: Heade
             },
             referer,
             mpdHeadersGen,
-            videoHeadersGen
+            videoHeadersGen,
         )
     }
 
@@ -236,24 +245,24 @@ class PlaylistUtils(private val client: OkHttpClient, private val headers: Heade
         mpdHeadersGen: (Headers, String) -> Headers = { baseHeaders, referer ->
             generateMasterHeaders(baseHeaders, referer)
         },
-        videoHeadersGen: (Headers, String, String) -> Headers = { baseHeaders, referer, _ ->
+        videoHeadersGen: (Headers, String, String) -> Headers = { baseHeaders, referer, videoUrl ->
             generateMasterHeaders(baseHeaders, referer)
         },
     ): List<StreamSource> {
         val mpdHeaders = mpdHeadersGen(headers, referer)
 
-        val doc = client.newCall(
-            GET(mpdUrl, headers = mpdHeaders)
-        ).execute().asJsoup()
+        val doc = client.newCall(GET(mpdUrl, mpdHeaders)).execute()
+            .use { it.asJsoup() }
 
         return doc.select("Representation[mimetype~=video]").map { videoSrc ->
             val bandwidth = videoSrc.attr("bandwidth")
             val res = videoSrc.attr("height") + "p"
+            val videoUrl = videoSrc.text()
 
             StreamSource(
-                videoSrc.text(),
+                videoUrl,
                 videoNameGen(res, bandwidth),
-                headers = videoHeadersGen(headers, referer, videoSrc.text())
+                headers = videoHeadersGen(headers, referer, videoUrl),
             )
         }
     }

@@ -4,8 +4,8 @@ import android.util.Log
 import com.sf.tadami.R
 import com.sf.tadami.animesources.extractors.DoodExtractor
 import com.sf.tadami.animesources.extractors.Mp4uploadExtractor
+import com.sf.tadami.animesources.extractors.StreamWishExtractor
 import com.sf.tadami.animesources.sources.en.gogoanime.extractors.GogoCdnExtractor
-import com.sf.tadami.animesources.sources.en.gogoanime.extractors.StreamWishExtractor
 import com.sf.tadami.animesources.sources.en.gogoanime.filters.GogoAnimeFilters
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.network.api.model.*

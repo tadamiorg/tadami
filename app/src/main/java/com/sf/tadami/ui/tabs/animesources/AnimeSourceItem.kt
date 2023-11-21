@@ -79,7 +79,7 @@ fun AnimeSourceItem(
             }
             IconButton(onClick = {}, enabled = false) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_settings),
+                    painter = painterResource(id = R.drawable.ic_vertical_settings),
                     contentDescription = null
                 )
             }
