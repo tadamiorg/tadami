@@ -1,8 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode.cast
 
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import com.google.android.gms.cast.LaunchOptions
 import com.google.android.gms.cast.framework.CastOptions
 import com.google.android.gms.cast.framework.OptionsProvider
@@ -11,20 +9,17 @@ import com.google.android.gms.cast.framework.media.CastMediaOptions
 import com.google.android.gms.cast.framework.media.MediaIntentReceiver
 import com.google.android.gms.cast.framework.media.NotificationOptions
 import com.sf.tadami.R
+import com.sf.tadami.data.providers.DataStoreProvider
 import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferences
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class CastOptionsProvider : OptionsProvider {
-    private val dataStore: DataStore<Preferences> = Injekt.get()
+    private val dataStore: DataStoreProvider = Injekt.get()
     private var playerPreferences : PlayerPreferences = runBlocking {
-        dataStore.data.map { preferences ->
-            PlayerPreferences.transform(preferences)
-        }.first()
+        dataStore.getPreferencesGroup(PlayerPreferences)
     }
 
     override fun getCastOptions(context: Context): CastOptions {

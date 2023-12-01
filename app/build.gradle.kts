@@ -10,6 +10,7 @@ sqldelight {
         create("Database") {
             packageName.set("com.sf.tadami")
             dialect(libs.sqldelight.dialects.sql)
+            schemaOutputDirectory.set(file("src/main/sqldelight/databases"))
         }
     }
 }
@@ -19,8 +20,8 @@ android {
 
     defaultConfig {
         applicationId = "com.sf.tadami"
-        versionCode = 17
-        versionName = "1.2.2"
+        versionCode = 18
+        versionName = "1.2.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -139,6 +140,7 @@ dependencies {
 
     // JSUnpacker
     implementation(libs.jsunpacker)
+    implementation(libs.unifile)
 
 }
 tasks {

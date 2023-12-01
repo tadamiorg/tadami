@@ -12,25 +12,34 @@ object Notifications {
     // Library notifications
     const val LIBRARY_GROUP = "library_group"
     const val LIBRARY_UPDATE_PROGRESS_CHANNEL = "library_update_progress_channel"
-    const val LIBRARY_UPDATE_PROGRESS_NOTIFICATION = 100
+    const val LIBRARY_UPDATE_PROGRESS_ID = 100
     const val LIBRARY_UPDATE_SUCCESS_CHANNEL = "library_update_success_channel"
-    const val LIBRARY_UPDATE_SUCCESS_NOTIFICATION = 101
+    const val LIBRARY_UPDATE_SUCCESS_ID = 101
     const val LIBRARY_UPDATE_FAILURE_CHANNEL = "library_update_failure_channel"
-    const val LIBRARY_UPDATE_FAILURE_NOTIFICATION = 102
+    const val LIBRARY_UPDATE_FAILURE_ID = 102
     const val LIBRARY_UPDATE_SKIP_CHANNEL = "library_update_skip_channel"
-    const val LIBRARY_UPDATE_SKIP_NOTIFICATION = 103
+    const val LIBRARY_UPDATE_SKIP_ID = 103
 
     // App notifications
     const val APP_GROUP = "app_group"
     const val APP_UPDATE_DOWNLOAD_PROGRESS_CHANNEL = "app_update_download_progress_channel"
-    const val APP_UPDATE_DOWNLOAD_PROGRESS_NOTIFICATION = 200
+    const val APP_UPDATE_DOWNLOAD_PROGRESS_ID = 200
     const val APP_UPDATE_DOWNLOAD_SUCCESS_CHANNEL = "app_update_download_success_channel"
-    const val APP_UPDATE_DOWNLOAD_SUCCESS_NOTIFICATION = 201
+    const val APP_UPDATE_DOWNLOAD_SUCCESS_ID = 201
 
     // Cast notifications
     const val CAST_GROUP = "cast_group"
     const val CAST_PROXY_STATUS_CHANNEL = "cast_proxy_status_channel"
-    const val CAST_PROXY_STATUS_NOTIFICATION = 300
+    const val CAST_PROXY_STATUS_ID = 300
+
+    // Backup notifications
+    const val BACKUP_RESTORE_GROUP= "backup_group"
+    const val BACKUP_RESTORE_PROGRESS_CHANNEL="backup_restore_progress"
+    const val RESTORE_PROGRESS_ID=400
+    const val BACKUP_PROGRESS_ID=402
+    const val BACKUP_RESTORE_COMPLETE_CHANNEL="backup_restore_complete"
+    const val RESTORE_COMPLETE_ID=401
+    const val BACKUP_COMPLETE_ID=403
 
 
     fun setupNotificationsChannels(context: Context) {
@@ -46,6 +55,9 @@ object Notifications {
                 }.build(),
                 NotificationChannelGroupCompat.Builder(CAST_GROUP).apply {
                     setName(context.getString(R.string.notification_cast_group))
+                }.build(),
+                NotificationChannelGroupCompat.Builder(BACKUP_RESTORE_GROUP).apply {
+                    setName(context.getString(R.string.notification_backup_group))
                 }.build()
             )
         )
@@ -108,10 +120,29 @@ object Notifications {
             }.build()
         )
 
+        val backupChannels = listOf(
+            NotificationChannelCompat.Builder(
+                BACKUP_RESTORE_PROGRESS_CHANNEL,
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                setGroup(BACKUP_RESTORE_GROUP)
+                setName(context.getString(R.string.notification_backup_progress))
+            }.build(),
+            NotificationChannelCompat.Builder(
+                BACKUP_RESTORE_COMPLETE_CHANNEL,
+                NotificationManagerCompat.IMPORTANCE_HIGH
+            ).apply {
+                setGroup(BACKUP_RESTORE_GROUP)
+                setName(context.getString(R.string.notification_backup_complete))
+            }.build()
+        )
+
+
         notificationService.createNotificationChannelsCompat(
             appGroupChannels +
                     libraryGroupChannels +
-                    castChannels
+                    castChannels +
+                    backupChannels
         )
     }
 

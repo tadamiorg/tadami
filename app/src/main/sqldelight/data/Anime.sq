@@ -1,6 +1,6 @@
-import kotlin.collections.List;
 import kotlin.Boolean;
 import kotlin.String;
+import kotlin.collections.List;
 
 CREATE TABLE Anime (
   _id INTEGER NOT NULL PRIMARY KEY,
@@ -12,6 +12,9 @@ CREATE TABLE Anime (
   status TEXT,
   description TEXT,
   genres TEXT AS List<String>,
+  last_update INTEGER,
+  next_update INTEGER,
+  calculate_interval INTEGER DEFAULT 0 NOT NULL,
   favorite INTEGER AS Boolean NOT NULL DEFAULT 0,
   initialized INTEGER AS Boolean NOT NULL DEFAULT 0
 );
@@ -38,8 +41,8 @@ DELETE FROM Anime
 WHERE _id IN :animeId;
 
 insert:
-INSERT INTO Anime(source, url, title, thumbnail_url, release, status, description, genres, favorite, initialized)
-VALUES (:source,:url,:title,:thumbnailUrl,:release,:status,:description,:genre,:favorite,:initiliazed);
+INSERT INTO Anime(source, url, title, thumbnail_url, release, status, description, genres, last_update,next_update,calculate_interval,favorite, initialized)
+VALUES (:source,:url,:title,:thumbnailUrl,:release,:status,:description,:genres,:lastUpdate,:nextUpdate,:calculateInterval,:favorite,:initiliazed);
 
 update:
 UPDATE Anime
@@ -51,6 +54,9 @@ SET source = coalesce(:source, source),
     status = coalesce(:status, status),
     description = coalesce(:description, description),
     genres = coalesce(:genres, genres),
+    last_update = coalesce(:lastUpdate, last_update),
+    next_update = coalesce(:nextUpdate, next_update),
+    calculate_interval = coalesce(:calculateInterval, calculate_interval),
     favorite = coalesce(:favorite, favorite),
     initialized = coalesce(:initialized, initialized)
 WHERE _id = :animeId;

@@ -23,7 +23,7 @@ class LibraryUpdateNotifier(private val context: Context) {
         BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
     }
 
-    private val progressNotificationBuilder by lazy {
+    val progressNotificationBuilder by lazy {
         NotificationCompat.Builder(context, Notifications.LIBRARY_UPDATE_PROGRESS_CHANNEL).apply {
             setContentTitle(context.getString(R.string.app_name))
             setSmallIcon(R.drawable.ic_refresh)
@@ -45,7 +45,7 @@ class LibraryUpdateNotifier(private val context: Context) {
         )
 
         context.notify(
-            Notifications.LIBRARY_UPDATE_PROGRESS_NOTIFICATION,
+            Notifications.LIBRARY_UPDATE_PROGRESS_ID,
             progressNotificationBuilder
                 .setProgress(total, current, false)
                 .build()
@@ -54,7 +54,7 @@ class LibraryUpdateNotifier(private val context: Context) {
 
     fun showUpdateNotifications(updates: List<Pair<Anime, Array<Episode>>>) {
         context.notify(
-            Notifications.LIBRARY_UPDATE_SUCCESS_NOTIFICATION,
+            Notifications.LIBRARY_UPDATE_SUCCESS_ID,
             NotificationCompat.Builder(context, Notifications.LIBRARY_UPDATE_SUCCESS_CHANNEL)
                 .apply {
                     setContentTitle(context.getString(R.string.notification_library_update_success_title))
@@ -112,7 +112,7 @@ class LibraryUpdateNotifier(private val context: Context) {
                     color = context.getColor(R.color.midnightdusk_primary)
                     setContentIntent(getLogIntent(context, uriCompat))
                 }.build()
-        context.notify(Notifications.LIBRARY_UPDATE_FAILURE_NOTIFICATION, failedNotification)
+        context.notify(Notifications.LIBRARY_UPDATE_FAILURE_ID, failedNotification)
     }
 
     fun showSkippedNotifications(animeNumber: Int,uriCompat: Uri) {
@@ -134,12 +134,12 @@ class LibraryUpdateNotifier(private val context: Context) {
                 setContentIntent(getLogIntent(context, uriCompat))
             }.build()
 
-        context.notify(Notifications.LIBRARY_UPDATE_SKIP_NOTIFICATION, skippedNotification)
+        context.notify(Notifications.LIBRARY_UPDATE_SKIP_ID, skippedNotification)
     }
 
     fun cancelProgressNotification() {
         NotificationManagerCompat.from(context)
-            .cancel(Notifications.LIBRARY_UPDATE_PROGRESS_NOTIFICATION)
+            .cancel(Notifications.LIBRARY_UPDATE_PROGRESS_ID)
     }
 
     private fun getMainActivityIntent(): PendingIntent {

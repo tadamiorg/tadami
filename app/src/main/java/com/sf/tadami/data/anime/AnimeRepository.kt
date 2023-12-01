@@ -65,9 +65,12 @@ class AnimeRepositoryImpl(
                 release = anime.release,
                 status = anime.status,
                 description = anime.description,
-                genre = anime.genres,
+                genres = anime.genres,
                 favorite = anime.favorite,
-                initiliazed = anime.initialized
+                initiliazed = anime.initialized,
+                lastUpdate = anime.lastUpdate,
+                nextUpdate = anime.nextUpdate,
+                calculateInterval = anime.fetchInterval.toLong()
             )
             animeQueries.selectLastInsertedRowId()
         }
@@ -90,17 +93,17 @@ class AnimeRepositoryImpl(
     }
 
     override fun getLibraryAnimesAsFlow(): Flow<List<LibraryAnime>> {
-        return handler.subscribeToList { libraryQueries.getLibrary(libraryMapper) }
+        return handler.subscribeToList { libraryQueries.getLibrary(AnimeMapper::mapLibraryAnime) }
     }
 
     override suspend fun getLibraryAnimes(): List<LibraryAnime> {
         return handler.awaitList {
-            libraryQueries.getLibrary(libraryMapper)
+            libraryQueries.getLibrary(AnimeMapper::mapLibraryAnime)
         }
     }
 
     override suspend fun getAnimeBySourceAndUrl(source: String, url: String): Anime? {
-        return handler.awaitOneOrNull { animeQueries.getBySourceAndUrl(url, source, animeMapper) }
+        return handler.awaitOneOrNull { animeQueries.getBySourceAndUrl(url, source, AnimeMapper::mapAnime) }
     }
 
     override fun getAnimeByUrlAndSourceIdAsFlow(sourceId: String, url: String): Flow<Anime?> {
@@ -108,17 +111,17 @@ class AnimeRepositoryImpl(
             animeQueries.getBySourceAndUrl(
                 url,
                 sourceId,
-                animeMapper
+                AnimeMapper::mapAnime
             )
         }
     }
 
     override suspend fun getAnimeById(id: Long): Anime {
-        return handler.awaitOne { animeQueries.getById(id, animeMapper) }
+        return handler.awaitOne { animeQueries.getById(id, AnimeMapper::mapAnime) }
     }
 
     override fun getAnimeByIdAsFlow(id: Long): Flow<Anime> {
-        return handler.subscribeToOne { animeQueries.getById(id, animeMapper) }
+        return handler.subscribeToOne { animeQueries.getById(id, AnimeMapper::mapAnime) }
     }
 
     override suspend fun updateAnime(anime: UpdateAnime) : Boolean {
@@ -135,7 +138,10 @@ class AnimeRepositoryImpl(
                     genres = anime.genres?.let(listOfStringsAdapter::encode),
                     favorite = anime.favorite,
                     initialized = anime.initialized,
-                    animeId = anime.id
+                    animeId = anime.id,
+                    calculateInterval = anime.fetchInterval?.toLong(),
+                    nextUpdate = anime.nextUpdate,
+                    lastUpdate = anime.lastUpdate
                 )
             }
             true
@@ -158,7 +164,10 @@ class AnimeRepositoryImpl(
                     genres = anime.genres?.let(listOfStringsAdapter::encode),
                     favorite = anime.favorite,
                     initialized = anime.initialized,
-                    animeId = anime.id
+                    animeId = anime.id,
+                    calculateInterval = anime.fetchInterval?.toLong(),
+                    nextUpdate = anime.nextUpdate,
+                    lastUpdate = anime.lastUpdate
                 )
             }
         }

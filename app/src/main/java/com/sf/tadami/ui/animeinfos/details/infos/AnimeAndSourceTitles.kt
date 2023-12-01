@@ -1,6 +1,8 @@
 package com.sf.tadami.ui.animeinfos.details.infos
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -26,6 +28,7 @@ fun AnimeAndSourceTitles(
     artist: String?,
     status: String?,
     sourceName : String,
+    isStubSource : Boolean
 ) {
     Row(
         modifier = Modifier
@@ -78,6 +81,16 @@ fun AnimeAndSourceTitles(
                         maxLines = 1,
                     )
                     DotSeparatorText()
+                    if (isStubSource) {
+                        Icon(
+                            imageVector = Icons.Filled.Warning,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .padding(end = 4.dp)
+                                .size(16.dp),
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    }
                     Text(
                         text = sourceName,
                         overflow = TextOverflow.Ellipsis,

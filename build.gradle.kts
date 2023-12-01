@@ -40,7 +40,8 @@ subprojects {
             compileSdkVersion(34)
             defaultConfig {
                 minSdk = 28
-                targetSdk = 33
+                //noinspection ExpiredTargetSdkVersion
+                targetSdk = 29
             }
 
             compileOptions {

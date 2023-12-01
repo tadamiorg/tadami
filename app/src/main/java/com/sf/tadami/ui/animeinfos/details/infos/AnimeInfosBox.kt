@@ -23,7 +23,8 @@ fun AnimeInfosBox(
     artist: String?,
     cover: () -> String,
     sourceName:String,
-    status: String?
+    status: String?,
+    isStubSource : Boolean
 ) {
     Box(modifier = modifier) {
         // Backdrop
@@ -56,7 +57,8 @@ fun AnimeInfosBox(
                 author = author,
                 artist = artist,
                 status = status,
-                sourceName = sourceName
+                sourceName = sourceName,
+                isStubSource = isStubSource
             )
 
         }

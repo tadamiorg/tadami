@@ -8,6 +8,7 @@
     <string name="refresh">Refresh</string>
     <string name="language_fr">French</string>
     <string name="language_en">English</string>
+    <string name="language_unknown">Unknown</string>
     <string name="language_others">Others</string>
     <string name="anime_sources_screen_recents_btn">Recents</string>
     <string name="discover_recents_screen_title">Recents</string>
@@ -55,7 +56,7 @@
     <string name="preferences_library_auto_updates_daily2">Every 2 days</string>
     <string name="preferences_library_auto_updates_daily3">Every 3 days</string>
     <string name="preferences_library_update_restrictions_wifionly">Wi-Fi only</string>
-    <string name="preferences_library_update_restrictions_cellularonly">Cellular network only</string>
+    <string name="preferences_library_update_restrictions_charge">During charge</string>
     <string name="preferences_library_update_restrictions_battery">When battery not low</string>
     <string name="preferences_library_update_restrictions_subtitle">Restrictions : %s</string>
     <string name="settings_tab_library_preferences_title">Library</string>
@@ -130,5 +131,49 @@
     <string name="details_screen_resume_button">Resume</string>
     <string name="unknown_error">Unknown error</string>
     <string name="discover_search_ingores_filters">Search ignores filters</string>
+    <string name="preferences_backup_category_manual">Manual saves</string>
+    <string-array name="preferences_backup_create_fields">
+        <item>Library entries</item>
+        <item>Episodes</item>
+        <item>App preferences</item>
+    </string-array>
+    <string name="preferences_backup_create_title">Create a save</string>
+    <string name="preferences_backup_create_subtitle">May be used to restore current library</string>
+    <string name="preferences_backup_restore_subtitle">Restore library from backup file</string>
+    <string name="preferences_backup_restore_title">Restore backup</string>
+    <string name="preferences_backup_title">Backup and restore</string>
+    <string name="preferences_backup_category_auto">Automatic backups</string>
+    <string name="preferences_backup_frequency">Backup frequency</string>
+    <string name="preferences_backup_directory">Backup location</string>
+    <string name="preferences_backup_maxfiles">Maximum backup files</string>
+    <string name="notification_backup_group">Backups</string>
+    <string name="notification_backup_complete">Backup/Restore completed status</string>
+    <string name="notification_backup_progress">Progress of backup/restore</string>
+    <string name="creating_backup">Creating backup</string>
+    <string name="creating_backup_error">Backup failed</string>
+    <string name="backup_created">Backup created</string>
+    <string name="action_share">Share</string>
+    <string name="restoring_backup">Restoring backup</string>
+    <string name="restoring_backup_error">Restoring backup failed</string>
+    <string name="restoring_backup_canceled">Canceled restore</string>
+    <string name="restore_completed">Restore completed</string>
+    <string name="restore_duration">%02d min, %02d sec</string>
+    <plurals name="restore_completed_message">
+        <item quantity="one">Done in %1$s with %2$s error</item>
+        <item quantity="other">Done in %1$s with %2$s errors</item>
+    </plurals>
+    <string name="missing_storage_permission">Storage permissions not granted</string>
+    <string name="create_backup_file_error">Couldn\\\'t create a backup file</string>
+    <string name="empty_backup_error">No library entries to back up</string>
+    <string name="invalid_backup_file_missing_anime">Backup does not contain any library entries.</string>
+    <string name="library_sync_complete">Library sync complete</string>
+    <string name="app_settings">App settings</string>
+    <string name="backup_in_progress">Backup is already in progress</string>
+    <string name="file_picker_error">No file picker app found</string>
+    <string name="file_select_backup">Select backup file</string>
+    <string name="file_null_uri_error">No file selected</string>
+    <string name="restore_in_progress">Restore is already in progress</string>
+    <string name="source_not_installed">Source not installed: %1$s</string>
+
 
 </resources>

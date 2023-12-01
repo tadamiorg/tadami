@@ -2,46 +2,73 @@ package com.sf.tadami.ui.tabs.settings.screens.library
 
 import androidx.datastore.preferences.core.*
 import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
+import com.sf.tadami.ui.tabs.settings.model.CustomPreferencesIdentifier
 
 data class LibraryPreferences(
     val portraitColumns: Int,
     val landscapeColumns: Int,
-    val autoUpdates: Int,
-    val updateRestrictions: Set<String>,
+    val autoUpdateInterval: Int,
+    val autoUpdateRestrictions: Set<String>,
     val filterFlags: LibraryFilter,
-    val sortFlags : LibrarySort
-) {
+    val sortFlags : LibrarySort,
+    val lastUpdatedTimestamp : Long,
+) : CustomPreferencesIdentifier {
+
+    object AutoUpdateRestrictionItems {
+        const val WIFI = "wifi"
+        const val CHARGE = "charge"
+        const val BATTERY = "battery"
+    }
+
+    object AutoUpdateIntervalItems {
+        const val DISABLED = 0
+        const val DAILY = 24
+        const val DAILY_2 = 48
+        const val DAILY_3 = 72
+        const val WEEKLY = 168
+    }
+
     companion object : CustomPreferences<LibraryPreferences> {
-        val PORTRAIT_COLUMNS = intPreferencesKey("library_portrait_columns")
-        val LANDSCAPE_COLUMNS = intPreferencesKey("library_landscape_columns")
-        val AUTO_UPDATES = intPreferencesKey("library_auto_updates")
-        val UPDATE_RESTRICTIONS = stringSetPreferencesKey("library_update_restrictions")
+        val deprecatedPreferences = setOf<Preferences.Key<*>>(
+            intPreferencesKey("library_auto_updates"),
+            stringSetPreferencesKey("library_update_restrictions")
+        )
+
+        private val PORTRAIT_COLUMNS = intPreferencesKey("library_portrait_columns")
+        private val LANDSCAPE_COLUMNS = intPreferencesKey("library_landscape_columns")
+        private val AUTO_UPDATE_INTERVAL = intPreferencesKey("library_auto_update_interval")
+        private val AUTO_UPDATE_RESTRICTIONS = stringSetPreferencesKey("library_auto_update_restrictions")
+        private val LIBRARY_UPDATE_LAST_TIMESTAMP = longPreferencesKey(CustomPreferences.appStateKey("library_update_last_timestamp"))
 
         // Flags
-        val FILTER_FLAGS = longPreferencesKey("library_filter_flags")
-        val SORT_FLAGS = longPreferencesKey("library_sort_flags")
+        private val FILTER_FLAGS = longPreferencesKey("library_filter_flags")
+        private val SORT_FLAGS = longPreferencesKey("library_sort_flags")
 
         override fun transform(preferences: Preferences): LibraryPreferences {
             return LibraryPreferences(
                 portraitColumns = preferences[PORTRAIT_COLUMNS] ?: 0,
                 landscapeColumns = preferences[LANDSCAPE_COLUMNS] ?: 0,
-                autoUpdates = preferences[AUTO_UPDATES] ?: 24,
-                updateRestrictions = preferences[UPDATE_RESTRICTIONS] ?: setOf(
-                    UPDATE_RESTRICTIONS_ITEMS.WIFI
+                autoUpdateInterval = preferences[AUTO_UPDATE_INTERVAL] ?: AutoUpdateIntervalItems.DISABLED,
+                autoUpdateRestrictions = preferences[AUTO_UPDATE_RESTRICTIONS] ?: setOf(
+                    AutoUpdateRestrictionItems.WIFI
                 ),
                 filterFlags = LibraryFilter(flags = preferences[FILTER_FLAGS] ?: LibraryFilter.DEFAULT_FILTER),
                 sortFlags = LibrarySort(flags = preferences[SORT_FLAGS] ?: LibrarySort.DEFAULT_SORT),
+                lastUpdatedTimestamp = preferences[LIBRARY_UPDATE_LAST_TIMESTAMP] ?: 0L
             )
         }
 
         override fun setPrefs(newValue: LibraryPreferences, preferences: MutablePreferences) {
             preferences[PORTRAIT_COLUMNS] = newValue.portraitColumns
             preferences[LANDSCAPE_COLUMNS] = newValue.landscapeColumns
-            preferences[AUTO_UPDATES] = newValue.autoUpdates
-            preferences[UPDATE_RESTRICTIONS] = newValue.updateRestrictions
+            preferences[AUTO_UPDATE_INTERVAL] = newValue.autoUpdateInterval
+            preferences[AUTO_UPDATE_RESTRICTIONS] = newValue.autoUpdateRestrictions
             preferences[FILTER_FLAGS] = newValue.filterFlags.flags
             preferences[SORT_FLAGS] = newValue.sortFlags.flags
+            preferences[LIBRARY_UPDATE_LAST_TIMESTAMP] = newValue.lastUpdatedTimestamp
         }
+
+
     }
 }
 

@@ -11,11 +11,13 @@ import com.sf.tadami.domain.episode.copyFromSEpisode
 import com.sf.tadami.domain.episode.toUpdateEpisode
 import com.sf.tadami.network.api.model.SAnime
 import com.sf.tadami.network.api.model.SEpisode
+import java.time.ZonedDateTime
 import java.util.*
 
 class UpdateAnimeInteractor(
     private val animeRepository: AnimeRepository,
     private val episodeRepository: EpisodeRepository,
+    private val fetchInterval : FetchIntervalInteractor
 ) {
 
     suspend fun updateLibraryAnime(
@@ -53,6 +55,16 @@ class UpdateAnimeInteractor(
                 initialized = true
             ),
         )
+    }
+
+    suspend fun awaitUpdateFetchInterval(
+        anime: Anime,
+        dateTime: ZonedDateTime = ZonedDateTime.now(),
+        window: Pair<Long, Long> = fetchInterval.getWindow(dateTime),
+    ): Boolean {
+        return fetchInterval.toAnimeUpdateOrNull(anime, dateTime, window)
+            ?.let { animeRepository.updateAnime(it)}
+            ?: false
     }
 
     suspend fun awaitEpisodesSyncFromSource(

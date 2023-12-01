@@ -3,6 +3,7 @@ package com.sf.tadami.ui.utils
 import android.util.Log
 import com.sf.tadami.App
 import com.sf.tadami.R
+import com.sf.tadami.network.api.online.StubSource
 import com.sf.tadami.network.requests.okhttp.HttpError
 import io.reactivex.rxjava3.core.Observable
 import kotlinx.coroutines.CancellationException
@@ -33,6 +34,14 @@ suspend fun <T : Any> Observable<T>.awaitSingleOrNull(
                 }
                 is CancellationException -> {
                     Log.e("AwaitSingleOrNull", "Cancellation : ${e.message}")
+                }
+                is StubSource.SourceNotInstalledException -> {
+                    App.getAppContext()?.let {
+                        UiToasts.showToast(
+                            stringRes = R.string.source_not_installed,
+                            args = arrayOf("${e.message}")
+                        )
+                    }
                 }
                 else -> {
                     App.getAppContext()?.let {

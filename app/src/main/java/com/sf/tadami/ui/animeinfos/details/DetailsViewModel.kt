@@ -7,7 +7,8 @@ import com.sf.tadami.data.interactors.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
-import com.sf.tadami.network.api.online.AnimeSource
+import com.sf.tadami.network.api.online.Source
+import com.sf.tadami.network.api.online.StubSource
 import com.sf.tadami.ui.components.data.EpisodeItem
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.tadami.ui.utils.addOrRemove
@@ -29,7 +30,7 @@ class DetailsViewModel(
     private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
     private val sourceId: String = checkNotNull(savedStateHandle["sourceId"])
 
-    val source: AnimeSource = checkNotNull(sourcesManager.getExtensionById(sourceId))
+    val source: Source = sourcesManager.getExtensionById(sourceId) as Source? ?: StubSource(sourceId)
 
     private val _uiState = MutableStateFlow(DetailsUiState())
     val uiState: StateFlow<DetailsUiState> = _uiState.asStateFlow()

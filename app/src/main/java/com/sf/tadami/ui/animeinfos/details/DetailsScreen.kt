@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.animeinfos.details
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -24,6 +25,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.AnimeInfosRoutes
+import com.sf.tadami.network.api.online.StubSource
 import com.sf.tadami.ui.animeinfos.details.episodes.EpisodesHeader
 import com.sf.tadami.ui.animeinfos.details.episodes.episodeItems
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeInfosBox
@@ -35,7 +37,8 @@ import com.sf.tadami.ui.components.widgets.VerticalFastScroller
 import com.sf.tadami.ui.utils.isScrollingUp
 import com.sf.tadami.ui.utils.padding
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+@SuppressLint("OpaqueUnitKey")
 @Composable
 fun DetailsScreen(
     navHostController: NavHostController,
@@ -48,7 +51,7 @@ fun DetailsScreen(
     val episodesListState = rememberLazyListState()
 
     var fabHeight by remember {
-        mutableStateOf(0)
+        mutableIntStateOf(0)
     }
 
     val fabHeightInDp = with(LocalDensity.current) { fabHeight.toDp() }
@@ -182,7 +185,8 @@ fun DetailsScreen(
                             artist = "",
                             status = uiState.details?.status,
                             cover = { uiState.details?.thumbnailUrl ?: "" },
-                            sourceName = detailsViewModel.source.name
+                            sourceName = detailsViewModel.source.name,
+                            isStubSource = remember { detailsViewModel.source is StubSource }
                         )
                     }
 

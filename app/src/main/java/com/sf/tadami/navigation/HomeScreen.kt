@@ -35,7 +35,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     navController: NavHostController,
-    navLoaded: () -> Unit,
     homeScreenViewModel: HomeScreenViewModel = viewModel()
 ) {
 
@@ -57,10 +56,6 @@ fun HomeScreen(
 
     val librarySheetState  = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val coroutineScope = rememberCoroutineScope()
-
-    if (bottomBarDestination) {
-        navLoaded()
-    }
 
     LaunchedEffect(bottomBarDestination, manualDisplay) {
         displayed.targetState = bottomBarDestination && manualDisplay

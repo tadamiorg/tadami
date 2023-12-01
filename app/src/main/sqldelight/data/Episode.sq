@@ -1,5 +1,4 @@
 import kotlin.Boolean;
-import kotlin.Long;
 
 CREATE TABLE Episode (
   _id INTEGER NOT NULL PRIMARY KEY,

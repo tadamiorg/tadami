@@ -1,15 +1,10 @@
 package com.sf.tadami.animesources.extractors.unused.streamsbextractor
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
 import com.sf.tadami.animesources.extractors.ExtractorsPreferences
+import com.sf.tadami.data.providers.DataStoreProvider
 import com.sf.tadami.network.api.model.StreamSource
 import com.sf.tadami.network.requests.okhttp.GET
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -20,15 +15,14 @@ import uy.kohesive.injekt.injectLazy
 
 class StreamSBExtractor(private val client: OkHttpClient) {
 
-    private val dataStore: DataStore<Preferences> = Injekt.get()
+    private val dataStoreProvider: DataStoreProvider = Injekt.get()
     private var extractorsPreferences: ExtractorsPreferences = runBlocking {
-        dataStore.data.map { preferences ->
-            ExtractorsPreferences.transform(preferences)
-        }.first()
+        dataStoreProvider.getPreferencesGroup(ExtractorsPreferences)
     }
 
     companion object {
-        private const val ENDPOINT_URL = "https://raw.githubusercontent.com/Claudemirovsky/streamsb-endpoint/master/endpoint.txt"
+        private const val ENDPOINT_URL =
+            "https://raw.githubusercontent.com/Claudemirovsky/streamsb-endpoint/master/endpoint.txt"
     }
 
     private val json: Json by injectLazy()
@@ -40,10 +34,8 @@ class StreamSBExtractor(private val client: OkHttpClient) {
             .use { it.body.string() }
             .let {
                 runBlocking {
-                    dataStore.edit { preferences ->
-                        val newValue = extractorsPreferences.copy(streamSbEndpoint = it)
-                        ExtractorsPreferences.setPrefs(newValue, preferences)
-                        extractorsPreferences = newValue
+                    dataStoreProvider.editPreferences(extractorsPreferences.copy(streamSbEndpoint = it),ExtractorsPreferences) {
+                        extractorsPreferences = it
                     }
                 }
             }
@@ -139,7 +131,12 @@ class StreamSBExtractor(private val client: OkHttpClient) {
         }.getOrNull() ?: emptyList()
     }
 
-    fun videosFromDecryptedUrl(realUrl: String, headers: Headers, prefix: String = "", suffix: String = ""): List<StreamSource> {
+    fun videosFromDecryptedUrl(
+        realUrl: String,
+        headers: Headers,
+        prefix: String = "",
+        suffix: String = ""
+    ): List<StreamSource> {
         return videosFromUrl(realUrl, headers, prefix, suffix, manualData = true)
     }
 }

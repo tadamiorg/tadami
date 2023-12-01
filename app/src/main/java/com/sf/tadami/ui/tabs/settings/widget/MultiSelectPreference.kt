@@ -8,12 +8,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import com.sf.tadami.ui.components.dialog.alert.*
 
 @Composable
-fun MultiSelectPreference(
-    value : Set<String>,
-    items : Map<String,String>,
+fun <T>MultiSelectPreference(
+    value : Set<T>,
+    items : Map<T,Pair<String,Boolean>>,
     title : String,
+    overrideOkButton : Boolean,
     subtitleProvider : @Composable () -> String?,
-    onValueChange: (items : Set<String>) -> Unit
+    onValueChange: (items : Set<T>) -> Unit
 
 ) {
     var showDialog by rememberSaveable { mutableStateOf(false) }
@@ -38,7 +39,7 @@ fun MultiSelectPreference(
                 showDialog = false
             },
             confirmButton = {
-                DefaultDialogConfirmButton(enabled = value != selectedItems.toSet()) {
+                DefaultDialogConfirmButton(enabled = overrideOkButton || value != selectedItems.toSet()) {
                     onValueChange(selectedItems.toSet())
                     showDialog = false
                 }
@@ -51,7 +52,7 @@ fun MultiSelectPreference(
         ) {
             LazyColumn{
                 items(items.toList()){(item,label) ->
-                    DialogCheckBoxRow(label = label, isSelected = selectedItems.contains(item)) {
+                    DialogCheckBoxRow(label = label.first, isSelected = selectedItems.contains(item),enabled = label.second) {
                         if(it){
                             selectedItems.remove(item)
                         }else{

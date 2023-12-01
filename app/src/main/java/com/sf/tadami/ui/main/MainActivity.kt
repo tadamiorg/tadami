@@ -1,76 +1,90 @@
 package com.sf.tadami.ui.main
 
 import android.os.Bundle
-import android.os.PersistableBundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
+import com.sf.tadami.AppPreferences
+import com.sf.tadami.Migrations
 import com.sf.tadami.R
+import com.sf.tadami.data.providers.DataStoreProvider
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.notifications.cast.CastProxyService
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
+import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
+import com.sf.tadami.ui.tabs.settings.screens.backup.BackupPreferences
+import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
+import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferences
 import com.sf.tadami.ui.themes.TadamiTheme
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 class MainActivity : AppCompatActivity() {
 
-    private var navLoaded: Boolean = true
     private var castSession: CastSession? = null
     private var castSessionManagerListener: SessionManagerListener<CastSession>? = null
     private lateinit var castContext: CastContext
     private val errorChannel = ErrorChannel()
+    private var ready = false
+    private val dataStoreProvider : DataStoreProvider = Injekt.get()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val isLaunch = savedInstanceState == null
+        val splashScreen = if (isLaunch) installSplashScreen() else null
+        if(!isLaunch){
+            setTheme(R.style.Theme_Tadami)
+        }
+
         super.onCreate(savedInstanceState)
+
+        if (isLaunch) {
+            lifecycleScope.launch(Dispatchers.IO) {
+                Migrations.upgrade(
+                    context = applicationContext,
+                    dataStoreProvider = dataStoreProvider,
+                    libraryPreferences = dataStoreProvider.getPreferencesGroup(LibraryPreferences),
+                    playerPreferences = dataStoreProvider.getPreferencesGroup(PlayerPreferences),
+                    backupPreferences = dataStoreProvider.getPreferencesGroup(BackupPreferences),
+                    appPreferences = dataStoreProvider.getPreferencesGroup(AppPreferences),
+                    sourcesPreferences = dataStoreProvider.getPreferencesGroup(SourcesPreferences)
+                )
+            }
+        }
 
         castContext = CastContext.getSharedInstance(this)
         castSession = castContext.sessionManager.currentCastSession
 
         setupCastListener()
 
-        if (savedInstanceState != null) {
-            with(savedInstanceState) {
-                navLoaded = getBoolean(STATE_NAV_LOADED)
-            }
-            setTheme(R.style.Theme_Tadami)
-        } else {
-            installSplashScreen().apply {
-                setKeepOnScreenCondition {
-                    navLoaded
-                }
-            }
-        }
-
         setContent {
-            val coroutineScope = rememberCoroutineScope()
-
             TadamiTheme {
+                val navController = rememberNavController()
                 AppUpdaterScreen()
-                HomeScreen(navController = rememberNavController(), navLoaded = {
-                    if (this.navLoaded) {
-                        coroutineScope.launch(Dispatchers.IO) {
-                            delay(250)
-                            this@MainActivity.navLoaded = false
-                        }
+                HomeScreen(navController)
+                LaunchedEffect(navController) {
+                    if (isLaunch) {
+                        ready = true
                     }
-                })
+                }
+
+
             }
         }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
-        outState.run {
-            putBoolean(STATE_NAV_LOADED, navLoaded)
+        val startTime = System.currentTimeMillis()
+        splashScreen?.setKeepOnScreenCondition {
+            val elapsed = System.currentTimeMillis() - startTime
+            elapsed <= SPLASH_MIN_DURATION || (!ready && elapsed <= SPLASH_MAX_DURATION)
         }
-        super.onSaveInstanceState(outState, outPersistentState)
     }
 
     override fun onResume() {
@@ -130,6 +144,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val STATE_NAV_LOADED = "nav_loaded"
+        const val SPLASH_MIN_DURATION = 500 // ms
+        const val SPLASH_MAX_DURATION = 5000 // ms
     }
 }

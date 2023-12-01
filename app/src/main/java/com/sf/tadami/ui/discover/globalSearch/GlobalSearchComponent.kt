@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
 import com.sf.tadami.domain.anime.Anime
-import com.sf.tadami.network.api.online.AnimeSource
+import com.sf.tadami.network.api.online.AnimeCatalogueSource
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchCardRow
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchErrorResultItem
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchItemResult
@@ -25,9 +25,9 @@ import com.sf.tadami.ui.utils.padding
 @Composable
 fun GlobalSearchComponent(
     modifier: Modifier = Modifier,
-    animesBySource: Map<AnimeSource, GlobalSearchItemResult>,
+    animesBySource: Map<AnimeCatalogueSource, GlobalSearchItemResult>,
     onAnimeClicked: (anime: Anime) -> Unit,
-    onSourceClicked: (AnimeSource) -> Unit,
+    onSourceClicked: (AnimeCatalogueSource) -> Unit,
 ) {
     LazyColumn(modifier = modifier) {
         animesBySource.forEach { (source, result) ->

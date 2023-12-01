@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.work.*
 import com.sf.tadami.network.requests.okhttp.*
+import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.notifications.utils.okhttp.ProgressListener
 import com.sf.tadami.ui.utils.awaitSingleOrNull
 import com.sf.tadami.ui.utils.getUriCompat
@@ -25,6 +26,11 @@ class AppUpdateWorker(
     private val network: HttpClient = Injekt.get()
 
     override suspend fun doWork(): Result {
+        try {
+            setForegroundAsync(getForegroundInfo())
+        } catch (e: IllegalStateException) {
+            Log.d("Worker error", "Job could not be set in foreground", e)
+        }
         return withContext(Dispatchers.IO) {
             try {
                 downloadAppUpdate(inputData.getString(UPDATE_LINK)!!)
@@ -43,9 +49,14 @@ class AppUpdateWorker(
         }
     }
 
-    private suspend fun downloadAppUpdate(updateLink : String) {
-        notifier.showProgressNotification()
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        return ForegroundInfo(
+            Notifications.APP_UPDATE_DOWNLOAD_PROGRESS_ID,
+            notifier.showProgressNotification()
+        )
+    }
 
+    private suspend fun downloadAppUpdate(updateLink : String) {
         val progressListener = object : ProgressListener {
             // Progress of the download
             var savedProgress = 0

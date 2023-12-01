@@ -166,6 +166,12 @@ fun CastVideoPlayer(
         }
     }
 
+    LaunchedEffect(key1 = episodeUiState.loadError){
+        if(episodeUiState.loadError){
+            dispatcher.onBackPressed()
+        }
+    }
+
     LaunchedEffect(idleLock){
         if(idleLock){
             totalDuration = 0

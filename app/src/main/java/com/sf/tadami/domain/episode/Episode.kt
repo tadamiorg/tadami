@@ -15,6 +15,15 @@ data class Episode(
     val seen : Boolean,
     val sourceOrder : Long,
 ) {
+
+    fun copyFrom(other: Episode): Episode {
+        return copy(
+            name = other.name,
+            url = other.url,
+            dateUpload = other.dateUpload,
+            episodeNumber = other.episodeNumber
+        )
+    }
     companion object {
         fun create() : Episode{
             return Episode(
