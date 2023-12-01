@@ -9,8 +9,9 @@ import com.sf.tadami.animesources.sources.en.gogoanime.extractors.GogoCdnExtract
 import com.sf.tadami.animesources.sources.en.gogoanime.filters.GogoAnimeFilters
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.network.api.model.*
-import com.sf.tadami.network.api.online.AnimeSource
+import com.sf.tadami.network.api.online.ParsedAnimeHttpSource
 import com.sf.tadami.network.requests.okhttp.GET
+import com.sf.tadami.network.requests.okhttp.asCancelableObservable
 import com.sf.tadami.network.requests.okhttp.asObservable
 import com.sf.tadami.network.requests.utils.asJsoup
 import com.sf.tadami.ui.utils.parallelMap
@@ -24,11 +25,13 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import uy.kohesive.injekt.injectLazy
 
-class GogoAnime : AnimeSource("GogoAnime") {
+class GogoAnime() : ParsedAnimeHttpSource() {
+
+    override val id : String = "GogoAnime"
 
     override val name: String = "GogoAnime"
 
-    override val baseUrl: String = "https://gogoanimehd.io"
+    override val baseUrl: String = "https://anitaku.to"
 
     override val lang: Lang = Lang.ENGLISH
 
@@ -145,12 +148,11 @@ class GogoAnime : AnimeSource("GogoAnime") {
         val episodesListRequest = client.newCall(episodesRequest(anime))
             .asObservable()
             .map { response ->
-
                 getGogoEpisodesRequest(response)
             }
         return episodesListRequest.flatMap { request ->
             client.newCall(request)
-                .asObservable().map { response ->
+                .asCancelableObservable().map { response ->
                     episodesParse(response)
                 }
         }
@@ -158,7 +160,7 @@ class GogoAnime : AnimeSource("GogoAnime") {
 
     // Episode Source Stream
 
-    private fun List<StreamSource>.sort(): List<StreamSource> {
+    override fun List<StreamSource>.sort(): List<StreamSource> {
         val quality = "1080"
         val server = "Gogostream"
 

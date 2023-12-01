@@ -13,7 +13,7 @@ fun LibraryComponent(
     modifier: Modifier = Modifier,
     libraryList: List<LibraryItem>,
     librarySize : Int,
-    onAnimeCLicked: (anime: LibraryItem) -> Unit,
+    onAnimeClicked: (anime: LibraryItem) -> Unit,
     onAnimeLongCLicked: (anime: LibraryItem) -> Unit,
     onRefresh: () -> Unit,
     indicatorPadding: PaddingValues = PaddingValues(0.dp),
@@ -29,7 +29,7 @@ fun LibraryComponent(
             modifier = modifier,
             animeList = libraryList,
             librarySize = librarySize,
-            onAnimeCLicked = onAnimeCLicked,
+            onAnimeClicked = onAnimeClicked,
             onEmptyRefreshClicked = onEmptyRefreshClicked,
             onAnimeLongClicked = onAnimeLongCLicked,
         )

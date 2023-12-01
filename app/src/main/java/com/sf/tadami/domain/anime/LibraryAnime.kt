@@ -13,5 +13,8 @@ data class LibraryAnime(
     val favorite: Boolean,
     val initialized: Boolean,
     val episodes : Long,
+    val lastUpdate: Long,
+    val nextUpdate: Long,
+    val fetchInterval: Int,
     val unseenEpisodes: Long
 )

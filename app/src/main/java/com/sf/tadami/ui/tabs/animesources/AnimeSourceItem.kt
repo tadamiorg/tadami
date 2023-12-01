@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sf.tadami.R
-import com.sf.tadami.network.api.online.AnimeSource
+import com.sf.tadami.network.api.online.AnimeCatalogueSource
 import com.sf.tadami.ui.utils.ImageDefaults.CoverPlaceholderColor
 import com.sf.tadami.ui.utils.capFirstLetter
 import com.sf.tadami.ui.utils.padding
@@ -27,7 +27,7 @@ import java.util.*
 @SuppressLint("DiscouragedApi")
 @Composable
 fun AnimeSourceItem(
-    source: AnimeSource,
+    source: AnimeCatalogueSource,
     onRecentClicked: () -> Unit,
     onSearchClicked: () -> Unit
 ) {

@@ -3,11 +3,9 @@ package com.sf.tadami.animesources.sources.fr.vostfree
 import com.sf.tadami.App
 import com.sf.tadami.R
 import com.sf.tadami.animesources.extractors.*
-import com.sf.tadami.animesources.extractors.unused.streamsbextractor.StreamSBExtractor
-import com.sf.tadami.animesources.sources.fr.vostfree.extractors.MyViExtractor
 import com.sf.tadami.animesources.sources.fr.vostfree.extractors.VudeoExtractor
 import com.sf.tadami.network.api.model.*
-import com.sf.tadami.network.api.online.AnimeSource
+import com.sf.tadami.network.api.online.ParsedAnimeHttpSource
 import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.requests.okhttp.POST
 import com.sf.tadami.network.requests.utils.asJsoup
@@ -21,7 +19,9 @@ import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
-class VostFree : AnimeSource("VostFree") {
+class VostFree : ParsedAnimeHttpSource() {
+
+    override val id: String = "VostFree"
 
     override val name: String = "VostFree"
 
@@ -241,7 +241,7 @@ class VostFree : AnimeSource("VostFree") {
         )
 
 
-    private fun List<StreamSource>.sort(): List<StreamSource> {
+    override fun List<StreamSource>.sort(): List<StreamSource> {
         val server = "Mytv"
 
         return this.sortedWith(

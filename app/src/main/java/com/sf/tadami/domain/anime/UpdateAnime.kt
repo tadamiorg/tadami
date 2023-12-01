@@ -12,6 +12,9 @@ data class UpdateAnime(
     val genres: List<String>? = null,
     val favorite: Boolean? = null,
     val initialized: Boolean? = null,
+    val lastUpdate: Long? = null,
+    val nextUpdate: Long? = null,
+    val fetchInterval: Int? = null,
 ){
     companion object{
         fun create(id : Long) : UpdateAnime{
@@ -32,6 +35,9 @@ fun Anime.toUpdateAnime() : UpdateAnime {
         description = description,
         genres = genres,
         favorite = favorite,
-        initialized = initialized
+        initialized = initialized,
+        lastUpdate = lastUpdate,
+        nextUpdate = nextUpdate,
+        fetchInterval = fetchInterval,
     )
 }

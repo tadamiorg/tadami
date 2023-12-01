@@ -2,7 +2,6 @@ package com.sf.tadami.animesources.sources.fr.animesama
 
 import android.text.Html
 import com.sf.tadami.R
-import com.sf.tadami.animesources.extractors.MytvExtractor
 import com.sf.tadami.animesources.extractors.SendvidExtractor
 import com.sf.tadami.animesources.extractors.SibnetExtractor
 import com.sf.tadami.animesources.extractors.VkExtractor
@@ -11,12 +10,11 @@ import com.sf.tadami.network.api.model.AnimeFilterList
 import com.sf.tadami.network.api.model.SAnime
 import com.sf.tadami.network.api.model.SEpisode
 import com.sf.tadami.network.api.model.StreamSource
-import com.sf.tadami.network.api.online.AnimeSource
 import com.sf.tadami.network.api.online.AnimesPage
+import com.sf.tadami.network.api.online.ParsedAnimeHttpSource
 import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.requests.okhttp.POST
 import com.sf.tadami.network.requests.okhttp.asCancelableObservable
-import com.sf.tadami.network.requests.okhttp.asObservable
 import com.sf.tadami.network.requests.utils.asJsoup
 import com.sf.tadami.ui.utils.capFirstLetter
 import com.sf.tadami.ui.utils.parallelMap
@@ -29,7 +27,9 @@ import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
-class AnimeSama : AnimeSource("AnimeSama") {
+class AnimeSama : ParsedAnimeHttpSource() {
+
+    override val id: String = "AnimeSama"
 
     override val name: String = "AnimeSama"
 
@@ -65,7 +65,7 @@ class AnimeSama : AnimeSource("AnimeSama") {
         noToasts: Boolean
     ): Observable<AnimesPage> {
         return client.newCall(searchAnimeRequest(page, query, filters, noToasts))
-            .asObservable()
+            .asCancelableObservable()
             .flatMap { response ->
 
                 val document = response.asJsoup()
@@ -80,7 +80,7 @@ class AnimeSama : AnimeSource("AnimeSama") {
 
                 val pageRequests = animeList.map { anime ->
                     client.newCall(GET("$baseUrl${anime.url}"))
-                        .asObservable()
+                        .asCancelableObservable()
                         .map { response ->
                             val doc = response.asJsoup()
                             val seasonDiv =
@@ -167,7 +167,7 @@ class AnimeSama : AnimeSource("AnimeSama") {
 
     override fun fetchAnimeDetails(anime: Anime): Observable<SAnime> {
         return client.newCall(animeDetailsRequest(anime))
-            .asObservable()
+            .asCancelableObservable()
             .map { response ->
                 animeDetailsParse(response.asJsoup(), parseSeason(anime.url))
             }
@@ -290,7 +290,7 @@ class AnimeSama : AnimeSource("AnimeSama") {
     override fun fetchEpisodesList(anime: Anime): Observable<List<SEpisode>> {
         val episodeScriptRequest = GET(baseUrl + anime.url + "/episodes.js", headers)
         return client.newCall(episodeScriptRequest)
-            .asObservable()
+            .asCancelableObservable()
             .map { res ->
                 val doc = res.asJsoup()
                 val pattern = Regex("""var (.*?) = \[(.*?)\];""")
@@ -388,9 +388,8 @@ class AnimeSama : AnimeSource("AnimeSama") {
 
     override fun fetchEpisode(url: String): Observable<List<StreamSource>> {
         return client.newCall(episodeRequest(url))
-            .asCancelableObservable {
-                it
-            }.map { response ->
+            .asCancelableObservable()
+            .map { response ->
                 val document = response.asJsoup()
                 val episodeScriptFile =
                     document.selectFirst("script[src^=episodes.js?filever]")?.attr("src")
@@ -401,7 +400,7 @@ class AnimeSama : AnimeSource("AnimeSama") {
             }
     }
 
-    private fun List<StreamSource>.sort(): List<StreamSource> {
+    override fun List<StreamSource>.sort(): List<StreamSource> {
         val server = "AnimeSama"
 
         return this.sortedWith(

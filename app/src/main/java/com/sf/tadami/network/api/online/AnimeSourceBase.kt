@@ -7,7 +7,6 @@ import com.sf.tadami.network.api.model.SEpisode
 import com.sf.tadami.network.api.model.StreamSource
 import com.sf.tadami.network.requests.okhttp.HttpClient
 import com.sf.tadami.network.requests.okhttp.asCancelableObservable
-import com.sf.tadami.network.requests.okhttp.asObservable
 import com.sf.tadami.network.requests.utils.asJsoup
 import io.reactivex.rxjava3.core.Observable
 import okhttp3.Headers
@@ -89,7 +88,7 @@ abstract class AnimeSourceBase {
 
     open fun fetchLatest(page: Int): Observable<AnimesPage> {
         return client.newCall(latestAnimesRequest(page))
-            .asObservable()
+            .asCancelableObservable()
             .map { response ->
                 latestAnimeParse(response)
             }
@@ -122,7 +121,7 @@ abstract class AnimeSourceBase {
 
     open fun fetchSearch(page: Int,query : String,filters: AnimeFilterList,noToasts : Boolean = false): Observable<AnimesPage> {
         return client.newCall(searchAnimeRequest(page,query,filters,noToasts))
-            .asObservable()
+            .asCancelableObservable()
             .map { response ->
                 searchAnimeParse(response)
             }
@@ -145,7 +144,7 @@ abstract class AnimeSourceBase {
 
     open fun fetchAnimeDetails(anime: Anime): Observable<SAnime> {
         return client.newCall(animeDetailsRequest(anime))
-            .asObservable()
+            .asCancelableObservable()
             .map { response ->
                 animeDetailsParse(response)
             }
@@ -170,7 +169,7 @@ abstract class AnimeSourceBase {
 
     open fun fetchEpisodesList(anime: Anime): Observable<List<SEpisode>> {
         return client.newCall(episodesRequest(anime))
-            .asObservable()
+            .asCancelableObservable()
             .map { response ->
                 episodesParse(response)
             }
@@ -195,7 +194,8 @@ abstract class AnimeSourceBase {
 
     open fun fetchEpisode(url: String): Observable<List<StreamSource>> {
         return client.newCall(episodeRequest(url))
-            .asCancelableObservable{
+            .asCancelableObservable()
+            .map {
                 episodeSourcesParse(it)
             }
     }

@@ -8,12 +8,12 @@ import com.sf.tadami.data.interactors.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.network.api.model.StreamSource
-import com.sf.tadami.network.api.online.AnimeSource
-import com.sf.tadami.network.requests.utils.TadaObserver
+import com.sf.tadami.network.api.online.Source
+import com.sf.tadami.network.api.online.StubSource
+import com.sf.tadami.network.requests.utils.TadaErrorConsumer
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.tadami.ui.utils.SaveableMutableSaveStateFlow
 import io.reactivex.rxjava3.disposables.Disposable
-import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
@@ -24,13 +24,17 @@ import uy.kohesive.injekt.api.get
 
 
 class PlayerViewModelFactory(
-    private var isResumedFromCast : Boolean = false
+    private var isResumedFromCast: Boolean = false
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         return PlayerViewModel(extras.createSavedStateHandle(), isResumedFromCast) as T
     }
 }
-class PlayerViewModel(savedStateHandle: SavedStateHandle,private var isResumedFromCast: Boolean = false) : ViewModel() {
+
+class PlayerViewModel(
+    savedStateHandle: SavedStateHandle,
+    private var isResumedFromCast: Boolean = false
+) : ViewModel() {
 
     private val episodeRepository: EpisodeRepository = Injekt.get()
     private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
@@ -44,7 +48,8 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle,private var isResumedFr
     )
     private val episodeId = _episodeId.asStateFlow()
 
-    private val source: AnimeSource = checkNotNull(sourcesManager.getExtensionById(sourceId))
+    private val source: Source =
+        sourcesManager.getExtensionById(sourceId) as Source? ?: StubSource(sourceId)
 
     private val _currentEpisode: MutableStateFlow<Episode?> = MutableStateFlow(null)
     val currentEpisode: StateFlow<Episode?> = _currentEpisode.asStateFlow()
@@ -95,9 +100,9 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle,private var isResumedFr
             updatedEpisode.collectLatest {
                 it?.let {
                     _episodeId.value = it.id
-                    if(!isResumedFromCast){
+                    if (!isResumedFromCast) {
                         selectEpisode(it)
-                    }else{
+                    } else {
                         isResumedFromCast = false
                     }
                 }
@@ -119,7 +124,8 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle,private var isResumedFr
 
     fun getDbEpisodeTime(callback: (time: Long) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            val selectedEpisode = currentEpisode.value?.let { episodeRepository.getEpisodeById(it.id) }
+            val selectedEpisode =
+                currentEpisode.value?.let { episodeRepository.getEpisodeById(it.id) }
             withContext(Dispatchers.Main) {
                 callback(selectedEpisode?.timeSeen ?: 0)
             }
@@ -137,7 +143,7 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle,private var isResumedFr
         }
     }
 
-    fun updateTime(episode: Episode?, totalTime: Long, timeSeen: Long, threshold: Int) : Job? {
+    fun updateTime(episode: Episode?, totalTime: Long, timeSeen: Long, threshold: Int): Job? {
         episode?.let { ep ->
             if (ep.seen) return null
             return viewModelScope.launch(Dispatchers.IO) {
@@ -154,13 +160,21 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle,private var isResumedFr
         return null
     }
 
-    fun setResumeFromCastSession(rawUrl : String,selectedSource : StreamSource,availableSources : List<StreamSource>){
-        _uiState.update {currentState ->
-            currentState.copy(rawUrl = rawUrl,selectedSource = selectedSource, availableSources = availableSources)
+    fun setResumeFromCastSession(
+        rawUrl: String,
+        selectedSource: StreamSource,
+        availableSources: List<StreamSource>
+    ) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                rawUrl = rawUrl,
+                selectedSource = selectedSource,
+                availableSources = availableSources
+            )
         }
     }
 
-    fun setIdleLock(locked : Boolean){
+    fun setIdleLock(locked: Boolean) {
         _idleLock.update { locked }
     }
 
@@ -178,32 +192,25 @@ class PlayerViewModel(savedStateHandle: SavedStateHandle,private var isResumedFr
         _isFetchingSources.update { true }
         fetchEpisodeDisposable?.dispose()
 
-        source.fetchEpisode(episode.url).subscribeOn(Schedulers.io())
-            .subscribe(
-                object : TadaObserver<List<StreamSource>>() {
-                    override fun onNext(data: List<StreamSource>) {
-                        _uiState.updateAndGet { currentState ->
-                            currentState.copy(
-                                rawUrl = episode.url,
-                                selectedSource = data.firstOrNull(),
-                                availableSources = data
-                            )
-                        }
-
-                        _isFetchingSources.update { false }
-                        super.onNext(data)
-                    }
-
-                    override fun onSubscribe(d: Disposable) {
-                        super.onSubscribe(d)
-                        fetchEpisodeDisposable = d
-                    }
-
-                    override fun onError(e: Throwable) {
-                        _isFetchingSources.update { false }
-                        super.onError(e)
+        fetchEpisodeDisposable = source.fetchEpisode(episode.url).subscribe(
+            { data ->
+                _uiState.updateAndGet { currentState ->
+                    currentState.copy(
+                        rawUrl = episode.url,
+                        selectedSource = data.firstOrNull(),
+                        availableSources = data
+                    )
+                }
+                _isFetchingSources.update { false }
+            },
+            TadaErrorConsumer {error, _, _ ->
+                _isFetchingSources.update { false }
+                if(error is StubSource.SourceNotInstalledException){
+                    _uiState.update {
+                        it.copy(loadError = true)
                     }
                 }
-            )
+            }
+        )
     }
 }

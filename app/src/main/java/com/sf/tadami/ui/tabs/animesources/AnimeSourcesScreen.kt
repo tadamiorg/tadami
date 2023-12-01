@@ -24,6 +24,14 @@ fun AnimeSourcesScreen(navController: NavHostController) {
             onClick = {
                 navController.navigate(DiscoverRoutes.GLOBAL_SEARCH)
             }),
+        Action.Drawable(
+            title = R.string.stub_text,
+            icon = R.drawable.ic_filter,
+            enabled = true,
+            onClick = {
+                navController.navigate(DiscoverRoutes.SOURCES_FILTER)
+            }
+        ),
         Action.CastButton()
     )
 

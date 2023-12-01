@@ -129,6 +129,13 @@ fun VideoPlayer(
         playerViewModel.setCurrentEpisode(episode)
     }
 
+    LaunchedEffect(key1 = episodeUiState.loadError){
+        if(episodeUiState.loadError){
+            exoPlayer.release()
+            dispatcher.onBackPressed()
+        }
+    }
+
     LaunchedEffect(key1 = episodeUiState.selectedSource) {
         episodeUiState.selectedSource?.let {
             playerViewModel.getDbEpisodeTime { timeSeen ->

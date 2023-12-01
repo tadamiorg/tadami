@@ -40,15 +40,16 @@ class PlayerPreferencesScreen(
             preferenceItems = listOf(
                 Preference.PreferenceItem.SelectPreference(
                     value = prefs.seenThreshold,
-                    items = mapOf(
-                        70 to "70%",
-                        75 to "75%",
-                        80 to "80%",
-                        85 to "85%",
-                        90 to "90%",
-                        95 to "95%",
-                        100 to "100%"
-                    ),
+                    items = listOf(
+                       PlayerPreferences.SeenThresholdItems.SEVENTY,
+                        PlayerPreferences.SeenThresholdItems.SEVENTY_FIVE,
+                        PlayerPreferences.SeenThresholdItems.EIGHTY,
+                        PlayerPreferences.SeenThresholdItems.EIGHTY_FIVE,
+                        PlayerPreferences.SeenThresholdItems.NINETY,
+                        PlayerPreferences.SeenThresholdItems.NINETY_FIVE,
+                        PlayerPreferences.SeenThresholdItems.HUNDRED,
+                    ).associateWith { "$it%" },
+
                     title = stringResource(id = R.string.preferences_player_seenthreshold),
                     onValueChanged = {
                         prefState.setValue(prefs.copy(
@@ -59,14 +60,14 @@ class PlayerPreferencesScreen(
                 ),
                 Preference.PreferenceItem.SelectPreference(
                     value = prefs.doubleTapLength,
-                    items = mapOf(
-                        5000L to "5s",
-                        10000L to "10s",
-                        15000L to "15s",
-                        20000L to "20s",
-                        25000L to "25s",
-                        30000L to "30s",
-                    ),
+                    items = listOf(
+                        PlayerPreferences.DoubleTapLengthItems.FIVE,
+                        PlayerPreferences.DoubleTapLengthItems.TEN,
+                        PlayerPreferences.DoubleTapLengthItems.FIFTEEN,
+                        PlayerPreferences.DoubleTapLengthItems.TWENTY,
+                        PlayerPreferences.DoubleTapLengthItems.TWENTY_FIVE,
+                        PlayerPreferences.DoubleTapLengthItems.THIRTY,
+                    ).associateWith { "${it/1000}s" },
                     title = stringResource(id = R.string.preferences_player_double_tap_length),
                     onValueChanged = {
                         prefState.setValue(prefs.copy(

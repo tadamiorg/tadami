@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import com.sf.tadami.data.providers.DataStoreProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -17,10 +18,10 @@ import uy.kohesive.injekt.api.get
 fun <T> rememberDataStoreState(
     customPrefs: CustomPreferences<T>
 ): DataStoreState<T> {
-    val dataStore: DataStore<Preferences> = Injekt.get()
+    val dataStore: DataStoreProvider = Injekt.get()
     return remember(dataStore) {
         DataStoreState(
-            dataStore = dataStore,
+            dataStore = dataStore.getDataStore(),
             customPrefs = customPrefs
         )
     }

@@ -51,7 +51,7 @@ class EpisodeRepositoryImpl(
     override suspend fun getEpisodesByAnimeId(animeId: Long): List<Episode> {
         return try {
             handler.awaitList {
-                episodeQueries.getEpisodesByAnimeId(animeId, episodeMapper)
+                episodeQueries.getEpisodesByAnimeId(animeId, EpisodeMapper::mapEpisode)
             }
         } catch (e: Exception) {
             emptyList()
@@ -59,11 +59,11 @@ class EpisodeRepositoryImpl(
     }
 
     override suspend fun getEpisodeById(episodeId: Long): Episode {
-        return handler.awaitOne { episodeQueries.getEpisodeById(episodeId, episodeMapper) }
+        return handler.awaitOne { episodeQueries.getEpisodeById(episodeId, EpisodeMapper::mapEpisode) }
     }
 
     override fun getEpisodeByIdAsFlow(episodeId: Long): Flow<Episode> {
-        return handler.subscribeToOne { episodeQueries.getEpisodeById(episodeId, episodeMapper) }
+        return handler.subscribeToOne { episodeQueries.getEpisodeById(episodeId, EpisodeMapper::mapEpisode) }
     }
 
 
@@ -71,7 +71,7 @@ class EpisodeRepositoryImpl(
         return handler.subscribeToList {
             episodeQueries.getEpisodesByAnimeId(
                 animeId,
-                episodeMapper
+                EpisodeMapper::mapEpisode
             )
         }
     }

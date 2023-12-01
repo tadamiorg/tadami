@@ -8,6 +8,7 @@
     <string name="refresh">Rafraichir</string>
     <string name="language_fr">Français</string>
     <string name="language_en">Anglais</string>
+    <string name="language_unknown">Inconnue</string>
     <string name="language_others">Autres</string>
     <string name="request_error_response">Impossible de récupérer les données de la source. Code d\'erreur : %1$s</string>
     <string name="request_bypass_cloudflare_failure">Impossible de contourner Cloudflare</string>
@@ -53,7 +54,7 @@
     <string name="preferences_library_auto_updates_daily2">Tous les 2 jours</string>
     <string name="preferences_library_auto_updates_daily3">Tous les 3 jours</string>
     <string name="preferences_library_update_restrictions_wifionly">Uniquement en Wi-Fi</string>
-    <string name="preferences_library_update_restrictions_cellularonly">Réseau mobile uniquement</string>
+    <string name="preferences_library_update_restrictions_charge">Lors de la charge</string>
     <string name="preferences_library_update_restrictions_battery">Quand la batterie n\'est pas faible</string>
     <string name="preferences_library_update_restrictions_subtitle">Restrictions : %s</string>
     <string name="settings_tab_library_preferences_title">Bibliothèque</string>
@@ -129,4 +130,48 @@
     <string name="details_screen_resume_button">Reprendre</string>
     <string name="unknown_error">Erreur inconnue</string>
     <string name="discover_search_ingores_filters">La recherche ignore les filtres</string>
+    <string name="preferences_backup_category_manual">Sauvegardes manuelles</string>
+    <string-array name="preferences_backup_create_fields">
+        <item>Entrées de la bibliothèque</item>
+        <item>Episodes</item>
+        <item>Préférences de l\'application</item>
+    </string-array>
+    <string name="preferences_backup_create_title">Créer une sauvegarde</string>
+    <string name="preferences_backup_create_subtitle">Peut être utilisé pour restaurer la bibliothèque actuelle</string>
+    <string name="preferences_backup_restore_subtitle">Restaurer la bibliothèque à partir d\'un fichier de sauvegarde</string>
+    <string name="preferences_backup_restore_title">Restaurer une sauvegarde</string>
+    <string name="preferences_backup_title">Sauvegarder et restaurer</string>
+    <string name="preferences_backup_category_auto">Sauvegardes automatiques</string>
+    <string name="preferences_backup_frequency">Fréquence de sauvegarde</string>
+    <string name="preferences_backup_directory">Dossier de sauvegarde</string>
+    <string name="preferences_backup_maxfiles">Nombre maximal de sauvegardes</string>
+    <string name="notification_backup_group">Sauvegardes</string>
+    <string name="notification_backup_complete">Status de la sauvegarde/restauration</string>
+    <string name="notification_backup_progress">Progression de la sauvegarde/restauration</string>
+    <string name="creating_backup">Création de sauvegarde en cours</string>
+    <string name="creating_backup_error">Échec de la sauvegarde</string>
+    <string name="backup_created">Sauvegarde créée</string>
+    <string name="action_share">Partager</string>
+    <string name="restoring_backup">Restauration de sauvegarde en cours</string>
+    <string name="restoring_backup_error">Échec de la restauration de sauvegarde</string>
+    <string name="restoring_backup_canceled">Restauration de sauvegarde annulée</string>
+    <string name="restore_completed">Restauration terminée</string>
+    <string name="restore_duration">%02d min, %02d s</string>
+    <plurals name="restore_completed_message">
+        <item quantity="one">Effectuée en %1$s avec %2$s erreur</item>
+        <item quantity="other">Effectuée en %1$s avec %2$s erreurs</item>
+    </plurals>
+    <string name="missing_storage_permission">Autorisations de stockage non accordées</string>
+    <string name="create_backup_file_error">Échec de la création du fichier de sauvegarde</string>
+    <string name="empty_backup_error">Aucune entrée de bibliothèque à sauvegarder</string>
+    <string name="invalid_backup_file_missing_anime">La sauvegarde ne contient pas d\'entrées de bibliothèque.</string>
+    <string name="library_sync_complete">Synchronisation de la bibliothèque complété</string>
+    <string name="app_settings">Paramètres de l\'application</string>
+    <string name="backup_in_progress">Sauvegarde déjà en cours</string>
+    <string name="file_picker_error">L’application de sélection de fichier est introuvable</string>
+    <string name="file_select_backup">Sélectionner fichier de sauvegarde</string>
+    <string name="file_null_uri_error">Aucun fichier sélectionné</string>
+    <string name="restore_in_progress">Restauration déjà en cours</string>
+    <string name="source_not_installed">Source non installée: %1$s</string>
+
 </resources>

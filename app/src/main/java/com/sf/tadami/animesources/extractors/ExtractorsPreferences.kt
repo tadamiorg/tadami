@@ -2,10 +2,11 @@ package com.sf.tadami.animesources.extractors
 
 import androidx.datastore.preferences.core.*
 import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
+import com.sf.tadami.ui.tabs.settings.model.CustomPreferencesIdentifier
 
 data class ExtractorsPreferences(
     val streamSbEndpoint: String,
-) {
+) : CustomPreferencesIdentifier {
     companion object : CustomPreferences<ExtractorsPreferences> {
         const val DEFAULT_STREAMSB_ENDPOINT = "/sources16"
 

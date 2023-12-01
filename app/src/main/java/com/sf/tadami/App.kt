@@ -10,11 +10,15 @@ import coil.ImageLoaderFactory
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import coil.request.CachePolicy
+import com.sf.tadami.data.providers.DataStoreProvider
 import com.sf.tadami.notifications.Notifications
+import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
 import com.sf.tadami.utils.animatorDurationScale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 
 open class App : Application(), ImageLoaderFactory {
@@ -23,6 +27,7 @@ open class App : Application(), ImageLoaderFactory {
         super.onCreate()
         Injekt.importModule(AppModule(this))
         Injekt.importModule(PreferencesModule(this))
+        deleteOrResetDeprecatedPreferences()
         createNotificationChannels()
         appContext = applicationContext
     }
@@ -36,6 +41,14 @@ open class App : Application(), ImageLoaderFactory {
 
     private fun createNotificationChannels(){
         Notifications.setupNotificationsChannels(this)
+    }
+
+    private fun deleteOrResetDeprecatedPreferences(){
+        val storeProvider : DataStoreProvider = Injekt.get()
+        val deprecatedPrefs = LibraryPreferences.deprecatedPreferences
+        runBlocking {
+            storeProvider.clearPreferences(deprecatedPrefs)
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

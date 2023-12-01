@@ -13,7 +13,7 @@ class CastReceiver : BroadcastReceiver() {
         when(intent?.action){
             ACTION_DISMISS_NOTIFICATION -> {
                 val castContext = CastContext.getSharedInstance(context)
-                context.notificationManager.cancel(Notifications.CAST_PROXY_STATUS_NOTIFICATION)
+                context.notificationManager.cancel(Notifications.CAST_PROXY_STATUS_ID)
                 castContext.sessionManager.endCurrentSession(true)
             }
         }

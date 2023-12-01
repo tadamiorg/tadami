@@ -18,13 +18,15 @@ import com.sf.tadami.ui.utils.padding
 fun DialogCheckBoxRow(
     label : String,
     isSelected: Boolean,
-    onSelected: (isSelected : Boolean) -> Unit,
+    enabled : Boolean = true,
+    onSelected: (isSelected : Boolean) -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .clip(MaterialTheme.shapes.small)
             .selectable(
+                enabled = enabled,
                 selected = isSelected,
                 onClick = { onSelected(isSelected) },
             )
@@ -32,6 +34,7 @@ fun DialogCheckBoxRow(
             .fillMaxWidth(),
     ) {
         Checkbox(
+            enabled = enabled,
             checked = isSelected,
             onCheckedChange = null,
         )

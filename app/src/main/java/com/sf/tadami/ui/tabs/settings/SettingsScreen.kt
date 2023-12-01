@@ -52,7 +52,7 @@ fun SettingsScreen(
                     subtitle = stringResource(id = R.string.settings_tab_library_backup_preferences_subtitle),
                     icon = Icons.Outlined.Backup,
                     onClick = {
-
+                        navController.navigate(SettingsRoutes.BACKUP)
                     }
                 ),
                 Preference.PreferenceItem.TextPreference(

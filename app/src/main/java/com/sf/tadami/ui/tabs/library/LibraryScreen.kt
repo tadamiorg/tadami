@@ -153,7 +153,7 @@ fun LibraryScreen(
                 .padding(innerPadding),
             libraryList = libraryList.addFilters(libraryPreferences,searchFilter),
             librarySize = libraryList.size,
-            onAnimeCLicked = { libraryItem ->
+            onAnimeClicked = { libraryItem ->
                 when {
                     libraryItem.selected -> {
                         libraryViewModel.toggleSelected(libraryItem, false)

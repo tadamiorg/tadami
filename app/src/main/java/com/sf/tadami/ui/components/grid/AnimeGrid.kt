@@ -156,7 +156,7 @@ fun LibraryAnimeGrid(
     modifier: Modifier = Modifier,
     animeList: List<LibraryItem>,
     librarySize: Int,
-    onAnimeCLicked: (anime: LibraryItem) -> Unit,
+    onAnimeClicked: (anime: LibraryItem) -> Unit,
     onAnimeLongClicked: (anime: LibraryItem) -> Unit,
     lazyGridState: LazyGridState = rememberLazyGridState(),
     onEmptyRefreshClicked: () -> Unit,
@@ -198,7 +198,7 @@ fun LibraryAnimeGrid(
                     anime = libraryItem.anime.toAnime(),
                     unseenBadge = libraryItem.anime.unseenEpisodes,
                     onClick = {
-                        onAnimeCLicked(libraryItem)
+                        onAnimeClicked(libraryItem)
                     },
                     onLongClick = {
                         onAnimeLongClicked(libraryItem)

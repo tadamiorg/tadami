@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import com.sf.tadami.ui.discover.globalSearch.GlobalSearchScreen
 import com.sf.tadami.ui.discover.recent.RecentScreen
 import com.sf.tadami.ui.discover.search.SearchScreen
+import com.sf.tadami.ui.tabs.animesources.filters.AnimeSourcesFilerScreen
 
 fun NavGraphBuilder.discoverNavGraph(navController: NavHostController) {
     navigation(
@@ -43,6 +44,10 @@ fun NavGraphBuilder.discoverNavGraph(navController: NavHostController) {
         {
             GlobalSearchScreen(navController = navController)
         }
+        composable(route = DiscoverRoutes.SOURCES_FILTER)
+        {
+            AnimeSourcesFilerScreen(navController = navController)
+        }
     }
 }
 
@@ -50,4 +55,5 @@ object DiscoverRoutes {
     const val RECENT = "recent"
     const val SEARCH = "search"
     const val GLOBAL_SEARCH = "global_search"
+    const val SOURCES_FILTER = "sources_filter"
 }

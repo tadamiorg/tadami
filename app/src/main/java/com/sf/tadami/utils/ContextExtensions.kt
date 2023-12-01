@@ -6,6 +6,9 @@ import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
 import android.content.ContextWrapper
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
 import androidx.annotation.AttrRes
@@ -13,6 +16,7 @@ import androidx.annotation.ColorInt
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.content.getSystemService
+import androidx.work.WorkManager
 import java.io.File
 
 fun Context.findActivity(): Activity {
@@ -49,8 +53,39 @@ fun Context.notify(notificationId : Int,notification : Notification){
     NotificationManagerCompat.from(this).notify(notificationId,notification)
 }
 
+fun Context.cancelNotification(id: Int) {
+    NotificationManagerCompat.from(this).cancel(id)
+}
+
 val Context.animatorDurationScale: Float
     get() = Settings.Global.getFloat(this.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
 
 val Context.notificationManager: NotificationManager
     get() = getSystemService()!!
+
+val Context.workManager: WorkManager
+    get() = WorkManager.getInstance(this)
+
+fun Context.hasPermission(
+    permission: String,
+) = PermissionChecker.checkSelfPermission(this, permission) == PermissionChecker.PERMISSION_GRANTED
+
+val Context.wifiManager: WifiManager
+    get() = getSystemService()!!
+
+val Context.connectivityManager: ConnectivityManager
+    get() = getSystemService()!!
+fun Context.isConnectedToWifi(): Boolean {
+    if (!wifiManager.isWifiEnabled) return false
+
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val activeNetwork = connectivityManager.activeNetwork ?: return false
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+
+        networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) &&
+                networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    } else {
+        @Suppress("DEPRECATION")
+        wifiManager.connectionInfo.bssid != null
+    }
+}

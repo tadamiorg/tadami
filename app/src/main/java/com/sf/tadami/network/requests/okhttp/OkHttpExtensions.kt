@@ -14,8 +14,6 @@ import okio.BufferedSource
 import okio.IOException
 import okio.buffer
 import okio.sink
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.File
 import java.io.OutputStream
 import kotlin.coroutines.resumeWithException
@@ -31,7 +29,7 @@ fun Call.asObservableSuccess(): Observable<Response> {
         this.execute()
     }
 }
-fun <T : Any>Call.asCancelableObservable(mapper : (response : Response) -> T): Observable<T> {
+fun Call.asCancelableObservable(): Observable<Response> {
 
     return Observable.create { emitter ->
         val callback = object : Callback {
@@ -44,7 +42,7 @@ fun <T : Any>Call.asCancelableObservable(mapper : (response : Response) -> T): O
             override fun onResponse(call: Call, response: Response) {
                 try {
                     response.handleErrors()
-                    emitter.onNext(mapper(response))
+                    emitter.onNext(response)
                     emitter.onComplete()
                 } catch (e: Exception) {
                     if(!call.isCanceled()) {

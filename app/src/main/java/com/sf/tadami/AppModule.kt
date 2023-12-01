@@ -12,6 +12,7 @@ import com.sf.tadami.data.anime.AnimeRepositoryImpl
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.episode.EpisodeRepositoryImpl
 import com.sf.tadami.data.interactors.AnimeWithEpisodesInteractor
+import com.sf.tadami.data.interactors.FetchIntervalInteractor
 import com.sf.tadami.data.interactors.LibraryInteractor
 import com.sf.tadami.data.interactors.UpdateAnimeInteractor
 import com.sf.tadami.network.database.listOfStringsAdapter
@@ -58,8 +59,8 @@ class AppModule(private val app: Application) : InjektModule {
             Database(
                 driver = get(),
                 AnimeAdapter = Anime.Adapter(
-                    genresAdapter = listOfStringsAdapter,
-                ),
+                    genresAdapter = listOfStringsAdapter
+                )
             )
         }
 
@@ -82,7 +83,7 @@ class AppModule(private val app: Application) : InjektModule {
         }
 
         addSingletonFactory {
-            UpdateAnimeInteractor(get(),get())
+            UpdateAnimeInteractor(get(),get(),get())
         }
 
         addSingletonFactory {
@@ -91,6 +92,10 @@ class AppModule(private val app: Application) : InjektModule {
 
         addSingletonFactory {
             LibraryInteractor(get())
+        }
+
+        addSingletonFactory {
+            FetchIntervalInteractor(get())
         }
 
         // HttpClient
