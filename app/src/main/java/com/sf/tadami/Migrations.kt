@@ -47,42 +47,6 @@ object Migrations {
             if (oldVersion == 0) {
                 return
             }
-            if (oldVersion < 18) {
-                val oldAutoUpdateRestrictions = libraryPreferences.autoUpdateRestrictions
-                val oldAutoUpdateInterval = libraryPreferences.autoUpdateInterval
-
-                val newAutoUpdateRestrictions = when {
-                    oldAutoUpdateRestrictions.isEmpty() -> {
-                        setOf(
-                            LibraryPreferences.AutoUpdateRestrictionItems.WIFI
-                        )
-                    }
-                    else -> {
-                        val mutableSet = oldAutoUpdateRestrictions.toMutableSet()
-                        mutableSet.removeAll(listOf("cellular"))
-                        if(mutableSet.isEmpty()){
-                            setOf(
-                                LibraryPreferences.AutoUpdateRestrictionItems.WIFI
-                            )
-                        }else{
-                            mutableSet
-                        }
-                    }
-
-                }
-
-                val prefsToReplace = mapOf(
-                    intPreferencesKey("library_auto_updates") to ("library_auto_update_interval" to oldAutoUpdateInterval),
-                    stringSetPreferencesKey("library_update_restrictions") to ("library_auto_update_restrictions" to newAutoUpdateRestrictions)
-                )
-                replacePreferences(
-                    dataStoreProvider = dataStoreProvider,
-                    filterPredicate = { it.key in prefsToReplace.keys },
-                    newKey = { prefsToReplace[it]!!.first },
-                    newValue = { prefsToReplace[it]!!.second }
-                )
-
-            }
         }
     }
 
