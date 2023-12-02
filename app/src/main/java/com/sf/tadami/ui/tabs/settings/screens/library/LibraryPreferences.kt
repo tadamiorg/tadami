@@ -29,10 +29,6 @@ data class LibraryPreferences(
     }
 
     companion object : CustomPreferences<LibraryPreferences> {
-        val deprecatedPreferences = setOf<Preferences.Key<*>>(
-            intPreferencesKey("library_auto_updates"),
-            stringSetPreferencesKey("library_update_restrictions")
-        )
 
         private val PORTRAIT_COLUMNS = intPreferencesKey("library_portrait_columns")
         private val LANDSCAPE_COLUMNS = intPreferencesKey("library_landscape_columns")
