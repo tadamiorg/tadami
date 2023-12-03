@@ -2,12 +2,24 @@ package com.sf.tadami.notifications.libraryupdate
 
 import android.content.Context
 import android.util.Log
-import androidx.work.*
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.work.BackoffPolicy
+import androidx.work.Constraints
+import androidx.work.CoroutineWorker
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.ForegroundInfo
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkQuery
+import androidx.work.WorkerParameters
 import com.sf.tadami.R
 import com.sf.tadami.data.interactors.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.LibraryInteractor
 import com.sf.tadami.data.interactors.UpdateAnimeInteractor
-import com.sf.tadami.data.providers.DataStoreProvider
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.toAnime
@@ -18,12 +30,21 @@ import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
 import com.sf.tadami.ui.utils.awaitSingleOrError
 import com.sf.tadami.ui.utils.getUriCompat
 import com.sf.tadami.utils.createFileInCacheDir
+import com.sf.tadami.utils.editPreferences
+import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.isConnectedToWifi
 import com.sf.tadami.utils.isRunning
 import com.sf.tadami.utils.workManager
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.File
@@ -42,11 +63,11 @@ class LibraryUpdateWorker(
     private val sourcesManager: AnimeSourcesManager = Injekt.get()
     private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
     private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
-    private val storeProvider: DataStoreProvider = Injekt.get()
+    private val dataStore: DataStore<Preferences> = Injekt.get()
     private var animesToUpdate: List<LibraryAnime> = mutableListOf()
 
     override suspend fun doWork(): Result {
-        val libraryPreferences = storeProvider.getPreferencesGroup(LibraryPreferences)
+        val libraryPreferences = dataStore.getPreferencesGroup(LibraryPreferences)
         if (tags.contains(WORK_NAME_AUTO)) {
             val restrictions = libraryPreferences.autoUpdateRestrictions
             if ((LibraryPreferences.AutoUpdateRestrictionItems.WIFI in restrictions) && !context.isConnectedToWifi()) {
@@ -65,7 +86,7 @@ class LibraryUpdateWorker(
             Log.d("Worker error", "Job could not be set in foreground", e)
         }
 
-        storeProvider.editPreferences(
+        dataStore.editPreferences(
             libraryPreferences.copy(lastUpdatedTimestamp = Date().time),
             LibraryPreferences
         )
@@ -255,9 +276,9 @@ class LibraryUpdateWorker(
             context: Context,
             prefInterval: Int? = null,
         ) {
-            val storeProvider: DataStoreProvider = Injekt.get()
+            val dataStore: DataStore<Preferences> = Injekt.get()
             val libraryPreferences = runBlocking {
-                storeProvider.getPreferencesGroup(LibraryPreferences)
+                dataStore.getPreferencesGroup(LibraryPreferences)
             }
             val interval = prefInterval ?: libraryPreferences.autoUpdateInterval
             if (interval > 0) {

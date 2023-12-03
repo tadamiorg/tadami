@@ -5,8 +5,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.sf.tadami.ui.tabs.settings.widget.TextPreference
 import com.sf.tadami.ui.tabs.settings.model.Preference
+import com.sf.tadami.ui.tabs.settings.widget.TextPreference
 
 @Composable
 fun SettingsComponent(

@@ -8,10 +8,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.sf.tadami.ui.tabs.settings.model.Preference
-import com.sf.tadami.ui.components.topappbar.ActionItem
-import com.sf.tadami.ui.components.data.Action
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.R
+import com.sf.tadami.ui.components.data.Action
+import com.sf.tadami.ui.components.topappbar.ActionItem
+import com.sf.tadami.ui.tabs.settings.model.Preference
 
 interface PreferenceScreen {
 
@@ -19,9 +21,17 @@ interface PreferenceScreen {
     val title: Int
 
     @Composable
+    fun getTitle(): String {
+        return stringResource(title)
+    }
+
+    @Composable
     fun getPreferences() : List<Preference>
 
     val backHandler: (() -> Unit)?
+
+    val getCustomDataStore: (() -> DataStore<Preferences>)?
+        get() = null
 
     val topBarActions: List<Action>
 
@@ -31,7 +41,7 @@ interface PreferenceScreen {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(text = stringResource(title)) },
+                    title = { Text(text = getTitle()) },
                     navigationIcon = {
                         if (backHandler != null) {
                             IconButton(onClick = backHandler!!) {

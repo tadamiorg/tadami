@@ -1,9 +1,8 @@
 package com.sf.tadami.animesources.extractors.fembedextractor
 
+import com.sf.tadami.network.api.model.StreamSource
 import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.requests.okhttp.POST
-import com.sf.tadami.network.api.model.StreamSource
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 

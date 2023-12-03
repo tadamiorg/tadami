@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -18,6 +19,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sf.tadami.R
 import com.sf.tadami.network.api.online.AnimeCatalogueSource
+import com.sf.tadami.network.api.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.ui.utils.ImageDefaults.CoverPlaceholderColor
 import com.sf.tadami.ui.utils.capFirstLetter
 import com.sf.tadami.ui.utils.padding
@@ -29,7 +31,8 @@ import java.util.*
 fun AnimeSourceItem(
     source: AnimeCatalogueSource,
     onRecentClicked: () -> Unit,
-    onSearchClicked: () -> Unit
+    onSearchClicked: () -> Unit,
+    onOptionsClicked: (sourceId : String) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -77,12 +80,24 @@ fun AnimeSourceItem(
                     Text(text = stringResource(id = R.string.anime_sources_screen_recents_btn))
                 }
             }
-            IconButton(onClick = {}, enabled = false) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_vertical_settings),
-                    contentDescription = null
-                )
+            if(source is ConfigurableParsedHttpAnimeSource<*>){
+                IconButton(onClick = {
+                    onOptionsClicked(source.id)
+                }, enabled = true) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_vertical_settings),
+                        contentDescription = null
+                    )
+                }
+            }else {
+                IconButton(onClick = {}, enabled = false, colors = IconButtonColors(Color.Transparent,Color.Transparent,Color.Transparent,Color.Transparent)) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_vertical_settings),
+                        contentDescription = null
+                    )
+                }
             }
+
         }
     }
 }

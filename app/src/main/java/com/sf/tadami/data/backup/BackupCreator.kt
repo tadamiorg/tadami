@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.hippo.unifile.UniFile
 import com.sf.tadami.R
@@ -13,12 +14,13 @@ import com.sf.tadami.data.backup.BackupCreateFlags.BACKUP_EPISODE
 import com.sf.tadami.data.backup.models.*
 import com.sf.tadami.data.episode.EpisodeMapper
 import com.sf.tadami.data.interactors.LibraryInteractor
-import com.sf.tadami.data.providers.DataStoreProvider
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.notifications.backup.BackupFileValidator
 import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
 import com.sf.tadami.ui.tabs.settings.screens.backup.BackupPreferences
 import com.sf.tadami.ui.tabs.settings.screens.backup.BackupSerializer
+import com.sf.tadami.utils.getDataStoreValues
+import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.hasPermission
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -35,9 +37,9 @@ class BackupCreator(
 ) {
 
     private val handler: DataBaseHandler = Injekt.get()
-    private val dataStoreProvider: DataStoreProvider = Injekt.get()
+    private val dataStore: DataStore<Preferences> = Injekt.get()
     private var backupPreferences: BackupPreferences = runBlocking {
-        dataStoreProvider.getPreferencesGroup(BackupPreferences)
+        dataStore.getPreferencesGroup(BackupPreferences)
     }
     private val getLibary: LibraryInteractor = Injekt.get()
 
@@ -133,7 +135,7 @@ class BackupCreator(
 
     private suspend fun backupAppPreferences(flags: Int): List<BackupPreference> {
         if (flags and BACKUP_APP_PREFS != BACKUP_APP_PREFS) return emptyList()
-        return dataStoreProvider.getDataStoreValues().asMap().toBackupPreferences()
+        return dataStore.getDataStoreValues().asMap().toBackupPreferences()
     }
 
     @Suppress("UNCHECKED_CAST")

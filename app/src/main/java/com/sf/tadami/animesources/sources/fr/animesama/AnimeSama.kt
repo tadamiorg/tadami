@@ -1,6 +1,7 @@
 package com.sf.tadami.animesources.sources.fr.animesama
 
 import android.text.Html
+import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.animesources.extractors.SendvidExtractor
 import com.sf.tadami.animesources.extractors.SibnetExtractor
@@ -11,11 +12,13 @@ import com.sf.tadami.network.api.model.SAnime
 import com.sf.tadami.network.api.model.SEpisode
 import com.sf.tadami.network.api.model.StreamSource
 import com.sf.tadami.network.api.online.AnimesPage
-import com.sf.tadami.network.api.online.ParsedAnimeHttpSource
+import com.sf.tadami.network.api.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.requests.okhttp.POST
 import com.sf.tadami.network.requests.okhttp.asCancelableObservable
 import com.sf.tadami.network.requests.utils.asJsoup
+import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
+import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
 import com.sf.tadami.ui.utils.capFirstLetter
 import com.sf.tadami.ui.utils.parallelMap
 import com.sf.tadami.utils.Lang
@@ -27,13 +30,15 @@ import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
-class AnimeSama : ParsedAnimeHttpSource() {
+class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>() {
 
-    override val id: String = "AnimeSama"
+    override val id: String
+        get() = "AnimeSama"
 
     override val name: String = "AnimeSama"
 
-    override val baseUrl: String = "https://anime-sama.fr"
+    override val baseUrl: String
+        get() = preferences.baseUrl
 
     override val lang: Lang = Lang.FRENCH
 
@@ -46,6 +51,14 @@ class AnimeSama : ParsedAnimeHttpSource() {
     private var episodeNumber: Int? = null
 
     override val supportRecent = false
+
+    override suspend fun getPrefGroup(): CustomPreferences<AnimeSamaPreferences> {
+        return AnimeSamaPreferences
+    }
+
+    override fun getPreferenceScreen(navController: NavHostController): PreferenceScreen {
+        return AnimeSamaPreferencesScreen(navController,dataStore)
+    }
 
     override fun latestSelector(): String = throw Exception("Not used")
 

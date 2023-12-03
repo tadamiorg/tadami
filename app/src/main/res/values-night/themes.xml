@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!--== AMOLED Mode Overlay ==-->
     <style name="ThemeOverlay.Tadami.Amoled" parent="">
         <!-- Theme Colors -->

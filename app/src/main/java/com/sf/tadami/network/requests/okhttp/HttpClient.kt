@@ -1,9 +1,9 @@
 package com.sf.tadami.network.requests.okhttp
 
 import android.content.Context
-import com.sf.tadami.network.requests.utils.AndroidCookieJar
 import com.sf.tadami.network.interceptors.CloudflareInterceptor
 import com.sf.tadami.network.interceptors.UserAgentInterceptor
+import com.sf.tadami.network.requests.utils.AndroidCookieJar
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import java.io.File

@@ -4,12 +4,18 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.sf.tadami.R
+import com.sf.tadami.network.api.online.ConfigurableParsedHttpAnimeSource
+import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesScreen
 import com.sf.tadami.ui.tabs.library.LibraryScreen
 import com.sf.tadami.ui.tabs.settings.SettingsScreen
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 @Composable
 fun HomeNavGraph(
@@ -46,6 +52,16 @@ fun HomeNavGraph(
         ) {
             SettingsScreen(navController = navController)
         }
+        composable(
+            route = "${GRAPH.SOURCE_SETTINGS}/{sourceId}",
+            arguments = listOf(
+                navArgument("sourceId") { type = NavType.StringType }
+            )
+        ) {
+            val sourcesManager : AnimeSourcesManager = Injekt.get()
+            val source = sourcesManager.getExtensionById(checkNotNull(it.arguments?.getString("sourceId"))) as ConfigurableParsedHttpAnimeSource<*>
+            source.getPreferenceScreen(navController).Content()
+        }
         discoverNavGraph(navController)
         animeInfosNavGraph(navController)
         settingsNavGraph(navController)
@@ -55,14 +71,13 @@ fun HomeNavGraph(
 
 object GRAPH {
     const val HOME = "home_graph"
+    const val SOURCE_SETTINGS = "source_settings"
 }
 
 sealed class HomeNavItems(val route: String, @StringRes val name: Int, @DrawableRes val icon: Int) {
-    object Library :
-        HomeNavItems("library", R.string.library_tab_title, R.drawable.ic_video_library)
+    object Library : HomeNavItems("library", R.string.library_tab_title, R.drawable.ic_video_library)
 
-    object Sources :
-        HomeNavItems("anime_sources", R.string.sources_tab_title, R.drawable.ic_sources)
+    object Sources : HomeNavItems("anime_sources", R.string.sources_tab_title, R.drawable.ic_sources)
 
     object Settings : HomeNavItems("settings", R.string.settings_tab_title, R.drawable.ic_settings)
 }

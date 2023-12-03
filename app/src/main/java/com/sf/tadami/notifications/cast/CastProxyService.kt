@@ -4,16 +4,22 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
 import com.sf.tadami.data.interactors.UpdateAnimeInteractor
-import com.sf.tadami.data.providers.DataStoreProvider
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.ui.animeinfos.episode.cast.ProxyServer
 import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferences
-import kotlinx.coroutines.*
+import com.sf.tadami.utils.getPreferencesGroup
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -24,7 +30,7 @@ class CastProxyService : Service() {
     private lateinit var notifier : CastNotifier
     private lateinit var castContext : CastContext
     private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
-    private val dataStore: DataStoreProvider = Injekt.get()
+    private val dataStore: DataStore<Preferences> = Injekt.get()
     private lateinit var playerPreferences : PlayerPreferences
 
     override fun onCreate() {

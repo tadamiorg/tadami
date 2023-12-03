@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.runtime.Composable
 import com.sf.tadami.ui.tabs.settings.model.Preference
+import com.sf.tadami.ui.tabs.settings.widget.EditTextPreferenceWidget
 import com.sf.tadami.ui.tabs.settings.widget.MultiSelectPreference
 import com.sf.tadami.ui.tabs.settings.widget.SelectPreference
 import com.sf.tadami.ui.tabs.settings.widget.TextPreference
@@ -74,6 +75,19 @@ fun PreferenceItemParser(
                         onCheckedChanged = {
                             item.onValueChanged(it)
                         }
+                    )
+                }
+                is Preference.PreferenceItem.EditTextPreference -> {
+                    EditTextPreferenceWidget(
+                        title = item.title,
+                        subtitle = item.subtitle,
+                        icon = item.icon,
+                        value = item.value,
+                        defaultValue = item.defaultValue,
+                        onConfirm = {
+                            val accepted = item.onValueChanged(it)
+                            accepted
+                        },
                     )
                 }
             }

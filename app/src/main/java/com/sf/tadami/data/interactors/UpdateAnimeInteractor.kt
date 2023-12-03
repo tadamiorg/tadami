@@ -12,7 +12,7 @@ import com.sf.tadami.domain.episode.toUpdateEpisode
 import com.sf.tadami.network.api.model.SAnime
 import com.sf.tadami.network.api.model.SEpisode
 import java.time.ZonedDateTime
-import java.util.*
+import java.util.Date
 
 class UpdateAnimeInteractor(
     private val animeRepository: AnimeRepository,

@@ -1,6 +1,6 @@
 package com.sf.tadami.animesources.sources.en.gogoanime
 
-import android.util.Log
+import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.animesources.extractors.DoodExtractor
 import com.sf.tadami.animesources.extractors.Mp4uploadExtractor
@@ -8,12 +8,17 @@ import com.sf.tadami.animesources.extractors.StreamWishExtractor
 import com.sf.tadami.animesources.sources.en.gogoanime.extractors.GogoCdnExtractor
 import com.sf.tadami.animesources.sources.en.gogoanime.filters.GogoAnimeFilters
 import com.sf.tadami.domain.anime.Anime
-import com.sf.tadami.network.api.model.*
-import com.sf.tadami.network.api.online.ParsedAnimeHttpSource
+import com.sf.tadami.network.api.model.AnimeFilterList
+import com.sf.tadami.network.api.model.SAnime
+import com.sf.tadami.network.api.model.SEpisode
+import com.sf.tadami.network.api.model.StreamSource
+import com.sf.tadami.network.api.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.requests.okhttp.asCancelableObservable
 import com.sf.tadami.network.requests.okhttp.asObservable
 import com.sf.tadami.network.requests.utils.asJsoup
+import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
+import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
 import com.sf.tadami.ui.utils.parallelMap
 import com.sf.tadami.utils.Lang
 import io.reactivex.rxjava3.core.Observable
@@ -25,13 +30,14 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import uy.kohesive.injekt.injectLazy
 
-class GogoAnime() : ParsedAnimeHttpSource() {
+class GogoAnime() : ConfigurableParsedHttpAnimeSource<GogoAnimePreferences>() {
 
-    override val id : String = "GogoAnime"
+    override val id : String
+        get() = "GogoAnime"
 
     override val name: String = "GogoAnime"
-
-    override val baseUrl: String = "https://anitaku.to"
+    override val baseUrl: String
+        get() = preferences.baseUrl
 
     override val lang: Lang = Lang.ENGLISH
 
@@ -40,6 +46,14 @@ class GogoAnime() : ParsedAnimeHttpSource() {
     override val client: OkHttpClient = network.cloudflareClient
 
     private val json: Json by injectLazy()
+    override suspend fun getPrefGroup(): CustomPreferences<GogoAnimePreferences> {
+        return GogoAnimePreferences
+    }
+
+    override fun getPreferenceScreen(navController: NavHostController): PreferenceScreen {
+        return GogoAnimePreferencesScreen(navController,dataStore)
+    }
+
 
     override fun getIconRes(): Int {
         return R.drawable.gogoanime
@@ -101,7 +115,6 @@ class GogoAnime() : ParsedAnimeHttpSource() {
             params.season.isNotEmpty() -> GET("$baseUrl/${params.season}?page=$page", headers)
             else -> GET("$baseUrl/filter.html?keyword=$query&${params.filter}&page=$page", headers)
         }
-        Log.e("Search", request.url.toString())
         return request
     }
 
