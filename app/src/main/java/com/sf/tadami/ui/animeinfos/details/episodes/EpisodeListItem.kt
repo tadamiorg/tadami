@@ -14,8 +14,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sf.tadami.ui.animeinfos.details.infos.DotSeparatorText
-import com.sf.tadami.ui.utils.SeenItemAlpha
 import com.sf.tadami.ui.utils.SecondaryItemAlpha
+import com.sf.tadami.ui.utils.SeenItemAlpha
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.selectedBackground
 

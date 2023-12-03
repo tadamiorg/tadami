@@ -2,7 +2,6 @@ package com.sf.tadami.notifications.backup
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import com.sf.tadami.R
 import com.sf.tadami.data.backup.BackupUtil
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
@@ -23,7 +22,6 @@ class BackupFileValidator(
         val backup = try {
             BackupUtil.decodeBackup(context, uri)
         } catch (e: Exception) {
-            Log.e("TestError",e.stackTraceToString())
             throw IllegalStateException(e)
         }
 

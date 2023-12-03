@@ -24,7 +24,6 @@ import com.hippo.unifile.UniFile
 import com.sf.tadami.R
 import com.sf.tadami.data.backup.BackupCreateFlags
 import com.sf.tadami.data.backup.models.Backup
-import com.sf.tadami.data.providers.DataStoreProvider
 import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.notifications.backup.BackupFileValidator
 import com.sf.tadami.notifications.backup.BackupRestoreWorker
@@ -35,8 +34,6 @@ import com.sf.tadami.ui.tabs.settings.model.Preference
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.toPrefMultiCheckbox
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 class BackupPreferencesScreen(
     navController : NavHostController
@@ -46,8 +43,6 @@ class BackupPreferencesScreen(
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 
     override val topBarActions: List<Action> = emptyList()
-
-    private val dataStore: DataStoreProvider = Injekt.get()
 
     @OptIn(ExperimentalPermissionsApi::class)
     @Composable

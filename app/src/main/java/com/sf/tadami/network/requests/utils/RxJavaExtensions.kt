@@ -1,16 +1,13 @@
 package com.sf.tadami.network.requests.utils
 
-import com.sf.tadami.network.requests.okhttp.Callback
-import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.App
 import com.sf.tadami.R
 import com.sf.tadami.network.api.online.StubSource
 import com.sf.tadami.network.requests.okhttp.HttpError
-import io.reactivex.rxjava3.core.Observer
-import io.reactivex.rxjava3.disposables.Disposable
+import com.sf.tadami.ui.utils.UiToasts
 import io.reactivex.rxjava3.functions.Consumer
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 

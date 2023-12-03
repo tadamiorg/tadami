@@ -1,14 +1,25 @@
 package com.sf.tadami.animesources.sources.fr.vostfree
 
+import androidx.navigation.NavHostController
 import com.sf.tadami.App
 import com.sf.tadami.R
-import com.sf.tadami.animesources.extractors.*
+import com.sf.tadami.animesources.extractors.DoodExtractor
+import com.sf.tadami.animesources.extractors.OkruExtractor
+import com.sf.tadami.animesources.extractors.SibnetExtractor
+import com.sf.tadami.animesources.extractors.UqloadExtractor
+import com.sf.tadami.animesources.extractors.VoeExtractor
 import com.sf.tadami.animesources.sources.fr.vostfree.extractors.VudeoExtractor
-import com.sf.tadami.network.api.model.*
-import com.sf.tadami.network.api.online.ParsedAnimeHttpSource
+import com.sf.tadami.network.api.model.AnimeFilter
+import com.sf.tadami.network.api.model.AnimeFilterList
+import com.sf.tadami.network.api.model.SAnime
+import com.sf.tadami.network.api.model.SEpisode
+import com.sf.tadami.network.api.model.StreamSource
+import com.sf.tadami.network.api.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.requests.okhttp.POST
 import com.sf.tadami.network.requests.utils.asJsoup
+import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
+import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.parallelMap
 import com.sf.tadami.utils.Lang
@@ -19,13 +30,15 @@ import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
-class VostFree : ParsedAnimeHttpSource() {
+class VostFree : ConfigurableParsedHttpAnimeSource<VostFreePreferences>() {
 
-    override val id: String = "VostFree"
+    override val id: String
+        get() = "VostFree"
 
     override val name: String = "VostFree"
 
-    override val baseUrl: String = "https://vostfree.ws"
+    override val baseUrl: String
+        get() = preferences.baseUrl
 
     override val lang: Lang = Lang.FRENCH
 
@@ -33,6 +46,14 @@ class VostFree : ParsedAnimeHttpSource() {
 
     override fun getIconRes(): Int {
         return R.drawable.vostfree
+    }
+
+    override suspend fun getPrefGroup(): CustomPreferences<VostFreePreferences> {
+        return VostFreePreferences
+    }
+
+    override fun getPreferenceScreen(navController: NavHostController): PreferenceScreen {
+        return VostFreePreferencesScreen(navController,dataStore)
     }
 
     override fun latestSelector(): String = "div.last-episode"
@@ -51,6 +72,7 @@ class VostFree : ParsedAnimeHttpSource() {
 
     override fun latestAnimesRequest(page: Int): Request =
         GET("$baseUrl/last-episode.html/page/$page")
+
 
     override fun searchSelector(): String = "div.search-result, div.movie-poster"
 

@@ -1,9 +1,12 @@
 package com.sf.tadami.animesources.extractors.unused.streamsbextractor
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.animesources.extractors.ExtractorsPreferences
-import com.sf.tadami.data.providers.DataStoreProvider
 import com.sf.tadami.network.api.model.StreamSource
 import com.sf.tadami.network.requests.okhttp.GET
+import com.sf.tadami.utils.editPreferences
+import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import okhttp3.Headers
@@ -15,9 +18,9 @@ import uy.kohesive.injekt.injectLazy
 
 class StreamSBExtractor(private val client: OkHttpClient) {
 
-    private val dataStoreProvider: DataStoreProvider = Injekt.get()
+    private val dataStore: DataStore<Preferences> = Injekt.get()
     private var extractorsPreferences: ExtractorsPreferences = runBlocking {
-        dataStoreProvider.getPreferencesGroup(ExtractorsPreferences)
+        dataStore.getPreferencesGroup(ExtractorsPreferences)
     }
 
     companion object {
@@ -34,7 +37,7 @@ class StreamSBExtractor(private val client: OkHttpClient) {
             .use { it.body.string() }
             .let {
                 runBlocking {
-                    dataStoreProvider.editPreferences(extractorsPreferences.copy(streamSbEndpoint = it),ExtractorsPreferences) {
+                    dataStore.editPreferences(extractorsPreferences.copy(streamSbEndpoint = it),ExtractorsPreferences) {
                         extractorsPreferences = it
                     }
                 }

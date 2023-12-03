@@ -1,9 +1,6 @@
 package com.sf.tadami.data.providers
 
 import android.content.Context
-import android.os.Environment
-import android.util.Log
-import androidx.core.net.toUri
 import com.sf.tadami.R
 import java.io.File
 

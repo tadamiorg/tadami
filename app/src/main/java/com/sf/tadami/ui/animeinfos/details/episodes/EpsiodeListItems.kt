@@ -8,7 +8,7 @@ import com.sf.tadami.ui.animeinfos.details.DetailsScreenItem
 import com.sf.tadami.ui.components.data.EpisodeItem
 import com.sf.tadami.ui.utils.formatMinSec
 import com.sf.tadami.ui.utils.toRelativeString
-import java.util.*
+import java.util.Date
 
 fun LazyListScope.episodeItems(
     episodes: List<EpisodeItem>,

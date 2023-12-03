@@ -2,17 +2,34 @@ package com.sf.tadami.data.backup
 
 import android.content.Context
 import android.net.Uri
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
+import com.sf.tadami.R
 import com.sf.tadami.data.DataBaseHandler
+import com.sf.tadami.data.backup.models.BackupAnime
+import com.sf.tadami.data.backup.models.BackupPreference
+import com.sf.tadami.data.backup.models.BooleanPreferenceValue
+import com.sf.tadami.data.backup.models.FloatPreferenceValue
+import com.sf.tadami.data.backup.models.IntPreferenceValue
+import com.sf.tadami.data.backup.models.LongPreferenceValue
+import com.sf.tadami.data.backup.models.StringPreferenceValue
+import com.sf.tadami.data.backup.models.StringSetPreferenceValue
 import com.sf.tadami.data.episode.EpisodeRepository
+import com.sf.tadami.data.interactors.FetchIntervalInteractor
 import com.sf.tadami.data.interactors.UpdateAnimeInteractor
-import com.sf.tadami.data.providers.DataStoreProvider
+import com.sf.tadami.domain.anime.Anime
+import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.notifications.backup.BackupNotifier
+import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
+import com.sf.tadami.utils.createFileInCacheDir
+import com.sf.tadami.utils.editPreference
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
 import uy.kohesive.injekt.Injekt
@@ -22,21 +39,6 @@ import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.util.Date
 import java.util.Locale
-import com.sf.tadami.R
-import com.sf.tadami.data.backup.models.BackupAnime
-import com.sf.tadami.data.backup.models.BackupPreference
-import com.sf.tadami.data.backup.models.BooleanPreferenceValue
-import com.sf.tadami.data.backup.models.FloatPreferenceValue
-import com.sf.tadami.data.backup.models.IntPreferenceValue
-import com.sf.tadami.data.backup.models.LongPreferenceValue
-import com.sf.tadami.data.backup.models.StringPreferenceValue
-import com.sf.tadami.data.backup.models.StringSetPreferenceValue
-import com.sf.tadami.data.interactors.FetchIntervalInteractor
-import com.sf.tadami.domain.anime.Anime
-import com.sf.tadami.domain.episode.Episode
-import com.sf.tadami.notifications.backup.BackupCreateWorker
-import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
-import com.sf.tadami.utils.createFileInCacheDir
 import data.Anime as AnimeDb
 
 class BackupRestorer(
@@ -49,7 +51,7 @@ class BackupRestorer(
     private val episodeRepository: EpisodeRepository = Injekt.get()
     private val fetchInterval: FetchIntervalInteractor = Injekt.get()
 
-    private val dataStoreProvider: DataStoreProvider = Injekt.get()
+    private val dataStore: DataStore<Preferences> = Injekt.get()
 
     private var now = ZonedDateTime.now()
     private var currentFetchWindow = fetchInterval.getWindow(now)
@@ -320,7 +322,7 @@ class BackupRestorer(
     }
 
     private suspend fun restoreAppPreferences(preferences: List<BackupPreference>) {
-        restorePreferences(preferences, dataStoreProvider)
+        restorePreferences(preferences, dataStore)
 
         LibraryUpdateWorker.setupTask(context)
         BackupCreateWorker.setupTask(context)
@@ -336,7 +338,7 @@ class BackupRestorer(
 
     private suspend fun restorePreferences(
         toRestore: List<BackupPreference>,
-        preferenceStore: DataStoreProvider,
+        preferenceStore: DataStore<Preferences>,
     ) {
 
         toRestore.forEach { (key, value) ->

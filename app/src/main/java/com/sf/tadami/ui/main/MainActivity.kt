@@ -5,6 +5,8 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.cast.framework.CastContext
@@ -13,19 +15,19 @@ import com.google.android.gms.cast.framework.SessionManagerListener
 import com.sf.tadami.AppPreferences
 import com.sf.tadami.Migrations
 import com.sf.tadami.R
-import com.sf.tadami.data.providers.DataStoreProvider
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.notifications.cast.CastProxyService
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
+import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
 import com.sf.tadami.ui.tabs.settings.screens.backup.BackupPreferences
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
 import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferences
 import com.sf.tadami.ui.themes.TadamiTheme
+import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -36,7 +38,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var castContext: CastContext
     private val errorChannel = ErrorChannel()
     private var ready = false
-    private val dataStoreProvider : DataStoreProvider = Injekt.get()
+    private val dataStore : DataStore<Preferences> = Injekt.get()
+    private val sourcesManager : AnimeSourcesManager = Injekt.get()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val isLaunch = savedInstanceState == null
@@ -51,12 +54,13 @@ class MainActivity : AppCompatActivity() {
             lifecycleScope.launch(Dispatchers.IO) {
                 Migrations.upgrade(
                     context = applicationContext,
-                    dataStoreProvider = dataStoreProvider,
-                    libraryPreferences = dataStoreProvider.getPreferencesGroup(LibraryPreferences),
-                    playerPreferences = dataStoreProvider.getPreferencesGroup(PlayerPreferences),
-                    backupPreferences = dataStoreProvider.getPreferencesGroup(BackupPreferences),
-                    appPreferences = dataStoreProvider.getPreferencesGroup(AppPreferences),
-                    sourcesPreferences = dataStoreProvider.getPreferencesGroup(SourcesPreferences)
+                    dataStore = dataStore,
+                    sourcesManager = sourcesManager,
+                    libraryPreferences = dataStore.getPreferencesGroup(LibraryPreferences),
+                    playerPreferences = dataStore.getPreferencesGroup(PlayerPreferences),
+                    backupPreferences = dataStore.getPreferencesGroup(BackupPreferences),
+                    appPreferences = dataStore.getPreferencesGroup(AppPreferences),
+                    sourcesPreferences = dataStore.getPreferencesGroup(SourcesPreferences)
                 )
             }
         }

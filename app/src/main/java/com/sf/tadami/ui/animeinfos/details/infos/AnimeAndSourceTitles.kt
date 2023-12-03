@@ -1,6 +1,13 @@
 package com.sf.tadami.ui.animeinfos.details.infos
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
@@ -15,9 +22,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.ui.utils.secondaryItemAlpha
 import com.sf.tadami.R
 import com.sf.tadami.ui.utils.padding
+import com.sf.tadami.ui.utils.secondaryItemAlpha
 
 @Composable
 fun AnimeAndSourceTitles(

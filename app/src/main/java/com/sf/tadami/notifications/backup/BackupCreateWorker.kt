@@ -4,6 +4,8 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -17,16 +19,16 @@ import androidx.work.workDataOf
 import com.hippo.unifile.UniFile
 import com.sf.tadami.data.backup.BackupCreateFlags
 import com.sf.tadami.data.backup.BackupCreator
-import com.sf.tadami.data.providers.DataStoreProvider
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.ui.tabs.settings.screens.backup.BackupPreferences
 import com.sf.tadami.utils.cancelNotification
+import com.sf.tadami.utils.editPreferences
+import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.isRunning
 import com.sf.tadami.utils.workManager
 import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import java.io.File
 import java.util.Date
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.minutes
@@ -39,8 +41,8 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
 
     override suspend fun doWork(): Result {
         val isAutoBackup = inputData.getBoolean(IS_AUTO_BACKUP_KEY, true)
-        val datastoreProvider : DataStoreProvider = Injekt.get()
-        val backupPreferences = datastoreProvider.getPreferencesGroup(BackupPreferences)
+        val dataStore : DataStore<Preferences> = Injekt.get()
+        val backupPreferences = dataStore.getPreferencesGroup(BackupPreferences)
 
         if (isAutoBackup && BackupRestoreWorker.isRunning(context)) return Result.retry()
 
@@ -56,7 +58,7 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
         return try {
             val location = BackupCreator(context).createBackup(uri, flags, isAutoBackup)
             if (isAutoBackup) {
-                datastoreProvider.editPreferences(backupPreferences.copy(autoBackupLastTimestamp = Date().time),BackupPreferences)
+                dataStore.editPreferences(backupPreferences.copy(autoBackupLastTimestamp = Date().time),BackupPreferences)
             } else {
                 notifier.showBackupComplete(UniFile.fromUri(context,location.toUri()))
             }
@@ -84,8 +86,8 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
         }
 
         fun setupTask(context: Context, prefInterval: Int? = null) {
-            val datastoreProvider : DataStoreProvider = Injekt.get()
-            val backupPreferences = runBlocking { datastoreProvider.getPreferencesGroup(BackupPreferences) }
+            val dataStore : DataStore<Preferences> = Injekt.get()
+            val backupPreferences = runBlocking { dataStore.getPreferencesGroup(BackupPreferences) }
             val interval = prefInterval ?: backupPreferences.autoBackupInterval
             if (interval > 0) {
                 val constraints = Constraints(

@@ -1,15 +1,17 @@
 package com.sf.tadami.ui.discover.globalSearch
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sf.tadami.data.anime.AnimeRepository
-import com.sf.tadami.data.providers.DataStoreProvider
 import com.sf.tadami.domain.anime.toDomainAnime
 import com.sf.tadami.network.api.online.AnimeCatalogueSource
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchItemResult
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
 import com.sf.tadami.ui.utils.awaitSingleOrError
+import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -25,7 +27,7 @@ import uy.kohesive.injekt.api.get
 class GlobalSearchViewModel() : ViewModel() {
     private val animeRepository: AnimeRepository = Injekt.get()
     private val sourcesManager: AnimeSourcesManager = Injekt.get()
-    private val dataStoreProvider : DataStoreProvider = Injekt.get()
+    private val dataStore : DataStore<Preferences> = Injekt.get()
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
@@ -37,7 +39,7 @@ class GlobalSearchViewModel() : ViewModel() {
         if(newQuery.isEmpty()) return
 
         val sourcesPrefs = runBlocking {
-            dataStoreProvider.getPreferencesGroup(SourcesPreferences)
+            dataStore.getPreferencesGroup(SourcesPreferences)
         }
 
         val filteredExtensions = sourcesManager.animeExtensions.filter { (_,source) ->

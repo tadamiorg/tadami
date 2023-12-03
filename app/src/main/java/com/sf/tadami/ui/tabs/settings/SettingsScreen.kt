@@ -10,11 +10,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
-import com.sf.tadami.navigation.graphs.SettingsRoutes
-import com.sf.tadami.ui.tabs.settings.model.Preference
 import com.sf.tadami.R
+import com.sf.tadami.navigation.graphs.SettingsRoutes
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
+import com.sf.tadami.ui.tabs.settings.model.Preference
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

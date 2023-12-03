@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
-import androidx.core.net.toUri
 import com.hippo.unifile.UniFile
 import com.sf.tadami.R
 import com.sf.tadami.notifications.Notifications

@@ -1,6 +1,10 @@
 package com.sf.tadami.ui.tabs.settings.screens.library
 
-import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.core.MutablePreferences
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
 import com.sf.tadami.ui.tabs.settings.model.CustomPreferencesIdentifier
 
@@ -22,6 +26,7 @@ data class LibraryPreferences(
 
     object AutoUpdateIntervalItems {
         const val DISABLED = 0
+        const val TWELVE = 12
         const val DAILY = 24
         const val DAILY_2 = 48
         const val DAILY_3 = 72
@@ -29,7 +34,6 @@ data class LibraryPreferences(
     }
 
     companion object : CustomPreferences<LibraryPreferences> {
-
         private val PORTRAIT_COLUMNS = intPreferencesKey("library_portrait_columns")
         private val LANDSCAPE_COLUMNS = intPreferencesKey("library_landscape_columns")
         private val AUTO_UPDATE_INTERVAL = intPreferencesKey("library_auto_update_interval")

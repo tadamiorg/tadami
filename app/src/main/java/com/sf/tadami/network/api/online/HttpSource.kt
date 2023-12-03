@@ -60,7 +60,9 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
 
     // Details
 
-    protected open fun animeDetailsRequest(anime: Anime): Request = GET(baseUrl+anime.url,headers)
+    protected open fun animeDetailsRequest(anime: Anime): Request {
+        return GET(baseUrl+anime.url,headers)
+    }
     protected abstract fun animeDetailsParse(response: Response): SAnime
 
     override fun fetchAnimeDetails(anime: Anime): Observable<SAnime> {

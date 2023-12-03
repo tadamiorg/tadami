@@ -51,6 +51,7 @@
     <string name="preferences_library_update_restrictions">Updates restrictions</string>
     <string name="none">None</string>
     <string name="preferences_library_auto_updates_disabled">Disabled</string>
+    <string name="preferences_library_auto_updates_half_day">Every 12 hours</string>
     <string name="preferences_library_auto_updates_daily">Daily</string>
     <string name="preferences_library_auto_updates_weekly">Weekly</string>
     <string name="preferences_library_auto_updates_daily2">Every 2 days</string>
@@ -174,6 +175,13 @@
     <string name="file_null_uri_error">No file selected</string>
     <string name="restore_in_progress">Restore is already in progress</string>
     <string name="source_not_installed">Source not installed: %1$s</string>
+    <string name="category_network">Network</string>
+    <string name="preferences_user_agent_string">Default user agent string</string>
+    <string name="sources_preferences_base_url">Override the base url</string>
+    <string name="sources_preferences_base_url_subtitle">If you want to modify the source base address in case it is not working already.</string>
+    <string name="sources_preferences_title">Settings - %1$s</string>
+    <string name="default_string_formatted">Default : %1$s</string>
+    <string name="clipboard_copied">Copied to clipboard</string>
 
 
 </resources>

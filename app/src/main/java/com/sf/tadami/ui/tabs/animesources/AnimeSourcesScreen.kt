@@ -4,36 +4,50 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.DiscoverRoutes
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
+import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
+import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
+import com.sf.tadami.utils.Lang
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AnimeSourcesScreen(navController: NavHostController) {
+fun AnimeSourcesScreen(
+    navController: NavHostController
+) {
+    val sPrefs by rememberDataStoreState(customPrefs = SourcesPreferences).value.collectAsState()
 
-    val actions = listOf(
-        Action.Drawable(
-            title = R.string.stub_text,
-            icon = R.drawable.ic_search,
-            enabled = true,
-            onClick = {
-                navController.navigate(DiscoverRoutes.GLOBAL_SEARCH)
-            }),
-        Action.Drawable(
-            title = R.string.stub_text,
-            icon = R.drawable.ic_filter,
-            enabled = true,
-            onClick = {
-                navController.navigate(DiscoverRoutes.SOURCES_FILTER)
-            }
-        ),
-        Action.CastButton()
-    )
+
+    val actions = remember(sPrefs.hiddenSources, sPrefs.enabledLanguages) {
+        listOf(
+            Action.Drawable(
+                title = R.string.stub_text,
+                icon = R.drawable.ic_search,
+                enabled = true,
+                onClick = {
+                    navController.navigate(DiscoverRoutes.GLOBAL_SEARCH)
+                }),
+            Action.Drawable(
+                title = R.string.stub_text,
+                icon = R.drawable.ic_filter,
+                tint = if (sPrefs.hiddenSources.isNotEmpty() || sPrefs.enabledLanguages.size != Lang.getAllLangs().size) Color.Yellow else null,
+                enabled = true,
+                onClick = {
+                    navController.navigate(DiscoverRoutes.SOURCES_FILTER)
+                }
+            ),
+            Action.CastButton()
+        )
+    }
 
     Scaffold(
         topBar = {

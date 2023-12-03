@@ -49,6 +49,7 @@
     <string name="preferences_library_update_restrictions">Restrictions pour les mises à jour</string>
     <string name="none">Aucun</string>
     <string name="preferences_library_auto_updates_disabled">Désactivé</string>
+    <string name="preferences_library_auto_updates_half_day">Toutes les 12 heures</string>
     <string name="preferences_library_auto_updates_daily">Tous les jours</string>
     <string name="preferences_library_auto_updates_weekly">Chaque semaine</string>
     <string name="preferences_library_auto_updates_daily2">Tous les 2 jours</string>
@@ -173,5 +174,11 @@
     <string name="file_null_uri_error">Aucun fichier sélectionné</string>
     <string name="restore_in_progress">Restauration déjà en cours</string>
     <string name="source_not_installed">Source non installée: %1$s</string>
-
+    <string name="category_network">Réseau</string>
+    <string name="preferences_user_agent_string">User agent par défaut</string>
+    <string name="sources_preferences_title">Paramètres - %1$s</string>
+    <string name="sources_preferences_base_url">Remplacer l\'url de base</string>
+    <string name="sources_preferences_base_url_subtitle">Si vous souhaitez modifier l\'adresse de base de la source si celle-ci ne fonctionne plus.</string>
+    <string name="default_string_formatted">Par défaut : %1$s</string>
+    <string name="clipboard_copied">Copié dans le presse-papiers</string>
 </resources>

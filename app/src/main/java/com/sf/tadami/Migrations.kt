@@ -1,6 +1,8 @@
 package com.sf.tadami
 
 import android.content.Context
+import android.util.Log
+import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
@@ -8,13 +10,20 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
-import com.sf.tadami.data.providers.DataStoreProvider
+import com.sf.tadami.network.api.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
+import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
 import com.sf.tadami.ui.tabs.settings.screens.backup.BackupPreferences
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
 import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferences
+import com.sf.tadami.utils.clearAllPreferences
+import com.sf.tadami.utils.clearPreferences
+import com.sf.tadami.utils.createPreference
+import com.sf.tadami.utils.editPreference
+import com.sf.tadami.utils.getDataStoreValues
+import java.io.File
 
 object Migrations {
 
@@ -25,7 +34,8 @@ object Migrations {
      */
     suspend fun upgrade(
         context: Context,
-        dataStoreProvider: DataStoreProvider,
+        dataStore: DataStore<Preferences>,
+        sourcesManager : AnimeSourcesManager,
         appPreferences: AppPreferences,
         libraryPreferences: LibraryPreferences,
         playerPreferences: PlayerPreferences,
@@ -34,7 +44,7 @@ object Migrations {
     ) {
         val oldVersion = appPreferences.lastVersionCode
         if (oldVersion < BuildConfig.VERSION_CODE) {
-            dataStoreProvider.editPreference(
+            dataStore.editPreference(
                 BuildConfig.VERSION_CODE,
                 intPreferencesKey(AppPreferences.LAST_VERSION_CODE.name)
             )
@@ -50,73 +60,120 @@ object Migrations {
         }
     }
 
+    /* Preferences function for APP datastore*/
     private suspend fun deletePreferences(
-        dataStoreProvider: DataStoreProvider,
+        dataStore: DataStore<Preferences>,
         preferences: Set<Preferences.Key<*>>
     ) {
-        dataStoreProvider.clearPreferences(preferences)
+        dataStore.clearPreferences(preferences)
+    }
+
+    private suspend fun deleteAllPreferences(
+        dataStore: DataStore<Preferences>,
+    ) {
+        dataStore.clearAllPreferences()
     }
 
     private suspend fun replacePreferences(
-        dataStoreProvider: DataStoreProvider,
+        dataStore: DataStore<Preferences>,
         filterPredicate: (Map.Entry<Preferences.Key<*>, Any?>) -> Boolean,
         newValue : (Any) -> Any = {it},
         newKey: (Preferences.Key<*>) -> String,
     ) {
-        dataStoreProvider
+        dataStore
             .getDataStoreValues()
             .asMap()
             .filter(filterPredicate)
             .forEach { (key, value) ->
                 when (value) {
                     is Int -> {
-                        dataStoreProvider.createPreference(
+                        dataStore.createPreference(
                             intPreferencesKey(newKey(key)),
                             newValue(value) as Int
                         )
-                        dataStoreProvider.clearPreferences(setOf(key))
+                        dataStore.clearPreferences(setOf(key))
                     }
 
                     is Long -> {
-                        dataStoreProvider.createPreference(
+                        dataStore.createPreference(
                             longPreferencesKey(newKey(key)),
                             newValue(value) as Long
                         )
-                        dataStoreProvider.clearPreferences(setOf(key))
+                        dataStore.clearPreferences(setOf(key))
                     }
 
                     is Float -> {
-                        dataStoreProvider.createPreference(
+                        dataStore.createPreference(
                             floatPreferencesKey(newKey(key)),
                             newValue(value) as Float
                         )
-                        dataStoreProvider.clearPreferences(setOf(key))
+                        dataStore.clearPreferences(setOf(key))
                     }
 
                     is String -> {
-                        dataStoreProvider.createPreference(
+                        dataStore.createPreference(
                             stringPreferencesKey(newKey(key)),
                             newValue(value) as String
                         )
-                        dataStoreProvider.clearPreferences(setOf(key))
+                        dataStore.clearPreferences(setOf(key))
                     }
 
                     is Boolean -> {
-                        dataStoreProvider.createPreference(
+                        dataStore.createPreference(
                             booleanPreferencesKey(newKey(key)),
                             newValue(value) as Boolean
                         )
-                        dataStoreProvider.clearPreferences(setOf(key))
+                        dataStore.clearPreferences(setOf(key))
                     }
 
                     is Set<*> -> (value as? Set<String>)?.let {
-                        dataStoreProvider.createPreference(
+                        dataStore.createPreference(
                             stringSetPreferencesKey(newKey(key)),
                             newValue(value) as Set<String>
                         )
-                        dataStoreProvider.clearPreferences(setOf(key))
+                        dataStore.clearPreferences(setOf(key))
                     }
                 }
             }
+    }
+    /* Preferences functions for SOURCE datastore*/
+    private suspend fun deleteSourcePreferences(
+        sourceId : String,
+        sourcesManager: AnimeSourcesManager,
+        preferences: Set<Preferences.Key<*>>
+    ){
+        val source = (sourcesManager.getExtensionById(sourceId)) as ConfigurableParsedHttpAnimeSource<*>
+        deletePreferences(source.dataStore,preferences)
+    }
+    private suspend fun deleteAllSourcePreferences(
+        sourceId : String,
+        sourcesManager: AnimeSourcesManager,
+    ) {
+        val source = (sourcesManager.getExtensionById(sourceId)) as ConfigurableParsedHttpAnimeSource<*>
+        source.dataStore.clearAllPreferences()
+    }
+
+    private suspend fun replaceSourcePreferences(
+        sourceId : String,
+        sourcesManager: AnimeSourcesManager,
+        filterPredicate: (Map.Entry<Preferences.Key<*>, Any?>) -> Boolean,
+        newValue : (Any) -> Any = {it},
+        newKey: (Preferences.Key<*>) -> String,
+    ){
+        val source = (sourcesManager.getExtensionById(sourceId)) as ConfigurableParsedHttpAnimeSource<*>
+        replacePreferences(source.dataStore,filterPredicate,newValue,newKey)
+    }
+
+    /* Preferences functions for ALL datastore*/
+    private fun deleteDataStore(
+        dataStoreFileName : String,
+        context : Context
+    ){
+        val dataStoreDir = File(context.filesDir, "datastore")
+        val dataStoreFile = File(dataStoreDir, "$dataStoreFileName.preferences_pb")
+        if (dataStoreFile.exists()) {
+            val deleted = dataStoreFile.delete()
+            if (!deleted) Log.e("Migrations errors","Unable to delete dataStore file ${dataStoreFile.name}")
+        }
     }
 }

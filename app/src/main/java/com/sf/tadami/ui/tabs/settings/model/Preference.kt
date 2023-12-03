@@ -77,6 +77,16 @@ sealed class Preference {
             override val enabled: Boolean = true,
             val onClick : (() -> Unit)? = null
         ) : PreferenceItem<String>()
+
+        data class EditTextPreference(
+            val value: String,
+            val defaultValue : String? = null,
+            override val title: String,
+            override val subtitle: String? = "%s",
+            override val icon: ImageVector? = null,
+            override val enabled: Boolean = true,
+            override val onValueChanged: (newValue: String) -> Boolean = { true },
+        ) : PreferenceItem<String>()
     }
 
     data class PreferenceCategory(
