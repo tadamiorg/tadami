@@ -12,10 +12,10 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import com.sf.tadami.navigation.graphs.HomeNavItems
+import com.sf.tadami.navigation.graphs.home.HomeNavItems
 
 @Composable
-fun BottomNavBar(items : List<HomeNavItems>,currentDestination: NavDestination?,navController: NavHostController) {
+fun BottomNavBar(items : List<HomeNavItems>, currentDestination: NavDestination?, navController: NavHostController) {
     BottomAppBar {
         items.forEach { item ->
             AddItem(item, currentDestination, navController)

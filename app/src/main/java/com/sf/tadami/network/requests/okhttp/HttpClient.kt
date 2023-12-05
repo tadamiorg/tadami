@@ -1,11 +1,18 @@
 package com.sf.tadami.network.requests.okhttp
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.network.interceptors.CloudflareInterceptor
 import com.sf.tadami.network.interceptors.UserAgentInterceptor
 import com.sf.tadami.network.requests.utils.AndroidCookieJar
+import com.sf.tadami.ui.tabs.settings.screens.advanced.AdvancedPreferences
+import com.sf.tadami.utils.getPreferencesGroup
+import kotlinx.coroutines.runBlocking
 import okhttp3.Cache
 import okhttp3.OkHttpClient
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -17,6 +24,12 @@ class HttpClient(private val context : Context) {
 
     val cookieManager = AndroidCookieJar()
 
+    private val dataStore : DataStore<Preferences> = Injekt.get()
+
+    val advancedPreferences = runBlocking {
+        dataStore.getPreferencesGroup(AdvancedPreferences)
+    }
+
     private val baseClientBuilder: OkHttpClient.Builder
         get() {
             return OkHttpClient.Builder()
@@ -24,7 +37,7 @@ class HttpClient(private val context : Context) {
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
                 .callTimeout(2, TimeUnit.MINUTES)
-                .addInterceptor(UserAgentInterceptor())
+                .addInterceptor(UserAgentInterceptor(advancedPreferences.userAgent))
         }
 
     val client by lazy { baseClientBuilder.cache(Cache(cacheDir, cacheSize)).build() }
@@ -34,6 +47,7 @@ class HttpClient(private val context : Context) {
             .addInterceptor(CloudflareInterceptor(context,cookieManager))
             .build()
     }
-    val DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36 Edg/88.0.705.63"
-
+    companion object{
+        const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36 Edg/88.0.705.63"
+    }
 }

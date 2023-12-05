@@ -24,8 +24,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sf.tadami.navigation.bottomnav.BottomNavBar
-import com.sf.tadami.navigation.graphs.HomeNavGraph
-import com.sf.tadami.navigation.graphs.HomeNavItems
+import com.sf.tadami.navigation.graphs.home.HomeNavGraph
+import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.ui.components.filters.TadaBottomSheetLayout
 import com.sf.tadami.ui.tabs.library.bottomsheet.LibrarySheetContent
 import kotlinx.coroutines.launch

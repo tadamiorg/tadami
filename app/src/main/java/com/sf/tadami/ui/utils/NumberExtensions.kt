@@ -1,5 +1,7 @@
 package com.sf.tadami.ui.utils
 
+import java.text.SimpleDateFormat
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 fun Long.formatMinSec(): String {
@@ -15,3 +17,9 @@ fun Long.formatMinSec(): String {
         }
     }
 }
+fun Long.formatDate(): String {
+    val dateFormat = SimpleDateFormat("dd/MM - HH:mm", Locale.getDefault())
+    return dateFormat.format(this)
+}
+
+

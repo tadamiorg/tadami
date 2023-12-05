@@ -29,8 +29,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
-import com.sf.tadami.navigation.graphs.AnimeInfosRoutes
-import com.sf.tadami.navigation.graphs.HomeNavItems
+import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
+import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.LibraryItem

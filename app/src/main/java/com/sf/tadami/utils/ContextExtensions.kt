@@ -6,17 +6,23 @@ import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.content.getSystemService
+import androidx.core.net.toUri
 import androidx.work.WorkManager
+import com.sf.tadami.ui.utils.UiToasts
 import java.io.File
 
 fun Context.findActivity(): Activity {
@@ -63,6 +69,9 @@ val Context.animatorDurationScale: Float
 val Context.notificationManager: NotificationManager
     get() = getSystemService()!!
 
+val Context.powerManager: PowerManager
+    get() = getSystemService()!!
+
 val Context.workManager: WorkManager
     get() = WorkManager.getInstance(this)
 
@@ -88,4 +97,37 @@ fun Context.isConnectedToWifi(): Boolean {
         @Suppress("DEPRECATION")
         wifiManager.connectionInfo.bssid != null
     }
+}
+
+fun Context.openInBrowser(url: String, forceDefaultBrowser: Boolean = false) {
+    this.openInBrowser(url.toUri(), forceDefaultBrowser)
+}
+
+fun Context.openInBrowser(uri: Uri, forceDefaultBrowser: Boolean = false) {
+    try {
+        val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+            // Force default browser so that verified extensions don't re-open Tadami
+            if (forceDefaultBrowser) {
+                defaultBrowserPackageName()?.let { setPackage(it) }
+            }
+        }
+        startActivity(intent)
+    } catch (e: Exception) {
+        UiToasts.showToast(e.message ?: "")
+    }
+}
+
+private fun Context.defaultBrowserPackageName(): String? {
+    val browserIntent = Intent(Intent.ACTION_VIEW, "http://".toUri())
+    val resolveInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        packageManager.resolveActivity(
+            browserIntent,
+            PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong()),
+        )
+    } else {
+        packageManager.resolveActivity(browserIntent, PackageManager.MATCH_DEFAULT_ONLY)
+    }
+    return resolveInfo
+        ?.activityInfo?.packageName
+        ?.takeUnless { it in DeviceUtil.invalidDefaultBrowsers }
 }

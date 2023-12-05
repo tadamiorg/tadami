@@ -14,5 +14,16 @@ sealed class Action(@StringRes val title: Int, val onClick: () -> Unit, val enab
     class Vector(title: Int, val icon: ImageVector, onClick: () -> Unit, enabled: Boolean = true,tint: Color? = null) :
         Action(title, onClick, enabled,tint)
 
+    class DropDownVector(title: Int, val icon: ImageVector, onClick: () -> Unit, enabled: Boolean = true,tint: Color? = null,val items : List<DropDownAction>) :
+        Action(title, onClick, enabled,tint)
+
+    class DropDownDrawable(title: Int, @DrawableRes val icon: Int, onClick: () -> Unit = {}, enabled: Boolean = true, tint: Color? = null,val items : List<DropDownAction>) :
+        Action(title, onClick, enabled,tint)
+
     class CastButton(title: Int = R.string.stub_text, onClick: () -> Unit = {}, enabled: Boolean = true, tint: Color? = null) : Action(title,onClick,enabled,tint)
 }
+
+class DropDownAction(
+    val title : String,
+    val onClick: () -> Unit
+)

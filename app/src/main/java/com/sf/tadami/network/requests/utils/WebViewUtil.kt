@@ -3,14 +3,15 @@ package com.sf.tadami.network.requests.utils
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.WebSettings
 import android.webkit.WebView
 
 object WebViewUtil {
-    const val REQUESTED_WITH = "com.android.browser"
+    const val SPOOF_PACKAGE_NAME = "org.chromium.chrome"
 
-    const val MINIMUM_WEBVIEW_VERSION = 88
+    const val MINIMUM_WEBVIEW_VERSION = 114
 
     fun supportsWebView(context: Context): Boolean {
         try {
@@ -18,6 +19,7 @@ object WebViewUtil {
             // is not installed
             CookieManager.getInstance()
         } catch (e: Throwable) {
+            Log.e("WebViewUtil",e.stackTraceToString())
             return false
         }
 
@@ -38,6 +40,11 @@ fun WebView.setDefaultSettings() {
         useWideViewPort = true
         loadWithOverviewMode = true
         cacheMode = WebSettings.LOAD_DEFAULT
+
+        // Allow zooming
+        setSupportZoom(true)
+        builtInZoomControls = true
+        displayZoomControls = false
     }
 }
 

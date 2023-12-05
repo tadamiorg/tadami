@@ -1,5 +1,6 @@
 package com.sf.tadami.network.api.online
 
+import android.util.Log
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.network.api.model.AnimeFilterList
 import com.sf.tadami.network.api.model.SAnime
@@ -29,7 +30,7 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
         get() = network.client
 
     protected open fun headersBuilder() = Headers.Builder().apply {
-        add("User-Agent", network.DEFAULT_USER_AGENT)
+        add("User-Agent", network.advancedPreferences.userAgent)
     }
 
     // Search

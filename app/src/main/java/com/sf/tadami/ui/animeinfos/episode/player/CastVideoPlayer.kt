@@ -21,6 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.google.android.exoplayer2.Player
 import com.google.android.gms.cast.MediaError
 import com.google.android.gms.cast.MediaSeekOptions
 import com.google.android.gms.cast.framework.CastSession
@@ -176,6 +177,18 @@ fun CastVideoPlayer(
         if(idleLock){
             totalDuration = 0
             currentTime = 0
+        }
+    }
+
+    if(playerPreferences.autoPlay){
+        LaunchedEffect(isIdle && !idleLock) {
+            val autoIdle = isIdle && !idleLock
+            if(currentTime>0L && totalDuration>0L){
+                if(autoIdle && hasNextIterator.hasPrevious()){
+                    val next = hasNextIterator.previous()
+                    selectEpisode(next)
+                }
+            }
         }
     }
 

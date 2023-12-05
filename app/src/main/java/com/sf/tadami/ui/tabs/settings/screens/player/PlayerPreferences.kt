@@ -2,6 +2,7 @@ package com.sf.tadami.ui.tabs.settings.screens.player
 
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
@@ -9,7 +10,8 @@ import com.sf.tadami.ui.tabs.settings.model.CustomPreferencesIdentifier
 
 data class PlayerPreferences(
     val seenThreshold : Int,
-    val doubleTapLength : Long
+    val doubleTapLength : Long,
+    val autoPlay : Boolean
 ) : CustomPreferencesIdentifier {
 
     object SeenThresholdItems {
@@ -32,17 +34,20 @@ data class PlayerPreferences(
     companion object : CustomPreferences<PlayerPreferences>{
         private val SEEN_THRESHOLD =  intPreferencesKey("player_seen_threshold")
         private val DOUBLE_TAP_LENGTH = longPreferencesKey("player_double_tap_length")
+        private val AUTO_PLAY = booleanPreferencesKey("player_auto_play")
 
         override fun transform(preferences: Preferences): PlayerPreferences {
            return PlayerPreferences(
                seenThreshold = preferences[SEEN_THRESHOLD] ?: SeenThresholdItems.EIGHTY_FIVE,
-               doubleTapLength = preferences[DOUBLE_TAP_LENGTH] ?: DoubleTapLengthItems.TEN
+               doubleTapLength = preferences[DOUBLE_TAP_LENGTH] ?: DoubleTapLengthItems.TEN,
+               autoPlay = preferences[AUTO_PLAY] ?: false
            )
         }
 
         override fun setPrefs(newValue: PlayerPreferences, preferences: MutablePreferences) {
             preferences[SEEN_THRESHOLD] = newValue.seenThreshold
             preferences[DOUBLE_TAP_LENGTH] = newValue.doubleTapLength
+            preferences[AUTO_PLAY] = newValue.autoPlay
         }
     }
 }

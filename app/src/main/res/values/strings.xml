@@ -179,9 +179,43 @@
     <string name="preferences_user_agent_string">Default user agent string</string>
     <string name="sources_preferences_base_url">Override the base url</string>
     <string name="sources_preferences_base_url_subtitle">If you want to modify the source base address in case it is not working already.</string>
+    <string name="sources_preferences_user_agent">Override the user agent</string>
+    <string name="sources_preferences_user_agent_subtitle">If you want to modify the source user agent in case it is not working already.</string>
     <string name="sources_preferences_title">Settings - %1$s</string>
     <string name="default_string_formatted">Default : %1$s</string>
     <string name="clipboard_copied">Copied to clipboard</string>
-
+    <string name="information_webview_required">WebView is required for the app to function</string>
+    <string name="in_library">In library</string>
+    <string name="add_to_library">Add to library</string>
+    <plurals name="day">
+        <item quantity="one">1 day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <string name="action_web_view" translatable="false">WebView</string>
+    <string name="pref_clear_cookies">Clear cookies</string>
+    <string name="action_open_in_browser">Open in browser</string>
+    <string name="preferences_advanced">Advanced</string>
+    <string name="preferences_advanced_data">Data</string>
+    <string name="preferences_advanced_subtitle">User agent, data, webview</string>
+    <string name="label_background_activity">Background activity</string>
+    <string name="pref_disable_battery_optimization">Disable battery optimization</string>
+    <string name="pref_disable_battery_optimization_summary">Helps with background library updates and backups</string>
+    <string name="dont_kill_my_app" translatable="false">Don\'t kill my app!</string>
+    <string name="about_dont_kill_my_app">Some manufacturers have additional app restrictions that kill background services. This website has more info on how to fix it.</string>
+    <string name="advanced_worker_infos">Jobs infos</string>
+    <string name="battery_optimization_setting_activity_not_found">Couldn\'t open device settings</string>
+    <string name="battery_optimization_disabled">Battery optimization is already disabled</string>
+    <string name="cookies_cleared">Cookies cleared</string>
+    <string name="pref_clear_webview_data">Clear WebView data</string>
+    <string name="webview_data_deleted">WebView data cleared</string>
+    <string name="cache_delete_error">Error occurred while clearing</string>
+    <string name="pref_user_agent_string">Default user agent string</string>
+    <string name="error_user_agent_string_invalid">Invalid user agent string</string>
+    <string name="pref_reset_user_agent_string">Reset default user agent string</string>
+    <string name="pref_clear_database_summary">Delete history for entries that are not saved in your library</string>
+    <string name="pref_clear_database">Clear database</string>
+    <string name="requires_app_restart">Requires app restart to take effect</string>
+    <string name="player_pref_auto_play">Auto play</string>
+    <string name="player_pref_auto_play_subtitle">Next episodes will play automatically a the end of current episode</string>
 
 </resources>

@@ -97,7 +97,7 @@ fun Group(
                     interactionSource = interactionSource
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_arrow_down),
+                        painter = painterResource(id = if(!dialogState) R.drawable.ic_arrow_down else R.drawable.ic_arrow_up),
                         contentDescription = null,
                     )
                 }

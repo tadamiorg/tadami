@@ -61,6 +61,11 @@
             android:exported="true">
         </activity>
 
+        <activity
+            android:name=".ui.webview.WebViewActivity"
+            android:configChanges="uiMode|orientation|screenSize"
+            android:exported="false" />
+
         <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
             android:value="com.sf.tadami.ui.animeinfos.episode.cast.CastOptionsProvider" />

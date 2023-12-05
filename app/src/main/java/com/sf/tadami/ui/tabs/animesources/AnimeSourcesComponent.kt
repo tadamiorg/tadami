@@ -16,8 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
-import com.sf.tadami.navigation.graphs.DiscoverRoutes
-import com.sf.tadami.navigation.graphs.GRAPH
+import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
+import com.sf.tadami.navigation.graphs.sources.SourcesRoutes
 import com.sf.tadami.network.api.online.AnimeCatalogueSource
 import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
@@ -72,7 +72,7 @@ fun AnimeSourcesComponent(
                             navController.navigate("${DiscoverRoutes.SEARCH}/${source.id}")
                         },
                         onOptionsClicked = {
-                            navController.navigate("${GRAPH.SOURCE_SETTINGS}/${source.id}")
+                            navController.navigate("${SourcesRoutes.SETTINGS}/${source.id}")
                         }
                     )
 

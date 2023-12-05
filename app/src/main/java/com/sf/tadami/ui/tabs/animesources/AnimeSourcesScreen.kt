@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
-import com.sf.tadami.navigation.graphs.DiscoverRoutes
+import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences

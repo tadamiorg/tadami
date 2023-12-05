@@ -21,7 +21,7 @@ class AnimeSourcesManager {
             langMap
         }
 
-    fun getExtensionById(id: String): AnimeCatalogueSource? {
+    fun getExtensionById(id: String?): AnimeCatalogueSource? {
         return animeExtensions[id]
     }
 }

@@ -16,7 +16,8 @@ data class GogoAnimePreferences(
 
         override fun transform(preferences: Preferences): GogoAnimePreferences {
             return GogoAnimePreferences(
-                baseUrl = preferences[BASE_URL] ?: DEFAULT_BASE_URL)
+                baseUrl = preferences[BASE_URL] ?: DEFAULT_BASE_URL,
+            )
         }
 
         override fun setPrefs(newValue: GogoAnimePreferences, preferences: MutablePreferences) {

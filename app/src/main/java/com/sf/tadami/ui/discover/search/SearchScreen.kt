@@ -34,7 +34,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.sf.tadami.R
-import com.sf.tadami.navigation.graphs.AnimeInfosRoutes
+import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.filters.TadaBottomSheetLayout
 import com.sf.tadami.ui.components.topappbar.search.SearchTopAppBar

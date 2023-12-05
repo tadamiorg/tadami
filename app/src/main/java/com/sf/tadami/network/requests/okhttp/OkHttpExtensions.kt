@@ -1,5 +1,6 @@
 package com.sf.tadami.network.requests.okhttp
 
+import com.sf.tadami.network.interceptors.UserAgentInterceptor
 import com.sf.tadami.notifications.utils.okhttp.ProgressListener
 import com.sf.tadami.notifications.utils.okhttp.ProgressResponseBody
 import io.reactivex.rxjava3.core.Observable
@@ -85,6 +86,13 @@ fun OkHttpClient.newCachelessCallWithProgress(request: Request, listener: Progre
         .build()
 
     return progressClient.newCall(request)
+}
+
+fun OkHttpClient.Builder.setUserAgent(
+    userAgent: String?,
+    client : HttpClient
+) = apply {
+    interceptors().add(0, UserAgentInterceptor(userAgent ?: client.advancedPreferences.userAgent))
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
