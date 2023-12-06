@@ -1,6 +1,5 @@
 package com.sf.tadami.network.api.online
 
-import android.util.Log
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.network.api.model.AnimeFilterList
 import com.sf.tadami.network.api.model.SAnime

@@ -22,6 +22,7 @@ import com.sf.tadami.network.api.online.AnimeCatalogueSource
 import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.utils.padding
+import com.sf.tadami.utils.Lang
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -34,10 +35,10 @@ fun AnimeSourcesComponent(
 
     val categories = remember(sourcesPreferences) {
         sourcesManager.animeExtensions.values.toList()
-            .fold(mutableMapOf<Int, MutableList<AnimeCatalogueSource>>()) { langMap, animeSource ->
-                val sourceLang = animeSource.lang.getRes()
-                if (sourceLang.toString() in sourcesPreferences.enabledLanguages && animeSource.id !in sourcesPreferences.hiddenSources) {
-                    langMap.getOrPut(animeSource.lang.getRes()) { mutableListOf() }.add(animeSource)
+            .fold(mutableMapOf<String, MutableList<AnimeCatalogueSource>>()) { langMap, animeSource ->
+                val sourceLang = animeSource.lang.name
+                if (sourceLang in sourcesPreferences.enabledLanguages && animeSource.id !in sourcesPreferences.hiddenSources) {
+                    langMap.getOrPut(sourceLang) { mutableListOf() }.add(animeSource)
                 }
                 langMap
             }
@@ -57,7 +58,7 @@ fun AnimeSourcesComponent(
                         modifier = Modifier.padding(
                             MaterialTheme.padding.medium,
                             MaterialTheme.padding.tiny
-                        ), text = stringResource(id = lang)
+                        ), text = stringResource(id = Lang.getLangByName(lang)!!.getRes())
                     )
                 }
 
