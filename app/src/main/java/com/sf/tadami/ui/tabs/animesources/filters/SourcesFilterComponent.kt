@@ -11,10 +11,11 @@ import com.sf.tadami.ui.tabs.animesources.filters.components.SourcesFilterHeader
 import com.sf.tadami.ui.tabs.animesources.filters.components.SourcesFilterItem
 import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
+
 @Composable
 fun SourcesFilterComponent(
     contentPadding: PaddingValues,
-    sources: Map<Int, MutableList<AnimeCatalogueSource>>
+    sources: Map<String, MutableList<AnimeCatalogueSource>>
 ) {
 
     val sourcesPreferencesState = rememberDataStoreState(SourcesPreferences)
@@ -24,7 +25,7 @@ fun SourcesFilterComponent(
         contentPadding = contentPadding,
     ) {
         sources.forEach { (language, sources) ->
-            val enabled = language.toString() in sourcesPreferences.enabledLanguages
+            val enabled = language in sourcesPreferences.enabledLanguages
             item(
                 key = language,
                 contentType = "source-filter-header",
@@ -33,11 +34,11 @@ fun SourcesFilterComponent(
                     language = language,
                     enabled = enabled,
                     onClickItem = {
-                        val isEnabled = it.toString() in sourcesPreferences.enabledLanguages
+                        val isEnabled = it in sourcesPreferences.enabledLanguages
                         sourcesPreferencesState.setValue(sourcesPreferences.let { old ->
                             old.copy(
-                                enabledLanguages = if (isEnabled) old.enabledLanguages.minus(it.toString()) else old.enabledLanguages.plus(
-                                    it.toString()
+                                enabledLanguages = if (isEnabled) old.enabledLanguages.minus(it) else old.enabledLanguages.plus(
+                                    it
                                 )
                             )
                         })

@@ -32,7 +32,7 @@ import uy.kohesive.injekt.injectLazy
 
 class GogoAnime() : ConfigurableParsedHttpAnimeSource<GogoAnimePreferences>() {
 
-    override val id : String
+    override val id: String
         get() = "GogoAnime"
 
     override val name: String = "GogoAnime"
@@ -51,7 +51,7 @@ class GogoAnime() : ConfigurableParsedHttpAnimeSource<GogoAnimePreferences>() {
     }
 
     override fun getPreferenceScreen(navController: NavHostController): PreferenceScreen {
-        return GogoAnimePreferencesScreen(navController,dataStore)
+        return GogoAnimePreferencesScreen(navController, dataStore)
     }
 
 
@@ -111,7 +111,11 @@ class GogoAnime() : ConfigurableParsedHttpAnimeSource<GogoAnimePreferences>() {
 
         val request = when {
             params.genre.isNotEmpty() -> GET("$baseUrl/genre/${params.genre}?page=$page", headers)
-            params.recent.isNotEmpty() -> GET("https://ajax.gogo-load.com/ajax/page-recent-release.html?page=$page&type=${params.recent}", headers)
+            params.recent.isNotEmpty() -> GET(
+                "https://ajax.gogo-load.com/ajax/page-recent-release.html?page=$page&type=${params.recent}",
+                headers
+            )
+
             params.season.isNotEmpty() -> GET("$baseUrl/${params.season}?page=$page", headers)
             else -> GET("$baseUrl/filter.html?keyword=$query&${params.filter}&page=$page", headers)
         }
@@ -207,17 +211,25 @@ class GogoAnime() : ConfigurableParsedHttpAnimeSource<GogoAnimePreferences>() {
                         "anime", "vidcdn" -> {
                             gogoExtractor.videosFromUrl(serverUrl)
                         }
+
                         "streamwish" -> streamwishExtractor.videosFromUrl(serverUrl)
                         "doodstream" -> {
                             DoodExtractor(client).videosFromUrl(serverUrl)
                         }
+
                         "mp4upload" -> {
-                            val headers = headers.newBuilder().set("Referer", "https://mp4upload.com/").build()
+                            val headers =
+                                headers.newBuilder().set("Referer", "https://mp4upload.com/")
+                                    .build()
                             Mp4uploadExtractor(client).videosFromUrl(serverUrl, headers)
                         }
+
                         "filelions" -> {
-                            streamwishExtractor.videosFromUrl(serverUrl, videoNameGen = { quality -> "FileLions - $quality" })
+                            streamwishExtractor.videosFromUrl(
+                                serverUrl,
+                                videoNameGen = { quality -> "FileLions - $quality" })
                         }
+
                         else -> null
                     }
                 }.getOrNull()

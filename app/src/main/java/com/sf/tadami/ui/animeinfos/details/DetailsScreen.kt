@@ -24,8 +24,9 @@ import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
-import com.sf.tadami.navigation.graphs.AnimeInfosRoutes
+import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.network.api.online.StubSource
+import com.sf.tadami.ui.animeinfos.details.actions.AnimeActionRow
 import com.sf.tadami.ui.animeinfos.details.episodes.EpisodesHeader
 import com.sf.tadami.ui.animeinfos.details.episodes.episodeItems
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeInfosBox
@@ -34,8 +35,11 @@ import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.widgets.PullRefresh
 import com.sf.tadami.ui.components.widgets.VerticalFastScroller
+import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.isScrollingUp
 import com.sf.tadami.ui.utils.padding
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 
 @SuppressLint("OpaqueUnitKey")
@@ -62,9 +66,6 @@ fun DetailsScreen(
                 title = uiState.details?.title ?: "",
                 episodesListState = episodesListState,
                 onBackClicked = { navHostController.navigateUp() },
-                onLibraryAnimeClicked = {
-                    detailsViewModel.toggleFavorite()
-                },
                 actionModeCounter = uiState.episodes.count { it.selected },
                 onCloseClicked = {
                     detailsViewModel.toggleAllSelectedEpisodes(false)
@@ -74,8 +75,7 @@ fun DetailsScreen(
                 },
                 onToggleAll = {
                     detailsViewModel.toggleAllSelectedEpisodes(true)
-                },
-                isFavorited = uiState.details?.favorite
+                }
             )
         },
         floatingActionButton = {
@@ -187,6 +187,36 @@ fun DetailsScreen(
                             cover = { uiState.details?.thumbnailUrl ?: "" },
                             sourceName = detailsViewModel.source.name,
                             isStubSource = remember { detailsViewModel.source is StubSource }
+                        )
+                    }
+
+                    item(
+                        key = DetailsScreenItem.ACTION_ROW,
+                        contentType = DetailsScreenItem.ACTION_ROW,
+                    ) {
+                        AnimeActionRow(
+                            favorite = uiState.details?.favorite,
+                            onAddToLibraryClicked = {
+                                detailsViewModel.toggleFavorite()
+                            },
+                            onWebViewClicked = {
+                                val url = uiState.details?.url
+                                val title = uiState.details?.title
+                                if(url != null && title != null){
+                                    if(detailsViewModel.source !is StubSource){
+                                        val encodedUrl = URLEncoder.encode(uiState.details?.url, StandardCharsets.UTF_8.toString())
+                                        navHostController.navigate("${AnimeInfosRoutes.WEBVIEW}/${detailsViewModel.source.id}/$title/$encodedUrl")
+                                    }else{
+                                        UiToasts.showToast(
+                                            stringRes = R.string.source_not_installed,
+                                            args = arrayOf(detailsViewModel.source.id)
+                                        )
+                                    }
+                                }
+                            },
+                            onWebViewLongClicked = {
+
+                            }
                         )
                     }
 

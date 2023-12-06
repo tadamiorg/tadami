@@ -10,6 +10,7 @@ data class DetailsUiState (
 
 enum class DetailsScreenItem {
     INFO_BOX,
+    ACTION_ROW,
     DESCRIPTION_WITH_TAG,
     EPISODE_HEADER,
     EPISODE,

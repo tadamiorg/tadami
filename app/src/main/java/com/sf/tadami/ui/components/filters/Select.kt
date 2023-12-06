@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.components.filters
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -93,13 +94,14 @@ fun Select(
                 )
                 {
                     Icon(
-                        painterResource(id = R.drawable.ic_arrow_down),
+                        painterResource(id = if(!expanded) R.drawable.ic_arrow_down else R.drawable.ic_arrow_up),
                         contentDescription = null
                     )
                 }
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
+                    modifier = Modifier.background(MaterialTheme.colorScheme.inverseSurface)
                 )
                 {
                     select.values.forEach {

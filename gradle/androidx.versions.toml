@@ -2,7 +2,7 @@
 agp = "8.1.3"
 core-ktx = "1.12.0"
 lifecycle_version = "2.6.2"
-worker_version = "2.8.1"
+worker_version = "2.9.0"
 paging_version = "3.2.1"
 appcompat_version = "1.6.1"
 splashscreen_version = "1.0.1"

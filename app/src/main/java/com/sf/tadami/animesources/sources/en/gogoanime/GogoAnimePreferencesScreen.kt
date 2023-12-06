@@ -67,7 +67,29 @@ class GogoAnimePreferencesScreen(
                         )
                         true
                     }
-                )
+                ),
+              /*  Preference.PreferenceItem.EditTextPreference(
+                    value = prefs.userAgent ?: "",
+                    title = stringResource(id = R.string.sources_preferences_user_agent),
+                    subtitle = stringResource(id = R.string.sources_preferences_user_agent_subtitle),
+                    defaultValue = "null",
+                    onValueChanged = {
+                        if(it == "null"){
+                            prefState.setValue(
+                                prefs.copy(
+                                    userAgent = null
+                                )
+                            )
+                            return@EditTextPreference true
+                        }
+                        prefState.setValue(
+                            prefs.copy(
+                                userAgent = it
+                            )
+                        )
+                        true
+                    }
+                )*/
             )
         )
     }

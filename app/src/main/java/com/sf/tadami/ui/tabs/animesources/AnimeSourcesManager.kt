@@ -15,13 +15,13 @@ class AnimeSourcesManager {
 
     val animeExtensions : Map<String,AnimeCatalogueSource> = extensions.associateBy { it.id }
 
-    fun getExtensionsByLanguage() : Map<Int, MutableList<AnimeCatalogueSource>> = animeExtensions.values
+    fun getExtensionsByLanguage() : Map<String, MutableList<AnimeCatalogueSource>> = animeExtensions.values
         .fold(mutableMapOf()) { langMap, animeSource ->
-            langMap.getOrPut(animeSource.lang.getRes()) { mutableListOf() }.add(animeSource)
+            langMap.getOrPut(animeSource.lang.name) { mutableListOf() }.add(animeSource)
             langMap
         }
 
-    fun getExtensionById(id: String): AnimeCatalogueSource? {
+    fun getExtensionById(id: String?): AnimeCatalogueSource? {
         return animeExtensions[id]
     }
 }

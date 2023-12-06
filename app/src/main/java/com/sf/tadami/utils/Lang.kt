@@ -13,12 +13,18 @@ enum class Lang(private val langRes : Int) {
         return this.langRes
     }
     companion object {
+
+        fun getLangByName(name : String) : Lang?{
+            return Lang.values().find {
+                it.name == name
+            }
+        }
         fun getAllLangs(): Set<Lang> {
             return enumValues<Lang>().filter { it != UNKNOWN }.toSet()
         }
 
         fun Set<Lang>.toPref() : Set<String> {
-            return this.map { "${it.getRes()}" }.toSet()
+            return this.map { it.name }.toSet()
         }
     }
 

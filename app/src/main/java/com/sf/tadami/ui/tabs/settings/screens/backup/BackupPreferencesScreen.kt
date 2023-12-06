@@ -191,6 +191,7 @@ class BackupPreferencesScreen(
                         prefState.setValue(prefs.copy(
                             autoBackupInterval = it
                         ))
+                        BackupCreateWorker.setupTask(context, it)
                         true
                     }
                 ),

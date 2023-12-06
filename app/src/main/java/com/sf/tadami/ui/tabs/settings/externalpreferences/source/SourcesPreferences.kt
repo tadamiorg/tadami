@@ -15,7 +15,7 @@ data class SourcesPreferences(
 
     companion object : CustomPreferences<SourcesPreferences> {
         private val HIDDEN_SOURCES =  stringSetPreferencesKey("hidden_sources")
-        private val ENABLED_LANGUAGES =  stringSetPreferencesKey("enabled_languages")
+        val ENABLED_LANGUAGES =  stringSetPreferencesKey("enabled_languages")
 
         override fun transform(preferences: Preferences): SourcesPreferences {
             return SourcesPreferences(

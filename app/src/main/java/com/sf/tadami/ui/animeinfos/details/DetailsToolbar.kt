@@ -4,8 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -25,9 +23,7 @@ fun DetailsToolbar(
     modifier: Modifier = Modifier,
     title: String,
     onBackClicked: () -> Unit,
-    onLibraryAnimeClicked: () -> Unit,
     episodesListState: LazyListState,
-    isFavorited : Boolean? = false,
     // For Action Mode
     actionModeCounter: Int,
     onCloseClicked: () -> Unit,
@@ -41,10 +37,10 @@ fun DetailsToolbar(
         derivedStateOf { episodesListState.firstVisibleItemScrollOffset }
     }
     val animatedTitleAlpha by animateFloatAsState(
-        if (firstVisibleItemIndex > 0) 1f else 0f,
+        if (firstVisibleItemIndex > 0) 1f else 0f, label = "title_alpha",
     )
     val animatedBgAlpha by animateFloatAsState(
-        if (firstVisibleItemIndex > 0 || firstVisibleItemScrollOffset > 0) 1f else 0f,
+        if (firstVisibleItemIndex > 0 || firstVisibleItemScrollOffset > 0) 1f else 0f, label = "bg_alpha",
     )
     ContextualTopAppBar(
         modifier = modifier,
@@ -59,11 +55,6 @@ fun DetailsToolbar(
             )
         },
         actions = listOf(
-            Action.Vector(
-                title = R.string.stub_text,
-                icon = if(isFavorited == true) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
-                onClick = onLibraryAnimeClicked
-            ),
             Action.CastButton(),
             Action.Drawable(
                 title = R.string.stub_text,

@@ -29,7 +29,7 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
         get() = network.client
 
     protected open fun headersBuilder() = Headers.Builder().apply {
-        add("User-Agent", network.DEFAULT_USER_AGENT)
+        add("User-Agent", network.advancedPreferences.userAgent)
     }
 
     // Search

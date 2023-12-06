@@ -75,6 +75,17 @@ class PlayerPreferencesScreen(
                         ))
                         true
                     }
+                ),
+                Preference.PreferenceItem.TogglePreference(
+                    title = stringResource(id = R.string.player_pref_auto_play),
+                    value = prefs.autoPlay,
+                    subtitle = stringResource(id = R.string.player_pref_auto_play_subtitle),
+                    onValueChanged = {
+                        prefState.setValue(prefs.copy(
+                            autoPlay = it
+                        ))
+                        true
+                    }
                 )
             )
         )

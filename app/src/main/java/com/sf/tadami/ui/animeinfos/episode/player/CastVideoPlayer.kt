@@ -179,6 +179,18 @@ fun CastVideoPlayer(
         }
     }
 
+    if(playerPreferences.autoPlay){
+        LaunchedEffect(isIdle && !idleLock) {
+            val autoIdle = isIdle && !idleLock
+            if(currentTime>0L && totalDuration>0L){
+                if(autoIdle && hasNextIterator.hasPrevious()){
+                    val next = hasNextIterator.previous()
+                    selectEpisode(next)
+                }
+            }
+        }
+    }
+
     ContentLoader(isLoading = playerScreenLoading, delay = 500) {
         Box(modifier = modifier) {
 

@@ -3,6 +3,7 @@ package com.sf.tadami.ui.tabs.settings
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Backup
+import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.OndemandVideo
 import androidx.compose.material.icons.outlined.VideoLibrary
 import androidx.compose.material3.*
@@ -11,7 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
-import com.sf.tadami.navigation.graphs.SettingsRoutes
+import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
+import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 import com.sf.tadami.ui.tabs.settings.model.Preference
@@ -61,6 +63,14 @@ fun SettingsScreen(
                     icon = Icons.Outlined.OndemandVideo,
                     onClick = {
                         navController.navigate(SettingsRoutes.PLAYER)
+                    }
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(id = R.string.preferences_advanced),
+                    subtitle = stringResource(id = R.string.preferences_advanced_subtitle),
+                    icon = Icons.Outlined.Code,
+                    onClick = {
+                        navController.navigate(AdvancedSettingsRoutes.HOME)
                     }
                 )
             )

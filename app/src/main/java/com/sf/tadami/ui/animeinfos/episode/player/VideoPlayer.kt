@@ -36,13 +36,13 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.upstream.ResolvingDataSource
 import com.sf.tadami.R
 import com.sf.tadami.domain.episode.Episode
-import com.sf.tadami.network.api.online.AnimeSourceBase
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.animeinfos.episode.PlayerViewModel
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
 import com.sf.tadami.ui.animeinfos.episode.player.controls.QualityDialog
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
+import com.sf.tadami.ui.tabs.settings.screens.advanced.AdvancedPreferences
 import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferences
 import com.sf.tadami.ui.utils.UiToasts
 import kotlinx.coroutines.delay
@@ -57,6 +57,7 @@ fun VideoPlayer(
     val context = LocalContext.current
 
     val playerPreferences by rememberDataStoreState(customPrefs = PlayerPreferences).value.collectAsState()
+    val advancedPreferences by rememberDataStoreState(customPrefs = AdvancedPreferences).value.collectAsState()
 
     val playerScreenLoading by playerViewModel.playerScreenLoading.collectAsState()
 
@@ -80,7 +81,7 @@ fun VideoPlayer(
                 mapOf(
                     Pair(
                         "User-Agent",
-                        AnimeSourceBase.DEFAULT_USER_AGENT
+                        advancedPreferences.userAgent
                     )
                 )
             )
@@ -163,10 +164,23 @@ fun VideoPlayer(
         }
     }
 
+    if(playerPreferences.autoPlay){
+        LaunchedEffect(exoPlayer.isPlaying.not() && playbackState == STATE_ENDED) {
+            val autoIdle = exoPlayer.isPlaying.not() && playbackState == STATE_ENDED
+            if(currentTime>0L && totalDuration>0L){
+                if(autoIdle && hasNextIterator.hasPrevious()){
+                    val next = hasNextIterator.previous()
+                    exoPlayer.clearMediaItems()
+                    selectEpisode(next)
+                }
+            }
+        }
+    }
+
     if (isPlaying) {
         LaunchedEffect(Unit) {
             while (true) {
-                currentTime = exoPlayer.currentPosition.coerceAtLeast(0L)
+                currentTime = exoPlayer.currentPosition.coerceAtLeast(0L).coerceAtMost(totalDuration)
                 delay(1.seconds / 30)
             }
         }
@@ -241,7 +255,7 @@ fun VideoPlayer(
                         } else {
                             super.onEvents(player, events)
                             totalDuration = player.duration.coerceAtLeast(0L)
-                            currentTime = player.currentPosition.coerceAtLeast(0L)
+                            currentTime = player.currentPosition.coerceAtLeast(0L).coerceAtMost(totalDuration)
                             bufferedPercentage = player.bufferedPercentage
                             isPlaying = player.isPlaying
                             playbackState = player.playbackState
@@ -275,6 +289,8 @@ fun VideoPlayer(
             }
 
             ContentLoader(isLoading = isFetchingSources) {}
+
+
 
             PlayerControls(
                 modifier = Modifier.fillMaxSize(),
