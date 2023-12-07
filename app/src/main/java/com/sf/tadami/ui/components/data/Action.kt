@@ -2,10 +2,8 @@ package com.sf.tadami.ui.components.data
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
 
 // Top App Bar Action Item
@@ -27,5 +25,6 @@ sealed class Action(@StringRes val title: Int, val onClick: () -> Unit, val enab
 
 class DropDownAction(
     val title : String,
-    val onClick: () -> Unit
+    val onClick: () -> Unit,
+    val enabled: Boolean = true
 )

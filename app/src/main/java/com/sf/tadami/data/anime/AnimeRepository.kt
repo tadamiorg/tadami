@@ -12,8 +12,6 @@ import com.sf.tadami.network.api.model.SAnime
 import com.sf.tadami.network.database.listOfStringsAdapter
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import kotlinx.coroutines.flow.Flow
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 interface AnimeRepository {
 

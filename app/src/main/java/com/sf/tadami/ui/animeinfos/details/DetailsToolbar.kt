@@ -67,7 +67,8 @@ fun DetailsToolbar(
                         title = stringResource(id = R.string.action_migrate),
                         onClick = {
 
-                        }
+                        },
+                        enabled = false
                     )
                 )
             )

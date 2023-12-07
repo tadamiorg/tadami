@@ -7,8 +7,6 @@ import com.sf.tadami.data.interactors.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
-import com.sf.tadami.network.api.online.Source
-import com.sf.tadami.network.api.online.StubSource
 import com.sf.tadami.ui.components.data.EpisodeItem
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.tadami.ui.utils.addOrRemove

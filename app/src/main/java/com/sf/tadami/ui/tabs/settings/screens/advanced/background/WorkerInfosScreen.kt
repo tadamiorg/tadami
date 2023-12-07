@@ -28,7 +28,6 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkQuery
 import com.sf.tadami.R
-import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.ActionItem
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.ui.tabs.settings.model.Preference

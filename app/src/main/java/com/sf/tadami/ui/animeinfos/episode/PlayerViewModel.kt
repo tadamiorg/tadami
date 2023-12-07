@@ -12,7 +12,6 @@ import com.sf.tadami.data.interactors.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.network.api.model.StreamSource
-import com.sf.tadami.network.api.online.Source
 import com.sf.tadami.network.api.online.StubSource
 import com.sf.tadami.network.requests.utils.TadaErrorConsumer
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager

@@ -9,7 +9,6 @@ import com.sf.tadami.data.AndroidDatabaseHandler
 import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.data.anime.AnimeRepositoryImpl
-import com.sf.tadami.data.sources.SourceRepositoryImpl
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.episode.EpisodeRepositoryImpl
 import com.sf.tadami.data.interactors.AnimeWithEpisodesInteractor
@@ -18,6 +17,7 @@ import com.sf.tadami.data.interactors.GetSourcesWithNonLibraryAnime
 import com.sf.tadami.data.interactors.LibraryInteractor
 import com.sf.tadami.data.interactors.UpdateAnimeInteractor
 import com.sf.tadami.data.sources.SourceRepository
+import com.sf.tadami.data.sources.SourceRepositoryImpl
 import com.sf.tadami.network.database.listOfStringsAdapter
 import com.sf.tadami.network.requests.okhttp.HttpClient
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager

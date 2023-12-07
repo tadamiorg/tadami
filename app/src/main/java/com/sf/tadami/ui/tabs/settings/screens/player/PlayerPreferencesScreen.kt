@@ -6,7 +6,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
-import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.ui.tabs.settings.model.DataStoreState
 import com.sf.tadami.ui.tabs.settings.model.Preference
