@@ -13,6 +13,7 @@ import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.ui.tabs.settings.model.DataStoreState
 import com.sf.tadami.ui.tabs.settings.model.Preference
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
+import com.sf.tadami.ui.utils.UiToasts
 
 class VostFreePreferencesScreen(
     navController: NavHostController,
@@ -33,8 +34,6 @@ class VostFreePreferencesScreen(
     override val getCustomDataStore: (() -> DataStore<Preferences>) = {
         dataStore
     }
-
-    override val topBarActions: List<Action> = listOf()
 
     @Composable
     override fun getPreferences(): List<Preference> {
@@ -65,6 +64,7 @@ class VostFreePreferencesScreen(
                                 baseUrl = it
                             )
                         )
+                        UiToasts.showToast(R.string.requires_app_restart)
                         true
                     }
                 )

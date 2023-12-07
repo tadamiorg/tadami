@@ -24,6 +24,7 @@ import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.network.api.online.StubSource
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
@@ -215,7 +216,8 @@ class LibraryUpdateWorker(
     }
 
     private suspend fun updateAnime(anime: Anime): List<Episode> {
-        val source = sourcesManager.getExtensionById(anime.source) ?: return emptyList()
+        val source = sourcesManager.getExtensionById(anime.source)
+        if(source is StubSource) return emptyList()
         val episodes = source.fetchEpisodesList(anime).awaitSingleOrError()
         val dbAnime = animeWithEpisodesInteractor.awaitAnime(anime.id).takeIf { it.favorite }
             ?: return emptyList()

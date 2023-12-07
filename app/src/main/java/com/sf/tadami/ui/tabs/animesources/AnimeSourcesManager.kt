@@ -4,6 +4,7 @@ import com.sf.tadami.animesources.sources.en.gogoanime.GogoAnime
 import com.sf.tadami.animesources.sources.fr.animesama.AnimeSama
 import com.sf.tadami.animesources.sources.fr.vostfree.VostFree
 import com.sf.tadami.network.api.online.AnimeCatalogueSource
+import com.sf.tadami.network.api.online.StubSource
 
 class AnimeSourcesManager {
 
@@ -21,7 +22,7 @@ class AnimeSourcesManager {
             langMap
         }
 
-    fun getExtensionById(id: String?): AnimeCatalogueSource? {
-        return animeExtensions[id]
+    fun getExtensionById(id: String?): AnimeCatalogueSource {
+        return animeExtensions[id] ?: StubSource(id ?: "Unknown")
     }
 }

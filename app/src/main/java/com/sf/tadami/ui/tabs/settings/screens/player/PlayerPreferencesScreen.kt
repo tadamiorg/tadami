@@ -19,8 +19,6 @@ class PlayerPreferencesScreen(
 
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 
-    override val topBarActions: List<Action> = emptyList()
-
     @Composable
     override fun getPreferences(): List<Preference> {
         val playerPreferencesState = rememberDataStoreState(PlayerPreferences)

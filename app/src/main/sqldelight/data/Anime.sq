@@ -65,5 +65,15 @@ getFavorites:
 SELECT * FROM Anime
 WHERE favorite = 1;
 
+getSourceIdsWithNonLibraryAnime:
+SELECT source, COUNT(*) AS anime_count
+FROM Anime
+WHERE favorite = 0
+GROUP BY source;
+
+deleteAnimesNotInLibraryBySourceIds:
+DELETE FROM Anime
+WHERE favorite = 0 AND source IN :sourceIds;
+
 selectLastInsertedRowId:
 SELECT last_insert_rowid();

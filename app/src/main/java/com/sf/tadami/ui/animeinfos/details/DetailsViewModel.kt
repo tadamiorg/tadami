@@ -37,7 +37,7 @@ class DetailsViewModel(
     private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
     private val sourceId: String = checkNotNull(savedStateHandle["sourceId"])
 
-    val source: Source = sourcesManager.getExtensionById(sourceId) as Source? ?: StubSource(sourceId)
+    val source = sourcesManager.getExtensionById(sourceId)
 
     private val _uiState = MutableStateFlow(DetailsUiState())
     val uiState: StateFlow<DetailsUiState> = _uiState.asStateFlow()

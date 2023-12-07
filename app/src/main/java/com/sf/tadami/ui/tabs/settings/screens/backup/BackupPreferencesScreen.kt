@@ -42,8 +42,6 @@ class BackupPreferencesScreen(
 
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 
-    override val topBarActions: List<Action> = emptyList()
-
     @OptIn(ExperimentalPermissionsApi::class)
     @Composable
     override fun getPreferences(): List<Preference> {

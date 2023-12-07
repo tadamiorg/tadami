@@ -48,8 +48,6 @@ class LibraryPreferencesScreen(
         navController.navigateUp()
     }
 
-    override val topBarActions: List<Action> = listOf()
-
     @Composable
     override fun getPreferences(): List<Preference> {
         val libraryPreferencesState = rememberDataStoreState(LibraryPreferences)

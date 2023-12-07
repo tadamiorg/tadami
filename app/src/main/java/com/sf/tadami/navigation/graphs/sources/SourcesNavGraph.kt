@@ -28,7 +28,7 @@ fun NavGraphBuilder.sourcesNavGraph(
     ) {
         val sourcesManager: AnimeSourcesManager = Injekt.get()
         val source =
-            sourcesManager.getExtensionById(checkNotNull(it.arguments?.getString("sourceId"))) as ConfigurableParsedHttpAnimeSource<*>
+            sourcesManager.getExtensionById(it.arguments?.getString("sourceId")) as ConfigurableParsedHttpAnimeSource<*>
         source.getPreferenceScreen(navController).Content()
     }
 }

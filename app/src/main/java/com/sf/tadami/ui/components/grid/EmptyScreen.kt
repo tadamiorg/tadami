@@ -23,6 +23,7 @@ import com.sf.tadami.ui.utils.padding
 
 @Composable
 fun EmptyScreen(
+    modifier: Modifier = Modifier,
     actions: List<EmptyScreenAction> = emptyList(),
     message: String
 ) {

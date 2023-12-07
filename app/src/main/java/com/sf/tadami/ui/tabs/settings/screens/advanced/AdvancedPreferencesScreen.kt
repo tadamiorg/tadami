@@ -4,23 +4,27 @@ import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.provider.Settings
+import android.text.format.Formatter
 import android.util.Log
 import android.webkit.WebStorage
 import android.webkit.WebView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.navigation.NavHostController
+import coil.annotation.ExperimentalCoilApi
+import coil.imageLoader
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
 import com.sf.tadami.network.requests.okhttp.HttpClient
 import com.sf.tadami.network.requests.utils.setDefaultSettings
-import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.ui.tabs.settings.model.DataStoreState
 import com.sf.tadami.ui.tabs.settings.model.Preference
@@ -39,27 +43,56 @@ class AdvancedPreferencesScreen(
 
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 
-    override val topBarActions: List<Action> = emptyList()
-
     @Composable
     override fun getPreferences(): List<Preference> {
         val advancedPreferencesState = rememberDataStoreState(AdvancedPreferences)
         val advancedPreferences by advancedPreferencesState.value.collectAsState()
         return listOf(
+            getDataGroup(),
             getNetworkGroup(advancedPreferences, advancedPreferencesState),
             getBackgroundJobGroup()
         )
     }
 
+    @OptIn(ExperimentalCoilApi::class)
     @Composable
     private fun getDataGroup(): Preference.PreferenceCategory {
+        val context = LocalContext.current
+        val imageLoader = remember { context.imageLoader }
+        var readableSize by remember {
+            mutableStateOf(
+                Formatter.formatFileSize(
+                    context,
+                    imageLoader.diskCache?.size ?: 0
+                )
+            )
+        }
         return Preference.PreferenceCategory(
             title = stringResource(id = R.string.preferences_advanced_data),
             preferenceItems = listOf(
                 Preference.PreferenceItem.TextPreference(
+                    title = stringResource(R.string.pref_clear_images_cache),
+                    subtitle = stringResource(R.string.used_cache, readableSize),
+                    onClick = {
+                        try {
+                            imageLoader.diskCache?.clear()
+                            UiToasts.showToast(R.string.cache_deleted)
+
+                        } catch (e: Throwable) {
+                            Log.e("CacheDeletion", e.stackTraceToString())
+                            UiToasts.showToast(R.string.cache_delete_error)
+                        } finally {
+                            readableSize =
+                                Formatter.formatFileSize(context, imageLoader.diskCache?.size ?: 0)
+                        }
+                    },
+                ),
+                Preference.PreferenceItem.TextPreference(
                     title = stringResource(R.string.pref_clear_database),
                     subtitle = stringResource(R.string.pref_clear_database_summary),
-                    onClick = { },
+                    onClick = {
+                        navController.navigate(AdvancedSettingsRoutes.CLEAR_DATABASE)
+                    },
                 ),
             )
         )

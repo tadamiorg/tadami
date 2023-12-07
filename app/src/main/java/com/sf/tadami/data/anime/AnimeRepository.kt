@@ -50,8 +50,8 @@ interface AnimeRepository {
 }
 
 class AnimeRepositoryImpl(
-    private val handler: DataBaseHandler = Injekt.get(),
-    private val sourceManager: AnimeSourcesManager = Injekt.get(),
+    private val handler: DataBaseHandler,
+    private val sourceManager: AnimeSourcesManager,
 ) : AnimeRepository {
 
     override suspend fun insertAnime(anime: Anime): Long? {
@@ -184,7 +184,7 @@ class AnimeRepositoryImpl(
                 pageSize = 20
             ),
             pagingSourceFactory = {
-                LatestPagingSource(source!!)
+                LatestPagingSource(source)
             }
         ).flow
     }
@@ -200,7 +200,7 @@ class AnimeRepositoryImpl(
                 pageSize = 20
             ),
             pagingSourceFactory = {
-                SearchPagingSource(source!!, query, filters)
+                SearchPagingSource(source, query, filters)
             }
         ).flow
     }

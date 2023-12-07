@@ -61,8 +61,7 @@ class PlayerViewModel(
     )
     private val episodeId = _episodeId.asStateFlow()
 
-    private val source: Source =
-        sourcesManager.getExtensionById(sourceId) as Source? ?: StubSource(sourceId)
+    private val source = sourcesManager.getExtensionById(sourceId)
 
     private val _currentEpisode: MutableStateFlow<Episode?> = MutableStateFlow(null)
     val currentEpisode: StateFlow<Episode?> = _currentEpisode.asStateFlow()

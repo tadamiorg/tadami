@@ -41,7 +41,6 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class WorkerInfosScreen(navController : NavHostController) : PreferenceScreen {
-    override val topBarActions: List<Action> = emptyList()
     override val title: Int = R.string.advanced_worker_infos
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 

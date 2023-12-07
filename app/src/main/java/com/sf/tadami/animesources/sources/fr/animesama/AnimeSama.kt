@@ -18,7 +18,6 @@ import com.sf.tadami.network.requests.okhttp.POST
 import com.sf.tadami.network.requests.okhttp.asCancelableObservable
 import com.sf.tadami.network.requests.utils.asJsoup
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
 import com.sf.tadami.ui.utils.capFirstLetter
 import com.sf.tadami.ui.utils.parallelMap
 import com.sf.tadami.utils.Lang
@@ -30,15 +29,13 @@ import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
-class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>() {
+class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeSamaPreferences) {
 
-    override val id: String
-        get() = "AnimeSama"
+    override val id: String = "AnimeSama"
 
     override val name: String = "AnimeSama"
 
-    override val baseUrl: String
-        get() = preferences.baseUrl
+    override val baseUrl: String = preferences.baseUrl
 
     override val lang: Lang = Lang.FRENCH
 
@@ -51,10 +48,6 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>() {
     private var episodeNumber: Int? = null
 
     override val supportRecent = false
-
-    override suspend fun getPrefGroup(): CustomPreferences<AnimeSamaPreferences> {
-        return AnimeSamaPreferences
-    }
 
     override fun getPreferenceScreen(navController: NavHostController): PreferenceScreen {
         return AnimeSamaPreferencesScreen(navController,dataStore)

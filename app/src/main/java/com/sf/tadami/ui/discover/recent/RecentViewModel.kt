@@ -9,6 +9,7 @@ import androidx.paging.map
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.toDomainAnime
+import com.sf.tadami.network.api.online.StubSource
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -21,7 +22,11 @@ class RecentViewModel(stateHandle: SavedStateHandle) : ViewModel() {
     private val sourcesManager: AnimeSourcesManager = Injekt.get()
 
     private val sourceId: String = checkNotNull(stateHandle["sourceId"])
-    val source = checkNotNull(sourcesManager.getExtensionById(sourceId))
+    val source by lazy {
+        val s = sourcesManager.getExtensionById(sourceId)
+        if(s is StubSource) throw Exception("Not installed : $sourceId")
+        s
+    }
 
     val animeList: Flow<PagingData<Anime>> = animeRepository.getLatestPager(source.id)
         .map { pagingData ->
