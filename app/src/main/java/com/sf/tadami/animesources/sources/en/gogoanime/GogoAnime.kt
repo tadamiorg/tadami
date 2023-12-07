@@ -18,7 +18,6 @@ import com.sf.tadami.network.requests.okhttp.asCancelableObservable
 import com.sf.tadami.network.requests.okhttp.asObservable
 import com.sf.tadami.network.requests.utils.asJsoup
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
 import com.sf.tadami.ui.utils.parallelMap
 import com.sf.tadami.utils.Lang
 import io.reactivex.rxjava3.core.Observable
@@ -30,14 +29,13 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import uy.kohesive.injekt.injectLazy
 
-class GogoAnime() : ConfigurableParsedHttpAnimeSource<GogoAnimePreferences>() {
+class GogoAnime() : ConfigurableParsedHttpAnimeSource<GogoAnimePreferences>(GogoAnimePreferences) {
 
-    override val id: String
-        get() = "GogoAnime"
+    override val id: String = "GogoAnime"
 
     override val name: String = "GogoAnime"
-    override val baseUrl: String
-        get() = preferences.baseUrl
+
+    override val baseUrl: String = preferences.baseUrl
 
     override val lang: Lang = Lang.ENGLISH
 
@@ -46,9 +44,6 @@ class GogoAnime() : ConfigurableParsedHttpAnimeSource<GogoAnimePreferences>() {
     override val client: OkHttpClient = network.cloudflareClient
 
     private val json: Json by injectLazy()
-    override suspend fun getPrefGroup(): CustomPreferences<GogoAnimePreferences> {
-        return GogoAnimePreferences
-    }
 
     override fun getPreferenceScreen(navController: NavHostController): PreferenceScreen {
         return GogoAnimePreferencesScreen(navController, dataStore)

@@ -27,7 +27,6 @@ import com.sf.tadami.data.backup.models.Backup
 import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.notifications.backup.BackupFileValidator
 import com.sf.tadami.notifications.backup.BackupRestoreWorker
-import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.ui.tabs.settings.model.DataStoreState
 import com.sf.tadami.ui.tabs.settings.model.Preference
@@ -41,8 +40,6 @@ class BackupPreferencesScreen(
     override val title: Int = R.string.preferences_backup_title
 
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
-
-    override val topBarActions: List<Action> = emptyList()
 
     @OptIn(ExperimentalPermissionsApi::class)
     @Composable

@@ -34,6 +34,7 @@ interface PreferenceScreen {
         get() = null
 
     val topBarActions: List<Action>
+        get() = emptyList()
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable

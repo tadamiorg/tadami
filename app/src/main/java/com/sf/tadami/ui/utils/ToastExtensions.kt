@@ -25,7 +25,7 @@ object UiToasts {
         }
 
     }
-    fun showToast(stringRes : Int,duration : Int = Toast.LENGTH_SHORT,vararg args : String) {
+    fun showToast(stringRes : Int,duration : Int = Toast.LENGTH_SHORT,vararg args : Any) {
         val context = App.getAppContext() ?: return
         showToast(context.getString(stringRes,*args),duration)
     }

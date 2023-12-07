@@ -13,44 +13,42 @@ import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
 import com.sf.tadami.ui.tabs.settings.model.CustomPreferencesIdentifier
 import com.sf.tadami.utils.getPreferencesGroup
-import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-abstract class ConfigurableParsedHttpAnimeSource<T : CustomPreferencesIdentifier> : ParsedAnimeHttpSource() {
+abstract class ConfigurableParsedHttpAnimeSource<T : CustomPreferencesIdentifier>(prefGroup: CustomPreferences<T>) :
+    ParsedAnimeHttpSource() {
+
     // Preferences
+    private val PREFERENCES_FILE_NAME by lazy { "anime_source_$id" }
 
-    val PREFERENCES_FILE_NAME = "anime_source_$id"
-
-    protected abstract suspend fun getPrefGroup(): CustomPreferences<T>
-
-    val dataStore: DataStore<Preferences> =  PreferenceDataStoreFactory.create(
-        corruptionHandler = ReplaceFileCorruptionHandler(
-            produceNewData = { emptyPreferences() }
-        ),
-        migrations = listOf(SharedPreferencesMigration(Injekt.get<Application>(), PREFERENCES_FILE_NAME)),
-        scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
-        produceFile = { Injekt.get<Application>().preferencesDataStoreFile(PREFERENCES_FILE_NAME) }
-    )
-
-    var preferences = runBlocking {
-        dataStore.getPreferencesGroup(getPrefGroup())
+    val dataStore: DataStore<Preferences> by lazy {
+        PreferenceDataStoreFactory.create(
+            corruptionHandler = ReplaceFileCorruptionHandler(
+                produceNewData = { emptyPreferences() }
+            ),
+            migrations = listOf(
+                SharedPreferencesMigration(
+                    Injekt.get<Application>(),
+                    PREFERENCES_FILE_NAME
+                )
+            ),
+            scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+            produceFile = {
+                Injekt.get<Application>().preferencesDataStoreFile(PREFERENCES_FILE_NAME)
+            }
+        )
     }
 
-    init {
-        CoroutineScope(Dispatchers.IO).launch {
-            val initializedPrefGroup = getPrefGroup()
-            dataStore.getPreferencesGroupAsFlow(initializedPrefGroup).collectLatest {
-                preferences = it
-            }
+    val preferences by lazy {
+        runBlocking {
+            dataStore.getPreferencesGroup(prefGroup)
         }
     }
 
-    abstract fun getPreferenceScreen(navController: NavHostController) : PreferenceScreen
+    abstract fun getPreferenceScreen(navController: NavHostController): PreferenceScreen
 }

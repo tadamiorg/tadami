@@ -28,7 +28,6 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkQuery
 import com.sf.tadami.R
-import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.ActionItem
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.ui.tabs.settings.model.Preference
@@ -41,7 +40,6 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class WorkerInfosScreen(navController : NavHostController) : PreferenceScreen {
-    override val topBarActions: List<Action> = emptyList()
     override val title: Int = R.string.advanced_worker_infos
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 

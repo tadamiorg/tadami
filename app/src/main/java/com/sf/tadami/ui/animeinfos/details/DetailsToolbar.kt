@@ -11,10 +11,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
 import com.sf.tadami.ui.components.data.Action
+import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.topappbar.ContextualTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +42,8 @@ fun DetailsToolbar(
         if (firstVisibleItemIndex > 0) 1f else 0f, label = "title_alpha",
     )
     val animatedBgAlpha by animateFloatAsState(
-        if (firstVisibleItemIndex > 0 || firstVisibleItemScrollOffset > 0) 1f else 0f, label = "bg_alpha",
+        if (firstVisibleItemIndex > 0 || firstVisibleItemScrollOffset > 0) 1f else 0f,
+        label = "bg_alpha",
     )
     ContextualTopAppBar(
         modifier = modifier,
@@ -56,11 +59,18 @@ fun DetailsToolbar(
         },
         actions = listOf(
             Action.CastButton(),
-            Action.Drawable(
+            Action.DropDownDrawable(
                 title = R.string.stub_text,
                 icon = R.drawable.ic_vertical_settings,
-                onClick = {},
-                enabled = false
+                items = listOf(
+                    DropDownAction(
+                        title = stringResource(id = R.string.action_migrate),
+                        onClick = {
+
+                        },
+                        enabled = false
+                    )
+                )
             )
         ),
         navigationIcon = {

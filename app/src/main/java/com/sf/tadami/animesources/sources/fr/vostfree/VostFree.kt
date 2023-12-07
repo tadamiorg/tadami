@@ -19,7 +19,6 @@ import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.requests.okhttp.POST
 import com.sf.tadami.network.requests.utils.asJsoup
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.parallelMap
 import com.sf.tadami.utils.Lang
@@ -30,15 +29,13 @@ import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
-class VostFree : ConfigurableParsedHttpAnimeSource<VostFreePreferences>() {
+class VostFree : ConfigurableParsedHttpAnimeSource<VostFreePreferences>(VostFreePreferences) {
 
-    override val id: String
-        get() = "VostFree"
+    override val id: String = "VostFree"
 
     override val name: String = "VostFree"
 
-    override val baseUrl: String
-        get() = preferences.baseUrl
+    override val baseUrl: String = preferences.baseUrl
 
     override val lang: Lang = Lang.FRENCH
 
@@ -46,10 +43,6 @@ class VostFree : ConfigurableParsedHttpAnimeSource<VostFreePreferences>() {
 
     override fun getIconRes(): Int {
         return R.drawable.vostfree
-    }
-
-    override suspend fun getPrefGroup(): CustomPreferences<VostFreePreferences> {
-        return VostFreePreferences
     }
 
     override fun getPreferenceScreen(navController: NavHostController): PreferenceScreen {

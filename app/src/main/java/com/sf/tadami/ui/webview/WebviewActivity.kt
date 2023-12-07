@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import com.sf.tadami.R
 import com.sf.tadami.network.api.online.AnimeHttpSource
+import com.sf.tadami.network.api.online.StubSource
 import com.sf.tadami.network.requests.okhttp.HttpClient
 import com.sf.tadami.network.requests.utils.WebViewUtil
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
@@ -42,7 +43,7 @@ class WebViewActivity : AppCompatActivity() {
         assistUrl = url
 
         var headers = emptyMap<String, String>()
-        (sourceManager.getExtensionById(intent.extras!!.getString(SOURCE_KEY)) as? AnimeHttpSource)?.let { source ->
+        (sourceManager.getExtensionById(intent.extras!!.getString(SOURCE_KEY)).takeIf { it !is StubSource } as AnimeHttpSource?)?.let { source ->
             try {
                 headers = source.headers.toMultimap().mapValues { it.value.getOrNull(0) ?: "" }
                 url = source.baseUrl + url

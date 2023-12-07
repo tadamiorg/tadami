@@ -12,8 +12,6 @@ import com.sf.tadami.network.api.model.SAnime
 import com.sf.tadami.network.database.listOfStringsAdapter
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import kotlinx.coroutines.flow.Flow
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 interface AnimeRepository {
 
@@ -50,8 +48,8 @@ interface AnimeRepository {
 }
 
 class AnimeRepositoryImpl(
-    private val handler: DataBaseHandler = Injekt.get(),
-    private val sourceManager: AnimeSourcesManager = Injekt.get(),
+    private val handler: DataBaseHandler,
+    private val sourceManager: AnimeSourcesManager,
 ) : AnimeRepository {
 
     override suspend fun insertAnime(anime: Anime): Long? {
@@ -184,7 +182,7 @@ class AnimeRepositoryImpl(
                 pageSize = 20
             ),
             pagingSourceFactory = {
-                LatestPagingSource(source!!)
+                LatestPagingSource(source)
             }
         ).flow
     }
@@ -200,7 +198,7 @@ class AnimeRepositoryImpl(
                 pageSize = 20
             ),
             pagingSourceFactory = {
-                SearchPagingSource(source!!, query, filters)
+                SearchPagingSource(source, query, filters)
             }
         ).flow
     }

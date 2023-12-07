@@ -8,11 +8,11 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
-import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.ui.tabs.settings.model.DataStoreState
 import com.sf.tadami.ui.tabs.settings.model.Preference
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
+import com.sf.tadami.ui.utils.UiToasts
 
 class AnimeSamaPreferencesScreen(
     navController: NavHostController,
@@ -33,8 +33,6 @@ class AnimeSamaPreferencesScreen(
     override val getCustomDataStore: (() -> DataStore<Preferences>) = {
         dataStore
     }
-
-    override val topBarActions: List<Action> = listOf()
 
     @Composable
     override fun getPreferences(): List<Preference> {
@@ -65,6 +63,7 @@ class AnimeSamaPreferencesScreen(
                                 baseUrl = it
                             )
                         )
+                        UiToasts.showToast(R.string.requires_app_restart)
                         true
                     }
                 )

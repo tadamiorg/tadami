@@ -117,6 +117,7 @@ fun ActionItem(
                             showMenu = false
                         },
                         text = { Text(it.title, fontWeight = FontWeight.Normal) },
+                        enabled = it.enabled
                     )
                 }
             }
@@ -149,6 +150,7 @@ fun ActionItem(
                             showMenu = false
                         },
                         text = { Text(it.title, fontWeight = FontWeight.Normal) },
+                        enabled = it.enabled
                     )
                 }
             }

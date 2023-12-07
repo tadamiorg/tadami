@@ -43,7 +43,7 @@ class GlobalSearchViewModel() : ViewModel() {
         }
 
         val filteredExtensions = sourcesManager.animeExtensions.filter { (_,source) ->
-            source.lang.getRes().toString() in sourcesPrefs.enabledLanguages && source.id !in sourcesPrefs.hiddenSources
+            source.lang.name in sourcesPrefs.enabledLanguages && source.id !in sourcesPrefs.hiddenSources
         }
 
         _animesBySource.update {
