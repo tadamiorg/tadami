@@ -224,4 +224,5 @@
     <string name="used_cache">Utilisé : %1$s</string>
     <string name="cache_deleted">Cache effacé.</string>
     <string name="action_migrate">Migrer</string>
+    <string name="player_screen_empty_sources">Aucune source vidéo trouvée</string>
 </resources>

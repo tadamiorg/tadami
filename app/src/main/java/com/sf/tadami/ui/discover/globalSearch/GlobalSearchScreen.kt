@@ -1,21 +1,23 @@
 package com.sf.tadami.ui.discover.globalSearch
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
 import com.sf.tadami.ui.components.data.Action
-import com.sf.tadami.ui.components.topappbar.search.SearchTopAppBar
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GlobalSearchScreen(
-    navController : NavHostController,
+    navController: NavHostController,
     globalSearchViewModel: GlobalSearchViewModel = viewModel()
 ) {
     var searchValue by rememberSaveable { mutableStateOf("") }
@@ -23,9 +25,7 @@ fun GlobalSearchScreen(
 
     Scaffold(
         topBar = {
-            SearchTopAppBar(
-                backHandlerEnabled = false,
-                searchOpened = true,
+            GlobalSearchToolbar(
                 onSearch = {
                     searchValue = it
                     globalSearchViewModel.search(it)
@@ -40,7 +40,9 @@ fun GlobalSearchScreen(
                 actions = listOf(
                     Action.CastButton()
                 ),
-                searchValue = searchValue
+                searchValue = searchValue,
+                progress = animesBySource.progress,
+                total = animesBySource.total
             )
         },
     ) { innerPadding ->

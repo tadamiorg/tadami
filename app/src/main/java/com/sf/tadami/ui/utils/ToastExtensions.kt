@@ -6,21 +6,26 @@ import android.widget.Toast
 import com.sf.tadami.App
 
 object UiToasts {
+    private var currentToast: Toast? = null
+
     fun showToast(msg : String,duration : Int = Toast.LENGTH_SHORT){
         val context = App.getAppContext()
+        currentToast?.cancel()
         if (Looper.myLooper() == Looper.getMainLooper()) {
-            Toast.makeText(
+            currentToast = Toast.makeText(
                 context,
                 msg,
                 duration
-            ).show()
+            )
+            currentToast?.show()
         } else {
             Handler(Looper.getMainLooper()).post{
-                Toast.makeText(
+                currentToast = Toast.makeText(
                     context,
                     msg,
                     duration
-                ).show()
+                )
+                currentToast?.show()
             }
         }
 

@@ -38,6 +38,7 @@
     <string name="discover_search_screen_filters_group_selected_text">select</string>
     <string name="player_screen_controls_forward_85" translatable="false">+85 s</string>
     <string name="player_screen_source_load_error">Stream source %1$s can\'t load</string>
+    <string name="player_screen_empty_sources">No video sources found</string>
     <string name="stub_text" translatable="false">stub</string>
     <string name="request_unknown_error">Network error : %1$s</string>
     <string name="default_string">Default</string>

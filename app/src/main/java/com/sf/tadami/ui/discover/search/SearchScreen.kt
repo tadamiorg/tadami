@@ -45,7 +45,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SearchScreen(
     navController: NavHostController,
-    baseQuery : String? = "",
+    baseQuery : String?,
     searchViewModel: SearchViewModel = viewModel()
 ) {
     val animeListState by searchViewModel.animeList.collectAsState()
@@ -54,11 +54,13 @@ fun SearchScreen(
 
     var searchEnabled by rememberSaveable { mutableStateOf(false) }
     var searchValue by rememberSaveable { mutableStateOf(baseQuery ?: "") }
-    var globalSearched by rememberSaveable { mutableStateOf(baseQuery!=null) }
-    if(globalSearched){
+    var hasBaseQuery by rememberSaveable { mutableStateOf(baseQuery!=null) }
+    var isGlobalSearched by rememberSaveable { mutableStateOf(false) }
+    if(hasBaseQuery){
         LaunchedEffect(Unit){
             if(baseQuery!=null){
-                globalSearched = false
+                hasBaseQuery = false
+                isGlobalSearched = true
                 searchEnabled = true
                 searchViewModel.resetData()
             }
@@ -134,7 +136,8 @@ fun SearchScreen(
                     actions = listOf(
                         Action.CastButton()
                     ),
-                    searchValue = searchValue
+                    searchValue = searchValue,
+                    backHandlerEnabled = !isGlobalSearched
                 )
             },
             floatingActionButton = {
