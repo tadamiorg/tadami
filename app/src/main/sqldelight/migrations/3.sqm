@@ -1,0 +1,13 @@
+-- Add a new migration to update URLs in Anime table where source is AnimeSama
+UPDATE Anime
+SET url = REPLACE(Anime.url, '//', '/')
+WHERE source = 'AnimeSama';
+
+-- Add a new migration to update URLs in Episode table linked to AnimeSama in Anime table
+UPDATE Episode
+SET url = REPLACE(Episode.url, '//', '/')
+WHERE Episode.anime_id IN (
+    SELECT _id
+    FROM Anime
+    WHERE source = 'AnimeSama'
+);
