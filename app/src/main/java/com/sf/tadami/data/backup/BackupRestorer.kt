@@ -254,7 +254,8 @@ class BackupRestorer(
                     episode.dateFetch,
                     episode.dateUpload,
                     episode.seen,
-                    episode.sourceOrder
+                    episode.sourceOrder,
+                    episode.languages
                 )
             }
         }
@@ -277,7 +278,8 @@ class BackupRestorer(
                     sourceOrder = null,
                     dateFetch = null,
                     dateUpload = null,
-                    episodeId = episode.id
+                    episodeId = episode.id,
+                    languages = episode.languages
 
                 )
             }

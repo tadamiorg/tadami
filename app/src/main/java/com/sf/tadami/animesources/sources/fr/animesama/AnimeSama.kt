@@ -70,7 +70,7 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
         filters: AnimeFilterList,
         noToasts: Boolean
     ): Observable<AnimesPage> {
-        return client.newCall(searchAnimeRequest(page, query, filters, noToasts))
+        return client.newCall(searchAnimeRequest(page, query.trim(), filters, noToasts))
             .asCancelableObservable()
             .flatMap { response ->
 
@@ -282,7 +282,6 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
             return emptyList()
         }
         return episodesNames

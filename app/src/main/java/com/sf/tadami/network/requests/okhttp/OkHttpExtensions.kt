@@ -7,6 +7,7 @@ import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.Disposable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import okhttp3.*
@@ -134,6 +135,15 @@ suspend fun Call.await(): Response {
 context(Json)
 inline fun <reified T> Response.parseAs(): T {
     return decodeFromString(serializer(),this.body.string())
+}
+
+context(Json)
+inline fun <reified T> String.decodeOrNull(): T? {
+    return try{
+        decodeFromString(serializer(),this)
+    }catch (e: Exception){
+        null
+    }
 }
 
 fun BufferedSource.saveTo(file: File) {

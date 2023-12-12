@@ -38,7 +38,7 @@ class SendvidExtractor(private val client: OkHttpClient, private val headers: He
                     .add("Referer", "https://${url.toHttpUrl().host}/")
                     .build()
 
-                videoList.add(StreamSource(videoUrl, prefix + quality, headers = videoHeaders))
+                videoList.add(StreamSource(videoUrl, "$prefix $quality", headers = videoHeaders))
             }
         return videoList
     }

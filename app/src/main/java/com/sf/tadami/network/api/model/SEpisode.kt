@@ -5,6 +5,7 @@ interface SEpisode {
     var name : String
     var episodeNumber : Float
     var dateUpload : Long
+    var languages: String?
 
     companion object{
         fun create() : SEpisode{

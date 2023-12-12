@@ -29,7 +29,8 @@ fun EpisodeListItem(
     onLongClick: () -> Unit,
     seen : Boolean,
     watchProgress : String?,
-    selected : Boolean
+    languages : String?,
+    selected : Boolean,
 ) {
     val textAlpha = if (seen) SeenItemAlpha else 1f
     val textSubtitleAlpha = if (seen) SeenItemAlpha else SecondaryItemAlpha
@@ -69,7 +70,7 @@ fun EpisodeListItem(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        if (watchProgress != null) DotSeparatorText()
+                        if (watchProgress != null || languages != null) DotSeparatorText()
                     }
                     if (watchProgress != null) {
                         Text(
@@ -78,7 +79,16 @@ fun EpisodeListItem(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.alpha(SeenItemAlpha),
                         )
+                        if (languages != null) DotSeparatorText()
 
+                    }
+                    if (languages != null) {
+                        Text(
+                            text = languages,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.alpha(SeenItemAlpha),
+                        )
                     }
                 }
             }

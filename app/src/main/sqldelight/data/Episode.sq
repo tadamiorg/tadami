@@ -12,6 +12,7 @@ CREATE TABLE Episode (
   date_upload INTEGER NOT NULL,
   seen INTEGER AS Boolean NOT NULL DEFAULT 0,
   source_order INTEGER NOT NULL,
+  languages TEXT,
   FOREIGN KEY(anime_id) REFERENCES Anime (_id)
   ON DELETE CASCADE
 );
@@ -30,8 +31,8 @@ FROM Episode
 WHERE anime_id = :animeId;
 
 insert:
-INSERT INTO Episode(anime_id,url,name,episode_number,time_seen,total_time,date_fetch,date_upload,seen,source_order)
-VALUES (:animeId,:url,:name,:episodeNumber,:timeSeen,:totalTime,:dateFetch,:dateUpload,:seen,:sourceOrder);
+INSERT INTO Episode(anime_id,url,name,episode_number,time_seen,total_time,date_fetch,date_upload,seen,source_order,languages)
+VALUES (:animeId,:url,:name,:episodeNumber,:timeSeen,:totalTime,:dateFetch,:dateUpload,:seen,:sourceOrder,:languages);
 
 update:
 UPDATE Episode
@@ -44,7 +45,8 @@ SET anime_id = coalesce(:animeId, anime_id),
     date_fetch =  coalesce(:dateFetch, date_fetch),
     date_upload =  coalesce(:dateUpload, date_upload),
     seen =  coalesce(:seen, seen),
-    source_order = coalesce(:sourceOrder, source_order)
+    source_order = coalesce(:sourceOrder, source_order),
+    languages = coalesce(:languages, languages)
 WHERE _id = :episodeId;
 
 updateAllByAnimeId:
@@ -57,7 +59,8 @@ SET url = coalesce(:url, url),
     date_fetch =  coalesce(:dateFetch, date_fetch),
     date_upload =  coalesce(:dateUpload, date_upload),
     seen =  coalesce(:seen, seen),
-    source_order = coalesce(:sourceOrder, source_order)
+    source_order = coalesce(:sourceOrder, source_order),
+    languages = coalesce(:languages, languages)
 WHERE anime_id = :animeId;
 
 delete:

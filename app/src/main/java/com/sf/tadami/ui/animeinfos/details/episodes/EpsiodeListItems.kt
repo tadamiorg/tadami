@@ -52,7 +52,8 @@ fun LazyListScope.episodeItems(
                 }
                 else -> null
             },
-            selected = episodeItem.selected
+            selected = episodeItem.selected,
+            languages = episodeItem.episode.languages
         )
     }
 }

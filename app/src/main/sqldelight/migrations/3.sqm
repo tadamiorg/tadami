@@ -11,3 +11,42 @@ WHERE Episode.anime_id IN (
     FROM Anime
     WHERE source = 'AnimeSama'
 );
+
+-- Alter Episode table
+ALTER TABLE Episode RENAME TO episode_temp;
+CREATE TABLE Episode (
+  _id INTEGER NOT NULL PRIMARY KEY,
+  anime_id INTEGER NOT NULL,
+  url TEXT NOT NULL,
+  name TEXT NOT NULL,
+  episode_number REAL NOT NULL,
+  time_seen INTEGER NOT NULL,
+  total_time INTEGER NOT NULL,
+  date_fetch INTEGER NOT NULL,
+  date_upload INTEGER NOT NULL,
+  seen INTEGER AS Boolean NOT NULL DEFAULT 0,
+  source_order INTEGER NOT NULL,
+  languages TEXT,
+  FOREIGN KEY(anime_id) REFERENCES Anime (_id)
+  ON DELETE CASCADE
+);
+INSERT INTO Episode
+SELECT _id,anime_id,url,name,episode_number,time_seen,total_time,date_fetch,date_upload,seen,source_order
+FROM episode_temp;
+
+-- Update views because of structure changes
+DROP VIEW IF EXISTS Library;
+CREATE VIEW Library AS
+SELECT Anime.*,COUNT(*) AS episodes,TOTAL(Episode.seen = 0) AS unseen_episodes
+FROM Anime
+LEFT JOIN Episode ON Anime._id = Episode.anime_id
+WHERE Anime.favorite = 1
+GROUP BY Anime._id;
+
+-- Drop temporary tables
+DROP TABLE IF EXISTS episode_temp;
+
+
+
+
+
