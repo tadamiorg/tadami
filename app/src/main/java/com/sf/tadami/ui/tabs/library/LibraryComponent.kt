@@ -13,6 +13,7 @@ fun LibraryComponent(
     modifier: Modifier = Modifier,
     libraryList: List<LibraryItem>,
     librarySize : Int,
+    initLoaded : Boolean,
     onAnimeClicked: (anime: LibraryItem) -> Unit,
     onAnimeLongCLicked: (anime: LibraryItem) -> Unit,
     onRefresh: () -> Unit,
@@ -28,6 +29,7 @@ fun LibraryComponent(
         LibraryAnimeGrid(
             modifier = modifier,
             animeList = libraryList,
+            initLoaded = initLoaded,
             librarySize = librarySize,
             onAnimeClicked = onAnimeClicked,
             onEmptyRefreshClicked = onEmptyRefreshClicked,

@@ -36,10 +36,16 @@ class LibraryViewModel : ViewModel() {
 
     private val selectedIds : HashSet<Long> = HashSet()
 
+    private val _initLoaded : MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val initLoaded = _initLoaded.asStateFlow()
+
     init {
         viewModelScope.launch(Dispatchers.IO){
             libraryInteractor.subscribe().collectLatest { libraryList ->
                 _libraryList.update { libraryList.toLibraryItems() }
+                if(!_initLoaded.value){
+                    _initLoaded.update { true }
+                }
             }
         }
     }

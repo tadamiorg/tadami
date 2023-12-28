@@ -2,7 +2,6 @@ package com.sf.tadami.ui.components.filters
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.sf.tadami.R
@@ -57,12 +55,6 @@ fun Select(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxSize()
-                .pointerInput(interactionSource) {
-                    detectDragGestures { change, _ ->
-                        change.consume()
-                        expanded = true
-                    }
-                }
                 .clickable(
                     onClick = { expanded = true },
                     interactionSource = interactionSource,
@@ -82,13 +74,7 @@ fun Select(
                     maxLines = 1
                 )
                 IconButton(
-                    modifier = Modifier
-                        .pointerInput(interactionSource) {
-                            detectDragGestures { change, _ ->
-                                change.consume()
-                                expanded = true
-                            }
-                        },
+                    modifier = Modifier,
                     onClick = { expanded = true },
                     interactionSource = interactionSource
                 )

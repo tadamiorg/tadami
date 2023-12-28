@@ -3,6 +3,7 @@
     <style name="Base.Theme.Tadami" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Disallow "Force dark theme" -->
         <item name="android:forceDarkAllowed" tools:targetApi="Q">false</item>
+        <item name="mediaRouteTheme">@style/CustomMediaRouterTheme</item>
 
         <!-- Theme Colors -->
         <item name="colorPrimary">@color/midnightdusk_primary</item>
@@ -166,6 +167,14 @@
     <!--== Default Theme ==-->
     <style name="Theme.TadamiCast" parent="Base.Theme.TadamiCast" />
     <style name="Theme.Tadami" parent="Base.Theme.Tadami" />
+
+    <style name="CustomMediaRouterTheme" parent="Theme.MediaRouter">
+        <item name="mediaRouteButtonStyle">@style/CustomMediaRouteButtonStyle</item>
+    </style>
+
+    <style name="CustomMediaRouteButtonStyle" parent="Widget.MediaRouter.Light.MediaRouteButton">
+        <item name="mediaRouteButtonTint">@color/midnightdusk_onPrimary</item>
+    </style>
 
     <!--== Midnight Dusk Theme ==-->
     <style name="Theme.Tadami.MidnightDusk">

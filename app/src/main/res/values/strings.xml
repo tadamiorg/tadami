@@ -78,15 +78,16 @@
     </plurals>
     <string name="update_starting">Updating library</string>
     <string name="update_running">Update already running</string>
-    <string name="library_sheet_filter">Filter</string>
-    <string name="library_sheet_sort">Sort</string>
-    <string name="library_sheet_filter_unseen">Unseen</string>
-    <string name="library_sheet_filter_started">Started</string>
-    <string name="library_sheet_sort_unseen_count">Unseen count</string>
-    <string name="library_sheet_sort_alphabet">Alphabetically</string>
-    <string name="library_sheet_sort_episode_count">Episode count</string>
-    <string name="discover_search_sheet_reset">Reset</string>
-    <string name="discover_search_sheet_filter">Filter</string>
+    <string name="action_sort">Sort</string>
+    <string name="filter_unseen">Unseen</string>
+    <string name="filter_started">Started</string>
+    <string name="filter_sort_unseen_count">Unseen count</string>
+    <string name="filter_sort_alphabet">Alphabetically</string>
+    <string name="filter_sort_episode_count">Episode count</string>
+    <string name="filter_display_source_name">Source title</string>
+    <string name="filter_display_episode_number">Episode number</string>
+    <string name="action_reset">Reset</string>
+    <string name="action_filter">Filter</string>
     <string name="preferences_player_title">Player</string>
     <string name="preferences_player_timeline">Timeline</string>
     <string name="preferences_player_seenthreshold">Seen threshold</string>
@@ -227,6 +228,6 @@
     <string name="used_cache">Used: %1$s</string>
     <string name="cache_deleted">Cache cleared.</string>
     <string name="action_migrate">Migrate</string>
-
+    <string name="title_display">Display</string>
 
 </resources>

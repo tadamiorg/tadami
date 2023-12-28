@@ -76,15 +76,15 @@
     </plurals>
     <string name="update_starting">Mise à jour de la bibliothèque</string>
     <string name="update_running">Mise à jour déja en cours</string>
-    <string name="library_sheet_filter">Filtrer</string>
-    <string name="library_sheet_sort">Trier</string>
-    <string name="library_sheet_filter_unseen">Non vus</string>
-    <string name="library_sheet_filter_started">Commencé</string>
-    <string name="library_sheet_sort_unseen_count">Nombre de non vus</string>
-    <string name="library_sheet_sort_alphabet">Alphabétiquement</string>
-    <string name="library_sheet_sort_episode_count">Nombre d\'épisodes</string>
-    <string name="discover_search_sheet_reset">Réinitialiser</string>
-    <string name="discover_search_sheet_filter">Filtrer</string>
+    <string name="action_sort">Trier</string>
+    <string name="filter_unseen">Non vus</string>
+    <string name="filter_started">Commencé</string>
+    <string name="filter_sort_unseen_count">Nombre de non vus</string>
+    <string name="filter_sort_alphabet">Alphabétiquement</string>
+    <string name="filter_sort_episode_count">Nombre d\'épisodes</string>
+    <string name="action_reset">Réinitialiser</string>
+    <string name="action_filter">Filtrer</string>
+    <string name="title_display">Affichage</string>
     <string name="preferences_player_title">Lecteur vidéo</string>
     <string name="preferences_player_timeline">Timeline</string>
     <string name="preferences_player_seenthreshold">Seuil de completion</string>
@@ -225,4 +225,6 @@
     <string name="cache_deleted">Cache effacé.</string>
     <string name="action_migrate">Migrer</string>
     <string name="player_screen_empty_sources">Aucune source vidéo trouvée</string>
+    <string name="filter_display_source_name">Titre de la source</string>
+    <string name="filter_display_episode_number">Numéro de l\'episode</string>
 </resources>

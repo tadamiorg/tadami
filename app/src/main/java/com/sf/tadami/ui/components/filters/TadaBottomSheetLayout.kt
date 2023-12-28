@@ -39,7 +39,6 @@ fun TadaBottomSheetLayout(
         }
     }
 
-
     ModalBottomSheetLayout(
         sheetState = sheetState,
         sheetBackgroundColor = sheetBackgroundColor,
@@ -49,7 +48,4 @@ fun TadaBottomSheetLayout(
         content = content
     )
 }
-
-
-
 

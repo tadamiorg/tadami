@@ -34,6 +34,29 @@ INSERT INTO Episode
 SELECT _id,anime_id,url,name,episode_number,time_seen,total_time,date_fetch,date_upload,seen,source_order
 FROM episode_temp;
 
+-- Alter Anime table
+ALTER TABLE Anime RENAME TO anime_temp;
+CREATE TABLE Anime (
+  _id INTEGER NOT NULL PRIMARY KEY,
+  source TEXT NOT NULL,
+  url TEXT NOT NULL,
+  title TEXT NOT NULL,
+  thumbnail_url TEXT,
+  release TEXT,
+  status TEXT,
+  description TEXT,
+  genres TEXT AS List<String>,
+  last_update INTEGER,
+  next_update INTEGER,
+  calculate_interval INTEGER DEFAULT 0 NOT NULL,
+  favorite INTEGER AS Boolean NOT NULL DEFAULT 0,
+  initialized INTEGER AS Boolean NOT NULL DEFAULT 0,
+  episode_flags INTEGER NOT NULL
+);
+INSERT INTO Anime
+SELECT _id,source,url,title,thumbnail_url,release,status,description,genres,NULL,NULL,0 ,favorite,initialized
+FROM anime_temp;
+
 -- Update views because of structure changes
 DROP VIEW IF EXISTS Library;
 CREATE VIEW Library AS
@@ -45,6 +68,7 @@ GROUP BY Anime._id;
 
 -- Drop temporary tables
 DROP TABLE IF EXISTS episode_temp;
+DROP TABLE IF EXISTS anime_temp;
 
 
 

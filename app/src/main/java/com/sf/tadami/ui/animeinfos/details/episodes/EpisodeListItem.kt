@@ -42,7 +42,7 @@ fun EpisodeListItem(
                 onClick = onClick,
                 onLongClick = onLongClick
             )
-            .padding(start = MaterialTheme.padding.medium, top = MaterialTheme.padding.small, end = MaterialTheme.padding.extraSmall, bottom = MaterialTheme.padding.small),
+            .padding(horizontal = MaterialTheme.padding.medium, vertical = MaterialTheme.padding.small),
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {

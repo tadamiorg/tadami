@@ -121,6 +121,13 @@ class DetailsViewModel(
         }
     }
 
+    fun setEpisodeFlags(flags : Long){
+        viewModelScope.launch(Dispatchers.IO) {
+            val anime = animeWithEpisodesInteractor.awaitAnime(animeId)
+            updateAnimeInteractor.updateAnimeEpisodeFlags(anime,flags)
+        }
+    }
+
     // Action Mode Functions
 
     fun setSeenStatus() {

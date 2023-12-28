@@ -19,6 +19,7 @@ data class BackupAnime @OptIn(ExperimentalSerializationApi::class) constructor(
     @ProtoNumber(8) var genres: List<String> = emptyList(),
     @ProtoNumber(9) var favorite: Boolean = true,
     @ProtoNumber(10) var initialized: Boolean = true,
+    @ProtoNumber(11) var episodeFlags: Int = 0,
     @ProtoNumber(20) var episodes: List<BackupEpisode> = emptyList(),
 
     ) {
@@ -33,7 +34,8 @@ data class BackupAnime @OptIn(ExperimentalSerializationApi::class) constructor(
             description = this@BackupAnime.description,
             genres = this@BackupAnime.genres,
             favorite = this@BackupAnime.favorite,
-            initialized = this@BackupAnime.initialized
+            initialized = this@BackupAnime.initialized,
+            episodeFlags = this@BackupAnime.episodeFlags.toLong(),
         )
     }
 
@@ -55,7 +57,8 @@ data class BackupAnime @OptIn(ExperimentalSerializationApi::class) constructor(
                 description = anime.description,
                 genres = anime.genres.orEmpty(),
                 favorite = anime.favorite,
-                initialized = anime.initialized
+                initialized = anime.initialized,
+                episodeFlags = anime.episodeFlags.toInt(),
             )
         }
     }

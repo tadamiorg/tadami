@@ -10,6 +10,7 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -156,6 +157,7 @@ fun LibraryAnimeGrid(
     modifier: Modifier = Modifier,
     animeList: List<LibraryItem>,
     librarySize: Int,
+    initLoaded : Boolean,
     onAnimeClicked: (anime: LibraryItem) -> Unit,
     onAnimeLongClicked: (anime: LibraryItem) -> Unit,
     lazyGridState: LazyGridState = rememberLazyGridState(),
@@ -206,7 +208,14 @@ fun LibraryAnimeGrid(
                 )
             }
         }
-        if (librarySize <= 0) {
+        if(!initLoaded){
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .align(Alignment.Center),
+                strokeWidth = 2.dp,
+            )
+        }
+        if (librarySize <= 0 && initLoaded) {
             EmptyScreen(
                 message = stringResource(id = R.string.empty_library_title), actions = listOf(
                     EmptyScreenAction(

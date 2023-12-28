@@ -22,6 +22,7 @@ import com.sf.tadami.utils.Lang
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnimeSourcesScreen(
+    modifier: Modifier = Modifier,
     navController: NavHostController
 ) {
     val sPrefs by rememberDataStoreState(customPrefs = SourcesPreferences).value.collectAsState()
@@ -50,6 +51,7 @@ fun AnimeSourcesScreen(
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TadaTopAppBar(
                 title = {

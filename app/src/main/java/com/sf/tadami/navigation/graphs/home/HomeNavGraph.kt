@@ -2,6 +2,7 @@ package com.sf.tadami.navigation.graphs.home
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -15,6 +16,7 @@ import com.sf.tadami.navigation.graphs.sources.sourcesNavGraph
 @Composable
 fun HomeNavGraph(
     navController: NavHostController,
+    tabsNavPadding: PaddingValues,
     bottomNavDisplay: Boolean,
     setNavDisplay: (display: Boolean) -> Unit,
     librarySheetVisible: Boolean,
@@ -29,14 +31,21 @@ fun HomeNavGraph(
         /* Home Tabs */
         libraryNavGraph(
             navController = navController,
+            tabsNavPadding = tabsNavPadding,
             setNavDisplay = setNavDisplay,
             bottomNavDisplay = bottomNavDisplay,
             librarySheetVisible = librarySheetVisible,
             showLibrarySheet = showLibrarySheet
         )
 
-        sourcesNavGraph(navController)
-        settingsNavGraph(navController)
+        sourcesNavGraph(
+            navController = navController,
+            tabsNavPadding = tabsNavPadding,
+        )
+        settingsNavGraph(
+            navController = navController,
+            tabsNavPadding = tabsNavPadding,
+        )
 
         /* Nested navigation */
         discoverNavGraph(navController)
