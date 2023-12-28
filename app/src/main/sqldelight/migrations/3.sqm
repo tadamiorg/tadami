@@ -54,7 +54,7 @@ CREATE TABLE Anime (
   episode_flags INTEGER NOT NULL
 );
 INSERT INTO Anime
-SELECT _id,source,url,title,thumbnail_url,release,status,description,genres,NULL,NULL,0 ,favorite,initialized
+SELECT _id,source,url,title,thumbnail_url,release,status,description,genres,NULL,NULL,0,favorite,initialized
 FROM anime_temp;
 
 -- Update views because of structure changes

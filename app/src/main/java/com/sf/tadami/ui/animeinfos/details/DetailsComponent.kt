@@ -21,12 +21,8 @@ import com.sf.tadami.ui.animeinfos.details.episodes.episodeItems
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeInfosBox
 import com.sf.tadami.ui.animeinfos.details.infos.description.ExpandableAnimeDescription
 import com.sf.tadami.ui.components.data.EpisodeItem
-import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.components.widgets.PullRefresh
 import com.sf.tadami.ui.components.widgets.VerticalFastScroller
-import com.sf.tadami.ui.tabs.library.bottomsheet.libraryFilters
-import com.sf.tadami.ui.tabs.library.bottomsheet.sortComparator
-import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
 
 @Composable
 fun DetailsComponent(

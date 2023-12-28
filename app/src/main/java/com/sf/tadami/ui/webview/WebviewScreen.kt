@@ -76,7 +76,7 @@ fun WebviewScreen(
                 adservers = StringBuilder()
 
                 var line: String?
-                val inputStream = context.resources.openRawResource(R.raw.adblockserverlist)
+                val inputStream = context.resources.openRawResource(R.raw.adservers)
                 val br = BufferedReader(InputStreamReader(inputStream))
 
                 try
@@ -108,7 +108,7 @@ fun WebviewScreen(
                 val kk5 = adservers.toString()
 
                 if (request != null) {
-                    if (kk5.contains(":::::" + request.url.host)){
+                    if (kk5.contains("0.0.0.0 " + request.url.host)){
                         return WebResourceResponse("text/plain", "utf-8", empty)
                     }
                 }

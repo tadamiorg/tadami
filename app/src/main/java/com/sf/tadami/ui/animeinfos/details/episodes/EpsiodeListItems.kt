@@ -2,18 +2,16 @@ package com.sf.tadami.ui.animeinfos.details.episodes
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.fastAny
+import com.sf.tadami.R
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.ui.animeinfos.details.DetailsScreenItem
 import com.sf.tadami.ui.components.data.EpisodeItem
 import com.sf.tadami.ui.utils.formatMinSec
 import com.sf.tadami.ui.utils.toRelativeString
 import java.util.Date
-import com.sf.tadami.R
 
 fun LazyListScope.episodeItems(
     displayMode : Anime.DisplayMode? = Anime.DisplayMode.NAME,
