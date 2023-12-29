@@ -19,6 +19,7 @@ object AnimeMapper {
         calculateInterval : Long,
         favorite: Boolean,
         initialized: Boolean,
+        episodeFlags : Long
     ) : Anime = Anime(
         id = id,
         source = source,
@@ -33,7 +34,8 @@ object AnimeMapper {
         initialized = initialized,
         lastUpdate = lastUpdate ?: 0,
         nextUpdate = nextUpdate ?: 0,
-        fetchInterval = calculateInterval.toInt()
+        fetchInterval = calculateInterval.toInt(),
+        episodeFlags = episodeFlags
     )
 
     fun mapLibraryAnime(
@@ -51,6 +53,7 @@ object AnimeMapper {
         calculateInterval : Long,
         favorite: Boolean,
         initialized: Boolean,
+        episodeFlags : Long,
 
         episodes : Long,
         unseenEpisodes: Double
@@ -70,6 +73,7 @@ object AnimeMapper {
         nextUpdate = nextUpdate ?: 0,
         fetchInterval = calculateInterval.toInt(),
         episodes = episodes,
-        unseenEpisodes = unseenEpisodes.toLong()
+        unseenEpisodes = unseenEpisodes.toLong(),
+        episodeFlags = episodeFlags
     )
 }

@@ -11,7 +11,8 @@ data class UpdateEpisode(
     val dateFetch: Long? = null,
     val dateUpload: Long? = null,
     val seen: Boolean? = null,
-    val sourceOrder : Long? = null
+    val sourceOrder : Long? = null,
+    val languages : String? = null
 )
 
 fun Episode.toUpdateEpisode() : UpdateEpisode{
@@ -26,6 +27,7 @@ fun Episode.toUpdateEpisode() : UpdateEpisode{
         dateFetch = dateFetch,
         dateUpload = dateUpload,
         seen = seen,
-        sourceOrder = sourceOrder
+        sourceOrder = sourceOrder,
+        languages = languages
     )
 }

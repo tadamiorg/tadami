@@ -70,7 +70,7 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
         filters: AnimeFilterList,
         noToasts: Boolean
     ): Observable<AnimesPage> {
-        return client.newCall(searchAnimeRequest(page, query, filters, noToasts))
+        return client.newCall(searchAnimeRequest(page, query.trim(), filters, noToasts))
             .asCancelableObservable()
             .flatMap { response ->
 
@@ -84,7 +84,7 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
                     document.select(selector).first()
                 } != null
 
-                val pageRequests = animeList.map { anime ->
+                val pageRequests = Observable.fromIterable(animeList).flatMap { anime ->
                     client.newCall(GET("$baseUrl${anime.url}"))
                         .asCancelableObservable()
                         .map { response ->
@@ -126,10 +126,10 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
                                 animeSeason
                             } ?: emptyList<SAnime>()
                         }
-                }
+                }.toList().toObservable()
 
-                Observable.zip(pageRequests) { pages ->
-                    val animeSeasons = pages.flatMap { it as List<SAnime> }
+                pageRequests.map { pages ->
+                    val animeSeasons = pages.flatten()
                     AnimesPage(animeSeasons, hasNextPage)
                 }
 
@@ -160,7 +160,7 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
         val anime: SAnime = SAnime.create()
         anime.title = element.selectFirst("h1")?.text() ?: ""
         anime.thumbnailUrl = element.select("img").attr("src")
-        anime.setUrlWithoutDomain(element.selectFirst("a")!!.attr("href"))
+        anime.setUrlWithoutDomain(element.selectFirst("a")!!.attr("href").removeSuffix("/"))
         return anime
     }
 
@@ -224,7 +224,6 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
         val resultList = mutableListOf<Pair<String, List<String>>>()
         val scriptRegex = Regex("""<script>([^<]*(?:(?!<\/script>)<[^<]*)*)<\/script>""")
         val scripts = scriptRegex.findAll(document.html())
-
         scripts.forEach { script ->
             val code = script.groupValues.getOrNull(1)?.substringAfter(">")
                 ?.takeIf { !it.contains("#avOeuvre") && it.contains("resetListe();") }
@@ -258,16 +257,13 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
     ): List<String> {
         if (totalEpisodes == null) return emptyList()
         val episodesNames = mutableListOf<String>()
-        var epRetards = 0
         try {
             names.forEach { (function, parameters) ->
                 when (function) {
                     "newSPF" -> {
-                        epRetards++
                         episodesNames.add(parameters[0])
                     }
                     "newSP" -> {
-                        epRetards++
                         episodesNames.add("Episode ${parameters[0]}")
                     }
                     "creerListe" -> {
@@ -277,60 +273,67 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
                             episodesNames.add("Episode $i")
                         }
                     }
-                    "finirListe" -> {
-                        val debut = parameters[0].toInt()
-                        for (i in debut..(totalEpisodes - epRetards)) {
-                            episodesNames.add("Episode $i")
+                    "finirListe", "finirListeOP"-> {
+                        val baseEpNumber = parameters[0].toInt()
+                        for (i in 0 until (totalEpisodes-episodesNames.size)-1) {
+                            episodesNames.add("Episode ${baseEpNumber+i}")
                         }
                     }
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
             return emptyList()
         }
-
         return episodesNames
     }
 
     override fun fetchEpisodesList(anime: Anime): Observable<List<SEpisode>> {
-        val episodeScriptRequest = GET(baseUrl + anime.url + "/episodes.js", headers)
-        return client.newCall(episodeScriptRequest)
+        return client.newCall(episodesRequest(anime))
             .asCancelableObservable()
-            .map { res ->
-                val doc = res.asJsoup()
-                val pattern = Regex("""var (.*?) = \[(.*?)\];""")
-                val matches = pattern.findAll(doc.html())
+            .flatMap { response ->
+                val document = response.asJsoup()
+                val episodeScriptRequest = GET(baseUrl + anime.url + "/episodes.js", headers)
+                client.newCall(episodeScriptRequest)
+                    .asCancelableObservable()
+                    .map { res ->
+                        val doc = res.asJsoup()
+                        val pattern = Regex("""var (.*?) = \[(.*?)\];""")
+                        val matches = pattern.findAll(doc.html())
 
-                val variableLinkCounts: MutableMap<String, Int> = mutableMapOf()
+                        val variableLinkCounts: MutableMap<String, Int> = mutableMapOf()
 
-                for (matchResult in matches) {
-                    val variableName = matchResult.groupValues[1]
-                    val urls = matchResult.groupValues[2]
-                        .split(",")
-                        .map { it.trim('\'', '"', ' ', '\n', '\r') }
+                        for (matchResult in matches) {
+                            val variableName = matchResult.groupValues[1]
+                            val urls = matchResult.groupValues[2]
+                                .split(",")
+                                .map { it.trim('\'', '"', ' ', '\n', '\r') }
 
-                    val linkCount = urls.size
-                    variableLinkCounts[variableName] = linkCount
-                }
-                val episodesList: MutableList<SEpisode> = mutableListOf()
-                val variableWithMostLinks = variableLinkCounts.maxByOrNull { it.value }
-                val trueNames = parseEpisodesTrueNames(
-                    getEpisodesTrueNames(doc),
-                    variableWithMostLinks?.value
-                )
-                for (i in 1..(variableWithMostLinks?.value?.minus(1) ?: 0)) {
-                    val episode = SEpisode.create()
-                    episode.episodeNumber = i.toFloat()
-                    episode.name = if (trueNames.getOrNull(i - 1) != null) {
-                        trueNames[i - 1]
-                    } else {
-                        "Episode ${i.toFloat()}"
+                            val linkCount = urls.size
+                            variableLinkCounts[variableName] = linkCount
+                        }
+                        val episodesList: MutableList<SEpisode> = mutableListOf()
+                        val variableWithMostLinks = variableLinkCounts.maxByOrNull { it.value }
+                        val trueNames = try {
+                            parseEpisodesTrueNames(
+                                getEpisodesTrueNames(document),
+                                variableWithMostLinks?.value
+                            )
+                        } catch (e : Exception){
+                            emptyList()
+                        }
+                        for (i in 1..(variableWithMostLinks?.value?.minus(1) ?: 0)) {
+                            val episode = SEpisode.create()
+                            episode.episodeNumber = i.toFloat()
+                            episode.name = if (trueNames.getOrNull(i - 1) != null) {
+                                trueNames[i - 1]
+                            } else {
+                                "Episode ${i.toFloat()}"
+                            }
+                            episode.url = "${anime.url}?number=$i"
+                            episodesList.add(episode)
+                        }
+                        episodesList.reversed()
                     }
-                    episode.url = "${anime.url}?number=$i"
-                    episodesList.add(episode)
-                }
-                episodesList.reversed()
             }
     }
 
@@ -338,7 +341,7 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
 
         val document: Document = response.asJsoup()
         val javascriptCode = Html.fromHtml(document.html(), Html.FROM_HTML_MODE_LEGACY).toString()
-        val pattern = Regex("""var (.*?) = \[(.*?)\];""")
+        val pattern = Regex("""(?<!\/\*)var (.*?) = \[(.*?)\];""")
         val matches = pattern.findAll(javascriptCode)
 
         val variableArrays: Map<String, List<String>> = matches.associate { matchResult ->
@@ -364,9 +367,6 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
                         streamUrl.contains("sibnet.ru") -> {
                             SibnetExtractor(client).videosFromUrl(streamUrl)
                         }
-                        /*streamUrl.contains("myvi.") -> {
-                            MytvExtractor(client).videosFromUrl(streamUrl)
-                        }*/
                         streamUrl.contains("anime-sama.fr") -> {
                             listOf(StreamSource(streamUrl, "AnimeSama"))
                         }
@@ -389,21 +389,7 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
 
     override fun episodeRequest(url: String): Request {
         episodeNumber = url.substringAfter("?number=").toInt()
-        return GET(baseUrl + url.substringBeforeLast("?"), headers)
-    }
-
-    override fun fetchEpisode(url: String): Observable<List<StreamSource>> {
-        return client.newCall(episodeRequest(url))
-            .asCancelableObservable()
-            .map { response ->
-                val document = response.asJsoup()
-                val episodeScriptFile =
-                    document.selectFirst("script[src^=episodes.js?filever]")?.attr("src")
-                val episodeScriptRequest =
-                    GET("${baseUrl + url.substringBeforeLast("?")}/$episodeScriptFile", headers)
-                val res = client.newCall(episodeScriptRequest).execute()
-                episodeSourcesParse(res)
-            }
+        return GET(baseUrl + url.substringBeforeLast("?")  +"/episodes.js", headers)
     }
 
     override fun List<StreamSource>.sort(): List<StreamSource> {

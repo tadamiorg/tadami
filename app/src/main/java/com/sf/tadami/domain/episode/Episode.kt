@@ -14,6 +14,7 @@ data class Episode(
     val episodeNumber : Float,
     val seen : Boolean,
     val sourceOrder : Long,
+    val languages : String?
 ) {
 
     fun copyFrom(other: Episode): Episode {
@@ -38,6 +39,7 @@ data class Episode(
                 dateUpload = -1,
                 seen = false,
                 sourceOrder = 0L,
+                languages = null
             )
         }
     }
@@ -48,6 +50,7 @@ fun Episode.copyFromSEpisode(other : SEpisode) : Episode{
         url = other.url,
         name = other.name,
         episodeNumber = other.episodeNumber,
-        dateUpload = other.dateUpload
+        dateUpload = other.dateUpload,
+        languages = other.languages
     )
 }

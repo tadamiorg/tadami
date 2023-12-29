@@ -21,9 +21,11 @@ import com.sf.tadami.ui.tabs.settings.model.Preference
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    modifier: Modifier = Modifier,
     navController: NavHostController,
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             TadaTopAppBar(
                 title = {

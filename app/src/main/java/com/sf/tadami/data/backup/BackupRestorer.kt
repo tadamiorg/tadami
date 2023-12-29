@@ -189,6 +189,7 @@ class BackupRestorer(
                 lastUpdate = anime.lastUpdate,
                 nextUpdate = null,
                 calculateInterval = null,
+                episodeFlags = anime.episodeFlags
             )
         }
         return anime.id
@@ -254,7 +255,8 @@ class BackupRestorer(
                     episode.dateFetch,
                     episode.dateUpload,
                     episode.seen,
-                    episode.sourceOrder
+                    episode.sourceOrder,
+                    episode.languages
                 )
             }
         }
@@ -277,7 +279,8 @@ class BackupRestorer(
                     sourceOrder = null,
                     dateFetch = null,
                     dateUpload = null,
-                    episodeId = episode.id
+                    episodeId = episode.id,
+                    languages = episode.languages
 
                 )
             }
@@ -307,6 +310,7 @@ class BackupRestorer(
                 lastUpdate = anime.lastUpdate,
                 nextUpdate = 0L,
                 calculateInterval = 0L,
+                episodeFlags = anime.episodeFlags
 
             )
             animeQueries.selectLastInsertedRowId().executeAsOne()

@@ -10,7 +10,6 @@ http4k-bom-version = "4.42.1.0"
 
 [libraries]
 
-
 # Coil
 coil-bom = { module = "io.coil-kt:coil-bom", version.ref = "coil-version" }
 coil = { group = "io.coil-kt",name="coil"}

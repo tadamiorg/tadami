@@ -68,7 +68,8 @@ class AnimeRepositoryImpl(
                 initiliazed = anime.initialized,
                 lastUpdate = anime.lastUpdate,
                 nextUpdate = anime.nextUpdate,
-                calculateInterval = anime.fetchInterval.toLong()
+                calculateInterval = anime.fetchInterval.toLong(),
+                episodeFlags = anime.episodeFlags
             )
             animeQueries.selectLastInsertedRowId()
         }
@@ -139,7 +140,8 @@ class AnimeRepositoryImpl(
                     animeId = anime.id,
                     calculateInterval = anime.fetchInterval?.toLong(),
                     nextUpdate = anime.nextUpdate,
-                    lastUpdate = anime.lastUpdate
+                    lastUpdate = anime.lastUpdate,
+                    episodeFlags = anime.episodeFlags
                 )
             }
             true
@@ -165,7 +167,8 @@ class AnimeRepositoryImpl(
                     animeId = anime.id,
                     calculateInterval = anime.fetchInterval?.toLong(),
                     nextUpdate = anime.nextUpdate,
-                    lastUpdate = anime.lastUpdate
+                    lastUpdate = anime.lastUpdate,
+                    episodeFlags = anime.episodeFlags
                 )
             }
         }

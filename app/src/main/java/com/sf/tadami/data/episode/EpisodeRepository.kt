@@ -35,7 +35,8 @@ class EpisodeRepositoryImpl(
                         dateFetch = episode.dateFetch,
                         dateUpload = episode.dateUpload,
                         seen = episode.seen,
-                        sourceOrder = episode.sourceOrder
+                        sourceOrder = episode.sourceOrder,
+                        languages = episode.languages
                     )
                     val insertedEpId = episodeQueries.selectLastInsertedRowId().executeAsOne()
                     episode.copy(id = insertedEpId)
@@ -94,7 +95,8 @@ class EpisodeRepositoryImpl(
                     dateUpload = episodeUpdate.dateUpload,
                     seen = episodeUpdate.seen,
                     sourceOrder = episodeUpdate.sourceOrder,
-                    episodeId = episodeUpdate.id
+                    episodeId = episodeUpdate.id,
+                    languages = episodeUpdate.languages
                 )
             }
         }
@@ -114,6 +116,7 @@ class EpisodeRepositoryImpl(
                     dateUpload = it.second.dateUpload,
                     seen = it.second.seen,
                     sourceOrder = it.second.sourceOrder,
+                    languages =  it.second.languages
                 )
             }
         }
@@ -132,7 +135,8 @@ class EpisodeRepositoryImpl(
                 dateUpload = episodeUpdate.dateUpload,
                 seen = episodeUpdate.seen,
                 sourceOrder = episodeUpdate.sourceOrder,
-                episodeId = episodeUpdate.id
+                episodeId = episodeUpdate.id,
+                languages = episodeUpdate.languages
             )
         }
     }

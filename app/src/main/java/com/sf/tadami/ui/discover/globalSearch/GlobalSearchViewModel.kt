@@ -32,24 +32,23 @@ class GlobalSearchViewModel() : ViewModel() {
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
+    private val sourcesPrefs = runBlocking {
+        dataStore.getPreferencesGroup(SourcesPreferences)
+    }
+
+    private val filteredExtensions = sourcesManager.animeExtensions.filter { (_,source) ->
+        source.lang.name in sourcesPrefs.enabledLanguages && source.id !in sourcesPrefs.hiddenSources
+    }
+
+    private val loadingItems = filteredExtensions.map { (_, source) -> source }.associateWith { GlobalSearchItemResult.Loading }
+
     private val _animesBySource = MutableStateFlow(GlobalSearchUiState(emptyMap()))
     val animesBySource = _animesBySource.asStateFlow()
 
     fun search(newQuery : String) {
         if(newQuery.isEmpty()) return
 
-        val sourcesPrefs = runBlocking {
-            dataStore.getPreferencesGroup(SourcesPreferences)
-        }
-
-        val filteredExtensions = sourcesManager.animeExtensions.filter { (_,source) ->
-            source.lang.name in sourcesPrefs.enabledLanguages && source.id !in sourcesPrefs.hiddenSources
-        }
-
         _animesBySource.update {
-            val loadingItems = filteredExtensions.map { (_, source) ->
-                source
-            }.associateWith { GlobalSearchItemResult.Loading }
             GlobalSearchUiState(loadingItems)
         }
 
@@ -88,4 +87,7 @@ class GlobalSearchViewModel() : ViewModel() {
 
 data class GlobalSearchUiState(
     val items: Map<AnimeCatalogueSource, GlobalSearchItemResult>
-)
+){
+    val progress: Int = items.count { it.value !is GlobalSearchItemResult.Loading }
+    val total: Int = items.size
+}

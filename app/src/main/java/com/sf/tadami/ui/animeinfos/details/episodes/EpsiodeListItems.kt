@@ -2,8 +2,11 @@ package com.sf.tadami.ui.animeinfos.details.episodes
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.util.fastAny
+import com.sf.tadami.R
+import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.ui.animeinfos.details.DetailsScreenItem
 import com.sf.tadami.ui.components.data.EpisodeItem
 import com.sf.tadami.ui.utils.formatMinSec
@@ -11,16 +14,26 @@ import com.sf.tadami.ui.utils.toRelativeString
 import java.util.Date
 
 fun LazyListScope.episodeItems(
+    displayMode : Anime.DisplayMode? = Anime.DisplayMode.NAME,
     episodes: List<EpisodeItem>,
     onEpisodeClicked: (epId: Long) -> Unit,
     onEpisodeSelected: (episode: EpisodeItem, selected: Boolean) -> Unit
 ) {
+
+
     items(
         items = episodes,
         key = { it.episode.id },
         contentType = { DetailsScreenItem.EPISODE }) { episodeItem ->
+        val context = LocalContext.current
         EpisodeListItem(
-            title = episodeItem.episode.name,
+            title = remember(displayMode) {
+                when(displayMode){
+                    is Anime.DisplayMode.NAME -> episodeItem.episode.name
+                    is Anime.DisplayMode.NUMBER -> "${context.getString(R.string.player_screen_episode_label)} ${episodeItem.episode.episodeNumber}"
+                    else -> episodeItem.episode.name
+                }
+            },
             onClick = {
                 updateSelected(
                     episodeItem = episodeItem,
@@ -52,7 +65,8 @@ fun LazyListScope.episodeItems(
                 }
                 else -> null
             },
-            selected = episodeItem.selected
+            selected = episodeItem.selected,
+            languages = episodeItem.episode.languages
         )
     }
 }

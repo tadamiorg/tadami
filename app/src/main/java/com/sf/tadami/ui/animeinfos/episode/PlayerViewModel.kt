@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.sf.tadami.R
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.interactors.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.UpdateAnimeInteractor
@@ -16,6 +17,7 @@ import com.sf.tadami.network.api.online.StubSource
 import com.sf.tadami.network.requests.utils.TadaErrorConsumer
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.tadami.ui.utils.SaveableMutableSaveStateFlow
+import com.sf.tadami.ui.utils.UiToasts
 import io.reactivex.rxjava3.disposables.Disposable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -220,6 +222,11 @@ class PlayerViewModel(
                     _uiState.update {
                         it.copy(loadError = true)
                     }
+                }
+            },
+            {
+                if(_uiState.value.availableSources.isEmpty()){
+                    UiToasts.showToast(R.string.player_screen_empty_sources)
                 }
             }
         )

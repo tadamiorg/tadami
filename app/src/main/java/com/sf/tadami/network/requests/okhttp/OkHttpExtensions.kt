@@ -136,6 +136,15 @@ inline fun <reified T> Response.parseAs(): T {
     return decodeFromString(serializer(),this.body.string())
 }
 
+context(Json)
+inline fun <reified T> String.decodeOrNull(): T? {
+    return try{
+        decodeFromString(serializer(),this)
+    }catch (e: Exception){
+        null
+    }
+}
+
 fun BufferedSource.saveTo(file: File) {
     try {
         // Create parent dirs if needed

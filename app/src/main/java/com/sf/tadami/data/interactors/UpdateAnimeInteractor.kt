@@ -34,6 +34,13 @@ class UpdateAnimeInteractor(
         animeRepository.updateAll(libraryAnimeIds.map { UpdateAnime(id = it, favorite = favorite) })
     }
 
+    suspend fun updateAnimeEpisodeFlags(
+        anime: Anime,
+        episodeFlags: Long
+    ) {
+        animeRepository.updateAnime(UpdateAnime(id = anime.id, episodeFlags = episodeFlags))
+    }
+
     suspend fun awaitUpdateFromSource(
         localAnime: Anime,
         remoteAnime: SAnime,

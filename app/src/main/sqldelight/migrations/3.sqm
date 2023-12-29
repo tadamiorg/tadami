@@ -1,0 +1,34 @@
+-- Drop views because of structure changes
+DROP VIEW IF EXISTS Library;
+
+-- Alter Episode table
+ALTER TABLE Episode
+ADD COLUMN languages TEXT;
+
+-- Alter Anime table
+ALTER TABLE Anime
+ADD COLUMN  episode_flags INTEGER NOT NULL DEFAULT 0;
+
+--ANIMESAMA SOURCE START--
+-- Add a new migration to update URLs in Anime table where source is AnimeSama
+UPDATE Anime
+SET url = REPLACE(Anime.url, '//', '/')
+WHERE source = 'AnimeSama';
+
+-- Add a new migration to update URLs in Episode table linked to AnimeSama in Anime table
+UPDATE Episode
+SET url = REPLACE(Episode.url, '//', '/')
+WHERE Episode.anime_id IN (
+    SELECT _id
+    FROM Anime
+    WHERE source = 'AnimeSama'
+);
+--ANIMESAMA SOURCE END--
+
+-- Create updated views because of structure changes
+CREATE VIEW Library AS
+SELECT Anime.*,COUNT(*) AS episodes,TOTAL(Episode.seen = 0) AS unseen_episodes
+FROM Anime
+LEFT JOIN Episode ON Anime._id = Episode.anime_id
+WHERE Anime.favorite = 1
+GROUP BY Anime._id;

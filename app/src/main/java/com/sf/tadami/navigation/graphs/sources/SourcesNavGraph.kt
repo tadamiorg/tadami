@@ -1,5 +1,8 @@
 package com.sf.tadami.navigation.graphs.sources
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -13,12 +16,16 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 fun NavGraphBuilder.sourcesNavGraph(
-    navController: NavHostController
+    navController: NavHostController,
+    tabsNavPadding : PaddingValues,
 ) {
     composable(
         route = HomeNavItems.Sources.route,
     ) {
-        AnimeSourcesScreen(navController = navController)
+        AnimeSourcesScreen(
+            modifier = Modifier.padding(tabsNavPadding),
+            navController = navController
+        )
     }
     composable(
         route = "${SourcesRoutes.SETTINGS}/{sourceId}",

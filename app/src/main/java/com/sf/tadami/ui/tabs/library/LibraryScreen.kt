@@ -17,7 +17,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -40,9 +39,10 @@ import com.sf.tadami.ui.tabs.library.bottomsheet.sortComparator
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreen(
+    modifier: Modifier = Modifier,
     navController: NavHostController,
     setNavDisplay: (display: Boolean) -> Unit,
     bottomNavDisplay: Boolean,
@@ -52,6 +52,7 @@ fun LibraryScreen(
 ) {
     val context = LocalContext.current
 
+    val initLoaded by libraryViewModel.initLoaded.collectAsState()
     val libraryList by libraryViewModel.libraryList.collectAsState()
     val searchFilter by libraryViewModel.searchFilter.collectAsState()
     val libraryPreferences by rememberDataStoreState(customPrefs = LibraryPreferences).value.collectAsState()
@@ -93,6 +94,7 @@ fun LibraryScreen(
     val isRefreshing by libraryViewModel.isRefreshing.collectAsState()
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             ContextualSearchTopAppBar(
                 title = {
@@ -159,6 +161,7 @@ fun LibraryScreen(
                 .padding(innerPadding),
             libraryList = libraryList.addFilters(libraryPreferences,searchFilter),
             librarySize = libraryList.size,
+            initLoaded = initLoaded,
             onAnimeClicked = { libraryItem ->
                 when {
                     libraryItem.selected -> {
