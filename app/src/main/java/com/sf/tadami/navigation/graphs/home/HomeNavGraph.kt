@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.animeInfos.animeInfosNavGraph
 import com.sf.tadami.navigation.graphs.discover.discoverNavGraph
+import com.sf.tadami.navigation.graphs.history.historyNavGraph
 import com.sf.tadami.navigation.graphs.library.libraryNavGraph
 import com.sf.tadami.navigation.graphs.settings.settingsNavGraph
 import com.sf.tadami.navigation.graphs.sources.sourcesNavGraph
@@ -38,6 +39,8 @@ fun HomeNavGraph(
             showLibrarySheet = showLibrarySheet
         )
 
+        historyNavGraph(navController = navController)
+
         sourcesNavGraph(
             navController = navController,
             tabsNavPadding = tabsNavPadding,
@@ -58,12 +61,16 @@ object GRAPH {
 }
 
 sealed class HomeNavItems(val route: String, @StringRes val name: Int, @DrawableRes val icon: Int) {
-    object Library :
+    data object Library :
         HomeNavItems("library", R.string.library_tab_title, R.drawable.ic_video_library)
 
-    object Sources :
+    data object History :
+        HomeNavItems("history", R.string.label_history, R.drawable.ic_history)
+
+    data object Sources :
         HomeNavItems("anime_sources", R.string.sources_tab_title, R.drawable.ic_sources)
 
-    object Settings : HomeNavItems("settings", R.string.settings_tab_title, R.drawable.ic_settings)
+    data object Settings :
+        HomeNavItems("settings", R.string.settings_tab_title, R.drawable.ic_settings)
 }
 

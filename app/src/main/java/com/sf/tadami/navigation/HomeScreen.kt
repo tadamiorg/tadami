@@ -34,6 +34,7 @@ fun HomeScreen(
      val items = remember {
          listOf(
              HomeNavItems.Library,
+             HomeNavItems.History,
              HomeNavItems.Sources,
              HomeNavItems.Settings
          )

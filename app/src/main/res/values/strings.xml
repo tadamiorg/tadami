@@ -229,5 +229,6 @@
     <string name="cache_deleted">Cache cleared.</string>
     <string name="action_migrate">Migrate</string>
     <string name="title_display">Display</string>
+    <string name="label_history">History</string>
 
 </resources>

@@ -32,3 +32,15 @@ FROM Anime
 LEFT JOIN Episode ON Anime._id = Episode.anime_id
 WHERE Anime.favorite = 1
 GROUP BY Anime._id;
+
+-- Create new history table
+CREATE TABLE History(
+    _id INTEGER NOT NULL PRIMARY KEY,
+    episode_id INTEGER NOT NULL UNIQUE,
+    last_seen INTEGER AS Date,
+    time_seen INTEGER NOT NULL,
+    FOREIGN KEY(episode_id) REFERENCES Episode (_id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX history_history_episode_id_index ON History(episode_id);
