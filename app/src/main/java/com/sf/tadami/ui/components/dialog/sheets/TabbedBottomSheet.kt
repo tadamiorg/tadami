@@ -74,7 +74,7 @@ fun TabbedBottomSheet(
         ) { page ->
             Box(
                 modifier = Modifier
-                    .padding(vertical = TabbedBottomSheetContentPadding.Vertical)
+                    .padding(vertical = TabbedBottomSheetContentPadding.Vertical, horizontal = TabbedBottomSheetContentPadding.Horizontal)
                     .onSizeChanged {
                         with(density) {
                             val heightDp = it.height.toDp()
