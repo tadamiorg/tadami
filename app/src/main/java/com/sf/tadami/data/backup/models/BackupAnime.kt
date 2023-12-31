@@ -3,9 +3,11 @@ package com.sf.tadami.data.backup.models
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.domain.history.History
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import java.util.Date
 
 @Serializable
 data class BackupAnime @OptIn(ExperimentalSerializationApi::class) constructor(
@@ -21,6 +23,7 @@ data class BackupAnime @OptIn(ExperimentalSerializationApi::class) constructor(
     @ProtoNumber(10) var initialized: Boolean = true,
     @ProtoNumber(11) var episodeFlags: Int = 0,
     @ProtoNumber(20) var episodes: List<BackupEpisode> = emptyList(),
+    @ProtoNumber(30) var history: List<BackupHistory> = emptyList(),
 
     ) {
     fun getAnimeImpl(): Anime {
@@ -42,6 +45,12 @@ data class BackupAnime @OptIn(ExperimentalSerializationApi::class) constructor(
     fun getEpisodeImpl(): List<Episode> {
         return episodes.map {
             it.toEpisodeImpl()
+        }
+    }
+
+    fun getHistoryImpl(): List<History> {
+        return history.map {
+            it.getHistoryImpl()
         }
     }
 

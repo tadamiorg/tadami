@@ -1,0 +1,39 @@
+-- Create new history table
+CREATE TABLE History(
+    _id INTEGER NOT NULL PRIMARY KEY,
+    episode_id INTEGER NOT NULL UNIQUE,
+    last_seen INTEGER AS Date,
+    time_seen INTEGER NOT NULL,
+    FOREIGN KEY(episode_id) REFERENCES Episode (_id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX history_history_episode_id_index ON History(episode_id);
+
+-- Create new history view
+CREATE VIEW HistoryView AS
+SELECT
+    History._id AS id,
+    Anime._id AS animeId,
+    Episode._id AS episodeId,
+    Anime.title,
+    Anime.thumbnail_url AS thumbnailUrl,
+    Anime.source,
+    Anime.favorite,
+    Episode.episode_number AS episodeNumber,
+    History.last_seen AS seenAt,
+    History.time_seen AS seenDuration,
+    max_last_seen.last_seen AS maxSeenAt,
+    max_last_seen.episode_id AS maxSeenAtEpisodeId
+FROM Anime
+JOIN Episode
+ON Anime._id = Episode.anime_id
+JOIN History
+ON Episode._id = History.episode_id
+JOIN (
+    SELECT Episode.anime_id,Episode._id AS episode_id, MAX(History.last_seen) AS last_seen
+    FROM Episode JOIN History
+    ON Episode._id = History.episode_id
+    GROUP BY Episode.anime_id
+) AS max_last_seen
+ON Episode.anime_id = max_last_seen.anime_id;

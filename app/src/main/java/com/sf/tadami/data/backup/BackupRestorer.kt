@@ -131,6 +131,7 @@ class BackupRestorer(
     private suspend fun restoreAnime(backupAnime: BackupAnime) {
         val anime = backupAnime.getAnimeImpl()
         val episodes = backupAnime.getEpisodeImpl()
+        val history = backupAnime.getHistoryImpl()
 
         try {
             val dbAnime = getAnimeFromDatabase(anime.url, anime.source)
