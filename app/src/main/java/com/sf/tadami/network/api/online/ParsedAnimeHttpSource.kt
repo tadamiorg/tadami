@@ -12,14 +12,13 @@ abstract class ParsedAnimeHttpSource : AnimeHttpSource() {
 
     // Search
     protected abstract fun searchSelector(): String
-    protected abstract fun searchAnimeFromElement(element: Element): SAnime
+    protected abstract fun searchAnimeFromElement(element: Element): SAnime?
     protected abstract fun searchAnimeNextPageSelector(): String?
     override fun searchAnimeParse(response: Response): AnimesPage {
         val document = response.asJsoup()
 
-        val animes = document.select(searchSelector()).map { element ->
-            val test = searchAnimeFromElement(element)
-            test
+        val animes = document.select(searchSelector()).mapNotNull { element ->
+            searchAnimeFromElement(element)
         }
 
         val hasNextPage = searchAnimeNextPageSelector()?.let { selector ->
