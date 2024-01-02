@@ -41,7 +41,7 @@ fun TriStateItem(
                 setFilters()
             }
             .fillMaxWidth()
-            .padding(horizontal = TabbedBottomSheetContentPadding.Horizontal, vertical = MaterialTheme.padding.small),
+            .padding(vertical = MaterialTheme.padding.small),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.large),
     ) {

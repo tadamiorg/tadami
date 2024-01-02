@@ -83,16 +83,17 @@ class GogoAnime() : ConfigurableParsedHttpAnimeSource<GogoAnimePreferences>(Gogo
 
     // Search
 
-    override fun searchSelector(): String = "div.img a"
+    override fun searchSelector(): String = "ul.items > li"
 
     override fun searchAnimeNextPageSelector(): String =
         "ul.pagination-list li:last-child:not(.selected)"
 
-    override fun searchAnimeFromElement(element: Element): SAnime {
+    override fun searchAnimeFromElement(element: Element): SAnime? {
         val anime: SAnime = SAnime.create()
-        anime.title = element.attr("title")
-        anime.thumbnailUrl = element.select("img").attr("src")
-        anime.setUrlWithoutDomain(element.attr("href"))
+        anime.title = element.select("p.name").text()
+        anime.thumbnailUrl = element.select("div.img > a > img").attr("src")
+        val url = element.selectFirst("p.name > a")?.attr("href") ?: return null
+        anime.setUrlWithoutDomain(url)
         return anime
     }
 
