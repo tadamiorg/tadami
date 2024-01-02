@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -39,21 +38,6 @@ fun BottomSheet(
                 .verticalScroll(scrollState)
         ) {
             content()
-            Text("Merguez")
-            Text("Merguez")
-            Text("Merguez")
-            Text("Merguez")
-            Text("Merguez")
-            Text("Merguez")
-            Text("Merguez")
-            Text("Merguez")
-            Text("Merguez")
-            Text("Merguez")
-            Text("Merguez")
-            Text("Merguez")
-            Text("Merguez")
-            Text("Merguez")
-
         }
     }
 
