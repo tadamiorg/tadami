@@ -7,7 +7,6 @@ import com.sf.tadami.domain.history.History
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
-import java.util.Date
 
 @Serializable
 data class BackupAnime @OptIn(ExperimentalSerializationApi::class) constructor(

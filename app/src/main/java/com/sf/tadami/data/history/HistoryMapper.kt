@@ -9,13 +9,11 @@ object HistoryMapper {
     fun mapHistory(
         id: Long,
         episodeId: Long,
-        seenAt: Date?,
-        seenDuration: Long,
+        seenAt: Date?
     ): History = History(
         id = id,
         episodeId = episodeId,
-        seenAt = seenAt,
-        seenDuration = seenDuration,
+        seenAt = seenAt
     )
 
     fun mapHistoryWithRelations(
@@ -27,8 +25,7 @@ object HistoryMapper {
         sourceId: String,
         isFavorite: Boolean,
         episodeNumber: Double,
-        seenAt: Date?,
-        seenDuration: Long,
+        seenAt: Date?
     ): HistoryWithRelations = HistoryWithRelations(
         id = historyId,
         episodeId = episodeId,
@@ -36,7 +33,7 @@ object HistoryMapper {
         title = title,
         episodeNumber = episodeNumber,
         seenAt = seenAt,
-        seenDuration = seenDuration,
+        source = sourceId,
         thumbnailUrl = thumbnailUrl
     )
 }

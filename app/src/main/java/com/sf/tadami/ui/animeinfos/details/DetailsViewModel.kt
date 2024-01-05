@@ -3,8 +3,8 @@ package com.sf.tadami.ui.animeinfos.details
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sf.tadami.data.interactors.AnimeWithEpisodesInteractor
-import com.sf.tadami.data.interactors.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
+import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.ui.components.data.EpisodeItem

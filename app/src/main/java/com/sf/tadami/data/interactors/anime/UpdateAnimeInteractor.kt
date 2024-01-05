@@ -1,4 +1,4 @@
-package com.sf.tadami.data.interactors
+package com.sf.tadami.data.interactors.anime
 
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.data.episode.EpisodeRepository
@@ -51,7 +51,7 @@ class UpdateAnimeInteractor(
             ""
         }
 
-        // if the manga isn't a favorite, set its title from source and update in db
+        // if the anime isn't a favorite, set its title from source and update in db
         val title = if (remoteTitle.isEmpty() || localAnime.favorite) null else remoteTitle
         val thumbnailUrl = remoteAnime.thumbnailUrl?.takeIf { it.isNotEmpty() }
 

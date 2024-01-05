@@ -13,8 +13,6 @@ interface HistoryRepository {
 
     suspend fun getLastHistory(): HistoryWithRelations?
 
-    suspend fun getTotalSeenDuration(): Long
-
     suspend fun getHistoryByAnimeId(animeId: Long): List<History>
 
     suspend fun resetHistory(historyId: Long)
@@ -40,10 +38,6 @@ class HistoryRepositoryImpl(
         return handler.awaitOneOrNull {
             historyViewQueries.getLatestHistory(HistoryMapper::mapHistoryWithRelations)
         }
-    }
-
-    override suspend fun getTotalSeenDuration(): Long {
-        return handler.awaitOne { historyQueries.getReadDuration() }
     }
 
     override suspend fun getHistoryByAnimeId(animeId: Long): List<History> {
@@ -82,7 +76,6 @@ class HistoryRepositoryImpl(
                 historyQueries.upsert(
                     historyUpdate.episodeId,
                     historyUpdate.seenAt,
-                    historyUpdate.sessionSeenDuration,
                 )
             }
         } catch (e: Exception) {

@@ -39,9 +39,7 @@ fun <T : Any>SelectPreference(
                 showDialog = false
             },
             confirmButton = {
-                DefaultDialogCancelButton {
-                    showDialog = false
-                }
+                DefaultDialogCancelButton()
             }
         ) {
             LazyColumn{

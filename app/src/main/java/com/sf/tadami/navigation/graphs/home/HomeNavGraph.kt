@@ -39,7 +39,10 @@ fun HomeNavGraph(
             showLibrarySheet = showLibrarySheet
         )
 
-        historyNavGraph(navController = navController)
+        historyNavGraph(
+            navController = navController,
+            tabsNavPadding = tabsNavPadding,
+        )
 
         sourcesNavGraph(
             navController = navController,

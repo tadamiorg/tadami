@@ -10,7 +10,7 @@ const val SecondaryItemAlpha = .78f
 const val GridSelectedCoverAlpha = 0.76f
 
 
-object CommonMangaItemDefaults {
+object CommonAnimeItemDefaults {
     val GridHorizontalSpacer = 4.dp
     val GridVerticalSpacer = 4.dp
 

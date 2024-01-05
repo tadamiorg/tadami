@@ -67,5 +67,10 @@ delete:
 DELETE FROM Episode
 WHERE _id IN :episodeId;
 
+getEpisodeByUrl:
+SELECT *
+FROM Episode
+WHERE url = :episodeUrl;
+
 selectLastInsertedRowId:
 SELECT last_insert_rowid();

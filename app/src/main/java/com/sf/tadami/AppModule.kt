@@ -13,12 +13,15 @@ import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.episode.EpisodeRepositoryImpl
 import com.sf.tadami.data.history.HistoryRepository
 import com.sf.tadami.data.history.HistoryRepositoryImpl
-import com.sf.tadami.data.interactors.AnimeWithEpisodesInteractor
-import com.sf.tadami.data.interactors.FetchIntervalInteractor
-import com.sf.tadami.data.interactors.GetHistoryInteractor
-import com.sf.tadami.data.interactors.GetSourcesWithNonLibraryAnime
-import com.sf.tadami.data.interactors.LibraryInteractor
-import com.sf.tadami.data.interactors.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
+import com.sf.tadami.data.interactors.anime.FetchIntervalInteractor
+import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.history.GetHistoryInteractor
+import com.sf.tadami.data.interactors.history.GetNextEpisodeInteractor
+import com.sf.tadami.data.interactors.history.RemoveHistoryInteractor
+import com.sf.tadami.data.interactors.history.UpdateHistoryInteractor
+import com.sf.tadami.data.interactors.library.LibraryInteractor
+import com.sf.tadami.data.interactors.sources.GetSourcesWithNonLibraryAnime
 import com.sf.tadami.data.sources.SourceRepository
 import com.sf.tadami.data.sources.SourceRepositoryImpl
 import com.sf.tadami.network.database.dateColumnAdapter
@@ -70,7 +73,7 @@ class AppModule(private val app: Application) : InjektModule {
                     genresAdapter = listOfStringsAdapter
                 ),
                 HistoryAdapter = History.Adapter(
-                    last_seenAdapter = dateColumnAdapter
+                    seen_atAdapter = dateColumnAdapter
                 )
             )
         }
@@ -101,6 +104,8 @@ class AppModule(private val app: Application) : InjektModule {
             HistoryRepositoryImpl(get())
         }
 
+        // Anime interactors
+
         addSingletonFactory {
             UpdateAnimeInteractor(get(),get(),get())
         }
@@ -110,19 +115,42 @@ class AppModule(private val app: Application) : InjektModule {
         }
 
         addSingletonFactory {
-            LibraryInteractor(get())
+            FetchIntervalInteractor(get())
         }
 
         addSingletonFactory {
-            FetchIntervalInteractor(get())
+            GetNextEpisodeInteractor(get(),get())
         }
+
+        addSingletonFactory {
+            RemoveHistoryInteractor(get())
+        }
+
+
+        // Library interactors
+
+        addSingletonFactory {
+            LibraryInteractor(get())
+        }
+
+        // Sources interactors
 
         addSingletonFactory {
             GetSourcesWithNonLibraryAnime(get())
         }
 
+        // History interactors
+
         addSingletonFactory {
             GetHistoryInteractor(get())
+        }
+
+        addSingletonFactory {
+            UpdateHistoryInteractor(get())
+        }
+
+        addSingletonFactory {
+            RemoveHistoryInteractor(get())
         }
 
         // HttpClient

@@ -53,9 +53,7 @@ fun <T>MultiSelectPreference(
                 }
             },
             dismissButton = {
-                DefaultDialogCancelButton {
-                    showDialog = false
-                }
+                DefaultDialogCancelButton()
             }
         ) {
             LazyColumn{

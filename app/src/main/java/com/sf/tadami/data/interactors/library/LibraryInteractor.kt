@@ -1,4 +1,4 @@
-package com.sf.tadami.data.interactors
+package com.sf.tadami.data.interactors.library
 
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.domain.anime.LibraryAnime

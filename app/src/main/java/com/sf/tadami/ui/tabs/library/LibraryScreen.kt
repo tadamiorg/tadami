@@ -8,6 +8,8 @@ import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.RemoveDone
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -15,6 +17,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -38,6 +41,7 @@ import com.sf.tadami.ui.tabs.library.bottomsheet.libraryFilters
 import com.sf.tadami.ui.tabs.library.bottomsheet.sortComparator
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +51,7 @@ fun LibraryScreen(
     setNavDisplay: (display: Boolean) -> Unit,
     bottomNavDisplay: Boolean,
     showLibrarySheet: () -> Unit,
-    librarySheetVisible : Boolean,
+    librarySheetVisible: Boolean,
     libraryViewModel: LibraryViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -56,6 +60,8 @@ fun LibraryScreen(
     val libraryList by libraryViewModel.libraryList.collectAsState()
     val searchFilter by libraryViewModel.searchFilter.collectAsState()
     val libraryPreferences by rememberDataStoreState(customPrefs = LibraryPreferences).value.collectAsState()
+    val snackBarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -92,6 +98,7 @@ fun LibraryScreen(
     }
 
     val isRefreshing by libraryViewModel.isRefreshing.collectAsState()
+
 
     Scaffold(
         modifier = modifier,
@@ -154,12 +161,13 @@ fun LibraryScreen(
                 )
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) { innerPadding ->
         LibraryComponent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            libraryList = libraryList.addFilters(libraryPreferences,searchFilter),
+            libraryList = libraryList.addFilters(libraryPreferences, searchFilter),
             librarySize = libraryList.size,
             initLoaded = initLoaded,
             onAnimeClicked = { libraryItem ->
@@ -167,9 +175,11 @@ fun LibraryScreen(
                     libraryItem.selected -> {
                         libraryViewModel.toggleSelected(libraryItem, false)
                     }
+
                     libraryList.fastAny { it.selected } -> {
                         libraryViewModel.toggleSelected(libraryItem, true)
                     }
+
                     else -> {
                         navController.navigate("${AnimeInfosRoutes.DETAILS}/${libraryItem.anime.source}/${libraryItem.anime.id}")
                     }
@@ -182,7 +192,12 @@ fun LibraryScreen(
             isRefreshing = isRefreshing,
             indicatorPadding = innerPadding,
             onRefresh = {
-                libraryViewModel.refreshLibrary(context)
+                val started = libraryViewModel.refreshLibrary(context)
+                val msgRes = if (started) context.getString(R.string.update_starting) else context.getString(R.string.update_running)
+                coroutineScope.launch {
+                    snackBarHostState.currentSnackbarData?.dismiss()
+                    snackBarHostState.showSnackbar(msgRes)
+                }
             },
             onEmptyRefreshClicked = {
                 navController.navigate(HomeNavItems.Sources.route) {
@@ -198,11 +213,14 @@ fun LibraryScreen(
     }
 }
 
-private fun List<LibraryItem>.addFilters(prefs: LibraryPreferences, searchFilter : String): List<LibraryItem> {
+private fun List<LibraryItem>.addFilters(
+    prefs: LibraryPreferences,
+    searchFilter: String
+): List<LibraryItem> {
     return this
         .filter {
             it.anime.title.contains(searchFilter, true)
         }
         .libraryFilters(prefs.filterFlags)
-        .sortedWith { a1, a2 -> sortComparator(prefs.sortFlags).invoke(a1,a2) }
+        .sortedWith { a1, a2 -> sortComparator(prefs.sortFlags).invoke(a1, a2) }
 }

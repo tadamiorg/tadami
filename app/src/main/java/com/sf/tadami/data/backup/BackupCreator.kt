@@ -14,8 +14,8 @@ import com.sf.tadami.data.backup.BackupCreateFlags.BACKUP_EPISODE
 import com.sf.tadami.data.backup.BackupCreateFlags.BACKUP_HISTORY
 import com.sf.tadami.data.backup.models.*
 import com.sf.tadami.data.episode.EpisodeMapper
-import com.sf.tadami.data.interactors.GetHistoryInteractor
-import com.sf.tadami.data.interactors.LibraryInteractor
+import com.sf.tadami.data.interactors.history.GetHistoryInteractor
+import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.notifications.backup.BackupFileValidator
 import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
@@ -138,8 +138,8 @@ class BackupCreator(
             val historyByAnimeId = getHistory.await(anime.id)
             if (historyByAnimeId.isNotEmpty()) {
                 val history = historyByAnimeId.map { history ->
-                    val chapter = handler.awaitOne { episodeQueries.getEpisodeById(history.episodeId) }
-                    BackupHistory(chapter.url, history.seenAt?.time ?: 0L, history.seenDuration)
+                    val episode = handler.awaitOne { episodeQueries.getEpisodeById(history.episodeId) }
+                    BackupHistory(episode.url, history.seenAt?.time ?: 0L)
                 }
                 if (history.isNotEmpty()) {
                     animeObject.history = history

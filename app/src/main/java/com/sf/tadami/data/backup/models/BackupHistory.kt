@@ -9,13 +9,11 @@ import java.util.Date
 @Serializable
 data class BackupHistory @OptIn(ExperimentalSerializationApi::class) constructor(
     @ProtoNumber(1) var url: String,
-    @ProtoNumber(2) var lastSeen: Long,
-    @ProtoNumber(3) var seenDuration: Long = 0,
+    @ProtoNumber(2) var seenAt: Long,
 ) {
     fun getHistoryImpl(): History {
         return History.create().copy(
-            seenAt = Date(lastSeen),
-            seenDuration = seenDuration,
+            seenAt = Date(seenAt),
         )
     }
 }

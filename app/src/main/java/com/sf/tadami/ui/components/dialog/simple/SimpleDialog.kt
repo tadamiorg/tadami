@@ -61,7 +61,7 @@ fun SimpleDialog(
             configuration.screenWidthDp.dp * widthFraction
         }
     }
-    Crossfade(modifier = Modifier.zIndex(5f),targetState = opened) { visible ->
+    Crossfade(modifier = Modifier.zIndex(5f),targetState = opened, label = "") { visible ->
         if (visible) {
             Box(
                 contentAlignment = Alignment.Center

@@ -8,8 +8,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.sf.tadami.R
 import com.sf.tadami.data.episode.EpisodeRepository
-import com.sf.tadami.data.interactors.AnimeWithEpisodesInteractor
-import com.sf.tadami.data.interactors.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
+import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.history.UpdateHistoryInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.network.api.model.StreamSource
@@ -53,6 +54,7 @@ class PlayerViewModel(
     private val episodeRepository: EpisodeRepository = Injekt.get()
     private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
     private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
+    private val updateHistoryInteractor: UpdateHistoryInteractor = Injekt.get()
     private val sourcesManager: AnimeSourcesManager = Injekt.get()
 
     private val sourceId: String = checkNotNull(savedStateHandle["sourceId"])
@@ -215,6 +217,11 @@ class PlayerViewModel(
                     )
                 }
                 _isFetchingSources.update { false }
+                if(data.isNotEmpty()){
+                    viewModelScope.launch(Dispatchers.IO) {
+                        updateHistoryInteractor.awaitAnimeHistoryUpdate(episode)
+                    }
+                }
             },
             TadaErrorConsumer {error, _, _ ->
                 _isFetchingSources.update { false }

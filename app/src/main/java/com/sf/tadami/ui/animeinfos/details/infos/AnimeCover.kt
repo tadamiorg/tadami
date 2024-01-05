@@ -24,7 +24,7 @@ enum class AnimeCover(private val ratio: Float) {
         modifier: Modifier = Modifier,
         data: Any?,
         contentDescription: String = "",
-        shape: CornerBasedShape = MaterialTheme.shapes.small,
+        shape: CornerBasedShape = MaterialTheme.shapes.extraSmall,
         onClick: (() -> Unit)? = null,
     ) {
         AsyncImage(

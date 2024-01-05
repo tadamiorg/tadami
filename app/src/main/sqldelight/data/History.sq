@@ -3,8 +3,7 @@ import java.util.Date;
 CREATE TABLE History(
     _id INTEGER NOT NULL PRIMARY KEY,
     episode_id INTEGER NOT NULL UNIQUE,
-    last_seen INTEGER AS Date,
-    time_seen INTEGER NOT NULL,
+    seen_at INTEGER AS Date,
     FOREIGN KEY(episode_id) REFERENCES Episode (_id)
     ON DELETE CASCADE
 );
@@ -15,8 +14,7 @@ getHistoryByAnimeId:
 SELECT
 H._id,
 H.episode_id,
-H.last_seen,
-H.time_seen
+H.seen_at
 FROM History H
 JOIN Episode EP
 ON H.episode_id = EP._id
@@ -26,8 +24,7 @@ getHistoryByEpisodeUrl:
 SELECT
 H._id,
 H.episode_id,
-H.last_seen,
-H.time_seen
+H.seen_at
 FROM History H
 JOIN Episode EP
 ON H.episode_id = EP._id
@@ -35,12 +32,12 @@ WHERE EP.url = :episodeUrl AND EP._id = H.episode_id;
 
 resetHistoryById:
 UPDATE History
-SET last_seen = 0
+SET seen_at = 0
 WHERE _id = :historyId;
 
 resetHistoryByAnimeId:
 UPDATE History
-SET last_seen = 0
+SET seen_at = 0
 WHERE _id IN (
     SELECT H._id
     FROM Anime A
@@ -56,18 +53,13 @@ DELETE FROM History;
 
 removeResettedHistory:
 DELETE FROM History
-WHERE last_seen = 0;
+WHERE seen_at = 0;
 
 upsert:
-INSERT INTO History(episode_id, last_seen, time_seen)
-VALUES (:episodeId, :seenAt, :time_seen)
+INSERT INTO History(episode_id, seen_at)
+VALUES (:episodeId, :seenAt)
 ON CONFLICT(episode_id)
 DO UPDATE
 SET
-    last_seen = :seenAt,
-    time_seen = time_seen + :time_seen
+    seen_at = :seenAt
 WHERE episode_id = :episodeId;
-
-getReadDuration:
-SELECT coalesce(sum(time_seen), 0)
-FROM History;

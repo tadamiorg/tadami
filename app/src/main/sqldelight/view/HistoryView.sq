@@ -8,22 +8,21 @@ SELECT
     Anime.source,
     Anime.favorite,
     Episode.episode_number AS episodeNumber,
-    History.last_seen AS seenAt,
-    History.time_seen AS seenDuration,
-    max_last_seen.last_seen AS maxSeenAt,
-    max_last_seen.episode_id AS maxSeenAtEpisodeId
+    History.seen_at AS seenAt,
+    max_seen_at.seen_at AS maxSeenAt,
+    max_seen_at.episode_id AS maxSeenAtEpisodeId
 FROM Anime
 JOIN Episode
 ON Anime._id = Episode.anime_id
 JOIN History
 ON Episode._id = History.episode_id
 JOIN (
-    SELECT Episode.anime_id,Episode._id AS episode_id, MAX(History.last_seen) AS last_seen
+    SELECT Episode.anime_id,Episode._id AS episode_id, MAX(History.seen_at) AS seen_at
     FROM Episode JOIN History
     ON Episode._id = History.episode_id
     GROUP BY Episode.anime_id
-) AS max_last_seen
-ON Episode.anime_id = max_last_seen.anime_id;
+) AS max_seen_at
+ON Episode.anime_id = max_seen_at.anime_id;
 
 history:
 SELECT
@@ -35,8 +34,7 @@ thumbnailUrl,
 source,
 favorite,
 episodeNumber,
-seenAt,
-seenDuration
+seenAt
 FROM HistoryView
 WHERE HistoryView.seenAt > 0
 AND maxSeenAtEpisodeId = HistoryView.episodeId
@@ -53,8 +51,7 @@ thumbnailUrl,
 source,
 favorite,
 episodeNumber,
-seenAt,
-seenDuration
+seenAt
 FROM HistoryView
 WHERE HistoryView.seenAt > 0
 ORDER BY seenAt DESC

@@ -1,4 +1,4 @@
-package com.sf.tadami.data.interactors
+package com.sf.tadami.data.interactors.sources
 
 import com.sf.tadami.data.sources.SourceRepository
 import com.sf.tadami.data.sources.SourceWithCount

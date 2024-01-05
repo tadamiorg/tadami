@@ -1,4 +1,4 @@
-package com.sf.tadami.data.interactors
+package com.sf.tadami.data.interactors.anime
 
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.domain.anime.Anime
