@@ -140,7 +140,7 @@ class BackupRestorer(
             val dbAnime = getAnimeFromDatabase(anime.url, anime.source)
             val restoredAnime = if (dbAnime == null) {
                 // Anime not in database
-                restoreNonExistingAnime(anime, episodes)
+                restoreNonExistingAnime(anime, episodes,history)
             } else {
                 // Anime in database
                 // Copy information from anime already in database
@@ -202,9 +202,11 @@ class BackupRestorer(
     private suspend fun restoreNonExistingAnime(
         anime: Anime,
         episodes: List<Episode>,
+        history: List<BackupHistory>
     ): Anime {
         val fetchedAnime = restoreAnime(anime)
         restoreEpisodes(fetchedAnime, episodes)
+        restoreHistory(history)
         return fetchedAnime
     }
 
