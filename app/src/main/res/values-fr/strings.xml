@@ -136,6 +136,7 @@
         <item>Entrées de la bibliothèque</item>
         <item>Episodes</item>
         <item>Préférences de l\'application</item>
+        <item>Historique</item>
     </string-array>
     <string name="preferences_backup_create_title">Créer une sauvegarde</string>
     <string name="preferences_backup_create_subtitle">Peut être utilisé pour restaurer la bibliothèque actuelle</string>

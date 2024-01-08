@@ -139,6 +139,7 @@
         <item>Library entries</item>
         <item>Episodes</item>
         <item>App preferences</item>
+        <item>History</item>
     </string-array>
     <string name="preferences_backup_create_title">Create a save</string>
     <string name="preferences_backup_create_subtitle">May be used to restore current library</string>
