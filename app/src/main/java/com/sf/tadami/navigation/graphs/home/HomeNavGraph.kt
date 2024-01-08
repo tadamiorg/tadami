@@ -65,15 +65,15 @@ object GRAPH {
 
 sealed class HomeNavItems(val route: String, @StringRes val name: Int, @DrawableRes val icon: Int) {
     data object Library :
-        HomeNavItems("library", R.string.library_tab_title, R.drawable.ic_video_library)
+        HomeNavItems("library", R.string.library_tab_title, R.drawable.anim_video_library_enter)
 
     data object History :
-        HomeNavItems("history", R.string.label_history, R.drawable.ic_history)
+        HomeNavItems("history", R.string.label_history, R.drawable.anim_history_enter)
 
     data object Sources :
-        HomeNavItems("anime_sources", R.string.sources_tab_title, R.drawable.ic_sources)
+        HomeNavItems("anime_sources", R.string.sources_tab_title, R.drawable.anim_sources_enter)
 
     data object Settings :
-        HomeNavItems("settings", R.string.settings_tab_title, R.drawable.ic_settings)
+        HomeNavItems("settings", R.string.settings_tab_title, R.drawable.anim_settings_enter)
 }
 

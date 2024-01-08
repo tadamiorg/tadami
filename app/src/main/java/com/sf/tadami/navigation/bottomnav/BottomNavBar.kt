@@ -18,6 +18,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
+import com.sf.tadami.ui.components.material.AnimatedVectorDrawable
 
 @Composable
 fun BottomNavBar(items : List<HomeNavItems>, currentDestination: NavDestination?, navController: NavHostController) {
@@ -42,10 +43,10 @@ fun RowScope.AddItem(
     NavigationBarItem(
         icon = {
             BadgedBox(badge = {}) {
-                Icon(
-                    painter = painterResource(id = item.icon),
-                    contentDescription = stringResource(id = item.name),
-                    tint = if(selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                AnimatedVectorDrawable(
+                    animIcon = item.icon,
+                    contentDescription = item.route,
+                    selected = selected
                 )
             }
         },
