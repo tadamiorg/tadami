@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -25,9 +26,9 @@ fun <T : Any> LazyPagingItems<T>.rememberLazyGridState(): LazyGridState {
 
 @Composable
 fun LazyListState.isScrollingUp(): Boolean {
-    var previousIndex by remember(this) { mutableStateOf(firstVisibleItemIndex) }
-    var previousScrollOffset by remember(this) { mutableStateOf(firstVisibleItemScrollOffset) }
-    return remember(this) {
+    var previousIndex by remember { mutableIntStateOf(firstVisibleItemIndex) }
+    var previousScrollOffset by remember { mutableIntStateOf(firstVisibleItemScrollOffset) }
+    return remember {
         derivedStateOf {
             if (previousIndex != firstVisibleItemIndex) {
                 previousIndex > firstVisibleItemIndex
@@ -37,6 +38,16 @@ fun LazyListState.isScrollingUp(): Boolean {
                 previousIndex = firstVisibleItemIndex
                 previousScrollOffset = firstVisibleItemScrollOffset
             }
+        }
+    }.value
+}
+
+@Composable
+fun LazyListState.isScrolledToEnd(): Boolean {
+    return remember {
+        derivedStateOf {
+            val lastItem = layoutInfo.visibleItemsInfo.lastOrNull()
+            lastItem == null || lastItem.size + lastItem.offset <= layoutInfo.viewportEndOffset
         }
     }.value
 }

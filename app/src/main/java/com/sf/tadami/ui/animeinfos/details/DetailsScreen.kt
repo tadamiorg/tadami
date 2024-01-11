@@ -9,18 +9,14 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.RemoveDone
 import androidx.compose.material.rememberModalBottomSheetState
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
@@ -36,14 +32,17 @@ import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.dialog.sheets.TabContent
 import com.sf.tadami.ui.components.dialog.sheets.TabbedBottomSheet
 import com.sf.tadami.ui.components.filters.TadaBottomSheetLayout
+import com.sf.tadami.ui.components.material.ExtendedFloatingActionButton
+import com.sf.tadami.ui.components.material.Scaffold
 import com.sf.tadami.ui.utils.UiToasts
+import com.sf.tadami.ui.utils.isScrolledToEnd
 import com.sf.tadami.ui.utils.isScrollingUp
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @SuppressLint("OpaqueUnitKey")
 @Composable
 fun DetailsScreen(
@@ -55,12 +54,6 @@ fun DetailsScreen(
     val isRefreshing by detailsViewModel.isRefreshing.collectAsState()
 
     val episodesListState = rememberLazyListState()
-
-    var fabHeight by remember {
-        mutableIntStateOf(0)
-    }
-
-    val fabHeightInDp = with(LocalDensity.current) { fabHeight.toDp() }
 
     val filtersSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
@@ -118,45 +111,36 @@ fun DetailsScreen(
                 )
             },
             floatingActionButton = {
+                val isFABVisible = remember(uiState.episodes) {
+                    uiState.episodes.fastAll { !it.selected } && uiState.episodes.fastAny { !it.episode.seen }
+                }
                 AnimatedVisibility(
-                    visible = uiState.episodes.fastAll { !it.selected } && uiState.episodes.fastAny { !it.episode.seen },
+                    visible = isFABVisible,
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
-                    DisposableEffect(
-                        ExtendedFloatingActionButton(
-                            modifier = Modifier.onGloballyPositioned {
-                                fabHeight = it.size.height
-                            },
-                            text = {
-                                Text(
-                                    text = if (uiState.episodes.fastAny { it.episode.seen })
-                                        stringResource(id = R.string.details_screen_resume_button)
-                                    else stringResource(id = R.string.details_screen_start_button)
-                                )
-                            },
-                            icon = {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_play),
-                                    contentDescription = null
-                                )
-                            },
-                            onClick = {
-                                val resumedEpisode =
-                                    uiState.episodes.reversed().find { !it.episode.seen }
-                                resumedEpisode?.let {
-                                    navHostController.navigate("${AnimeInfosRoutes.EPISODE}/${detailsViewModel.source.id}/${it.episode.id}")
-                                }
-                            },
-                            expanded = episodesListState.isScrollingUp()
+                    ExtendedFloatingActionButton(
+                        text = {
+                            val isWatching = remember(uiState.episodes) {
+                                uiState.episodes.fastAny { it.episode.seen }
+                            }
+                            Text(
+                                text = stringResource(if (isWatching) R.string.details_screen_resume_button else R.string.details_screen_start_button)
+                            )
+                        },
+                        icon = {
+                            Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null)
+                        },
+                        onClick = {
+                            val resumedEpisode =
+                                uiState.episodes.reversed().find { !it.episode.seen }
+                            resumedEpisode?.let {
+                                navHostController.navigate("${AnimeInfosRoutes.EPISODE}/${detailsViewModel.source.id}/${it.episode.id}")
+                            }
+                        },
+                        expanded = episodesListState.isScrollingUp() || episodesListState.isScrolledToEnd()
 
-                        )
-                    ) {
-                        onDispose {
-                            fabHeight = 0
-                        }
-                    }
-
+                    )
                 }
 
             },
@@ -194,7 +178,6 @@ fun DetailsScreen(
                 isRefreshing = isRefreshing,
                 contentPadding = contentPadding,
                 episodesListState = episodesListState,
-                fabHeightInDp = fabHeightInDp,
                 uiState = uiState,
                 sourceName = detailsViewModel.source.name,
                 isStubSource = remember { detailsViewModel.source is StubSource },
