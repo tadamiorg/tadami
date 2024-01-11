@@ -238,4 +238,23 @@
     <string name="action_remove_everything">Tout retirer</string>
     <string name="clear_history_confirmation">Êtes-vous sûr(e) \? Tout l\'historique sera effacé.</string>
     <string name="next_episode_not_found">Épisode suivant non trouvé</string>
+    <!-- Themes names -->
+    <string name="theme_midnightdusk">Crépuscule de minuit</string>
+    <string name="theme_greenapple">Pomme verte</string>
+    <string name="theme_lavender">Lavande</string>
+    <string name="theme_light">Clair</string>
+    <string name="theme_dark">Sombre</string>
+    <string name="theme_system">Système</string>
+    <string name="theme_yotsuba">Yotsuba</string>
+    <string name="theme_yinyang">Yin &amp; Yang</string>
+    <string name="theme_tako">Tako</string>
+    <string name="theme_strawberrydaiquiri">Daiquiri aux fraises</string>
+    <string name="theme_tealturquoise">Bleu canard et turquoise</string>
+    <string name="theme_tidalwave">Raz-de-marée</string>
+    <string name="dark_theme_pure_black">Mode noir pur</string>
+    <!-- Labels -->
+    <string name="label_appearance">Apparence</string>
+    <string name="label_theme">Thème</string>
+
+    <string name="pref_appearance_summary">Thème, format de la date et de l\'heure</string>
 </resources>

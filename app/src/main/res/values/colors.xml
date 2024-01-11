@@ -69,4 +69,16 @@
     <!-- ActionMode status bar color -->
     <color name="abc_decor_view_status_guard" tools:override="true">@android:color/transparent</color>
     <color name="abc_decor_view_status_guard_light" tools:override="true">@android:color/transparent</color>
+
+    <!-- Themes notifications colors -->
+    <color name="lavender_primary">#A177FF</color>
+    <color name="greenapple_primary">#006D2F</color>
+    <color name="midnightdusk_primary">#BB0054</color>
+    <color name="base_primary">#0057CE</color>
+    <color name="strawberry_primary">#B61E40</color>
+    <color name="tako_primary">#66577E</color>
+    <color name="tealturquoise_primary">#008080</color>
+    <color name="tidalwave_primary">#006780</color>
+    <color name="yinyang_primary">#000000</color>
+    <color name="yotsuba_primary">#AE3200</color>
 </resources>

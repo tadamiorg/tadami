@@ -58,13 +58,20 @@ android {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }
     }
+    sourceSets {
+        getByName("main") {
+            res {
+                srcDirs("src\\main\\res", "src\\main\\res\\chromecast-res")
+            }
+        }
+    }
 }
 
 dependencies {
 
     implementation(androidx.core.ktx)
 
-    testImplementation(androidx.junit)
+
     androidTestImplementation(androidx.androidx.test.ext.junit)
     androidTestImplementation(androidx.espresso.core)
 

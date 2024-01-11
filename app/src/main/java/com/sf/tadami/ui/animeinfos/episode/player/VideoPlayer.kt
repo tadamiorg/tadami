@@ -4,6 +4,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -226,7 +228,7 @@ fun VideoPlayer(
                                     shouldShowControls = shouldShowControls.not()
                                 }
                             )
-                        },
+                        }.background(Color.Black),
                     factory = {
                         StyledPlayerView(it).apply {
                             player = exoPlayer

@@ -6,15 +6,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import com.sf.tadami.R
+import com.sf.tadami.ui.themes.colorschemes.active
 import com.sf.tadami.ui.utils.padding
 
 @Composable
@@ -34,6 +35,7 @@ fun EpisodesHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
+        val filterTint = if(isFiltered == true) MaterialTheme.colorScheme.active else LocalContentColor.current
         Text(
             modifier = Modifier.weight(1f),
             text = pluralStringResource(
@@ -45,7 +47,7 @@ fun EpisodesHeader(
         )
         Icon(
             painter = painterResource(id = R.drawable.ic_filter),
-            tint = if(isFiltered == true) Color.Yellow else Color.Unspecified,
+            tint = filterTint,
             contentDescription = null
         )
     }

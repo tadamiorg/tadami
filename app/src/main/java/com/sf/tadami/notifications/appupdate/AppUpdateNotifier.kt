@@ -9,6 +9,7 @@ import android.net.Uri
 import androidx.core.app.NotificationCompat
 import com.sf.tadami.R
 import com.sf.tadami.notifications.Notifications
+import com.sf.tadami.ui.themes.getNotificationsColor
 import com.sf.tadami.utils.notificationManager
 
 class AppUpdateNotifier(private val context: Context) {
@@ -21,7 +22,7 @@ class AppUpdateNotifier(private val context: Context) {
         NotificationCompat.Builder(context, Notifications.APP_UPDATE_DOWNLOAD_PROGRESS_CHANNEL).apply {
             setContentTitle(context.getString(R.string.app_name))
             setLargeIcon(notificationBitmap)
-            color = context.getColor(R.color.midnightdusk_primary)
+            color = getNotificationsColor(context)
         }
 
 
@@ -59,7 +60,7 @@ class AppUpdateNotifier(private val context: Context) {
                     setSmallIcon(R.drawable.ic_tada)
                     setLargeIcon(notificationBitmap)
                     priority = NotificationCompat.PRIORITY_HIGH
-                    color = context.getColor(R.color.midnightdusk_primary)
+                    color = getNotificationsColor(context)
                     setContentIntent(installIntent)
                     setAutoCancel(true)
                     addAction(

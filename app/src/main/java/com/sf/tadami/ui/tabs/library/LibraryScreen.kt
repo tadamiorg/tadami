@@ -7,6 +7,8 @@ import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.RemoveDone
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -21,7 +23,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -41,6 +42,7 @@ import com.sf.tadami.ui.tabs.library.bottomsheet.libraryFilters
 import com.sf.tadami.ui.tabs.library.bottomsheet.sortComparator
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
+import com.sf.tadami.ui.themes.colorschemes.active
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,12 +68,13 @@ fun LibraryScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val filterTint = if (libraryPreferences.filterFlags.isFiltered) MaterialTheme.colorScheme.active else LocalContentColor.current
     val actions = remember(libraryPreferences.filterFlags.isFiltered) {
         listOf(
             Action.Drawable(
                 title = R.string.stub_text,
                 icon = R.drawable.ic_filter,
-                tint = if (libraryPreferences.filterFlags.isFiltered) Color.Yellow else null,
+                tint = filterTint,
                 onClick = {
                     focusManager.clearFocus()
                     keyboardController?.hide()

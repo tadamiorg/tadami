@@ -5,8 +5,8 @@ import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
 import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
 import androidx.compose.animation.graphics.vector.AnimatedImageVector
-import androidx.compose.material.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
@@ -16,7 +16,7 @@ fun AnimatedVectorDrawable(
     @DrawableRes
     animIcon : Int,
     selected: Boolean,
-    tint : Color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+    tint : Color = LocalContentColor.current,
     contentDescription : String = ""
 ) {
     val image = AnimatedImageVector.animatedVectorResource(animIcon)

@@ -5,16 +5,23 @@ import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import androidx.core.content.getSystemService
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import coil.request.CachePolicy
 import com.sf.tadami.notifications.Notifications
+import com.sf.tadami.ui.tabs.settings.screens.appearance.AppearancePreferences
+import com.sf.tadami.ui.tabs.settings.screens.appearance.setAppCompatDelegateThemeMode
 import com.sf.tadami.utils.animatorDurationScale
+import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 open class App : Application(), ImageLoaderFactory {
 
@@ -24,6 +31,13 @@ open class App : Application(), ImageLoaderFactory {
         Injekt.importModule(PreferencesModule(this))
         createNotificationChannels()
         appContext = applicationContext
+
+        val dataStore: DataStore<Preferences> = Injekt.get()
+        val appearancePreferences: AppearancePreferences = runBlocking {
+            dataStore.getPreferencesGroup(AppearancePreferences)
+        }
+
+        setAppCompatDelegateThemeMode(appearancePreferences.themeMode)
     }
 
     companion object {

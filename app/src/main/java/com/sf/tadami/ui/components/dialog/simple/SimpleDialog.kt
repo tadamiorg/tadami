@@ -38,7 +38,7 @@ fun SimpleDialog(
     dismissButton: @Composable (() -> Unit)? = null,
     title: @Composable () -> Unit = {},
     shape: Shape = MaterialTheme.shapes.small,
-    containerColor: Color = MaterialTheme.colorScheme.inverseSurface,
+    containerColor: Color = AlertDialogDefaults.containerColor,
     titleContentColor: Color = AlertDialogDefaults.titleContentColor,
     textContentColor: Color = AlertDialogDefaults.textContentColor,
     tonalElevation: Dp = AlertDialogDefaults.TonalElevation,

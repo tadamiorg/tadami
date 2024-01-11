@@ -8,7 +8,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
@@ -17,6 +16,7 @@ import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
+import com.sf.tadami.ui.themes.colorschemes.active
 import com.sf.tadami.utils.Lang
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,7 +27,7 @@ fun AnimeSourcesScreen(
 ) {
     val sPrefs by rememberDataStoreState(customPrefs = SourcesPreferences).value.collectAsState()
 
-
+    val filterTint =  if (sPrefs.hiddenSources.isNotEmpty() || sPrefs.enabledLanguages.size != Lang.getAllLangs().size) MaterialTheme.colorScheme.active else LocalContentColor.current
     val actions = remember(sPrefs.hiddenSources, sPrefs.enabledLanguages) {
         listOf(
             Action.Drawable(
@@ -40,7 +40,7 @@ fun AnimeSourcesScreen(
             Action.Drawable(
                 title = R.string.stub_text,
                 icon = R.drawable.ic_filter,
-                tint = if (sPrefs.hiddenSources.isNotEmpty() || sPrefs.enabledLanguages.size != Lang.getAllLangs().size) Color.Yellow else null,
+                tint = filterTint,
                 enabled = true,
                 onClick = {
                     navController.navigate(DiscoverRoutes.SOURCES_FILTER)

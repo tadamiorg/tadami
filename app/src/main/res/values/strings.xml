@@ -240,5 +240,24 @@
     <string name="action_remove_everything">Remove everything</string>
     <string name="clear_history_confirmation">Are you sure? All history will be lost.</string>
     <string name="next_episode_not_found">Next episode not found</string>
+    <!-- Themes names -->
+    <string name="theme_greenapple">Green Apple</string>
+    <string name="theme_lavender">Lavender</string>
+    <string name="theme_midnightdusk">Midnight Dusk</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_strawberrydaiquiri">Strawberry Daiquiri</string>
+    <string name="theme_tako">Tako</string>
+    <string name="theme_tealturquoise">Teal &amp; Turquoise</string>
+    <string name="theme_yinyang">Yin &amp; Yang</string>
+    <string name="theme_yotsuba">Yotsuba</string>
+    <string name="theme_tidalwave">Tidal Wave</string>
+    <string name="dark_theme_pure_black">Pure black dark mode</string>
 
+    <!-- Labels -->
+    <string name="label_appearance">Appearance</string>
+    <string name="label_theme">Theme</string>
+
+    <string name="pref_appearance_summary">Theme, date &amp; time format</string>
 </resources>

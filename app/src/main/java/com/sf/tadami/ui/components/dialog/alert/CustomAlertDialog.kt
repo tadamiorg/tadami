@@ -23,7 +23,7 @@ fun CustomAlertDialog(
     dismissButton: @Composable (() -> Unit)? = null,
     title: @Composable () -> Unit = {},
     shape: Shape = MaterialTheme.shapes.small,
-    containerColor: Color = MaterialTheme.colorScheme.inverseSurface,
+    containerColor: Color = AlertDialogDefaults.containerColor,
     titleContentColor: Color = AlertDialogDefaults.titleContentColor,
     textContentColor: Color = AlertDialogDefaults.textContentColor,
     tonalElevation: Dp = AlertDialogDefaults.TonalElevation,
@@ -40,12 +40,14 @@ fun CustomAlertDialog(
                     mainAxisSpacing = ButtonsMainAxisSpacing,
                     crossAxisSpacing = ButtonsCrossAxisSpacing
                 ) {
-                    dismissButton?.let{
-                        CompositionLocalProvider(LocalDismissRequest provides onDismissRequest) {
+                    CompositionLocalProvider(LocalDismissRequest provides onDismissRequest) {
+                        dismissButton?.let {
+
                             it()
+
                         }
+                        confirmButton()
                     }
-                    confirmButton()
                 }
             },
             modifier = modifier,

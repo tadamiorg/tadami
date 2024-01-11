@@ -88,7 +88,7 @@ fun HomeScreen(
              }
          ) { tabsNavPadding ->
 
-             val innerPadding by remember(displayed) {
+             val innerPadding by remember(displayed.currentState) {
                  derivedStateOf {
                      when {
                          displayed.isIdle && displayed.currentState -> tabsNavPadding
