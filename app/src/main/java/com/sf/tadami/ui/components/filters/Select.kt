@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.components.filters
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -86,8 +85,7 @@ fun Select(
                 }
                 DropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.inverseSurface)
+                    onDismissRequest = { expanded = false }
                 )
                 {
                     select.values.forEach {

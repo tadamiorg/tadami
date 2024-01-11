@@ -20,7 +20,9 @@ import com.sf.tadami.ui.utils.clickableNoIndication
 @Composable
 fun ContentLoader(modifier: Modifier = Modifier,isLoading: Boolean, delay : Int = 0,content: @Composable BoxScope.() -> Unit) {
     Box(modifier = modifier.fillMaxSize()) {
-        content()
+        if(!isLoading){
+            content()
+        }
         AnimatedVisibility(
             modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).align(Alignment.Center).clickableNoIndication {  },
             visible = isLoading,

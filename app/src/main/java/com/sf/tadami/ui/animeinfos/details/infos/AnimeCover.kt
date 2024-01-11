@@ -15,7 +15,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
 import coil.compose.AsyncImage
 
-enum class AnimeCover(private val ratio: Float) {
+enum class AnimeCover(val ratio: Float) {
     Square(1f / 1f),
     Book(2f / 3f), ;
 
@@ -24,7 +24,7 @@ enum class AnimeCover(private val ratio: Float) {
         modifier: Modifier = Modifier,
         data: Any?,
         contentDescription: String = "",
-        shape: CornerBasedShape = MaterialTheme.shapes.small,
+        shape: CornerBasedShape = MaterialTheme.shapes.extraSmall,
         onClick: (() -> Unit)? = null,
     ) {
         AsyncImage(

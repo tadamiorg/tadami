@@ -21,7 +21,7 @@ android {
     defaultConfig {
         applicationId = "com.sf.tadami"
         versionCode = 23
-        versionName = "1.3.3"
+        versionName = "1.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -58,13 +58,20 @@ android {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }
     }
+    sourceSets {
+        getByName("main") {
+            res {
+                srcDirs("src\\main\\res", "src\\main\\res\\chromecast-res")
+            }
+        }
+    }
 }
 
 dependencies {
 
     implementation(androidx.core.ktx)
 
-    testImplementation(androidx.junit)
+
     androidTestImplementation(androidx.androidx.test.ext.junit)
     androidTestImplementation(androidx.espresso.core)
 

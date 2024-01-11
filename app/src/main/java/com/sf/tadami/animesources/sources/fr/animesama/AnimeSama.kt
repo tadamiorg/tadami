@@ -62,7 +62,7 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
     override fun latestAnimesRequest(page: Int): Request = throw Exception("Not used")
 
     override fun searchSelector(): String =
-        "div.cardListAnime.Anime, div.cardListAnime[class*=\"Anime,\"], div.cardListAnime[class*=\",Anime\"]"
+        "div.cardListAnime"
 
     override fun fetchSearch(
         page: Int,

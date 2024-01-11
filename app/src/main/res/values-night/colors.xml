@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="splash">#202125</color>
 
-    <color name="error">#FFB4A9</color>
-    <color name="errorContainer">#930006</color>
-    <color name="onError">#680003</color>
-    <color name="onErrorContainer">#FFDAD4</color>
-
-    <!-- Default Theme -->
-    <color name="divider_default">@color/md_white_1000_12</color>
+    <!-- Themes notifications colors -->
+    <color name="lavender_primary">#A177FF</color>
+    <color name="greenapple_primary">#7ADB8F</color>
+    <color name="midnightdusk_primary">#F02475</color>
+    <color name="base_primary">#AEC6FF</color>
+    <color name="strawberry_primary">#FFB2B9</color>
+    <color name="tako_primary">#F3B375</color>
+    <color name="tealturquoise_primary">#40E0D0</color>
+    <color name="tidalwave_primary">#5ed4fc</color>
+    <color name="yinyang_primary">#FFFFFF</color>
+    <color name="yotsuba_primary">#FFB59D</color>
 </resources>

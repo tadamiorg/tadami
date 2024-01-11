@@ -74,7 +74,7 @@ fun ActionItem(
                 onClick = {
                     itemClick?.invoke()
                     action.onClick()
-                }
+                },
             ) {
                 AndroidView(
                     factory = {

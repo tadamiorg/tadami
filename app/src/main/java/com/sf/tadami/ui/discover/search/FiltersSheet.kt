@@ -80,7 +80,6 @@ fun FiltersSheet(
                         text = animeFilter.name,
                         maxLines = 1,
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSecondary
                     )
                 }
                 is AnimeFilter.CheckBox -> {

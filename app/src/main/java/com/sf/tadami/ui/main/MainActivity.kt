@@ -3,12 +3,19 @@ package com.sf.tadami.ui.main
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
@@ -71,7 +78,28 @@ class MainActivity : AppCompatActivity() {
         setupCastListener()
 
         setContent {
+
             TadamiTheme {
+                val systemUiController = rememberSystemUiController()
+                val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
+                val navbarScrimColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+                val isSystemInDarkTheme = isSystemInDarkTheme()
+
+                LaunchedEffect(systemUiController, statusBarBackgroundColor) {
+                    systemUiController.setStatusBarColor(
+                        color = statusBarBackgroundColor,
+                        darkIcons = statusBarBackgroundColor.luminance() > 0.5,
+                        transformColorForLightContent = { Color.Black },
+                    )
+                }
+                LaunchedEffect(systemUiController, isSystemInDarkTheme, navbarScrimColor) {
+                    systemUiController.setNavigationBarColor(
+                        color = navbarScrimColor,
+                        darkIcons = !isSystemInDarkTheme,
+                        navigationBarContrastEnforced = false,
+                        transformColorForLightContent = { Color.Black },
+                    )
+                }
                 val navController = rememberNavController()
                 AppUpdaterScreen()
                 HomeScreen(navController)

@@ -34,6 +34,7 @@ fun HomeScreen(
      val items = remember {
          listOf(
              HomeNavItems.Library,
+             HomeNavItems.History,
              HomeNavItems.Sources,
              HomeNavItems.Settings
          )
@@ -87,7 +88,7 @@ fun HomeScreen(
              }
          ) { tabsNavPadding ->
 
-             val innerPadding by remember(displayed) {
+             val innerPadding by remember(displayed.currentState) {
                  derivedStateOf {
                      when {
                          displayed.isIdle && displayed.currentState -> tabsNavPadding
@@ -115,6 +116,4 @@ fun HomeScreen(
              )
          }
      }
-
-
 }

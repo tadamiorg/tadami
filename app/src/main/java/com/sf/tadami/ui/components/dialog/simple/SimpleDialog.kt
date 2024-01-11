@@ -38,7 +38,7 @@ fun SimpleDialog(
     dismissButton: @Composable (() -> Unit)? = null,
     title: @Composable () -> Unit = {},
     shape: Shape = MaterialTheme.shapes.small,
-    containerColor: Color = MaterialTheme.colorScheme.inverseSurface,
+    containerColor: Color = AlertDialogDefaults.containerColor,
     titleContentColor: Color = AlertDialogDefaults.titleContentColor,
     textContentColor: Color = AlertDialogDefaults.textContentColor,
     tonalElevation: Dp = AlertDialogDefaults.TonalElevation,
@@ -61,7 +61,7 @@ fun SimpleDialog(
             configuration.screenWidthDp.dp * widthFraction
         }
     }
-    Crossfade(modifier = Modifier.zIndex(5f),targetState = opened) { visible ->
+    Crossfade(modifier = Modifier.zIndex(5f),targetState = opened, label = "") { visible ->
         if (visible) {
             Box(
                 contentAlignment = Alignment.Center

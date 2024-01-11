@@ -29,7 +29,6 @@ fun DetailsComponent(
     isRefreshing : Boolean,
     contentPadding : PaddingValues,
     episodesListState : LazyListState,
-    fabHeightInDp : Dp,
     uiState : DetailsUiState,
     sourceName : String,
     isStubSource : Boolean,
@@ -66,7 +65,7 @@ fun DetailsComponent(
                 contentPadding = PaddingValues(
                     start = contentPadding.calculateStartPadding(layoutDirection),
                     end = contentPadding.calculateEndPadding(layoutDirection),
-                    bottom = contentPadding.calculateBottomPadding() + fabHeightInDp + 15.dp,
+                    bottom = contentPadding.calculateBottomPadding(),
                 ),
             ) {
                 item(

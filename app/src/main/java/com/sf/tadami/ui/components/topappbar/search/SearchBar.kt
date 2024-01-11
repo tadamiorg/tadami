@@ -19,7 +19,7 @@ fun SearchTopAppBar(
     onSearchCancel: () -> Unit = {},
     onSearchOpen: () -> Unit = {},
     onSearchChange: (value: String) -> Unit,
-    onSearch: (value: String) -> Unit,
+    onSearch: (value: String) -> Unit = {},
     searchValue : String,
     actions: List<Action> = emptyList(),
     backHandlerEnabled : Boolean = true

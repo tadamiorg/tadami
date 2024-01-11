@@ -11,17 +11,25 @@ import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.data.anime.AnimeRepositoryImpl
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.episode.EpisodeRepositoryImpl
-import com.sf.tadami.data.interactors.AnimeWithEpisodesInteractor
-import com.sf.tadami.data.interactors.FetchIntervalInteractor
-import com.sf.tadami.data.interactors.GetSourcesWithNonLibraryAnime
-import com.sf.tadami.data.interactors.LibraryInteractor
-import com.sf.tadami.data.interactors.UpdateAnimeInteractor
+import com.sf.tadami.data.history.HistoryRepository
+import com.sf.tadami.data.history.HistoryRepositoryImpl
+import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
+import com.sf.tadami.data.interactors.anime.FetchIntervalInteractor
+import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.history.GetHistoryInteractor
+import com.sf.tadami.data.interactors.history.GetNextEpisodeInteractor
+import com.sf.tadami.data.interactors.history.RemoveHistoryInteractor
+import com.sf.tadami.data.interactors.history.UpdateHistoryInteractor
+import com.sf.tadami.data.interactors.library.LibraryInteractor
+import com.sf.tadami.data.interactors.sources.GetSourcesWithNonLibraryAnime
 import com.sf.tadami.data.sources.SourceRepository
 import com.sf.tadami.data.sources.SourceRepositoryImpl
+import com.sf.tadami.network.database.dateColumnAdapter
 import com.sf.tadami.network.database.listOfStringsAdapter
 import com.sf.tadami.network.requests.okhttp.HttpClient
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import data.Anime
+import data.History
 import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -63,6 +71,9 @@ class AppModule(private val app: Application) : InjektModule {
                 driver = get(),
                 AnimeAdapter = Anime.Adapter(
                     genresAdapter = listOfStringsAdapter
+                ),
+                HistoryAdapter = History.Adapter(
+                    seen_atAdapter = dateColumnAdapter
                 )
             )
         }
@@ -89,6 +100,12 @@ class AppModule(private val app: Application) : InjektModule {
             SourceRepositoryImpl(get(),get())
         }
 
+        addSingletonFactory<HistoryRepository>{
+            HistoryRepositoryImpl(get())
+        }
+
+        // Anime interactors
+
         addSingletonFactory {
             UpdateAnimeInteractor(get(),get(),get())
         }
@@ -98,15 +115,42 @@ class AppModule(private val app: Application) : InjektModule {
         }
 
         addSingletonFactory {
-            LibraryInteractor(get())
-        }
-
-        addSingletonFactory {
             FetchIntervalInteractor(get())
         }
 
         addSingletonFactory {
+            GetNextEpisodeInteractor(get(),get())
+        }
+
+        addSingletonFactory {
+            RemoveHistoryInteractor(get())
+        }
+
+
+        // Library interactors
+
+        addSingletonFactory {
+            LibraryInteractor(get())
+        }
+
+        // Sources interactors
+
+        addSingletonFactory {
             GetSourcesWithNonLibraryAnime(get())
+        }
+
+        // History interactors
+
+        addSingletonFactory {
+            GetHistoryInteractor(get())
+        }
+
+        addSingletonFactory {
+            UpdateHistoryInteractor(get())
+        }
+
+        addSingletonFactory {
+            RemoveHistoryInteractor(get())
         }
 
         // HttpClient

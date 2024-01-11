@@ -13,11 +13,11 @@ import com.sf.tadami.ui.utils.padding
 @Composable
 fun DefaultDialogCancelButton(
     @StringRes text : Int? = null,
-    onDismissRequest: () -> Unit
+    onDismissRequest: (() -> Unit)? = null
 ){
     TextButton(
         contentPadding = PaddingValues(bottom = MaterialTheme.padding.tiny, top = MaterialTheme.padding.tiny),
-        onClick = onDismissRequest
+        onClick = onDismissRequest ?: LocalDismissRequest.current
     ) {
         Text(text = stringResource(id = text ?: R.string.player_screen_qd_cancel_btn))
     }

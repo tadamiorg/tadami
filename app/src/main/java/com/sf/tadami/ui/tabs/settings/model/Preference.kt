@@ -87,6 +87,16 @@ sealed class Preference {
             override val enabled: Boolean = true,
             override val onValueChanged: (newValue: String) -> Boolean = { true },
         ) : PreferenceItem<String>()
+
+        data class CustomPreference(
+            override val title: String,
+            val content: @Composable (PreferenceItem<String>) -> Unit,
+        ) : PreferenceItem<String>() {
+            override val enabled: Boolean = true
+            override val subtitle: String? = null
+            override val icon: ImageVector? = null
+            override val onValueChanged: (newValue: String) -> Boolean = { true }
+        }
     }
 
     data class PreferenceCategory(

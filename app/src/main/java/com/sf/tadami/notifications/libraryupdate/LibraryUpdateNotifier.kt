@@ -12,11 +12,11 @@ import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.ui.main.MainActivity
+import com.sf.tadami.ui.themes.getNotificationsColor
 import com.sf.tadami.ui.utils.chop
 import com.sf.tadami.utils.notify
 
 class LibraryUpdateNotifier(private val context: Context) {
-
     private val cancelIntent = LibraryUpdateReceiver.getPendingIntent(context)
 
     private val notificationBitmap by lazy {
@@ -30,7 +30,7 @@ class LibraryUpdateNotifier(private val context: Context) {
             setLargeIcon(notificationBitmap)
             setOngoing(true)
             setOnlyAlertOnce(true)
-            color = context.getColor(R.color.midnightdusk_primary)
+            color = getNotificationsColor(context)
             addAction(R.drawable.ic_close, context.getString(R.string.action_cancel), cancelIntent)
         }
     }
@@ -86,7 +86,7 @@ class LibraryUpdateNotifier(private val context: Context) {
                     setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
                     setGroupSummary(true)
                     priority = NotificationCompat.PRIORITY_HIGH
-                    color = context.getColor(R.color.midnightdusk_primary)
+                    color = getNotificationsColor(context)
                     setContentIntent(getMainActivityIntent())
                     setAutoCancel(true)
 
@@ -109,7 +109,7 @@ class LibraryUpdateNotifier(private val context: Context) {
                     )
                     setContentText(context.getString(R.string.tap_see_details))
                     setSmallIcon(R.drawable.ic_tada)
-                    color = context.getColor(R.color.midnightdusk_primary)
+                    color = getNotificationsColor(context)
                     setContentIntent(getLogIntent(context, uriCompat))
                 }.build()
         context.notify(Notifications.LIBRARY_UPDATE_FAILURE_ID, failedNotification)
@@ -128,7 +128,7 @@ class LibraryUpdateNotifier(private val context: Context) {
                         animeNumber
                     )
                 )
-                color = context.getColor(R.color.midnightdusk_primary)
+                color = getNotificationsColor(context)
                 setContentText(context.getString(R.string.tap_see_details))
                 setSmallIcon(R.drawable.ic_tada)
                 setContentIntent(getLogIntent(context, uriCompat))

@@ -9,15 +9,17 @@ import androidx.datastore.preferences.core.Preferences
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
-import com.sf.tadami.data.interactors.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.ui.animeinfos.episode.cast.ProxyServer
+import com.sf.tadami.ui.tabs.settings.screens.appearance.AppearancePreferences
 import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferences
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
@@ -44,6 +46,15 @@ class CastProxyService : Service() {
             castListener,
             CastSession::class.java
         )
+        setupThemeColorListerner()
+    }
+    fun setupThemeColorListerner(){
+        CoroutineScope(Dispatchers.Main).launch {
+            dataStore.data.collectLatest {
+                val appearancePreferences = AppearancePreferences.transform(it)
+
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

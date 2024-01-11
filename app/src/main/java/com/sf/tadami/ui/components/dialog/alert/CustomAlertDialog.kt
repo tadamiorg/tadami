@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -22,7 +23,7 @@ fun CustomAlertDialog(
     dismissButton: @Composable (() -> Unit)? = null,
     title: @Composable () -> Unit = {},
     shape: Shape = MaterialTheme.shapes.small,
-    containerColor: Color = MaterialTheme.colorScheme.inverseSurface,
+    containerColor: Color = AlertDialogDefaults.containerColor,
     titleContentColor: Color = AlertDialogDefaults.titleContentColor,
     textContentColor: Color = AlertDialogDefaults.textContentColor,
     tonalElevation: Dp = AlertDialogDefaults.TonalElevation,
@@ -39,8 +40,14 @@ fun CustomAlertDialog(
                     mainAxisSpacing = ButtonsMainAxisSpacing,
                     crossAxisSpacing = ButtonsCrossAxisSpacing
                 ) {
-                    dismissButton?.invoke()
-                    confirmButton()
+                    CompositionLocalProvider(LocalDismissRequest provides onDismissRequest) {
+                        dismissButton?.let {
+
+                            it()
+
+                        }
+                        confirmButton()
+                    }
                 }
             },
             modifier = modifier,

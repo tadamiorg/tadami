@@ -3,13 +3,11 @@ package com.sf.tadami.ui.tabs.library
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sf.tadami.R
-import com.sf.tadami.data.interactors.LibraryInteractor
-import com.sf.tadami.data.interactors.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.ui.components.data.LibraryItem
-import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.addOrRemove
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -61,13 +59,9 @@ class LibraryViewModel : ViewModel() {
             _isRefreshing.update { false }
         }
     }
-    fun refreshLibrary(context : Context){
+    fun refreshLibrary(context: Context): Boolean {
         toggleRefreshIndicator()
-        val started = LibraryUpdateWorker.startNow(context)
-        viewModelScope.launch {
-            val msgRes = if (started) context.getString(R.string.update_starting) else context.getString(R.string.update_running)
-            UiToasts.showToast(msgRes)
-        }
+        return LibraryUpdateWorker.startNow(context)
     }
 
     fun toggleSelected(libraryItem: LibraryItem, selected: Boolean) {

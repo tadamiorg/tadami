@@ -28,7 +28,7 @@ fun EmptyScreen(
     message: String
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = MaterialTheme.padding.large),
         verticalArrangement = Arrangement.Center,

@@ -165,7 +165,7 @@ class LibraryPreferencesScreen(
             onDismissRequest = onDismissRequest,
             title = { Text(text = stringResource(id = R.string.preferences_library_columns)) },
             dismissButton = {
-                DefaultDialogCancelButton(onDismissRequest = onDismissRequest)
+                DefaultDialogCancelButton()
             },
             confirmButton = {
                 DefaultDialogConfirmButton(

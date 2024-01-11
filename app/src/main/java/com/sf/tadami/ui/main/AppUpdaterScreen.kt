@@ -39,9 +39,7 @@ fun AppUpdaterScreen(
                 }
             },
             dismissButton = {
-                DefaultDialogCancelButton(text = R.string.later) {
-                    appUpdaterViewModel.hideDialog()
-                }
+                DefaultDialogCancelButton(text = R.string.later)
             },
             title = {
                 Text(text = "${stringResource(id = R.string.app_name)} ${uiState.updateInfos!!.version}")

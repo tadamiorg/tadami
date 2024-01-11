@@ -90,6 +90,9 @@ fun PreferenceItemParser(
                         },
                     )
                 }
+                is Preference.PreferenceItem.CustomPreference -> {
+                    item.content(item)
+                }
             }
         },
     )

@@ -15,6 +15,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import android.util.TypedValue
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.core.app.NotificationManagerCompat
@@ -35,12 +36,13 @@ fun Context.findActivity(): Activity {
 }
 
 @ColorInt
-fun Context.getColorFromAttr( @AttrRes attrColor: Int
+fun Context.getThemeColors(
+    @AttrRes color: Int
 ): Int {
-    val typedArray = theme.obtainStyledAttributes(intArrayOf(attrColor))
-    val textColor = typedArray.getColor(0, 0)
-    typedArray.recycle()
-    return textColor
+    val typedValue = TypedValue()
+    // Resolve the primary color attribute
+    this.theme.resolveAttribute(color, typedValue, true)
+    return typedValue.data
 }
 
 fun Context.createFileInCacheDir(name: String): File {

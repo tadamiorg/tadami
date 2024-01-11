@@ -25,7 +25,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -45,12 +44,14 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
-import com.sf.tadami.data.interactors.GetSourcesWithNonLibraryAnime
+import com.sf.tadami.data.interactors.sources.GetSourcesWithNonLibraryAnime
 import com.sf.tadami.data.sources.SourceWithCount
 import com.sf.tadami.network.api.online.AnimeCatalogueSource
 import com.sf.tadami.network.api.online.StubSource
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
+import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
+import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 import com.sf.tadami.ui.components.grid.EmptyScreen
 import com.sf.tadami.ui.components.topappbar.ActionItem
 import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
@@ -112,23 +113,19 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
             CustomAlertDialog(
                 onDismissRequest = clearDatabaseViewModel::hideConfirmation,
                 confirmButton = {
-                    TextButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                clearDatabaseViewModel.removeAnimeBySourceIds()
-                                clearDatabaseViewModel.clearSelection()
-                                clearDatabaseViewModel.hideConfirmation()
-                                UiToasts.showToast(R.string.clear_database_completed)
-                            }
-                        },
+                    DefaultDialogConfirmButton(
+                        text = android.R.string.ok
                     ) {
-                        Text(text = stringResource(android.R.string.ok))
+                        coroutineScope.launch {
+                            clearDatabaseViewModel.removeAnimeBySourceIds()
+                            clearDatabaseViewModel.clearSelection()
+                            clearDatabaseViewModel.hideConfirmation()
+                            UiToasts.showToast(R.string.clear_database_completed)
+                        }
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = clearDatabaseViewModel::hideConfirmation) {
-                        Text(text = stringResource(R.string.action_cancel))
-                    }
+                    DefaultDialogCancelButton(text = R.string.action_cancel)
                 },
                 text = {
                     Text(text = stringResource(R.string.clear_database_confirmation))
@@ -277,14 +274,14 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
     )
 
     class ClearDatabaseViewModel() : ViewModel() {
-        private val getSourcesWithNonLibraryManga: GetSourcesWithNonLibraryAnime = Injekt.get()
+        private val getSourcesWithNonLibraryAnime: GetSourcesWithNonLibraryAnime = Injekt.get()
 
         private val _uiState = MutableStateFlow(UiState())
         val uiState = _uiState.asStateFlow()
 
         init {
             viewModelScope.launch(Dispatchers.IO) {
-                getSourcesWithNonLibraryManga.subscribe()
+                getSourcesWithNonLibraryAnime.subscribe()
                     .collectLatest { list ->
                         _uiState.update { old ->
                             val items = list.sortedBy { it.name }
@@ -295,7 +292,7 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
         }
 
         suspend fun removeAnimeBySourceIds() {
-            getSourcesWithNonLibraryManga.delete(_uiState.value.selection)
+            getSourcesWithNonLibraryAnime.delete(_uiState.value.selection)
         }
 
 

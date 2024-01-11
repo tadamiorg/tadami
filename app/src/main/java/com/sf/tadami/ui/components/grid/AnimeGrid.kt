@@ -26,7 +26,7 @@ import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
-import com.sf.tadami.ui.utils.CommonMangaItemDefaults
+import com.sf.tadami.ui.utils.CommonAnimeItemDefaults
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.plus
 
@@ -123,8 +123,8 @@ fun AnimeGrid(
         LazyVerticalGrid(
             state = lazyGridState,
             columns = columns(),
-            verticalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridVerticalSpacer),
-            horizontalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridHorizontalSpacer),
+            verticalArrangement = Arrangement.spacedBy(CommonAnimeItemDefaults.GridVerticalSpacer),
+            horizontalArrangement = Arrangement.spacedBy(CommonAnimeItemDefaults.GridHorizontalSpacer),
             contentPadding = contentPadding + PaddingValues(MaterialTheme.padding.extraSmall)
         ) {
             if (animeList.loadState.prepend is LoadState.Loading) {
@@ -189,8 +189,8 @@ fun LibraryAnimeGrid(
             modifier = modifier,
             state = lazyGridState,
             columns = columns(),
-            verticalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridVerticalSpacer),
-            horizontalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridHorizontalSpacer),
+            verticalArrangement = Arrangement.spacedBy(CommonAnimeItemDefaults.GridVerticalSpacer),
+            horizontalArrangement = Arrangement.spacedBy(CommonAnimeItemDefaults.GridHorizontalSpacer),
             contentPadding = contentPadding + PaddingValues(MaterialTheme.padding.extraSmall)
         ) {
             items(animeList, key = { it.anime.id }) { libraryItem ->

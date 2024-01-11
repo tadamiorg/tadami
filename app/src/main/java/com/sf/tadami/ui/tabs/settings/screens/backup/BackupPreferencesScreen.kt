@@ -115,6 +115,7 @@ class BackupPreferencesScreen(
                         BackupCreateFlags.BACKUP_DEFAULT_ANIME to (createElements[0] to false),
                         BackupCreateFlags.BACKUP_EPISODE to createElements[1],
                         BackupCreateFlags.BACKUP_APP_PREFS to createElements[2],
+                        BackupCreateFlags.BACKUP_HISTORY to createElements[3],
 
                     ).toPrefMultiCheckbox(),
                     title = stringResource(id = R.string.preferences_backup_create_title),

@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.OndemandVideo
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.VideoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -44,6 +45,14 @@ fun SettingsScreen(
             modifier = Modifier.padding(it),
             preferences = listOf(
                 Preference.PreferenceItem.TextPreference(
+                    title = stringResource(id = R.string.label_appearance),
+                    subtitle = stringResource(id = R.string.pref_appearance_summary),
+                    icon = Icons.Outlined.Palette,
+                    onClick = {
+                        navController.navigate(SettingsRoutes.APPEARANCE)
+                    }
+                ),
+                Preference.PreferenceItem.TextPreference(
                     title = stringResource(id = R.string.settings_tab_library_preferences_title),
                     subtitle = stringResource(id = R.string.settings_tab_library_preferences_subtitle),
                     icon = Icons.Outlined.VideoLibrary,
@@ -52,19 +61,19 @@ fun SettingsScreen(
                     }
                 ),
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(id = R.string.settings_tab_library_backup_preferences_title),
-                    subtitle = stringResource(id = R.string.settings_tab_library_backup_preferences_subtitle),
-                    icon = Icons.Outlined.Backup,
-                    onClick = {
-                        navController.navigate(SettingsRoutes.BACKUP)
-                    }
-                ),
-                Preference.PreferenceItem.TextPreference(
                     title = stringResource(id = R.string.settings_tab_library_player_preferences_title),
                     subtitle = stringResource(id = R.string.settings_tab_library_player_preferences_subtitle),
                     icon = Icons.Outlined.OndemandVideo,
                     onClick = {
                         navController.navigate(SettingsRoutes.PLAYER)
+                    }
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(id = R.string.settings_tab_library_backup_preferences_title),
+                    subtitle = stringResource(id = R.string.settings_tab_library_backup_preferences_subtitle),
+                    icon = Icons.Outlined.Backup,
+                    onClick = {
+                        navController.navigate(SettingsRoutes.BACKUP)
                     }
                 ),
                 Preference.PreferenceItem.TextPreference(

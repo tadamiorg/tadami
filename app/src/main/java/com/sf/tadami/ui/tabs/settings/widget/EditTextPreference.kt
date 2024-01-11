@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.sf.tadami.R
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
+import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.secondaryItemAlpha
 import kotlinx.coroutines.launch
@@ -135,9 +136,7 @@ fun EditTextPreferenceWidget(
                 }
             },
             dismissButton = {
-                TextButton(onClick = onDismissRequest) {
-                    Text(text = stringResource(R.string.action_cancel))
-                }
+                DefaultDialogCancelButton()
             },
         )
     }

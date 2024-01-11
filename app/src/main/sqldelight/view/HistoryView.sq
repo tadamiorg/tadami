@@ -1,0 +1,58 @@
+CREATE VIEW HistoryView AS
+SELECT
+    History._id AS id,
+    Anime._id AS animeId,
+    Episode._id AS episodeId,
+    Anime.title,
+    Anime.thumbnail_url AS thumbnailUrl,
+    Anime.source,
+    Anime.favorite,
+    Episode.episode_number AS episodeNumber,
+    History.seen_at AS seenAt,
+    max_seen_at.seen_at AS maxSeenAt,
+    max_seen_at.episode_id AS maxSeenAtEpisodeId
+FROM Anime
+JOIN Episode
+ON Anime._id = Episode.anime_id
+JOIN History
+ON Episode._id = History.episode_id
+JOIN (
+    SELECT Episode.anime_id,Episode._id AS episode_id, MAX(History.seen_at) AS seen_at
+    FROM Episode JOIN History
+    ON Episode._id = History.episode_id
+    GROUP BY Episode.anime_id
+) AS max_seen_at
+ON Episode.anime_id = max_seen_at.anime_id;
+
+history:
+SELECT
+id,
+animeId,
+episodeId,
+title,
+thumbnailUrl,
+source,
+favorite,
+episodeNumber,
+seenAt
+FROM HistoryView
+WHERE HistoryView.seenAt > 0
+AND maxSeenAtEpisodeId = HistoryView.episodeId
+AND lower(HistoryView.title) LIKE ('%' || :query || '%')
+ORDER BY seenAt DESC;
+
+getLatestHistory:
+SELECT
+id,
+animeId,
+episodeId,
+title,
+thumbnailUrl,
+source,
+favorite,
+episodeNumber,
+seenAt
+FROM HistoryView
+WHERE HistoryView.seenAt > 0
+ORDER BY seenAt DESC
+LIMIT 1;

@@ -13,6 +13,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.sf.tadami.R
 import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.data.backup.models.BackupAnime
+import com.sf.tadami.data.backup.models.BackupHistory
 import com.sf.tadami.data.backup.models.BackupPreference
 import com.sf.tadami.data.backup.models.BooleanPreferenceValue
 import com.sf.tadami.data.backup.models.FloatPreferenceValue
@@ -21,10 +22,11 @@ import com.sf.tadami.data.backup.models.LongPreferenceValue
 import com.sf.tadami.data.backup.models.StringPreferenceValue
 import com.sf.tadami.data.backup.models.StringSetPreferenceValue
 import com.sf.tadami.data.episode.EpisodeRepository
-import com.sf.tadami.data.interactors.FetchIntervalInteractor
-import com.sf.tadami.data.interactors.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.anime.FetchIntervalInteractor
+import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.domain.history.HistoryUpdate
 import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.notifications.backup.BackupNotifier
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
@@ -39,6 +41,7 @@ import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.util.Date
 import java.util.Locale
+import kotlin.math.max
 import data.Anime as AnimeDb
 
 class BackupRestorer(
@@ -131,18 +134,19 @@ class BackupRestorer(
     private suspend fun restoreAnime(backupAnime: BackupAnime) {
         val anime = backupAnime.getAnimeImpl()
         val episodes = backupAnime.getEpisodeImpl()
+        val history = backupAnime.history
 
         try {
             val dbAnime = getAnimeFromDatabase(anime.url, anime.source)
             val restoredAnime = if (dbAnime == null) {
                 // Anime not in database
-                restoreExistingAnime(anime, episodes)
+                restoreNonExistingAnime(anime, episodes,history)
             } else {
                 // Anime in database
                 // Copy information from anime already in database
                 val updatedAnime = restoreExistingAnime(anime, dbAnime)
                 // Fetch rest of anime information
-                restoreAnime(updatedAnime, episodes)
+                restoreUpdatedAnime(updatedAnime, episodes, history)
             }
             updateAnime.awaitUpdateFetchInterval(restoredAnime, now, currentFetchWindow)
         } catch (e: Exception) {
@@ -195,12 +199,14 @@ class BackupRestorer(
         return anime.id
     }
 
-    private suspend fun restoreExistingAnime(
+    private suspend fun restoreNonExistingAnime(
         anime: Anime,
         episodes: List<Episode>,
+        history: List<BackupHistory>
     ): Anime {
         val fetchedAnime = restoreAnime(anime)
         restoreEpisodes(fetchedAnime, episodes)
+        restoreHistory(history)
         return fetchedAnime
     }
 
@@ -294,6 +300,16 @@ class BackupRestorer(
         )
     }
 
+    private suspend fun restoreUpdatedAnime(
+        backupAnime: Anime,
+        episodes: List<Episode>,
+        history: List<BackupHistory>
+    ): Anime {
+        restoreEpisodes(backupAnime, episodes)
+        restoreHistory(history)
+        return backupAnime
+    }
+
     private suspend fun insertAnime(anime: Anime): Long {
         return handler.await {
             animeQueries.insert(
@@ -315,14 +331,6 @@ class BackupRestorer(
             )
             animeQueries.selectLastInsertedRowId().executeAsOne()
         }
-    }
-
-    private suspend fun restoreAnime(
-        backupAnime: Anime,
-        episodes: List<Episode>,
-    ): Anime {
-        restoreEpisodes(backupAnime, episodes)
-        return backupAnime
     }
 
     private suspend fun restoreAppPreferences(preferences: List<BackupPreference>) {
@@ -370,6 +378,46 @@ class BackupRestorer(
                 is StringSetPreferenceValue -> {
                     preferenceStore.editPreference(value.value, stringSetPreferencesKey(key))
                 }
+            }
+        }
+    }
+
+    private suspend fun restoreHistory(history: List<BackupHistory>) {
+        // List containing history to be updated
+        val toUpdate = mutableListOf<HistoryUpdate>()
+        for ((url, seenAt) in history) {
+            var dbHistory = handler.awaitOneOrNull { historyQueries.getHistoryByEpisodeUrl(url) }
+            // Check if history already in database and update
+            if (dbHistory != null) {
+                dbHistory = dbHistory.copy(
+                    seen_at = Date(max(seenAt, dbHistory.seen_at?.time ?: 0L)),
+                )
+                toUpdate.add(
+                    HistoryUpdate(
+                        episodeId = dbHistory.episode_id,
+                        seenAt = dbHistory.seen_at!!
+                    ),
+                )
+            } else {
+                // If not in database create
+                handler
+                    .awaitOneOrNull { episodeQueries.getEpisodeByUrl(url) }
+                    ?.let {
+                        toUpdate.add(
+                            HistoryUpdate(
+                                episodeId = it._id,
+                                seenAt = Date(seenAt)
+                            ),
+                        )
+                    }
+            }
+        }
+        handler.await {
+            toUpdate.forEach { payload ->
+                historyQueries.upsert(
+                    payload.episodeId,
+                    payload.seenAt
+                )
             }
         }
     }

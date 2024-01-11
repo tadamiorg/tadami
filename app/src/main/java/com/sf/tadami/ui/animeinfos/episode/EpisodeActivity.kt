@@ -9,7 +9,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -71,7 +70,6 @@ class EpisodeActivity : AppCompatActivity() {
     private lateinit var playerViewModel: PlayerViewModel
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -133,7 +131,10 @@ class EpisodeActivity : AppCompatActivity() {
         observeData()
 
         setContent {
-            TadamiTheme {
+            TadamiTheme(
+                isDark = true,
+                amoled = true
+            ) {
                 val snackbarHostState = remember { SnackbarHostState() }
                 Scaffold(
                     snackbarHost = { SnackbarHost(modifier = Modifier.padding(bottom = 100.dp),hostState = snackbarHostState) }
