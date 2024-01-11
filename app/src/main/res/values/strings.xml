@@ -3,13 +3,10 @@
     <string name="settings_tab_title">Settings</string>
     <string name="library_tab_title">Library</string>
     <string name="sources_tab_title">Sources</string>
-    <string name="search">Search</string>
-    <string name="filter">Filter</string>
     <string name="refresh">Refresh</string>
     <string name="language_fr">French</string>
     <string name="language_en">English</string>
     <string name="language_unknown">Unknown</string>
-    <string name="language_others">Others</string>
     <string name="anime_sources_screen_recents_btn">Recents</string>
     <string name="discover_recents_screen_title">Recents</string>
     <string name="request_error_response">Could not scrape source. Error Code : %1$s</string>
@@ -20,21 +17,17 @@
         <item quantity="other">%d episodes</item>
     </plurals>
     <!-- Strings used for fragments for navigation -->
-    <string name="recents_screen_episode_label">Episode</string>
     <string name="unknown_author">Unknown Auhtor</string>
-    <string name="unknown_studio">Unknown Studio</string>
     <string name="unknown_status">Unknown Status</string>
     <string name="details_screen_description_arrow_up">Less</string>
     <string name="details_screen_description_arrow_down">More</string>
     <string name="unknown_description">No description found !</string>
     <string name="player_screen_episode_label">Episode</string>
-    <string name="player_screen_back_btn">Back</string>
     <string name="player_screen_qd_ok_btn">Ok</string>
     <string name="player_screen_qd_title">Select Quality</string>
     <string name="player_screen_qd_cancel_btn">Cancel</string>
     <string name="discover_search_screen_title">Search</string>
     <string name="discover_search_screen_search_placeholder">Search by name…</string>
-    <string name="discover_search_screen_filters_group_ok_btn">Confirm</string>
     <string name="discover_search_screen_filters_group_selected_text">select</string>
     <string name="player_screen_controls_forward_85" translatable="false">+85 s</string>
     <string name="player_screen_source_load_error">Stream source %1$s can\'t load</string>
@@ -113,7 +106,6 @@
     <string name="notification_library_update_skipped_not_caught_up">Skipped because there are unseen episodes</string>
     <string name="notification_library_updates_skipped">Skipped updates</string>
     <string name="notification_library_update_skipped_result">%1$d update(s) skipped</string>
-    <string name="tap_learn_more">Tap to learn more</string>
     <string name="tap_see_details">Tap to see details</string>
     <string name="notification_library_update_failed_result">%1$d update(s) failed</string>
     <string name="recently">Recently</string>
@@ -133,7 +125,6 @@
     <string name="details_screen_start_button">Start</string>
     <string name="details_screen_resume_button">Resume</string>
     <string name="unknown_error">Unknown error</string>
-    <string name="discover_search_ingores_filters">Search ignores filters</string>
     <string name="preferences_backup_category_manual">Manual saves</string>
     <string-array name="preferences_backup_create_fields">
         <item>Library entries</item>
@@ -170,7 +161,6 @@
     <string name="create_backup_file_error">Couldn\\\'t create a backup file</string>
     <string name="empty_backup_error">No library entries to back up</string>
     <string name="invalid_backup_file_missing_anime">Backup does not contain any library entries.</string>
-    <string name="library_sync_complete">Library sync complete</string>
     <string name="app_settings">App settings</string>
     <string name="backup_in_progress">Backup is already in progress</string>
     <string name="file_picker_error">No file picker app found</string>
@@ -179,21 +169,14 @@
     <string name="restore_in_progress">Restore is already in progress</string>
     <string name="source_not_installed">Source not installed: %1$s</string>
     <string name="category_network">Network</string>
-    <string name="preferences_user_agent_string">Default user agent string</string>
     <string name="sources_preferences_base_url">Override the base url</string>
     <string name="sources_preferences_base_url_subtitle">If you want to modify the source base address in case it is not working already.</string>
-    <string name="sources_preferences_user_agent">Override the user agent</string>
-    <string name="sources_preferences_user_agent_subtitle">If you want to modify the source user agent in case it is not working already.</string>
     <string name="sources_preferences_title">Settings - %1$s</string>
     <string name="default_string_formatted">Default : %1$s</string>
     <string name="clipboard_copied">Copied to clipboard</string>
     <string name="information_webview_required">WebView is required for the app to function</string>
     <string name="in_library">In library</string>
     <string name="add_to_library">Add to library</string>
-    <plurals name="day">
-        <item quantity="one">1 day</item>
-        <item quantity="other">%d days</item>
-    </plurals>
     <string name="action_web_view" translatable="false">WebView</string>
     <string name="pref_clear_cookies">Clear cookies</string>
     <string name="action_open_in_browser">Open in browser</string>
@@ -203,7 +186,6 @@
     <string name="label_background_activity">Background activity</string>
     <string name="pref_disable_battery_optimization">Disable battery optimization</string>
     <string name="pref_disable_battery_optimization_summary">Helps with background library updates and backups</string>
-    <string name="dont_kill_my_app" translatable="false">Don\'t kill my app!</string>
     <string name="about_dont_kill_my_app">Some manufacturers have additional app restrictions that kill background services. This website has more info on how to fix it.</string>
     <string name="advanced_worker_infos">Jobs infos</string>
     <string name="battery_optimization_setting_activity_not_found">Couldn\'t open device settings</string>
