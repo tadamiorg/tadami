@@ -4,10 +4,11 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -18,12 +19,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -141,8 +143,8 @@ fun VideoPlayer(
         playerViewModel.setCurrentEpisode(episode)
     }
 
-    LaunchedEffect(key1 = episodeUiState.loadError){
-        if(episodeUiState.loadError){
+    LaunchedEffect(key1 = episodeUiState.loadError) {
+        if (episodeUiState.loadError) {
             exoPlayer.release()
             dispatcher.onBackPressed()
         }
@@ -166,11 +168,11 @@ fun VideoPlayer(
         }
     }
 
-    if(playerPreferences.autoPlay){
+    if (playerPreferences.autoPlay) {
         LaunchedEffect(exoPlayer.isPlaying.not() && playbackState == STATE_ENDED) {
             val autoIdle = exoPlayer.isPlaying.not() && playbackState == STATE_ENDED
-            if(currentTime>0L && totalDuration>0L){
-                if(autoIdle && hasNextIterator.hasPrevious()){
+            if (currentTime > 0L && totalDuration > 0L) {
+                if (autoIdle && hasNextIterator.hasPrevious()) {
                     val next = hasNextIterator.previous()
                     exoPlayer.clearMediaItems()
                     selectEpisode(next)
@@ -182,7 +184,8 @@ fun VideoPlayer(
     if (isPlaying) {
         LaunchedEffect(Unit) {
             while (true) {
-                currentTime = exoPlayer.currentPosition.coerceAtLeast(0L).coerceAtMost(totalDuration)
+                currentTime =
+                    exoPlayer.currentPosition.coerceAtLeast(0L).coerceAtMost(totalDuration)
                 delay(1.seconds / 30)
             }
         }
@@ -218,6 +221,7 @@ fun VideoPlayer(
                                             it.x < this * 0.45 -> {
                                                 exoPlayer.seekBack()
                                             }
+
                                             it.x > this * 0.55 -> {
                                                 exoPlayer.seekForward()
                                             }
@@ -228,7 +232,7 @@ fun VideoPlayer(
                                     shouldShowControls = shouldShowControls.not()
                                 }
                             )
-                        }.background(Color.Black),
+                        },
                     factory = {
                         StyledPlayerView(it).apply {
                             player = exoPlayer
@@ -237,7 +241,7 @@ fun VideoPlayer(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT
                             )
-                            setShowBuffering(StyledPlayerView.SHOW_BUFFERING_ALWAYS)
+                            setShowBuffering(StyledPlayerView.SHOW_BUFFERING_NEVER)
                             keepScreenOn = true
                         }
                     }
@@ -257,7 +261,8 @@ fun VideoPlayer(
                         } else {
                             super.onEvents(player, events)
                             totalDuration = player.duration.coerceAtLeast(0L)
-                            currentTime = player.currentPosition.coerceAtLeast(0L).coerceAtMost(totalDuration)
+                            currentTime =
+                                player.currentPosition.coerceAtLeast(0L).coerceAtMost(totalDuration)
                             bufferedPercentage = player.bufferedPercentage
                             isPlaying = player.isPlaying
                             playbackState = player.playbackState
@@ -273,9 +278,11 @@ fun VideoPlayer(
                             updateTime()
                             exoPlayer.pause()
                         }
+
                         Lifecycle.Event.ON_RESUME -> {
                             exoPlayer.play()
                         }
+
                         else -> {}
                     }
                 }
@@ -292,7 +299,16 @@ fun VideoPlayer(
 
             ContentLoader(isLoading = isFetchingSources) {}
 
+            val isVideoLoading by remember(exoPlayer.playbackState, exoPlayer.playWhenReady) {
+                derivedStateOf {
+                    exoPlayer.playbackState == Player.STATE_BUFFERING
+                            && exoPlayer.playWhenReady
+                }
+            }
 
+            if (isVideoLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center).wrapContentSize(),strokeWidth = 3.dp)
+            }
 
             PlayerControls(
                 modifier = Modifier.fillMaxSize(),
@@ -309,10 +325,12 @@ fun VideoPlayer(
                         exoPlayer.isPlaying -> {
                             exoPlayer.pause()
                         }
+
                         exoPlayer.isPlaying.not() && playbackState == STATE_ENDED -> {
                             exoPlayer.seekTo(0)
                             exoPlayer.playWhenReady = true
                         }
+
                         else -> {
                             exoPlayer.play()
                         }

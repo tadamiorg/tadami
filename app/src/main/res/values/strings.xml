@@ -241,5 +241,5 @@
     <string name="label_appearance">Appearance</string>
     <string name="label_theme">Theme</string>
 
-    <string name="pref_appearance_summary">Theme, date &amp; time format</string>
+    <string name="pref_appearance_summary">Theme</string>
 </resources>

@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +48,7 @@ fun TabbedBottomSheet(
     Column(modifier = Modifier.preventBottomSheetJumps(sheetState)) {
         PrimaryTabRow(
             selectedTabIndex = pagerState.currentPage,
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
         ) {
             tabs.forEachIndexed { index, tab ->
                 Tab(
