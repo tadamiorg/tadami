@@ -90,7 +90,7 @@ fun Select(
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.inverseOnSurface)
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
                 )
                 {
                     select.values.forEach {
