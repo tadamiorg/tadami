@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -21,8 +22,8 @@ object TabbedBottomSheetContentPadding {
 fun TadaBottomSheetLayout(
     sheetContent: @Composable ColumnScope.() -> Unit,
     sheetState: ModalBottomSheetState,
-    scrimColor: Color = MaterialTheme.colorScheme.background.copy(alpha = 0.4f),
-    sheetBackgroundColor: Color = MaterialTheme.colorScheme.surface,
+    scrimColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp).copy(alpha = 0.4f),
+    sheetBackgroundColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
     sheetContentColor: Color = MaterialTheme.colorScheme.contentColorFor(sheetBackgroundColor),
     content: @Composable () -> Unit,
 ) {

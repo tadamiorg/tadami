@@ -7,13 +7,22 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.sf.tadami.R
 import com.sf.tadami.network.api.online.AnimeHttpSource
 import com.sf.tadami.network.api.online.StubSource
 import com.sf.tadami.network.requests.okhttp.HttpClient
 import com.sf.tadami.network.requests.utils.WebViewUtil
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
+import com.sf.tadami.ui.themes.TadamiTheme
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.setComposeContent
 import com.sf.tadami.utils.openInBrowser
@@ -54,15 +63,37 @@ class WebViewActivity : AppCompatActivity() {
         }
 
         setComposeContent {
-            WebviewScreen(
-                onNavigateUp = { finish() },
-                initialTitle = intent.extras?.getString(TITLE_KEY) ?: "",
-                url = url,
-                headers = headers,
-                onUrlChange = { assistUrl = it },
-                onOpenInBrowser = this::openInBrowser,
-                onClearCookies = this::clearCookies,
-            )
+            TadamiTheme {
+                val systemUiController = rememberSystemUiController()
+                val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
+                val navbarScrimColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+                val isSystemInDarkTheme = isSystemInDarkTheme()
+
+                LaunchedEffect(systemUiController, statusBarBackgroundColor) {
+                    systemUiController.setStatusBarColor(
+                        color = statusBarBackgroundColor,
+                        darkIcons = statusBarBackgroundColor.luminance() > 0.5,
+                        transformColorForLightContent = { Color.Black },
+                    )
+                }
+                LaunchedEffect(systemUiController, isSystemInDarkTheme, navbarScrimColor) {
+                    systemUiController.setNavigationBarColor(
+                        color = navbarScrimColor,
+                        darkIcons = !isSystemInDarkTheme,
+                        navigationBarContrastEnforced = false,
+                        transformColorForLightContent = { Color.Black },
+                    )
+                }
+                WebviewScreen(
+                    onNavigateUp = { finish() },
+                    initialTitle = intent.extras?.getString(TITLE_KEY) ?: "",
+                    url = url,
+                    headers = headers,
+                    onUrlChange = { assistUrl = it },
+                    onOpenInBrowser = this::openInBrowser,
+                    onClearCookies = this::clearCookies,
+                )
+            }
         }
     }
 

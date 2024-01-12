@@ -10,6 +10,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -48,7 +49,7 @@ fun RowScope.AddItem(
             }
         },
         label = {
-            Text(stringResource(id = item.name))
+            Text(text = stringResource(id = item.name), maxLines = 1,overflow = TextOverflow.Ellipsis)
         },
         alwaysShowLabel = true,
         selected = selected,
