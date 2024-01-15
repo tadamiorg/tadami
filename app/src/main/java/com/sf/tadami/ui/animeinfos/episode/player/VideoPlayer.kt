@@ -4,6 +4,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.annotation.OptIn
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,14 +31,15 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.Player.STATE_ENDED
-import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
-import com.google.android.exoplayer2.ui.StyledPlayerView
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
-import com.google.android.exoplayer2.upstream.ResolvingDataSource
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.Player.STATE_ENDED
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.ResolvingDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.ui.PlayerView
 import com.sf.tadami.R
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
@@ -52,7 +54,7 @@ import com.sf.tadami.ui.utils.UiToasts
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
 
-@Composable
+@OptIn(UnstableApi::class) @Composable
 fun VideoPlayer(
     modifier: Modifier = Modifier,
     dispatcher: OnBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current!!.onBackPressedDispatcher,
@@ -234,14 +236,14 @@ fun VideoPlayer(
                             )
                         },
                     factory = {
-                        StyledPlayerView(it).apply {
+                        PlayerView(it).apply {
                             player = exoPlayer
                             useController = false
                             layoutParams = FrameLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT
                             )
-                            setShowBuffering(StyledPlayerView.SHOW_BUFFERING_NEVER)
+                            setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
                             keepScreenOn = true
                         }
                     }

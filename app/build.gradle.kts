@@ -85,7 +85,7 @@ dependencies {
     implementation(libs.bundles.coil)
 
     // Exoplayer
-    implementation(libs.bundles.exoplayer)
+    implementation(androidx.bundles.exoplayer)
 
     // Compose
     implementation(platform(compose.bom))
