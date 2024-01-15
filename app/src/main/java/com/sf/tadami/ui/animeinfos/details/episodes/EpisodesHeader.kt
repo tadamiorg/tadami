@@ -10,6 +10,9 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -21,10 +24,18 @@ import com.sf.tadami.ui.utils.padding
 @Composable
 fun EpisodesHeader(
     modifier: Modifier = Modifier,
-    episodesNumber: Int?,
+    totalEpisodes: Int?,
+    filteredEpisodes : Int? = totalEpisodes,
     isFiltered : Boolean? = false,
     onFilterClicked: () -> Unit
 ) {
+
+    val filterSameSize by remember(totalEpisodes,filteredEpisodes){
+        derivedStateOf {
+            totalEpisodes == filteredEpisodes
+        }
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -40,10 +51,10 @@ fun EpisodesHeader(
             modifier = Modifier.weight(1f),
             text = pluralStringResource(
                 id = R.plurals.details_screen_episodes_number,
-                count = episodesNumber ?: 0,
-                episodesNumber ?: 0
+                count = if(!filterSameSize) filteredEpisodes ?: 0 else totalEpisodes ?: 0,
+                if(!filterSameSize) filteredEpisodes ?: 0 else totalEpisodes ?: 0
             ),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
         )
         Icon(
             painter = painterResource(id = R.drawable.ic_filter),
