@@ -16,6 +16,7 @@ import com.sf.tadami.network.api.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.network.requests.okhttp.GET
 import com.sf.tadami.network.requests.okhttp.POST
 import com.sf.tadami.network.requests.okhttp.asCancelableObservable
+import com.sf.tadami.network.requests.okhttp.shortTimeOutBuilder
 import com.sf.tadami.network.requests.utils.asJsoup
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.ui.utils.capFirstLetter
@@ -353,25 +354,25 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
         }
         val streamSourcesList = mutableListOf<StreamSource>()
         val rawStreamSourceUrls = mutableListOf<String>()
+        val newClient = client.shortTimeOutBuilder()
         streamSourcesList.addAll(
             variableArrays.values.parallelMap { urls ->
-
                 runCatching {
                     val streamUrl = episodeNumber?.let { urls[it - 1] } ?: return@parallelMap null
                     if (rawStreamSourceUrls.contains(streamUrl)) return@parallelMap null
                     rawStreamSourceUrls.add(streamUrl)
                     when {
                         streamUrl.contains("sendvid.com") -> {
-                            SendvidExtractor(client, headers).videosFromUrl(streamUrl)
+                            SendvidExtractor(newClient, headers).videosFromUrl(streamUrl)
                         }
                         streamUrl.contains("sibnet.ru") -> {
-                            SibnetExtractor(client).videosFromUrl(streamUrl)
+                            SibnetExtractor(newClient).videosFromUrl(streamUrl)
                         }
                         streamUrl.contains("anime-sama.fr") -> {
                             listOf(StreamSource(streamUrl, "AnimeSama"))
                         }
                         streamUrl.contains("vk.") -> {
-                            VkExtractor(client, headers).videosFromUrl(streamUrl)
+                            VkExtractor(newClient, headers).videosFromUrl(streamUrl)
                         }
                         else -> null
                     }

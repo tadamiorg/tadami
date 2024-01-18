@@ -95,11 +95,11 @@ class DetailsViewModel(
         }
     }
 
-    private suspend fun fetchEpisodesFromSource(anime: Anime) {
+    private suspend fun fetchEpisodesFromSource(anime: Anime, manualFetch : Boolean = false) {
         val networkEpisodes = source.fetchEpisodesList(anime)
             .awaitSingleOrNull { _episodesRefreshing.update { false } }
         networkEpisodes?.let {
-            updateAnimeInteractor.awaitEpisodesSyncFromSource(anime, networkEpisodes)
+            updateAnimeInteractor.awaitEpisodesSyncFromSource(anime, networkEpisodes,source,manualFetch)
             _episodesRefreshing.update { false }
         }
     }
@@ -110,7 +110,7 @@ class DetailsViewModel(
             _detailsRefreshing.update { true }
             val anime = animeWithEpisodesInteractor.awaitAnime(animeId)
             fetchAnimeDetailsFromSource(anime)
-            fetchEpisodesFromSource(anime)
+            fetchEpisodesFromSource(anime,true)
         }
     }
 

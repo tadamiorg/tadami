@@ -31,7 +31,7 @@ fun SettingsScreen(
             TadaTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.settings_tab_title),
+                        text = stringResource(id = R.string.label_more),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },

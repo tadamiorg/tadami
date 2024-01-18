@@ -13,6 +13,7 @@ import com.sf.tadami.navigation.graphs.history.historyNavGraph
 import com.sf.tadami.navigation.graphs.library.libraryNavGraph
 import com.sf.tadami.navigation.graphs.settings.settingsNavGraph
 import com.sf.tadami.navigation.graphs.sources.sourcesNavGraph
+import com.sf.tadami.navigation.graphs.updates.updatesNavGraph
 
 @Composable
 fun HomeNavGraph(
@@ -37,6 +38,11 @@ fun HomeNavGraph(
             bottomNavDisplay = bottomNavDisplay,
             librarySheetVisible = librarySheetVisible,
             showLibrarySheet = showLibrarySheet
+        )
+
+        updatesNavGraph(
+            navController = navController,
+            tabsNavPadding = tabsNavPadding
         )
 
         historyNavGraph(
@@ -67,6 +73,9 @@ sealed class HomeNavItems(val route: String, @StringRes val name: Int, @Drawable
     data object Library :
         HomeNavItems("library", R.string.library_tab_title, R.drawable.anim_video_library_enter)
 
+    data object Updates :
+        HomeNavItems("updates", R.string.label_recent_updates, R.drawable.anim_updates_enter)
+
     data object History :
         HomeNavItems("history", R.string.label_history, R.drawable.anim_history_enter)
 
@@ -74,6 +83,6 @@ sealed class HomeNavItems(val route: String, @StringRes val name: Int, @Drawable
         HomeNavItems("anime_sources", R.string.sources_tab_title, R.drawable.anim_sources_enter)
 
     data object Settings :
-        HomeNavItems("settings", R.string.settings_tab_title, R.drawable.anim_settings_enter)
+        HomeNavItems("settings", R.string.label_more, R.drawable.anim_settings_enter)
 }
 

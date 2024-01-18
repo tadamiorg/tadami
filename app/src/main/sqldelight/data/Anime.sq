@@ -17,7 +17,8 @@ CREATE TABLE Anime (
   calculate_interval INTEGER DEFAULT 0 NOT NULL,
   favorite INTEGER AS Boolean NOT NULL DEFAULT 0,
   initialized INTEGER AS Boolean NOT NULL DEFAULT 0,
-  episode_flags INTEGER NOT NULL
+  episode_flags INTEGER NOT NULL,
+  date_added INTEGER NOT NULL
 );
 
 CREATE INDEX animes_favorite_index ON Anime(favorite) WHERE favorite = 1;
@@ -42,8 +43,8 @@ DELETE FROM Anime
 WHERE _id IN :animeId;
 
 insert:
-INSERT INTO Anime(source, url, title, thumbnail_url, release, status, description, genres, last_update,next_update,calculate_interval,favorite, initialized,episode_flags)
-VALUES (:source,:url,:title,:thumbnailUrl,:release,:status,:description,:genres,:lastUpdate,:nextUpdate,:calculateInterval,:favorite,:initiliazed,:episodeFlags);
+INSERT INTO Anime(source, url, title, thumbnail_url, release, status, description, genres, last_update,next_update,calculate_interval,favorite, initialized,episode_flags,date_added)
+VALUES (:source,:url,:title,:thumbnailUrl,:release,:status,:description,:genres,:lastUpdate,:nextUpdate,:calculateInterval,:favorite,:initiliazed,:episodeFlags,:dateAdded);
 
 update:
 UPDATE Anime
@@ -60,7 +61,8 @@ SET source = coalesce(:source, source),
     calculate_interval = coalesce(:calculateInterval, calculate_interval),
     favorite = coalesce(:favorite, favorite),
     initialized = coalesce(:initialized, initialized),
-    episode_flags = coalesce(:episodeFlags, episode_flags)
+    episode_flags = coalesce(:episodeFlags, episode_flags),
+    date_added = coalesce(:dateAdded, date_added)
 WHERE _id = :animeId;
 
 getFavorites:

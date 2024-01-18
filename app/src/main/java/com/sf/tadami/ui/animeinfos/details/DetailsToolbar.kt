@@ -3,8 +3,9 @@ package com.sf.tadami.ui.animeinfos.details
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -76,12 +77,12 @@ fun DetailsToolbar(
         navigationIcon = {
             IconButton(onClick = onBackClicked) {
                 Icon(
-                    imageVector = Icons.Outlined.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = null,
                 )
             }
         },
-        colors = TopAppBarDefaults.smallTopAppBarColors(
+        colors = topAppBarColors(
             containerColor = MaterialTheme.colorScheme
                 .surfaceColorAtElevation(3.dp)
                 .copy(alpha = animatedBgAlpha),

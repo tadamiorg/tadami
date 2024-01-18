@@ -11,8 +11,10 @@ import com.sf.tadami.domain.episode.copyFromSEpisode
 import com.sf.tadami.domain.episode.toUpdateEpisode
 import com.sf.tadami.network.api.model.SAnime
 import com.sf.tadami.network.api.model.SEpisode
+import com.sf.tadami.network.api.online.Source
+import java.time.Instant
 import java.time.ZonedDateTime
-import java.util.Date
+import java.util.TreeSet
 
 class UpdateAnimeInteractor(
     private val animeRepository: AnimeRepository,
@@ -24,7 +26,11 @@ class UpdateAnimeInteractor(
         anime: Anime,
         favorite: Boolean
     ) {
-        animeRepository.updateAnime(UpdateAnime(id = anime.id, favorite = favorite))
+        val dateAdded = when (favorite) {
+            true -> Instant.now().toEpochMilli()
+            false -> 0
+        }
+        animeRepository.updateAnime(UpdateAnime(id = anime.id, favorite = favorite, dateAdded = dateAdded))
     }
 
     suspend fun updateLibrary(
@@ -76,70 +82,142 @@ class UpdateAnimeInteractor(
 
     suspend fun awaitEpisodesSyncFromSource(
         anime: Anime,
-        remoteEpisodes: List<SEpisode>
+        remoteEpisodes: List<SEpisode>,
+        source : Source,
+        manualFetch: Boolean = false,
+        fetchWindow: Pair<Long, Long> = Pair(0, 0),
     ): List<Episode> {
+        val now = ZonedDateTime.now()
+        val nowMillis = now.toInstant().toEpochMilli()
+
         val sourceEpisodes = remoteEpisodes
             .distinctBy { it.url }
             .mapIndexed { i, sEpisode ->
                 Episode.create()
                     .copyFromSEpisode(sEpisode)
+                    .copy(name = sEpisode.name)
                     .copy(animeId = anime.id, sourceOrder = i.toLong())
             }
 
-        val localEpisodes = episodeRepository.getEpisodesByAnimeId(anime.id)
+        val dbEpisodes = episodeRepository.getEpisodesByAnimeId(anime.id)
 
-        val episodesToAdd = mutableListOf<Episode>()
-
-        val episodesToUpdate = mutableListOf<Episode>()
-
-        val episodesToDelete = localEpisodes.filterNot { dbEpisode ->
-            sourceEpisodes.any {
-                dbEpisode.url == it.url
+        val newEpisodes = mutableListOf<Episode>()
+        val updatedEpisodes = mutableListOf<Episode>()
+        val removedEpisodes = dbEpisodes.filterNot { dbEpisode ->
+            sourceEpisodes.any { sourceEpisode ->
+                dbEpisode.url == sourceEpisode.url
             }
         }
 
-        val rightNow = Date().time
+        // Used to not set upload date of older chapters
+        // to a higher value than newer chapters
+        var maxSeenUploadDate = 0L
 
         for (sourceEpisode in sourceEpisodes) {
-            val dbEpisode = localEpisodes.find { it.url == sourceEpisode.url }
+            var episode = sourceEpisode
+
+            // Recognize chapter number for the chapter.
+            val episodeNumber = episode.episodeNumber
+            episode = episode.copy(episodeNumber = episodeNumber)
+
+            val dbEpisode = dbEpisodes.find { it.url == episode.url }
 
             if (dbEpisode == null) {
-                val toAddEpisode = if (sourceEpisode.dateUpload == 0L) {
-                    sourceEpisode.copy(dateFetch = rightNow)
+                val toAddEpisode = if (episode.dateUpload == 0L) {
+                    val altDateUpload = if (maxSeenUploadDate == 0L) nowMillis else maxSeenUploadDate
+                    episode.copy(dateUpload = altDateUpload)
                 } else {
-                    sourceEpisode.copy(dateFetch = rightNow, dateUpload = sourceEpisode.dateUpload)
+                    maxSeenUploadDate =
+                        java.lang.Long.max(maxSeenUploadDate, sourceEpisode.dateUpload)
+                    episode
                 }
-                episodesToAdd.add(toAddEpisode)
+                newEpisodes.add(toAddEpisode)
             } else {
-                var toUpdateEpisode = dbEpisode.copy(
-                    url = sourceEpisode.url,
-                    name = sourceEpisode.name,
-                    episodeNumber = sourceEpisode.episodeNumber,
-                    sourceOrder = sourceEpisode.sourceOrder
-                )
+                    var toChangeEpisode = dbEpisode.copy(
+                        name = episode.name,
+                        episodeNumber = episode.episodeNumber,
+                        languages = episode.languages,
+                        sourceOrder = episode.sourceOrder,
+                    )
+                    if (episode.dateUpload != 0L) {
+                        toChangeEpisode = toChangeEpisode.copy(dateUpload = episode.dateUpload)
+                    }
+                    updatedEpisodes.add(toChangeEpisode)
 
-                if (sourceEpisode.dateUpload != 0L) {
-                    toUpdateEpisode = toUpdateEpisode.copy(dateUpload = sourceEpisode.dateUpload)
-                }
-                episodesToUpdate.add(toUpdateEpisode)
             }
         }
 
-        if (episodesToDelete.isNotEmpty()) {
-            val toDeleteIds = episodesToDelete.map { it.id }
+        // Return if there's nothing to add, delete, or update to avoid unnecessary db transactions.
+        if (newEpisodes.isEmpty() && removedEpisodes.isEmpty() && updatedEpisodes.isEmpty()) {
+            if (manualFetch || anime.fetchInterval == 0 || anime.nextUpdate < fetchWindow.first) {
+                awaitUpdateFetchInterval(
+                    anime,
+                    now,
+                    fetchWindow,
+                )
+            }
+            return emptyList()
+        }
+
+        val reAdded = mutableListOf<Episode>()
+
+        val deletedEpisodeNumbers = TreeSet<Double>()
+        val deletedSeenEpisodeNumbers = TreeSet<Double>()
+
+        removedEpisodes.forEach { episode ->
+            if (episode.seen) deletedSeenEpisodeNumbers.add(episode.episodeNumber.toDouble())
+            deletedEpisodeNumbers.add(episode.episodeNumber.toDouble())
+        }
+
+        val deletedChapterNumberDateFetchMap = removedEpisodes.sortedByDescending { it.dateFetch }
+            .associate { it.episodeNumber to it.dateFetch }
+
+        // Date fetch is set in such a way that the upper ones will have bigger value than the lower ones
+        // Sources MUST return the chapters from most to less recent, which is common.
+        var itemCount = newEpisodes.size
+        var updatedToAdd = newEpisodes.map { toAddItem ->
+            var episode = toAddItem.copy(dateFetch = nowMillis + itemCount--)
+
+            if (episode.episodeNumber.toDouble() !in deletedEpisodeNumbers) return@map episode
+
+            episode = episode.copy(
+                seen = episode.episodeNumber.toDouble() in deletedSeenEpisodeNumbers,
+            )
+
+            // Try to to use the fetch date of the original entry to not pollute 'Updates' tab
+            deletedChapterNumberDateFetchMap[episode.episodeNumber]?.let {
+                episode = episode.copy(dateFetch = it)
+            }
+
+            reAdded.add(episode)
+
+            episode
+        }
+
+        if (removedEpisodes.isNotEmpty()) {
+            val toDeleteIds = removedEpisodes.map { it.id }
             episodeRepository.deleteEpisodesById(toDeleteIds)
         }
 
-        if (episodesToUpdate.isNotEmpty()) {
-            val toUpdateEpisodes = episodesToUpdate.map { it.toUpdateEpisode() }
-            episodeRepository.updateAll(toUpdateEpisodes)
+        if (updatedToAdd.isNotEmpty()) {
+            updatedToAdd = episodeRepository.addAll(updatedToAdd)
         }
 
-        if (episodesToAdd.isNotEmpty()) {
-            episodeRepository.addAll(episodesToAdd)
+        if (updatedEpisodes.isNotEmpty()) {
+            val episodeUpdates = updatedEpisodes.map { it.toUpdateEpisode() }
+            episodeRepository.updateAll(episodeUpdates)
         }
+        awaitUpdateFetchInterval(anime, now, fetchWindow)
 
-        return episodesToAdd
+        // Set this manga as updated since chapters were changed
+        // Note that last_update actually represents last time the chapter list changed at all
+        awaitUpdateLastUpdate(anime.id)
+
+        val reAddedUrls = reAdded.map { it.url }.toHashSet()
+
+        return updatedToAdd.filterNot {
+            it.url in reAddedUrls
+        }
     }
 
     suspend fun awaitSeenEpisodeTimeUpdate(
@@ -180,6 +258,10 @@ class UpdateAnimeInteractor(
                 timeSeen = 0
             )
         })
+    }
+
+    suspend fun awaitUpdateLastUpdate(animeId: Long): Boolean {
+        return animeRepository.updateAnime(UpdateAnime(id = animeId, lastUpdate = Instant.now().toEpochMilli()))
     }
 
 }

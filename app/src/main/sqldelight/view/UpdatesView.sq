@@ -1,0 +1,32 @@
+CREATE VIEW UpdatesView AS
+SELECT
+    Anime._id AS animeId,
+    Anime.title AS animeTitle,
+    Episode._id AS episodeId,
+    Episode.name AS episodeName,
+    Episode.seen,
+    Episode.time_seen,
+    Episode.total_time,
+    Anime.source,
+    Anime.favorite,
+    Anime.thumbnail_url AS thumbnailUrl,
+    Episode.date_upload AS dateUpload,
+    Episode.date_fetch AS dateFetch
+FROM Anime JOIN Episode
+ON Anime._id = Episode.anime_id
+WHERE favorite = 1
+AND date_fetch > date_added
+ORDER BY date_fetch DESC;
+
+getRecentUpdates:
+SELECT *
+FROM UpdatesView
+WHERE dateUpload > :after
+LIMIT :limit;
+
+getUpdatesBySeenStatus:
+SELECT *
+FROM UpdatesView
+WHERE seen = :seen
+AND dateUpload > :after
+LIMIT :limit;

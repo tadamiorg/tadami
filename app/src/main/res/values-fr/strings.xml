@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="settings_tab_title">Paramètres</string>
     <string name="library_tab_title">Bibliothèque</string>
     <string name="sources_tab_title">Sources</string>
     <string name="refresh">Rafraichir</string>
@@ -11,6 +10,7 @@
     <string name="request_bypass_cloudflare_failure">Impossible de contourner Cloudflare</string>
     <string name="discover_recents_screen_title">Récents</string>
     <string name="anime_sources_screen_recents_btn">Récents</string>
+    <string name="information_no_recent_episodes">Aucun épisodes récents</string>
     <plurals name="details_screen_episodes_number">
         <item quantity="one">%d episode</item>
         <item quantity="many">%d episodes</item>
@@ -32,31 +32,11 @@
     <string name="player_screen_source_load_error">La source %1$s n\'a pas pu charger</string>
     <string name="request_unknown_error">Erreur réseau : %1$s</string>
     <string name="default_string">Par défaut</string>
-    <string name="preferences_library_title">Bibliothèque</string>
-    <string name="preferences_library_columns">Elements par ligne</string>
+
     <string name="portrait">Portrait</string>
     <string name="landscape">Paysage</string>
-    <string name="preferences_library_category_display">Affichage</string>
-    <string name="preferences_library_category_updates">Mises à jour</string>
-    <string name="preferences_library_auto_updates">Mises à jour automatiques</string>
-    <string name="preferences_library_update_restrictions">Restrictions pour les mises à jour</string>
     <string name="none">Aucun</string>
-    <string name="preferences_library_auto_updates_disabled">Désactivé</string>
-    <string name="preferences_library_auto_updates_half_day">Toutes les 12 heures</string>
-    <string name="preferences_library_auto_updates_daily">Tous les jours</string>
-    <string name="preferences_library_auto_updates_weekly">Chaque semaine</string>
-    <string name="preferences_library_auto_updates_daily2">Tous les 2 jours</string>
-    <string name="preferences_library_auto_updates_daily3">Tous les 3 jours</string>
-    <string name="preferences_library_update_restrictions_wifionly">Uniquement en Wi-Fi</string>
-    <string name="preferences_library_update_restrictions_charge">Lors de la charge</string>
-    <string name="preferences_library_update_restrictions_battery">Quand la batterie n\'est pas faible</string>
-    <string name="preferences_library_update_restrictions_subtitle">Restrictions : %s</string>
-    <string name="settings_tab_library_preferences_title">Bibliothèque</string>
-    <string name="settings_tab_library_preferences_subtitle">"Affichage, mises à jour "</string>
-    <string name="settings_tab_library_backup_preferences_title">Sauvegarder et restaurer</string>
-    <string name="settings_tab_library_backup_preferences_subtitle">Sauvegardes manuelles et automatiques</string>
-    <string name="settings_tab_library_player_preferences_title">Lecteur vidéo</string>
-    <string name="settings_tab_library_player_preferences_subtitle">Configuration de la timeline</string>
+
     <string name="notification_library_updates_progress">Progression des mises à jour</string>
     <string name="notification_library_group">Bibliothèque</string>
     <string name="notification_updating_library">Mise à jour de la bibliothèque… (%1$d/%2$d)</string>
@@ -122,22 +102,6 @@
     <string name="details_screen_start_button">Commencer</string>
     <string name="details_screen_resume_button">Reprendre</string>
     <string name="unknown_error">Erreur inconnue</string>
-    <string name="preferences_backup_category_manual">Sauvegardes manuelles</string>
-    <string-array name="preferences_backup_create_fields">
-        <item>Entrées de la bibliothèque</item>
-        <item>Episodes</item>
-        <item>Préférences de l\'application</item>
-        <item>Historique</item>
-    </string-array>
-    <string name="preferences_backup_create_title">Créer une sauvegarde</string>
-    <string name="preferences_backup_create_subtitle">Peut être utilisé pour restaurer la bibliothèque actuelle</string>
-    <string name="preferences_backup_restore_subtitle">Restaurer la bibliothèque à partir d\'un fichier de sauvegarde</string>
-    <string name="preferences_backup_restore_title">Restaurer une sauvegarde</string>
-    <string name="preferences_backup_title">Sauvegarder et restaurer</string>
-    <string name="preferences_backup_category_auto">Sauvegardes automatiques</string>
-    <string name="preferences_backup_frequency">Fréquence de sauvegarde</string>
-    <string name="preferences_backup_directory">Dossier de sauvegarde</string>
-    <string name="preferences_backup_maxfiles">Nombre maximal de sauvegardes</string>
     <string name="notification_backup_group">Sauvegardes</string>
     <string name="notification_backup_complete">Status de la sauvegarde/restauration</string>
     <string name="notification_backup_progress">Progression de la sauvegarde/restauration</string>
@@ -213,13 +177,15 @@
     <string name="label_history">Historique</string>
     <string name="history_anime_time">Ep. %1$s - %2$s</string>
     <string name="information_no_recent_anime">Rien de vu récemment</string>
-    <!-- Dialog option with checkbox view -->
+
+    <!-- History Dialogs -->
     <string name="dialog_with_checkbox_remove_description">Cela supprimera la date de lecture de cet épisode. Êtes-vous sûr(e) \?</string>
     <string name="dialog_with_checkbox_reset">Réinitialiser tous les épisodes de cette entrée</string>
     <string name="clear_history_completed">Historique supprimé</string>
     <string name="action_remove_everything">Tout retirer</string>
     <string name="clear_history_confirmation">Êtes-vous sûr(e) \? Tout l\'historique sera effacé.</string>
     <string name="next_episode_not_found">Épisode suivant non trouvé</string>
+
     <!-- Themes names -->
     <string name="theme_midnightdusk">Crépuscule de minuit</string>
     <string name="theme_greenapple">Pomme verte</string>
@@ -234,9 +200,67 @@
     <string name="theme_tealturquoise">Bleu canard et turquoise</string>
     <string name="theme_tidalwave">Raz-de-marée</string>
     <string name="dark_theme_pure_black">Mode noir pur</string>
+
+    <!-- Preferences -->
+    <!-- Appearance prefs -->
+    <string name="pref_appearance_summary">Thème</string>
+
+    <!-- Library prefs-->
+    <string name="preferences_library_title">Bibliothèque</string>
+    <string name="preferences_library_columns">Elements par ligne</string>
+    <string name="preferences_library_category_display">Affichage</string>
+    <string name="preferences_library_category_updates">Mises à jour</string>
+    <string name="preferences_library_auto_updates">Mises à jour automatiques</string>
+    <string name="preferences_library_update_restrictions">Restrictions pour les mises à jour</string>
+    <string name="preferences_library_auto_updates_disabled">Désactivé</string>
+    <string name="preferences_library_auto_updates_half_day">Toutes les 12 heures</string>
+    <string name="preferences_library_auto_updates_daily">Tous les jours</string>
+    <string name="preferences_library_auto_updates_weekly">Chaque semaine</string>
+    <string name="preferences_library_auto_updates_daily2">Tous les 2 jours</string>
+    <string name="preferences_library_auto_updates_daily3">Tous les 3 jours</string>
+    <string name="preferences_library_update_restrictions_wifionly">Uniquement en Wi-Fi</string>
+    <string name="preferences_library_update_restrictions_charge">Lors de la charge</string>
+    <string name="preferences_library_update_restrictions_battery">Quand la batterie n\'est pas faible</string>
+    <string name="preferences_library_update_restrictions_subtitle">Restrictions : %s</string>
+
+    <!-- Backup prefs -->
+    <string name="preferences_backup_create_title">Créer une sauvegarde</string>
+    <string name="preferences_backup_create_subtitle">Peut être utilisé pour restaurer la bibliothèque actuelle</string>
+    <string name="preferences_backup_restore_subtitle">Restaurer la bibliothèque à partir d\'un fichier de sauvegarde</string>
+    <string name="preferences_backup_restore_title">Restaurer une sauvegarde</string>
+    <string name="preferences_backup_title">Sauvegarder et restaurer</string>
+    <string name="preferences_backup_category_auto">Sauvegardes automatiques</string>
+    <string name="preferences_backup_frequency">Fréquence de sauvegarde</string>
+    <string name="preferences_backup_directory">Dossier de sauvegarde</string>
+    <string name="preferences_backup_maxfiles">Nombre maximal de sauvegardes</string>
+    <string name="preferences_backup_category_manual">Sauvegardes manuelles</string>
+    <string-array name="preferences_backup_create_fields">
+        <item>Entrées de la bibliothèque</item>
+        <item>Episodes</item>
+        <item>Préférences de l\'application</item>
+        <item>Historique</item>
+    </string-array>
+
+    <!-- Settings -->
+    <string name="settings_tab_library_preferences_title">Bibliothèque</string>
+    <string name="settings_tab_library_preferences_subtitle">"Affichage, mises à jour "</string>
+    <string name="settings_tab_library_backup_preferences_title">Sauvegarder et restaurer</string>
+    <string name="settings_tab_library_backup_preferences_subtitle">Sauvegardes manuelles et automatiques</string>
+    <string name="settings_tab_library_player_preferences_title">Lecteur vidéo</string>
+    <string name="settings_tab_library_player_preferences_subtitle">Configuration de la timeline</string>
+
     <!-- Labels -->
     <string name="label_appearance">Apparence</string>
     <string name="label_theme">Thème</string>
+    <string name="label_recent_updates">Maj</string>
+    <string name="label_recent_updates_long">Mises à jour</string>
+    <string name="label_more">Plus</string>
+    <string name="label_settings">Paramètres</string>
 
-    <string name="pref_appearance_summary">Thème</string>
+    <!-- Updates -->
+    <string name="updates_last_update_info">Dernière mise à jour de la bibliothèque le : %s</string>
+    <string name="updates_last_update_info_just_now">À l\'instant</string>
+    <string name="relative_time_span_never">Jamais</string>
+
+
 </resources>

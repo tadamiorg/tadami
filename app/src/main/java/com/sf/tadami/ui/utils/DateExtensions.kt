@@ -1,11 +1,17 @@
 package com.sf.tadami.ui.utils
 
 import android.content.Context
+import android.text.format.DateUtils
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
 import java.text.DateFormat
+import java.time.Instant
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.time.Duration.Companion.minutes
 
 private const val MILLISECONDS_IN_DAY = 86_400_000L
 
@@ -61,4 +67,17 @@ fun Long.toDateKey(): Date {
 fun Date.toTimestampString(): String {
     val dateFormat = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
     return dateFormat.format(this)
+}
+
+@Composable
+@ReadOnlyComposable
+fun relativeTimeSpanString(epochMillis: Long): String {
+    val now = Instant.now().toEpochMilli()
+    return when {
+        epochMillis <= 0L -> stringResource(R.string.relative_time_span_never)
+        now - epochMillis < 1.minutes.inWholeMilliseconds -> stringResource(
+            R.string.updates_last_update_info_just_now,
+        )
+        else -> DateUtils.getRelativeTimeSpanString(epochMillis, now, DateUtils.MINUTE_IN_MILLIS).toString()
+    }
 }

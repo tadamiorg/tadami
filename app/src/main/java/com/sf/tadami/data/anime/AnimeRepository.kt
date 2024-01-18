@@ -69,7 +69,8 @@ class AnimeRepositoryImpl(
                 lastUpdate = anime.lastUpdate,
                 nextUpdate = anime.nextUpdate,
                 calculateInterval = anime.fetchInterval.toLong(),
-                episodeFlags = anime.episodeFlags
+                episodeFlags = anime.episodeFlags,
+                dateAdded = anime.dateAdded
             )
             animeQueries.selectLastInsertedRowId()
         }
@@ -92,12 +93,12 @@ class AnimeRepositoryImpl(
     }
 
     override fun getLibraryAnimesAsFlow(): Flow<List<LibraryAnime>> {
-        return handler.subscribeToList { libraryQueries.getLibrary(AnimeMapper::mapLibraryAnime) }
+        return handler.subscribeToList { libraryViewQueries.getLibrary(AnimeMapper::mapLibraryAnime) }
     }
 
     override suspend fun getLibraryAnimes(): List<LibraryAnime> {
         return handler.awaitList {
-            libraryQueries.getLibrary(AnimeMapper::mapLibraryAnime)
+            libraryViewQueries.getLibrary(AnimeMapper::mapLibraryAnime)
         }
     }
 
@@ -141,7 +142,8 @@ class AnimeRepositoryImpl(
                     calculateInterval = anime.fetchInterval?.toLong(),
                     nextUpdate = anime.nextUpdate,
                     lastUpdate = anime.lastUpdate,
-                    episodeFlags = anime.episodeFlags
+                    episodeFlags = anime.episodeFlags,
+                    dateAdded = anime.dateAdded
                 )
             }
             true
@@ -168,7 +170,8 @@ class AnimeRepositoryImpl(
                     calculateInterval = anime.fetchInterval?.toLong(),
                     nextUpdate = anime.nextUpdate,
                     lastUpdate = anime.lastUpdate,
-                    episodeFlags = anime.episodeFlags
+                    episodeFlags = anime.episodeFlags,
+                    dateAdded = anime.dateAdded
                 )
             }
         }

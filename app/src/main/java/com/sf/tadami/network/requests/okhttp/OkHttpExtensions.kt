@@ -17,6 +17,7 @@ import okio.buffer
 import okio.sink
 import java.io.File
 import java.io.OutputStream
+import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resumeWithException
 
 fun Call.asObservable(): Observable<Response> {
@@ -166,6 +167,10 @@ fun BufferedSource.saveTo(stream: OutputStream) {
             it.flush()
         }
     }
+}
+
+fun OkHttpClient.shortTimeOutBuilder(timeOut : Long = 5) : OkHttpClient{
+    return this.newBuilder().callTimeout(timeOut, TimeUnit.SECONDS).build()
 }
 
 

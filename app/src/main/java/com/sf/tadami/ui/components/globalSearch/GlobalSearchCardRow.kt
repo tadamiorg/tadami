@@ -20,8 +20,8 @@ fun GlobalSearchCardRow(
     onClick: (Anime) -> Unit,
 ) {
     LazyRow(
-        contentPadding = PaddingValues(MaterialTheme.padding.medium),
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
+        contentPadding = PaddingValues(MaterialTheme.padding.small),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.extraSmall),
     ) {
         items(titles) { title ->
             GlobalSearchCard(
@@ -40,7 +40,13 @@ private fun GlobalSearchCard(
     Box(modifier = Modifier.width(96.dp)) {
         AnimeGridItem(
             anime = anime,
-            onAnimeClicked = onClick
+            titleMaxLines = 2,
+            onClick = {
+                onClick(anime)
+            },
+            onLongClick = {
+                onClick(anime)
+            }
         )
     }
 }

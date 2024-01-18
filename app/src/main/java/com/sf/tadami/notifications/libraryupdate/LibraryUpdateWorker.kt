@@ -18,6 +18,7 @@ import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import com.sf.tadami.R
 import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
+import com.sf.tadami.data.interactors.anime.FetchIntervalInteractor
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.domain.anime.Anime
@@ -49,6 +50,7 @@ import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.File
+import java.time.ZonedDateTime
 import java.util.Date
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
@@ -66,9 +68,12 @@ class LibraryUpdateWorker(
     private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
     private val dataStore: DataStore<Preferences> = Injekt.get()
     private var animesToUpdate: List<LibraryAnime> = mutableListOf()
+    private val fetchIntervalInteractor: FetchIntervalInteractor = Injekt.get()
+    private val libraryPreferences = runBlocking {
+        dataStore.getPreferencesGroup(LibraryPreferences)
+    }
 
     override suspend fun doWork(): Result {
-        val libraryPreferences = dataStore.getPreferencesGroup(LibraryPreferences)
         if (tags.contains(WORK_NAME_AUTO)) {
             val restrictions = libraryPreferences.autoUpdateRestrictions
             if ((LibraryPreferences.AutoUpdateRestrictionItems.WIFI in restrictions) && !context.isConnectedToWifi()) {
@@ -125,7 +130,7 @@ class LibraryUpdateWorker(
 
         val skippedUpdates = mutableListOf<Pair<Anime, String?>>()
         animesToUpdate = listToUpdate.filter {
-            if (it.unseenEpisodes == 0L) return@filter true
+            if (it.unseenEpisodes <= 5L) return@filter true
             skippedUpdates.add(it.toAnime() to context.getString(R.string.notification_library_update_skipped_not_caught_up))
             false
         }
@@ -146,6 +151,7 @@ class LibraryUpdateWorker(
         val progressCount = AtomicInteger(0)
         val newUpdates = CopyOnWriteArrayList<Pair<Anime, Array<Episode>>>()
         val failedUpdates = CopyOnWriteArrayList<Pair<Anime, String?>>()
+        val fetchWindow = fetchIntervalInteractor.getWindow(ZonedDateTime.now())
         coroutineScope {
             animesToUpdate.groupBy { it.source }.values
                 .map { animeInSource ->
@@ -162,8 +168,18 @@ class LibraryUpdateWorker(
 
                                         try {
                                             val newEpisodes =
-                                                updateAnime(anime).sortedBy { it.sourceOrder }
+                                                updateAnime(
+                                                    anime,
+                                                    fetchWindow
+                                                ).sortedBy { it.sourceOrder }
                                             if (newEpisodes.isNotEmpty()) {
+                                                val newUpdatesCount = dataStore.getPreferencesGroup(LibraryPreferences).let {
+                                                    it.copy(newUpdatesCount = it.newUpdatesCount + newEpisodes.size)
+                                                }
+                                                dataStore.editPreferences(
+                                                    newValue = newUpdatesCount,
+                                                    preferences = LibraryPreferences
+                                                )
                                                 newUpdates.add(anime to newEpisodes.toTypedArray())
                                             }
                                         } catch (e: Throwable) {
@@ -215,14 +231,20 @@ class LibraryUpdateWorker(
         }
     }
 
-    private suspend fun updateAnime(anime: Anime): List<Episode> {
+    private suspend fun updateAnime(anime: Anime, fetchWindow: Pair<Long, Long>): List<Episode> {
         val source = sourcesManager.getExtensionById(anime.source)
-        if(source is StubSource) return emptyList()
+        if (source is StubSource) return emptyList()
         val episodes = source.fetchEpisodesList(anime).awaitSingleOrError()
         val dbAnime = animeWithEpisodesInteractor.awaitAnime(anime.id).takeIf { it.favorite }
             ?: return emptyList()
 
-        return updateAnimeInteractor.awaitEpisodesSyncFromSource(dbAnime, episodes)
+        return updateAnimeInteractor.awaitEpisodesSyncFromSource(
+            dbAnime,
+            episodes,
+            source,
+            false,
+            fetchWindow
+        )
     }
 
     private fun writeErrorFile(errors: List<Pair<Anime, String?>>): File {

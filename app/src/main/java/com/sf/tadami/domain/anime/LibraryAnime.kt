@@ -17,5 +17,6 @@ data class LibraryAnime(
     val nextUpdate: Long,
     val fetchInterval: Int,
     val unseenEpisodes: Long,
-    val episodeFlags : Long
+    val episodeFlags : Long,
+    val dateAdded : Long
 )

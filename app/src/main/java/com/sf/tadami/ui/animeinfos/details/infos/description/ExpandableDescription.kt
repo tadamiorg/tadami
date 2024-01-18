@@ -10,11 +10,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
 import com.sf.tadami.ui.utils.clickableNoIndication
 import com.sf.tadami.ui.utils.padding
 
 private val whitespaceLineRegex = Regex("[\\r\\n]{2,}", setOf(RegexOption.MULTILINE))
+private val defaultTagChipModifier = Modifier.padding(vertical = 4.dp)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -53,7 +55,8 @@ fun ExpandableAnimeDescription(
             ) {
                 FlowRow(
                     modifier = Modifier.padding(horizontal = MaterialTheme.padding.medium),
-                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.extraSmall)
+                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.extraSmall),
+
                 ) {
                     tags.forEach {
                         TagsChip(
@@ -75,6 +78,7 @@ private fun TagsChip(
 ) {
     CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
         SuggestionChip(
+            modifier = defaultTagChipModifier,
             onClick = onClick,
             label = { Text(text = text, style = MaterialTheme.typography.bodySmall) },
         )

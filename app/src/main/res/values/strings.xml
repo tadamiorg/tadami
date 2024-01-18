@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name" translatable="false">Tadami</string>
-    <string name="settings_tab_title">Settings</string>
     <string name="library_tab_title">Library</string>
     <string name="sources_tab_title">Sources</string>
     <string name="refresh">Refresh</string>
@@ -16,6 +15,7 @@
         <item quantity="many">%d episodes</item>
         <item quantity="other">%d episodes</item>
     </plurals>
+    <string name="information_no_recent_episodes">No new episodes</string>
     <!-- Strings used for fragments for navigation -->
     <string name="unknown_author">Unknown Auhtor</string>
     <string name="unknown_status">Unknown Status</string>
@@ -240,6 +240,16 @@
     <!-- Labels -->
     <string name="label_appearance">Appearance</string>
     <string name="label_theme">Theme</string>
+    <string name="label_recent_updates">Updates</string>
+    <string name="label_recent_updates_long">Updates</string>
+    <string name="label_more">More</string>
+    <string name="label_settings">Settings</string>
 
+    <!-- Updates -->
+    <string name="updates_last_update_info">Library last updated: %s</string>
+    <string name="updates_last_update_info_just_now">Just now</string>
+    <string name="relative_time_span_never">Never</string>
+
+    <!-- Appearance preferences -->
     <string name="pref_appearance_summary">Theme</string>
 </resources>
