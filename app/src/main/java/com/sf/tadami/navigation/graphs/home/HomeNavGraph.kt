@@ -42,7 +42,9 @@ fun HomeNavGraph(
 
         updatesNavGraph(
             navController = navController,
-            tabsNavPadding = tabsNavPadding
+            tabsNavPadding = tabsNavPadding,
+            setNavDisplay = setNavDisplay,
+            bottomNavDisplay = bottomNavDisplay,
         )
 
         historyNavGraph(

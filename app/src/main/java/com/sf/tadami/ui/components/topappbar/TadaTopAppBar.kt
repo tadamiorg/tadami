@@ -17,9 +17,7 @@ fun TadaTopAppBar(
     TopAppBar(
         modifier = modifier,
         title = {
-            ProvideTextStyle(value = MaterialTheme.typography.headlineSmall) {
-                title()
-            }
+            title()
         },
         colors = colors,
         navigationIcon = navigationIcon,

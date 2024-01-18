@@ -16,7 +16,7 @@ fun PreferenceCategory(title: String) {
         contentAlignment = Alignment.CenterStart,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = MaterialTheme.padding.extraSmall, top = MaterialTheme.padding.medium),
+            .padding(bottom = MaterialTheme.padding.extraSmall, top = MaterialTheme.padding.small),
     ) {
         Text(
             text = title,

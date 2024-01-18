@@ -32,7 +32,7 @@ fun PreferenceParser(
                         PreferenceItemParser(item = categoryPreference)
                     }
                     item {
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
 
                 }

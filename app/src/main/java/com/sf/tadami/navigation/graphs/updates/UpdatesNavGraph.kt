@@ -12,6 +12,8 @@ import com.sf.tadami.ui.tabs.updates.UpdatesScreen
 fun NavGraphBuilder.updatesNavGraph(
     navController: NavHostController,
     tabsNavPadding : PaddingValues,
+    bottomNavDisplay: Boolean,
+    setNavDisplay: (display: Boolean) -> Unit,
 ) {
 
     composable(
@@ -20,6 +22,8 @@ fun NavGraphBuilder.updatesNavGraph(
         UpdatesScreen(
             modifier = Modifier.padding(tabsNavPadding),
             navController = navController,
+            setNavDisplay = setNavDisplay,
+            bottomNavDisplay = bottomNavDisplay,
         )
     }
 
