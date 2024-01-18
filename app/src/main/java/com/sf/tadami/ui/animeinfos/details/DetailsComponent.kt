@@ -12,8 +12,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.ui.animeinfos.details.actions.AnimeActionRow
 import com.sf.tadami.ui.animeinfos.details.episodes.EpisodesHeader
@@ -112,9 +110,10 @@ fun DetailsComponent(
                     contentType = DetailsScreenItem.EPISODE_HEADER,
                 ) {
                     EpisodesHeader(
-                        episodesNumber = uiState.episodes.size,
+                        totalEpisodes = uiState.episodes.size,
                         isFiltered = uiState.details?.areEpisodesFiltered,
-                        onFilterClicked = onEpisodeFilterClicked
+                        onFilterClicked = onEpisodeFilterClicked,
+                        filteredEpisodes = episodes.size
                     )
                 }
 

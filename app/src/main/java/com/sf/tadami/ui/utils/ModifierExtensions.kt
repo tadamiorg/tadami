@@ -16,7 +16,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.LayoutModifier
 import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.MeasureResult
@@ -26,7 +25,6 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.*
 import kotlin.math.roundToInt
 
@@ -58,23 +56,22 @@ fun Modifier.clickableNoIndication(
     )
 }
 
-fun Modifier.selectedBackground(isSelected: Boolean): Modifier = composed {
-    if (isSelected) {
-        val alpha = 0.22f
-        background(MaterialTheme.colorScheme.secondary.copy(alpha = alpha))
-    } else {
-        this
+fun Modifier.selectedBackground(isSelected: Boolean): Modifier = if (isSelected) {
+    composed {
+        val alpha = if (isSystemInDarkTheme()) 0.16f else 0.22f
+        val color = MaterialTheme.colorScheme.secondary.copy(alpha = alpha)
+        Modifier.drawBehind {
+            drawRect(color)
+        }
     }
+} else {
+    this
 }
+fun Modifier.selectedOutline(
+    isSelected: Boolean,
+    color: Color,
+) = this then drawBehind { if (isSelected) drawRect(color = color) }
 
-fun Modifier.selectedBorderBackground(isSelected: Boolean): Modifier = composed {
-    if (isSelected) {
-        border(width = 4.dp, shape = RectangleShape, color = MaterialTheme.colorScheme.secondary)
-        background(MaterialTheme.colorScheme.secondary)
-    } else {
-        this
-    }
-}
 
 @Composable
 @ReadOnlyComposable

@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -30,6 +30,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -104,14 +105,14 @@ fun SearchScreen(
             topBar = {
                 SearchTopAppBar(
                     title = {
-                            Text(text = "${stringResource(id = R.string.discover_search_screen_title)} - ${searchViewModel.source.name}")
+                            Text(text = "${stringResource(id = R.string.discover_search_screen_title)} - ${searchViewModel.source.name}", overflow = TextOverflow.Ellipsis, maxLines = 1)
                     },
                     navigationIcon = {
                         IconButton(
                             onClick = { navController.navigateUp() }
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.ArrowBack,
+                                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                                 contentDescription = null,
                             )
                         }

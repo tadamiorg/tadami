@@ -22,8 +22,11 @@ import com.sf.tadami.data.interactors.history.RemoveHistoryInteractor
 import com.sf.tadami.data.interactors.history.UpdateHistoryInteractor
 import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.data.interactors.sources.GetSourcesWithNonLibraryAnime
+import com.sf.tadami.data.interactors.updates.GetUpdatesInteractor
 import com.sf.tadami.data.sources.SourceRepository
 import com.sf.tadami.data.sources.SourceRepositoryImpl
+import com.sf.tadami.data.updates.UpdatesRepository
+import com.sf.tadami.data.updates.UpdatesRepositoryImpl
 import com.sf.tadami.network.database.dateColumnAdapter
 import com.sf.tadami.network.database.listOfStringsAdapter
 import com.sf.tadami.network.requests.okhttp.HttpClient
@@ -104,6 +107,10 @@ class AppModule(private val app: Application) : InjektModule {
             HistoryRepositoryImpl(get())
         }
 
+        addSingletonFactory<UpdatesRepository>{
+            UpdatesRepositoryImpl(get())
+        }
+
         // Anime interactors
 
         addSingletonFactory {
@@ -151,6 +158,12 @@ class AppModule(private val app: Application) : InjektModule {
 
         addSingletonFactory {
             RemoveHistoryInteractor(get())
+        }
+
+        // Updates Interactors
+
+        addSingletonFactory {
+            GetUpdatesInteractor(get())
         }
 
         // HttpClient

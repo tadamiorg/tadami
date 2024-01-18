@@ -1,0 +1,46 @@
+-- Alter Anime table
+ALTER TABLE Anime
+ADD COLUMN date_added INTEGER NOT NULL DEFAULT 0;
+
+UPDATE Anime
+SET date_added = (
+    SELECT MIN(date_fetch)
+    FROM Anime A
+    INNER JOIN Episode EP
+    ON A._id = EP.anime_id
+    WHERE A.favorite = 1
+    GROUP BY A._id
+);
+
+-- Create the updates view
+DROP VIEW IF EXISTS UpdatesView;
+
+CREATE VIEW UpdatesView AS
+SELECT
+    Anime._id AS animeId,
+    Anime.title AS animeTitle,
+    Episode._id AS episodeId,
+    Episode.name AS episodeName,
+    Episode.seen,
+    Episode.time_seen,
+    Episode.total_time,
+    Anime.source,
+    Anime.favorite,
+    Anime.thumbnail_url AS thumbnailUrl,
+    Episode.date_upload AS dateUpload,
+    Episode.date_fetch AS dateFetch
+FROM Anime JOIN Episode
+ON Anime._id = Episode.anime_id
+WHERE favorite = 1
+AND date_fetch > date_added
+ORDER BY date_fetch DESC;
+
+-- Rename Library to LibraryView
+DROP VIEW IF EXISTS Library;
+
+CREATE VIEW LibraryView AS
+SELECT Anime.*,COUNT(*) AS episodes,TOTAL(Episode.seen = 0) AS unseen_episodes
+FROM Anime
+LEFT JOIN Episode ON Anime._id = Episode.anime_id
+WHERE Anime.favorite = 1
+GROUP BY Anime._id;

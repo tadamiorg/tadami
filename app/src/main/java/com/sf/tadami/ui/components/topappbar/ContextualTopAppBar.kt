@@ -7,6 +7,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.FlipToBack
 import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material3.*
+import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -24,7 +25,7 @@ fun ContextualTopAppBar(
     // Non Action Mode
     title: @Composable () -> Unit,
     navigationIcon: @Composable () -> Unit = {},
-    colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
+    colors: TopAppBarColors = topAppBarColors(),
     actions: List<Action> = emptyList(),
     // For Action Mode
     actionModeCounter: Int,

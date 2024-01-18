@@ -16,6 +16,7 @@ data class LibraryPreferences(
     val filterFlags: LibraryFilter,
     val sortFlags : LibrarySort,
     val lastUpdatedTimestamp : Long,
+    val newUpdatesCount : Int
 ) : CustomPreferencesIdentifier {
 
     object AutoUpdateRestrictionItems {
@@ -39,6 +40,7 @@ data class LibraryPreferences(
         private val AUTO_UPDATE_INTERVAL = intPreferencesKey("library_auto_update_interval")
         private val AUTO_UPDATE_RESTRICTIONS = stringSetPreferencesKey("library_auto_update_restrictions")
         private val LIBRARY_UPDATE_LAST_TIMESTAMP = longPreferencesKey(CustomPreferences.appStateKey("library_update_last_timestamp"))
+        private val NEW_UPDATES_COUNT = intPreferencesKey(CustomPreferences.appStateKey("library_unseen_updates_count"))
 
         // Flags
         private val FILTER_FLAGS = longPreferencesKey("library_filter_flags")
@@ -54,7 +56,8 @@ data class LibraryPreferences(
                 ),
                 filterFlags = LibraryFilter(flags = preferences[FILTER_FLAGS] ?: LibraryFilter.DEFAULT_FILTER),
                 sortFlags = LibrarySort(flags = preferences[SORT_FLAGS] ?: LibrarySort.DEFAULT_SORT),
-                lastUpdatedTimestamp = preferences[LIBRARY_UPDATE_LAST_TIMESTAMP] ?: 0L
+                lastUpdatedTimestamp = preferences[LIBRARY_UPDATE_LAST_TIMESTAMP] ?: 0L,
+                newUpdatesCount = preferences[NEW_UPDATES_COUNT] ?: 0
             )
         }
 
@@ -66,6 +69,7 @@ data class LibraryPreferences(
             preferences[FILTER_FLAGS] = newValue.filterFlags.flags
             preferences[SORT_FLAGS] = newValue.sortFlags.flags
             preferences[LIBRARY_UPDATE_LAST_TIMESTAMP] = newValue.lastUpdatedTimestamp
+            preferences[NEW_UPDATES_COUNT] = newValue.newUpdatesCount
         }
 
 

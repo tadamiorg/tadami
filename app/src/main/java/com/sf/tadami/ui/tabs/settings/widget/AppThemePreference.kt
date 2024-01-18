@@ -1,7 +1,6 @@
 package com.sf.tadami.ui.tabs.settings.widget
 
 import android.app.Activity
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable

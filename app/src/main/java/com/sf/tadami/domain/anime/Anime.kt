@@ -19,7 +19,8 @@ data class Anime(
     val nextUpdate: Long,
     val fetchInterval: Int,
     val initialized: Boolean,
-    val episodeFlags : Long
+    val episodeFlags : Long,
+    var dateAdded: Long
 ) {
     fun copyFrom(other: SAnime): Anime {
         return this.copy(
@@ -104,7 +105,8 @@ data class Anime(
             lastUpdate = 0L,
             nextUpdate = 0L,
             fetchInterval = 0,
-            episodeFlags = 0L
+            episodeFlags = 0L,
+            dateAdded = 0L
         )
     }
 }
@@ -139,7 +141,8 @@ fun LibraryAnime.toAnime(): Anime {
         fetchInterval = fetchInterval,
         lastUpdate = lastUpdate,
         nextUpdate = nextUpdate,
-        episodeFlags = episodeFlags
+        episodeFlags = episodeFlags,
+        dateAdded = dateAdded
     )
 }
 

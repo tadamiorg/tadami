@@ -78,8 +78,7 @@ internal fun AlertDialogContent(
                     .weight(1f, false)
             ) {
                 CompositionLocalProvider(LocalContentColor provides titleContentColor) {
-                    val textStyle = MaterialTheme.typography.headlineSmall
-                    ProvideTextStyle(textStyle) {
+                    ProvideTextStyle(MaterialTheme.typography.titleLarge) {
                         title()
                     }
                 }

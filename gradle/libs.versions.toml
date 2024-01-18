@@ -1,8 +1,7 @@
 [versions]
 coil-version = "2.4.0"
-exoplayer-version = "2.19.1"
 rxjava3-version = "3.1.5"
-jsoup-version="1.16.2"
+jsoup-version="1.17.2"
 okhttp-version = "5.0.0-alpha.11"
 sqldelight-version = "2.0.0"
 markdown-parser-version = "0.3.2"
@@ -14,13 +13,6 @@ http4k-bom-version = "4.42.1.0"
 coil-bom = { module = "io.coil-kt:coil-bom", version.ref = "coil-version" }
 coil = { group = "io.coil-kt",name="coil"}
 coil-compose = { group = "io.coil-kt",name="coil-compose"}
-
-# Exoplayer
-exoplayer = { group = "com.google.android.exoplayer",name="exoplayer",version.ref="exoplayer-version"}
-exoplayer-dash = { group = "com.google.android.exoplayer",name="exoplayer-dash",version.ref="exoplayer-version"}
-exoplayer-hls = { group = "com.google.android.exoplayer",name="exoplayer-hls",version.ref="exoplayer-version"}
-exoplayer-smoothstreaming = { group = "com.google.android.exoplayer",name="exoplayer-smoothstreaming",version.ref="exoplayer-version"}
-exoplayer-rtsp = { group = "com.google.android.exoplayer",name="exoplayer-rtsp",version.ref="exoplayer-version"}
 
 # RXJAVA3
 rxjava3 = { group = "io.reactivex.rxjava3",name="rxjava",version="3.1.8"}
@@ -36,7 +28,7 @@ injekt = "com.github.inorichi.injekt:injekt-core:65b0440"
 okhttp = {group="com.squareup.okhttp3",name="okhttp",version.ref="okhttp-version"}
 okhttp-logging-interceptor = {group="com.squareup.okhttp3",name="logging-interceptor",version.ref="okhttp-version"}
 okhttp-dnsoverhttps = {group="com.squareup.okhttp3",name="okhttp-dnsoverhttps",version.ref="okhttp-version"}
-okio = "com.squareup.okio:okio:3.6.0"
+okio = "com.squareup.okio:okio:3.7.0"
 
 # SQLDelight
 sqldelight-android-driver = {group="app.cash.sqldelight",name="android-driver",version.ref="sqldelight-version"}
@@ -64,7 +56,6 @@ unifile = "com.github.tachiyomiorg:unifile:17bec43"
 
 [bundles]
 coil = ["coil","coil-compose"]
-exoplayer = ["exoplayer","exoplayer-dash","exoplayer-hls","exoplayer-smoothstreaming","exoplayer-rtsp"]
 rxjava = ["rxjava3","rxjava3-rxandroid"]
 okhttp = ["okhttp","okhttp-logging-interceptor","okhttp-dnsoverhttps","okio"]
 sqldelight = ["sqldelight-android-driver","sqldelight-coroutines-extensions","sqlite"]

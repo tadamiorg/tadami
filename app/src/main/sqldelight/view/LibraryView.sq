@@ -1,4 +1,4 @@
-CREATE VIEW Library AS
+CREATE VIEW LibraryView AS
 SELECT Anime.*,COUNT(*) AS episodes,TOTAL(Episode.seen = 0) AS unseen_episodes
 FROM Anime
 LEFT JOIN Episode ON Anime._id = Episode.anime_id
@@ -6,4 +6,4 @@ WHERE Anime.favorite = 1
 GROUP BY Anime._id;
 
 getLibrary:
-SELECT * FROM Library;
+SELECT * FROM LibraryView;

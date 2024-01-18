@@ -3,13 +3,12 @@ package com.sf.tadami.ui.discover.globalSearch
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowForward
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -87,7 +86,10 @@ fun GlobalSearchResultItem(
     Column {
         Row(
             modifier = Modifier
-                .padding(PaddingValues(MaterialTheme.padding.medium))
+                .padding(
+                    start = MaterialTheme.padding.medium,
+                    end = MaterialTheme.padding.extraSmall,
+                )
                 .fillMaxWidth()
                 .clickable(onClick = onClick),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -96,12 +98,12 @@ fun GlobalSearchResultItem(
             Column {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium,
                 )
-                Text(text = subtitle, style = MaterialTheme.typography.labelMedium)
+                Text(text = subtitle)
             }
             IconButton(onClick = onClick) {
-                Icon(imageVector = Icons.Outlined.ArrowForward, contentDescription = null)
+                Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null)
             }
         }
         content()

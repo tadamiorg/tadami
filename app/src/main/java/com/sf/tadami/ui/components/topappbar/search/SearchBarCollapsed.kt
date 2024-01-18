@@ -29,9 +29,7 @@ fun SearchBarCollapsed(
     TopAppBar(
         colors = colors,
         title = {
-            ProvideTextStyle(value = MaterialTheme.typography.headlineSmall) {
-                title()
-            }
+            title()
         },
         actions = {
             searchActions.forEach { action ->

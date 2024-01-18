@@ -24,6 +24,7 @@ import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.components.widgets.ContentLoader
+import com.sf.tadami.ui.tabs.library.badges.UnseenBadge
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
 import com.sf.tadami.ui.utils.CommonAnimeItemDefaults
@@ -198,12 +199,14 @@ fun LibraryAnimeGrid(
                     modifier = Modifier.animateItemPlacement(),
                     isSelected = libraryItem.selected,
                     anime = libraryItem.anime.toAnime(),
-                    unseenBadge = libraryItem.anime.unseenEpisodes,
                     onClick = {
                         onAnimeClicked(libraryItem)
                     },
                     onLongClick = {
                         onAnimeLongClicked(libraryItem)
+                    },
+                    coverBadgeStart = {
+                        UnseenBadge(count = libraryItem.anime.unseenEpisodes)
                     }
                 )
             }

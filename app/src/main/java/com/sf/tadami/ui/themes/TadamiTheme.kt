@@ -34,9 +34,7 @@ fun TadamiTheme(
 ) {
     MaterialTheme(
         colorScheme = getThemeColorScheme(appTheme, isDark,amoled),
-        content = content,
-        typography = Typography,
-        shapes = Shapes
+        content = content
     )
 }
 

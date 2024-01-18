@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import com.sf.tadami.R
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.ActionItem
@@ -94,8 +95,7 @@ fun SearchBarExpanded(
                 onValueChange = { newText ->
                     onSearchChange(newText)
                 },
-                textStyle = MaterialTheme.typography.headlineSmall,
-                placeholder = { Text(text = stringResource(id = R.string.discover_search_screen_search_placeholder)) },
+                placeholder = { Text(text = stringResource(id = R.string.discover_search_screen_search_placeholder), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 singleLine = true,
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = Color.Transparent,
