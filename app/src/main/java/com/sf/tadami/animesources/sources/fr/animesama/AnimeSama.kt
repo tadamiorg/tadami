@@ -293,7 +293,7 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
             .asCancelableObservable()
             .flatMap { response ->
                 val document = response.asJsoup()
-                val episodeScriptRequest = GET(baseUrl + anime.url + "/episodes.js", headers)
+                val episodeScriptRequest = GET(baseUrl + anime.url + "/episodes.js?", headers)
                 client.newCall(episodeScriptRequest)
                     .asCancelableObservable()
                     .map { res ->
@@ -390,7 +390,7 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
 
     override fun episodeRequest(url: String): Request {
         episodeNumber = url.substringAfter("?number=").toInt()
-        return GET(baseUrl + url.substringBeforeLast("?")  +"/episodes.js", headers)
+        return GET(baseUrl + url.substringBeforeLast("?")  +"/episodes.js?", headers)
     }
 
     override fun List<StreamSource>.sort(): List<StreamSource> {

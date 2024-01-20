@@ -71,14 +71,6 @@ fun UpdatesScreen(
                     ),
                     Action.CastButton()
                 ),
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = null,
-                        )
-                    }
-                },
                 actionModeCounter = uiState.selected.size,
                 onCloseActionModeClicked = { updatesViewModel.toggleAllSelectedItems(false) },
                 onToggleAll = { updatesViewModel.toggleAllSelectedItems(true) },
