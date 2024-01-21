@@ -1,6 +1,7 @@
 package com.sf.tadami.animesources.sources.fr.animesama
 
 import android.text.Html
+import android.util.Log
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.animesources.extractors.SendvidExtractor
@@ -293,7 +294,8 @@ class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeS
             .asCancelableObservable()
             .flatMap { response ->
                 val document = response.asJsoup()
-                val episodeScriptRequest = GET(baseUrl + anime.url + "/episodes.js?", headers)
+                val episodesUrl = document.selectFirst("#sousBlocMilieu")?.selectFirst("script")?.attr("src")?.takeIf { it.contains("episodes.js") } ?: "episodes.js"
+                val episodeScriptRequest = GET(baseUrl + anime.url + "/$episodesUrl", headers)
                 client.newCall(episodeScriptRequest)
                     .asCancelableObservable()
                     .map { res ->
