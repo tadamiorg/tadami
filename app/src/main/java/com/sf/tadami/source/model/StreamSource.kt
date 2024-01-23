@@ -1,4 +1,4 @@
-package com.sf.tadami.network.api.model
+package com.sf.tadami.source.model
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable

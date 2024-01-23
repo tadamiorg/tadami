@@ -1,4 +1,4 @@
-package com.sf.tadami.network.requests.okhttp
+package com.sf.tadami.network
 
 import com.sf.tadami.network.interceptors.UserAgentInterceptor
 import com.sf.tadami.notifications.utils.okhttp.ProgressListener
@@ -15,6 +15,8 @@ import okio.BufferedSource
 import okio.IOException
 import okio.buffer
 import okio.sink
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import java.io.File
 import java.io.OutputStream
 import java.util.concurrent.TimeUnit
@@ -91,7 +93,7 @@ fun OkHttpClient.newCachelessCallWithProgress(request: Request, listener: Progre
 
 fun OkHttpClient.Builder.setUserAgent(
     userAgent: String?,
-    client : HttpClient
+    client : NetworkHelper
 ) = apply {
     interceptors().add(0, UserAgentInterceptor(userAgent ?: client.advancedPreferences.userAgent))
 }
@@ -171,6 +173,10 @@ fun BufferedSource.saveTo(stream: OutputStream) {
 
 fun OkHttpClient.shortTimeOutBuilder(timeOut : Long = 5) : OkHttpClient{
     return this.newBuilder().callTimeout(timeOut, TimeUnit.SECONDS).build()
+}
+
+fun Response.asJsoup(html: String? = null): Document {
+    return Jsoup.parse(html ?: body.string(), request.url.toString())
 }
 
 

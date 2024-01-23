@@ -1,9 +1,9 @@
 package com.sf.tadami.animesources.sources.en.gogoanime.extractors
 
 import android.util.Base64
-import com.sf.tadami.network.api.model.StreamSource
-import com.sf.tadami.network.requests.okhttp.GET
-import com.sf.tadami.network.requests.utils.asJsoup
+import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.network.GET
+import com.sf.tadami.network.asJsoup
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject

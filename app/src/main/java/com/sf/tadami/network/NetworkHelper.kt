@@ -1,11 +1,10 @@
-package com.sf.tadami.network.requests.okhttp
+package com.sf.tadami.network
 
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.network.interceptors.CloudflareInterceptor
 import com.sf.tadami.network.interceptors.UserAgentInterceptor
-import com.sf.tadami.network.requests.utils.AndroidCookieJar
 import com.sf.tadami.ui.tabs.settings.screens.advanced.AdvancedPreferences
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.runBlocking
@@ -16,7 +15,7 @@ import uy.kohesive.injekt.api.get
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-class HttpClient(private val context : Context) {
+class NetworkHelper(private val context : Context) {
 
     private val cacheDir = File(context.cacheDir, "network_cache")
 

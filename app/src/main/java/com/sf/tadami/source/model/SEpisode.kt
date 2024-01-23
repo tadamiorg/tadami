@@ -1,4 +1,4 @@
-package com.sf.tadami.network.api.model
+package com.sf.tadami.source.model
 
 interface SEpisode {
     var url : String
@@ -8,7 +8,7 @@ interface SEpisode {
     var languages: String?
 
     companion object{
-        fun create() : SEpisode{
+        fun create() : SEpisode {
             return SEpisodeImpl()
         }
     }

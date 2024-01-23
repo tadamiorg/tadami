@@ -21,7 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
-import com.sf.tadami.network.api.model.StreamSource
+import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 import com.sf.tadami.ui.components.dialog.simple.SimpleDialog

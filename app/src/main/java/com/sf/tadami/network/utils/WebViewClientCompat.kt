@@ -1,4 +1,4 @@
-package com.sf.tadami.network.requests.utils
+package com.sf.tadami.network.utils
 
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest

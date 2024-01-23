@@ -1,7 +1,7 @@
 package com.sf.tadami.domain.anime
 
 import androidx.compose.ui.state.ToggleableState
-import com.sf.tadami.network.api.model.SAnime
+import com.sf.tadami.source.model.SAnime
 import data.Anime as AnimeDb
 
 data class Anime(

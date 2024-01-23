@@ -27,9 +27,9 @@ import com.sf.tadami.data.sources.SourceRepository
 import com.sf.tadami.data.sources.SourceRepositoryImpl
 import com.sf.tadami.data.updates.UpdatesRepository
 import com.sf.tadami.data.updates.UpdatesRepositoryImpl
-import com.sf.tadami.network.database.dateColumnAdapter
-import com.sf.tadami.network.database.listOfStringsAdapter
-import com.sf.tadami.network.requests.okhttp.HttpClient
+import com.sf.tadami.data.dateColumnAdapter
+import com.sf.tadami.data.listOfStringsAdapter
+import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import data.Anime
 import data.History
@@ -168,7 +168,7 @@ class AppModule(private val app: Application) : InjektModule {
 
         // HttpClient
 
-        addSingletonFactory { HttpClient(app) }
+        addSingletonFactory { NetworkHelper(app) }
 
         addSingletonFactory {
             Json {
@@ -179,7 +179,7 @@ class AppModule(private val app: Application) : InjektModule {
 
         // Asynchronously init expensive components for a faster cold start
         ContextCompat.getMainExecutor(app).execute {
-            get<HttpClient>()
+            get<NetworkHelper>()
             get<AnimeSourcesManager>()
             get<Database>()
         }

@@ -1,7 +1,7 @@
 package com.sf.tadami.animesources.sources.en.gogoanime.filters
 
-import com.sf.tadami.network.api.model.AnimeFilter
-import com.sf.tadami.network.api.model.AnimeFilterList
+import com.sf.tadami.source.model.AnimeFilter
+import com.sf.tadami.source.model.AnimeFilterList
 
 object GogoAnimeFilters {
     open class QueryPartFilter(

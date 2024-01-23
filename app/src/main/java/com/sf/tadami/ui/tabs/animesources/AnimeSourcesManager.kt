@@ -3,8 +3,8 @@ package com.sf.tadami.ui.tabs.animesources
 import com.sf.tadami.animesources.sources.en.gogoanime.GogoAnime
 import com.sf.tadami.animesources.sources.fr.animesama.AnimeSama
 import com.sf.tadami.animesources.sources.fr.vostfree.VostFree
-import com.sf.tadami.network.api.online.AnimeCatalogueSource
-import com.sf.tadami.network.api.online.StubSource
+import com.sf.tadami.source.online.AnimeCatalogueSource
+import com.sf.tadami.source.online.StubSource
 
 class AnimeSourcesManager {
 
@@ -14,7 +14,7 @@ class AnimeSourcesManager {
         VostFree()
     )
 
-    val animeExtensions : Map<String,AnimeCatalogueSource> = extensions.associateBy { it.id }
+    val animeExtensions : Map<String, AnimeCatalogueSource> = extensions.associateBy { it.id }
 
     fun getExtensionsByLanguage() : Map<String, MutableList<AnimeCatalogueSource>> = animeExtensions.values
         .fold(mutableMapOf()) { langMap, animeSource ->

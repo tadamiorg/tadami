@@ -1,4 +1,4 @@
-package com.sf.tadami.network.api.model
+package com.sf.tadami.source.model
 
 interface SAnime{
     var url : String
@@ -11,7 +11,7 @@ interface SAnime{
     var initialized: Boolean
 
     companion object{
-        fun create() : SAnimeImpl {
+        fun create() : SAnime {
             return SAnimeImpl()
         }
     }

@@ -1,4 +1,4 @@
-package com.sf.tadami.network.requests.okhttp
+package com.sf.tadami.network
 
 import okhttp3.CacheControl
 import okhttp3.FormBody

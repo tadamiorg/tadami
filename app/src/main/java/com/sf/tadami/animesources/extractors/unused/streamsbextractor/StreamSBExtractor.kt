@@ -3,8 +3,8 @@ package com.sf.tadami.animesources.extractors.unused.streamsbextractor
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.animesources.extractors.ExtractorsPreferences
-import com.sf.tadami.network.api.model.StreamSource
-import com.sf.tadami.network.requests.okhttp.GET
+import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.network.GET
 import com.sf.tadami.utils.editPreferences
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.runBlocking

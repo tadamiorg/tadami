@@ -46,8 +46,8 @@ import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.data.interactors.sources.GetSourcesWithNonLibraryAnime
 import com.sf.tadami.data.sources.SourceWithCount
-import com.sf.tadami.network.api.online.AnimeCatalogueSource
-import com.sf.tadami.network.api.online.StubSource
+import com.sf.tadami.source.online.AnimeCatalogueSource
+import com.sf.tadami.source.online.StubSource
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton

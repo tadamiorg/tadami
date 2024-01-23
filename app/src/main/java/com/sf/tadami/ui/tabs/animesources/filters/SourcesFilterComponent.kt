@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import com.sf.tadami.network.api.online.AnimeCatalogueSource
+import com.sf.tadami.source.online.AnimeCatalogueSource
 import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
 import com.sf.tadami.ui.tabs.animesources.filters.components.SourcesFilterHeader
 import com.sf.tadami.ui.tabs.animesources.filters.components.SourcesFilterItem

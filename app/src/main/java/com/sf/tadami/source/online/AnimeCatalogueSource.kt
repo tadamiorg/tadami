@@ -1,6 +1,6 @@
-package com.sf.tadami.network.api.online
+package com.sf.tadami.source.online
 
-import com.sf.tadami.network.api.model.AnimeFilterList
+import com.sf.tadami.source.model.AnimeFilterList
 import com.sf.tadami.utils.Lang
 import io.reactivex.rxjava3.core.Observable
 

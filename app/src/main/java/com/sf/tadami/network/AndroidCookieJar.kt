@@ -1,4 +1,4 @@
-package com.sf.tadami.network.requests.utils
+package com.sf.tadami.network
 
 import android.webkit.CookieManager
 import okhttp3.Cookie

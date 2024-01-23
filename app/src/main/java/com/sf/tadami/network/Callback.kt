@@ -1,4 +1,4 @@
-package com.sf.tadami.network.requests.okhttp
+package com.sf.tadami.network
 
 interface Callback<T> {
     fun onData(data: T?){

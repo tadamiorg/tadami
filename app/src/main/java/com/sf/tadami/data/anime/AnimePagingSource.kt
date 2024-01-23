@@ -2,10 +2,10 @@ package com.sf.tadami.data.anime
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.sf.tadami.network.api.model.AnimeFilterList
-import com.sf.tadami.network.api.model.SAnime
-import com.sf.tadami.network.api.online.AnimeCatalogueSource
-import com.sf.tadami.network.api.online.AnimesPage
+import com.sf.tadami.source.model.AnimeFilterList
+import com.sf.tadami.source.model.SAnime
+import com.sf.tadami.source.online.AnimeCatalogueSource
+import com.sf.tadami.source.online.AnimesPage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.rx3.await
 import kotlinx.coroutines.withContext

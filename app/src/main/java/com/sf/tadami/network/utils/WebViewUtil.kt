@@ -1,4 +1,4 @@
-package com.sf.tadami.network.requests.utils
+package com.sf.tadami.network.utils
 
 import android.annotation.SuppressLint
 import android.content.Context

@@ -3,7 +3,7 @@ package com.sf.tadami.ui.tabs.animesources.filters.components
 import androidx.compose.material3.Checkbox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.sf.tadami.network.api.online.Source
+import com.sf.tadami.source.online.Source
 
 @Composable
 fun SourcesFilterItem(

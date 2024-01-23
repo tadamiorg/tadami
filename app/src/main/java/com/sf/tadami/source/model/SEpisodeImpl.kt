@@ -1,4 +1,4 @@
-package com.sf.tadami.network.api.model
+package com.sf.tadami.source.model
 
 class SEpisodeImpl : SEpisode {
     override lateinit var url: String

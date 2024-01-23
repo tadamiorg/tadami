@@ -1,4 +1,4 @@
-package com.sf.tadami.network.database
+package com.sf.tadami.data
 
 import app.cash.sqldelight.ColumnAdapter
 import java.util.Date

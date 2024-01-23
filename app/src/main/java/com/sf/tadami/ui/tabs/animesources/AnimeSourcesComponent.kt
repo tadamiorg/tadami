@@ -18,7 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
 import com.sf.tadami.navigation.graphs.sources.SourcesRoutes
-import com.sf.tadami.network.api.online.AnimeCatalogueSource
+import com.sf.tadami.source.online.AnimeCatalogueSource
 import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
 import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.utils.padding

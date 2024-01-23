@@ -1,7 +1,7 @@
 package com.sf.tadami.data.sources
 
 import com.sf.tadami.data.DataBaseHandler
-import com.sf.tadami.network.api.online.AnimeCatalogueSource
+import com.sf.tadami.source.online.AnimeCatalogueSource
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

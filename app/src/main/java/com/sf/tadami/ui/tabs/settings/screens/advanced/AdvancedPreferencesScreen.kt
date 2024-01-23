@@ -23,8 +23,8 @@ import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
-import com.sf.tadami.network.requests.okhttp.HttpClient
-import com.sf.tadami.network.requests.utils.setDefaultSettings
+import com.sf.tadami.network.NetworkHelper
+import com.sf.tadami.network.utils.setDefaultSettings
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.ui.tabs.settings.model.DataStoreState
 import com.sf.tadami.ui.tabs.settings.model.Preference
@@ -104,7 +104,7 @@ class AdvancedPreferencesScreen(
         advancedPreferencesState: DataStoreState<AdvancedPreferences>
     ): Preference.PreferenceCategory {
         val context = LocalContext.current
-        val networkHelper = remember { Injekt.get<HttpClient>() }
+        val networkHelper = remember { Injekt.get<NetworkHelper>() }
         return Preference.PreferenceCategory(
             title = stringResource(id = R.string.category_network),
             preferenceItems = listOf(
@@ -157,11 +157,11 @@ class AdvancedPreferencesScreen(
                 ),
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(R.string.pref_reset_user_agent_string),
-                    enabled = remember(advancedPreferences.userAgent) { advancedPreferences.userAgent != HttpClient.DEFAULT_USER_AGENT },
+                    enabled = remember(advancedPreferences.userAgent) { advancedPreferences.userAgent != NetworkHelper.DEFAULT_USER_AGENT },
                     onClick = {
                         advancedPreferencesState.setValue(
                             advancedPreferences.copy(
-                                userAgent = HttpClient.DEFAULT_USER_AGENT
+                                userAgent = NetworkHelper.DEFAULT_USER_AGENT
                             )
                         )
                         UiToasts.showToast(R.string.requires_app_restart)

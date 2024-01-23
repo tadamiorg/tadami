@@ -17,10 +17,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.sf.tadami.R
-import com.sf.tadami.network.api.online.AnimeHttpSource
-import com.sf.tadami.network.api.online.StubSource
-import com.sf.tadami.network.requests.okhttp.HttpClient
-import com.sf.tadami.network.requests.utils.WebViewUtil
+import com.sf.tadami.source.AnimeHttpSource
+import com.sf.tadami.source.online.StubSource
+import com.sf.tadami.network.NetworkHelper
+import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.tadami.ui.themes.TadamiTheme
 import com.sf.tadami.ui.utils.UiToasts
@@ -34,7 +34,7 @@ import java.nio.charset.StandardCharsets
 class WebViewActivity : AppCompatActivity() {
 
     private val sourceManager: AnimeSourcesManager by injectLazy()
-    private val network: HttpClient by injectLazy()
+    private val network: NetworkHelper by injectLazy()
 
     private var assistUrl: String? = null
 

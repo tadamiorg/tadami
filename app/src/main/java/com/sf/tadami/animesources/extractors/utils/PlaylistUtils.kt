@@ -1,8 +1,8 @@
 package com.sf.tadami.animesources.extractors.utils
 
-import com.sf.tadami.network.api.model.StreamSource
-import com.sf.tadami.network.requests.okhttp.GET
-import com.sf.tadami.network.requests.utils.asJsoup
+import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.network.GET
+import com.sf.tadami.network.asJsoup
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient

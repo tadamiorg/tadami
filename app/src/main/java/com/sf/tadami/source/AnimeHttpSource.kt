@@ -1,13 +1,15 @@
-package com.sf.tadami.network.api.online
+package com.sf.tadami.source
 
 import com.sf.tadami.domain.anime.Anime
-import com.sf.tadami.network.api.model.AnimeFilterList
-import com.sf.tadami.network.api.model.SAnime
-import com.sf.tadami.network.api.model.SEpisode
-import com.sf.tadami.network.api.model.StreamSource
-import com.sf.tadami.network.requests.okhttp.GET
-import com.sf.tadami.network.requests.okhttp.HttpClient
-import com.sf.tadami.network.requests.okhttp.asCancelableObservable
+import com.sf.tadami.source.model.AnimeFilterList
+import com.sf.tadami.source.model.SAnime
+import com.sf.tadami.source.model.SEpisode
+import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.source.online.AnimeCatalogueSource
+import com.sf.tadami.source.online.AnimesPage
+import com.sf.tadami.network.GET
+import com.sf.tadami.network.NetworkHelper
+import com.sf.tadami.network.asCancelableObservable
 import io.reactivex.rxjava3.core.Observable
 import okhttp3.Headers
 import okhttp3.OkHttpClient
@@ -19,7 +21,7 @@ import java.net.URISyntaxException
 
 abstract class AnimeHttpSource : AnimeCatalogueSource {
 
-    protected val network: HttpClient by injectLazy()
+    protected val network: NetworkHelper by injectLazy()
 
     abstract val baseUrl: String
 
@@ -33,7 +35,7 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
     }
 
     // Search
-    protected abstract fun searchAnimeRequest(page: Int,query: String,filters : AnimeFilterList,noToasts : Boolean): Request
+    protected abstract fun searchAnimeRequest(page: Int, query: String, filters : AnimeFilterList, noToasts : Boolean): Request
     protected abstract fun searchAnimeParse(response: Response): AnimesPage
 
     override fun fetchSearch(page: Int, query : String, filters: AnimeFilterList, noToasts : Boolean): Observable<AnimesPage> {

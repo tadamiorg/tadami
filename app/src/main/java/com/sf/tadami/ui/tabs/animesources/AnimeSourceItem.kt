@@ -18,8 +18,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sf.tadami.R
-import com.sf.tadami.network.api.online.AnimeCatalogueSource
-import com.sf.tadami.network.api.online.ConfigurableParsedHttpAnimeSource
+import com.sf.tadami.source.online.AnimeCatalogueSource
+import com.sf.tadami.source.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.ui.utils.ImageDefaults.CoverPlaceholderColor
 import com.sf.tadami.ui.utils.capFirstLetter
 import com.sf.tadami.ui.utils.padding

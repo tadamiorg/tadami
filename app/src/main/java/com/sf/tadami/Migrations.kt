@@ -10,7 +10,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
-import com.sf.tadami.network.api.online.ConfigurableParsedHttpAnimeSource
+import com.sf.tadami.source.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager

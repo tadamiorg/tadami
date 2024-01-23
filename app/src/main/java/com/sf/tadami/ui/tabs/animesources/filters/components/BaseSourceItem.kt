@@ -21,7 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.sf.tadami.network.api.online.Source
+import com.sf.tadami.source.online.Source
 import com.sf.tadami.ui.utils.ImageDefaults
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.secondaryItemAlpha

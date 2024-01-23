@@ -9,15 +9,15 @@ import com.sf.tadami.animesources.extractors.SibnetExtractor
 import com.sf.tadami.animesources.extractors.UqloadExtractor
 import com.sf.tadami.animesources.extractors.VoeExtractor
 import com.sf.tadami.animesources.sources.fr.vostfree.extractors.VudeoExtractor
-import com.sf.tadami.network.api.model.AnimeFilter
-import com.sf.tadami.network.api.model.AnimeFilterList
-import com.sf.tadami.network.api.model.SAnime
-import com.sf.tadami.network.api.model.SEpisode
-import com.sf.tadami.network.api.model.StreamSource
-import com.sf.tadami.network.api.online.ConfigurableParsedHttpAnimeSource
-import com.sf.tadami.network.requests.okhttp.GET
-import com.sf.tadami.network.requests.okhttp.POST
-import com.sf.tadami.network.requests.utils.asJsoup
+import com.sf.tadami.source.model.AnimeFilter
+import com.sf.tadami.source.model.AnimeFilterList
+import com.sf.tadami.source.model.SAnime
+import com.sf.tadami.source.model.SEpisode
+import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.source.ConfigurableParsedHttpAnimeSource
+import com.sf.tadami.network.GET
+import com.sf.tadami.network.POST
+import com.sf.tadami.network.asJsoup
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.parallelMap
@@ -69,7 +69,7 @@ class VostFree : ConfigurableParsedHttpAnimeSource<VostFreePreferences>(VostFree
 
     override fun searchSelector(): String = "div.search-result, div.movie-poster"
 
-    override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList,noToasts : Boolean): Request {
+    override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList, noToasts : Boolean): Request {
 
         val genreFilter = filters.find { it is GenreList } as GenreList
         val typeFilter = filters.find { it is TypeList } as TypeList

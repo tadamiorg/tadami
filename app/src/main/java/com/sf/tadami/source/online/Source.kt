@@ -1,9 +1,9 @@
-package com.sf.tadami.network.api.online
+package com.sf.tadami.source.online
 
 import com.sf.tadami.domain.anime.Anime
-import com.sf.tadami.network.api.model.SAnime
-import com.sf.tadami.network.api.model.SEpisode
-import com.sf.tadami.network.api.model.StreamSource
+import com.sf.tadami.source.model.SAnime
+import com.sf.tadami.source.model.SEpisode
+import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.utils.Lang
 import io.reactivex.rxjava3.core.Observable
 

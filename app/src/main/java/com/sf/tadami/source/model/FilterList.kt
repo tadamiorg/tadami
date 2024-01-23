@@ -1,4 +1,4 @@
-package com.sf.tadami.network.api.model
+package com.sf.tadami.source.model
 
 /*data class AnimeFilterList(private val list: MutableList<AnimeFilter<*>>) : MutableList<AnimeFilter<*>> by list {
 

@@ -1,9 +1,9 @@
-package com.sf.tadami.network.requests.utils
+package com.sf.tadami.network.utils
 
 import com.sf.tadami.App
 import com.sf.tadami.R
-import com.sf.tadami.network.api.online.StubSource
-import com.sf.tadami.network.requests.okhttp.HttpError
+import com.sf.tadami.source.online.StubSource
+import com.sf.tadami.network.HttpError
 import com.sf.tadami.ui.utils.UiToasts
 import io.reactivex.rxjava3.functions.Consumer
 import kotlinx.coroutines.Dispatchers

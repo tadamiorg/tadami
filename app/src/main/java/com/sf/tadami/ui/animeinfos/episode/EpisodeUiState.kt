@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode
 
-import com.sf.tadami.network.api.model.StreamSource
+import com.sf.tadami.source.model.StreamSource
 
 data class EpisodeUiState (
     val rawUrl : String? = null,

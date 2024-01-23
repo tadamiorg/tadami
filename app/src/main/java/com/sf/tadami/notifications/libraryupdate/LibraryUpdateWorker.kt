@@ -25,7 +25,7 @@ import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.domain.episode.Episode
-import com.sf.tadami.network.api.online.StubSource
+import com.sf.tadami.source.online.StubSource
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
 import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences

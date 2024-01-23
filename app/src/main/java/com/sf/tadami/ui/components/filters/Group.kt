@@ -30,7 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
-import com.sf.tadami.network.api.model.AnimeFilter
+import com.sf.tadami.source.model.AnimeFilter
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 import com.sf.tadami.ui.utils.capFirstLetter
