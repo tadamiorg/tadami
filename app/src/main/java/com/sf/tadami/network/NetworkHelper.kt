@@ -5,7 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.network.interceptors.CloudflareInterceptor
 import com.sf.tadami.network.interceptors.UserAgentInterceptor
-import com.sf.tadami.ui.tabs.settings.screens.advanced.AdvancedPreferences
+import com.sf.tadami.preferences.advanced.AdvancedPreferences
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.runBlocking
 import okhttp3.Cache

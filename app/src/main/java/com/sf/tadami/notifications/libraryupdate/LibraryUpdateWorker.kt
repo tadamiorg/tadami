@@ -28,7 +28,7 @@ import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.source.online.StubSource
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
-import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
+import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.ui.utils.awaitSingleOrError
 import com.sf.tadami.ui.utils.getUriCompat
 import com.sf.tadami.utils.createFileInCacheDir
@@ -173,7 +173,9 @@ class LibraryUpdateWorker(
                                                     fetchWindow
                                                 ).sortedBy { it.sourceOrder }
                                             if (newEpisodes.isNotEmpty()) {
-                                                val newUpdatesCount = dataStore.getPreferencesGroup(LibraryPreferences).let {
+                                                val newUpdatesCount = dataStore.getPreferencesGroup(
+                                                    LibraryPreferences
+                                                ).let {
                                                     it.copy(newUpdatesCount = it.newUpdatesCount + newEpisodes.size)
                                                 }
                                                 dataStore.editPreferences(

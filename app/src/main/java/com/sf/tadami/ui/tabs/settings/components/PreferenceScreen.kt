@@ -13,7 +13,7 @@ import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.R
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.ActionItem
-import com.sf.tadami.ui.tabs.settings.model.Preference
+import com.sf.tadami.preferences.model.Preference
 
 interface PreferenceScreen {
 

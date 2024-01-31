@@ -27,10 +27,10 @@ import com.sf.tadami.notifications.cast.CastProxyService
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
-import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
-import com.sf.tadami.ui.tabs.settings.screens.backup.BackupPreferences
-import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
-import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferences
+import com.sf.tadami.preferences.sources.SourcesPreferences
+import com.sf.tadami.preferences.backup.BackupPreferences
+import com.sf.tadami.preferences.library.LibraryPreferences
+import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.themes.TadamiTheme
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers

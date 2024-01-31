@@ -18,8 +18,8 @@ import com.sf.tadami.data.interactors.history.GetHistoryInteractor
 import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.notifications.backup.BackupFileValidator
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
-import com.sf.tadami.ui.tabs.settings.screens.backup.BackupPreferences
+import com.sf.tadami.preferences.model.CustomPreferences
+import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.ui.tabs.settings.screens.backup.BackupSerializer
 import com.sf.tadami.utils.getDataStoreValues
 import com.sf.tadami.utils.getPreferencesGroup

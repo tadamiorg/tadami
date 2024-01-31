@@ -33,7 +33,7 @@ class DetailsViewModel(
     private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
 
     private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
-    private val sourceId: String = checkNotNull(savedStateHandle["sourceId"])
+    private val sourceId: Long = checkNotNull(savedStateHandle["sourceId"])
 
     val source = sourcesManager.getExtensionById(sourceId)
 

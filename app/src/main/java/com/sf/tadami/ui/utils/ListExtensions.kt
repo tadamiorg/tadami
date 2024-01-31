@@ -1,5 +1,7 @@
 package com.sf.tadami.ui.utils
 
+import java.io.Closeable
+
 fun <T : R, R : Any> List<T>.insertSeparators(
     generator: (T?, T?) -> R?,
 ): List<R> {
@@ -13,4 +15,25 @@ fun <T : R, R : Any> List<T>.insertSeparators(
         separator?.let { newList.add(it) }
     }
     return newList
+}
+
+inline fun <T : Closeable?> Array<T>.use(block: () -> Unit) {
+    var blockException: Throwable? = null
+    try {
+        return block()
+    } catch (e: Throwable) {
+        blockException = e
+        throw e
+    } finally {
+        when (blockException) {
+            null -> forEach { it?.close() }
+            else -> forEach {
+                try {
+                    it?.close()
+                } catch (closeException: Throwable) {
+                    blockException.addSuppressed(closeException)
+                }
+            }
+        }
+    }
 }

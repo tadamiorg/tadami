@@ -1,7 +1,7 @@
 package com.sf.tadami.ui.tabs.library.bottomsheet
 
 import com.sf.tadami.ui.components.data.LibraryItem
-import com.sf.tadami.ui.tabs.settings.screens.library.LibrarySort
+import com.sf.tadami.preferences.library.LibrarySort
 
 fun sortComparator(sort: LibrarySort): (LibraryItem, LibraryItem) -> Int {
     return when (sort.sortType) {

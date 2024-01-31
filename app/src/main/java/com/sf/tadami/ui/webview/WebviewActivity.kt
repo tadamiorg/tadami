@@ -52,7 +52,7 @@ class WebViewActivity : AppCompatActivity() {
         assistUrl = url
 
         var headers = emptyMap<String, String>()
-        (sourceManager.getExtensionById(intent.extras!!.getString(SOURCE_KEY)).takeIf { it !is StubSource } as AnimeHttpSource?)?.let { source ->
+        (sourceManager.getExtensionById(intent.extras!!.getLong(SOURCE_KEY)).takeIf { it !is StubSource } as AnimeHttpSource?)?.let { source ->
             try {
                 headers = source.headers.toMultimap().mapValues { it.value.getOrNull(0) ?: "" }
                 url = source.baseUrl + url

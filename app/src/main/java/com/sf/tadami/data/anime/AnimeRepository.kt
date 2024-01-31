@@ -27,9 +27,9 @@ interface AnimeRepository {
 
     fun getAnimeByIdAsFlow(id: Long): Flow<Anime>
 
-    suspend fun getAnimeBySourceAndUrl(source: String, url: String): Anime?
+    suspend fun getAnimeBySourceAndUrl(source: Long, url: String): Anime?
 
-    fun getAnimeByUrlAndSourceIdAsFlow(sourceId: String, url: String): Flow<Anime?>
+    fun getAnimeByUrlAndSourceIdAsFlow(sourceId: Long, url: String): Flow<Anime?>
 
     suspend fun updateAnime(anime: UpdateAnime) : Boolean
 
@@ -37,10 +37,10 @@ interface AnimeRepository {
 
     suspend fun deleteAnimesById(ids: List<Long>)
 
-    fun getLatestPager(sourceId: String): Flow<PagingData<SAnime>>
+    fun getLatestPager(sourceId: Long): Flow<PagingData<SAnime>>
 
     fun getSearchPager(
-        sourceId: String,
+        sourceId: Long,
         query: String,
         filters: AnimeFilterList
     ): Flow<PagingData<SAnime>>
@@ -102,11 +102,11 @@ class AnimeRepositoryImpl(
         }
     }
 
-    override suspend fun getAnimeBySourceAndUrl(source: String, url: String): Anime? {
+    override suspend fun getAnimeBySourceAndUrl(source: Long, url: String): Anime? {
         return handler.awaitOneOrNull { animeQueries.getBySourceAndUrl(url, source, AnimeMapper::mapAnime) }
     }
 
-    override fun getAnimeByUrlAndSourceIdAsFlow(sourceId: String, url: String): Flow<Anime?> {
+    override fun getAnimeByUrlAndSourceIdAsFlow(sourceId: Long, url: String): Flow<Anime?> {
         return handler.subscribeToOneOrNull {
             animeQueries.getBySourceAndUrl(
                 url,
@@ -181,7 +181,7 @@ class AnimeRepositoryImpl(
         return handler.await { animeQueries.delete(ids) }
     }
 
-    override fun getLatestPager(sourceId: String): Flow<PagingData<SAnime>> {
+    override fun getLatestPager(sourceId: Long): Flow<PagingData<SAnime>> {
         val source = sourceManager.getExtensionById(sourceId)
         return Pager(
             config = PagingConfig(
@@ -194,7 +194,7 @@ class AnimeRepositoryImpl(
     }
 
     override fun getSearchPager(
-        sourceId: String,
+        sourceId: Long,
         query: String,
         filters: AnimeFilterList
     ): Flow<PagingData<SAnime>> {

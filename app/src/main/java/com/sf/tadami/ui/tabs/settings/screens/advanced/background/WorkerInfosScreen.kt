@@ -30,7 +30,7 @@ import androidx.work.WorkQuery
 import com.sf.tadami.R
 import com.sf.tadami.ui.components.topappbar.ActionItem
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
-import com.sf.tadami.ui.tabs.settings.model.Preference
+import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.utils.formatDate
 import com.sf.tadami.ui.utils.plus
 import kotlinx.coroutines.flow.SharingStarted

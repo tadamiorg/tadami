@@ -8,7 +8,7 @@ import com.sf.tadami.utils.Lang
 import io.reactivex.rxjava3.core.Observable
 
 interface Source {
-    val id: String
+    val id: Long
 
     val name: String
 

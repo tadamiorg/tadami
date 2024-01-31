@@ -8,7 +8,7 @@ data class HistoryWithRelations(
     val animeId: Long,
     val title: String,
     val episodeNumber: Double,
-    val source : String,
+    val source : Long,
     val seenAt: Date?,
     val thumbnailUrl: String?,
 )

@@ -3,8 +3,8 @@ package com.sf.tadami.utils
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferencesIdentifier
+import com.sf.tadami.preferences.model.CustomPreferences
+import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 

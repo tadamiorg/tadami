@@ -9,7 +9,7 @@ import com.sf.tadami.domain.anime.toDomainAnime
 import com.sf.tadami.source.online.AnimeCatalogueSource
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchItemResult
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
-import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
+import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.ui.utils.awaitSingleOrError
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
@@ -37,7 +37,7 @@ class GlobalSearchViewModel() : ViewModel() {
     }
 
     private val filteredExtensions = sourcesManager.animeExtensions.filter { (_,source) ->
-        source.lang.name in sourcesPrefs.enabledLanguages && source.id !in sourcesPrefs.hiddenSources
+        source.lang.name in sourcesPrefs.enabledLanguages && source.id !in sourcesPrefs.hiddenSources.map { it.toLong() }
     }
 
     private val loadingItems = filteredExtensions.map { (_, source) -> source }.associateWith { GlobalSearchItemResult.Loading }

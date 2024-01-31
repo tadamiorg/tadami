@@ -32,7 +32,7 @@ import org.jsoup.nodes.Element
 
 class AnimeSama : ConfigurableParsedHttpAnimeSource<AnimeSamaPreferences>(AnimeSamaPreferences) {
 
-    override val id: String = "AnimeSama"
+    override val id: Long = 6
 
     override val name: String = "AnimeSama"
 

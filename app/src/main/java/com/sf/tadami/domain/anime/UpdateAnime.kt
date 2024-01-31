@@ -2,7 +2,7 @@ package com.sf.tadami.domain.anime
 
 data class UpdateAnime(
     val id : Long,
-    val source: String? = null,
+    val source: Long? = null,
     val url: String? = null,
     val title: String? = null,
     val thumbnailUrl: String? = null,

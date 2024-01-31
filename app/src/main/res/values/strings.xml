@@ -252,4 +252,14 @@
 
     <!-- Appearance preferences -->
     <string name="pref_appearance_summary">Theme</string>
+
+    <!-- Extensions -->
+    <string name="ext_install_service_notif">Installing extension…</string>
+    <string name="notification_extensions_group">Extensions</string>
+    <string name="channel_ext_updates">Extension updates</string>
+    <string name="extension_api_error">Failed to fetch available extensions</string>
+    <plurals name="update_check_notification_ext_updates">
+        <item quantity="one">Extension update available</item>
+        <item quantity="other">%d extension updates available</item>
+    </plurals>
 </resources>

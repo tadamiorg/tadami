@@ -30,12 +30,12 @@ fun NavGraphBuilder.sourcesNavGraph(
     composable(
         route = "${SourcesRoutes.SETTINGS}/{sourceId}",
         arguments = listOf(
-            navArgument("sourceId") { type = NavType.StringType }
+            navArgument("sourceId") { type = NavType.LongType }
         )
     ) {
         val sourcesManager: AnimeSourcesManager = Injekt.get()
         val source =
-            sourcesManager.getExtensionById(it.arguments?.getString("sourceId")) as ConfigurableParsedHttpAnimeSource<*>
+            sourcesManager.getExtensionById(it.arguments?.getLong("sourceId")) as ConfigurableParsedHttpAnimeSource<*>
         source.getPreferenceScreen(navController).Content()
     }
 }

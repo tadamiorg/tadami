@@ -27,7 +27,7 @@ class SearchViewModel(
     private val animeRepository: AnimeRepository = Injekt.get()
     private val sourcesManager: AnimeSourcesManager = Injekt.get()
 
-    private val sourceId: String = checkNotNull(stateHandle["sourceId"])
+    private val sourceId: Long = checkNotNull(stateHandle["sourceId"])
     val source by lazy {
         val s = sourcesManager.getExtensionById(sourceId)
         if(s is StubSource) throw Exception("Not installed : $sourceId")

@@ -19,8 +19,8 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.ui.components.material.AnimatedVectorDrawable
-import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
-import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
+import com.sf.tadami.preferences.model.rememberDataStoreState
+import com.sf.tadami.preferences.library.LibraryPreferences
 
 @Composable
 fun BottomNavBar(

@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.tabs.settings.screens.backup
+package com.sf.tadami.preferences.backup
 
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
@@ -6,8 +6,8 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sf.tadami.data.providers.AndroidFoldersProvider
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferencesIdentifier
+import com.sf.tadami.preferences.model.CustomPreferences
+import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 

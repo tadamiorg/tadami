@@ -262,5 +262,14 @@
     <string name="updates_last_update_info_just_now">À l\'instant</string>
     <string name="relative_time_span_never">Jamais</string>
 
-
+    <!-- Extensions -->
+    <string name="ext_install_service_notif">Installation de l\'extension…</string>
+    <string name="notification_extensions_group">Extensions</string>
+    <string name="channel_ext_updates">Mises à jour d\'extensions</string>
+    <string name="extension_api_error">Aucune extension trouvée</string>
+    <plurals name="update_check_notification_ext_updates">
+        <item quantity="one">Mise à jour d\'extension disponible</item>
+        <item quantity="many">%d mises à jour d\'extensions disponibles</item>
+        <item quantity="other">%d mises à jour d\'extensions disponibles</item>
+    </plurals>
 </resources>

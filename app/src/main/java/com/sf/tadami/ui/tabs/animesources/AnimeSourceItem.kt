@@ -32,7 +32,7 @@ fun AnimeSourceItem(
     source: AnimeCatalogueSource,
     onRecentClicked: () -> Unit,
     onSearchClicked: () -> Unit,
-    onOptionsClicked: (sourceId : String) -> Unit
+    onOptionsClicked: (sourceId : Long) -> Unit
 ) {
     val context = LocalContext.current
 

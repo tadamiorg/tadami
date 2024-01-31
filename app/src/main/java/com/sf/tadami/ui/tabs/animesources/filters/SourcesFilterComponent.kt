@@ -9,8 +9,8 @@ import com.sf.tadami.source.online.AnimeCatalogueSource
 import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
 import com.sf.tadami.ui.tabs.animesources.filters.components.SourcesFilterHeader
 import com.sf.tadami.ui.tabs.animesources.filters.components.SourcesFilterItem
-import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
-import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
+import com.sf.tadami.preferences.sources.SourcesPreferences
+import com.sf.tadami.preferences.model.rememberDataStoreState
 
 @Composable
 fun SourcesFilterComponent(
@@ -54,13 +54,13 @@ fun SourcesFilterComponent(
                 ) { source ->
                     SourcesFilterItem(
                         source = source,
-                        enabled = source.id !in sourcesPreferences.hiddenSources,
-                        onClickItem = {
-                            val isEnabled = it.id in sourcesPreferences.hiddenSources
+                        enabled = source.id !in sourcesPreferences.hiddenSources.map { it.toLong() },
+                        onClickItem = { source ->
+                            val isEnabled = source.id in sourcesPreferences.hiddenSources.map { it.toLong() }
                             sourcesPreferencesState.setValue(sourcesPreferences.let { old ->
                                 old.copy(
-                                    hiddenSources = if (isEnabled) old.hiddenSources.minus(it.id) else old.hiddenSources.plus(
-                                        it.id
+                                    hiddenSources = if (isEnabled) old.hiddenSources.minus(source.id.toString()) else old.hiddenSources.plus(
+                                        source.id.toString()
                                     )
                                 )
                             })

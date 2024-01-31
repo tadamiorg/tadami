@@ -19,6 +19,13 @@ enum class Lang(private val langRes : Int) {
                 it.name == name
             }
         }
+        fun valueOfOrDefault(value : String?) : Lang {
+            return try {
+                Lang.valueOf(value ?: "")
+            } catch (e: Exception){
+                UNKNOWN
+            }
+        }
         fun getAllLangs(): Set<Lang> {
             return enumValues<Lang>().filter { it != UNKNOWN }.toSet()
         }

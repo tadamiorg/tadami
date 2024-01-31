@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.tabs.settings.screens.library
+package com.sf.tadami.preferences.library
 
 import androidx.compose.ui.state.ToggleableState
 

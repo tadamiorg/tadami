@@ -17,7 +17,7 @@ import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
 import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
-import com.sf.tadami.ui.tabs.settings.model.Preference
+import com.sf.tadami.preferences.model.Preference
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

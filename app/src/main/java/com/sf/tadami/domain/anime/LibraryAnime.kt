@@ -2,7 +2,7 @@ package com.sf.tadami.domain.anime
 
 data class LibraryAnime(
     val id: Long,
-    val source: String,
+    val source: Long,
     val url: String,
     val title: String,
     val thumbnailUrl: String?,

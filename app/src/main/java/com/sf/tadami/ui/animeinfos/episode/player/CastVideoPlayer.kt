@@ -37,8 +37,8 @@ import com.sf.tadami.ui.animeinfos.episode.cast.isCastMediaFinished
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
 import com.sf.tadami.ui.animeinfos.episode.player.controls.QualityDialog
 import com.sf.tadami.ui.components.widgets.ContentLoader
-import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
-import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferences
+import com.sf.tadami.preferences.model.rememberDataStoreState
+import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.utils.ImageDefaults
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

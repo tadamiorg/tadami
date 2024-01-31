@@ -25,8 +25,8 @@ import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.tabs.library.badges.UnseenBadge
-import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
-import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
+import com.sf.tadami.preferences.model.rememberDataStoreState
+import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.ui.utils.CommonAnimeItemDefaults
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.plus

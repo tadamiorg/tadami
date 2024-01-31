@@ -6,7 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.runtime.Composable
-import com.sf.tadami.ui.tabs.settings.model.Preference
+import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.tabs.settings.widget.EditTextPreferenceWidget
 import com.sf.tadami.ui.tabs.settings.widget.MultiSelectPreference
 import com.sf.tadami.ui.tabs.settings.widget.SelectPreference

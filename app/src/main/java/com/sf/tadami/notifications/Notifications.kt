@@ -41,6 +41,12 @@ object Notifications {
     const val RESTORE_COMPLETE_ID=401
     const val BACKUP_COMPLETE_ID=403
 
+    // Extensions installs and updates
+    const val EXTENSIONS_GROUP= "extensions_group"
+    const val EXTENSIONS_UPDATES_CHANNEL = "ext_apk_update_channel"
+    const val EXTENSIONS_UPDATES_ID = 500
+    const val EXTENSIONS_INSTALLER_ID = 501
+
 
     fun setupNotificationsChannels(context: Context) {
         val notificationService = NotificationManagerCompat.from(context)
@@ -49,6 +55,9 @@ object Notifications {
             listOf(
                 NotificationChannelGroupCompat.Builder(APP_GROUP).apply {
                     setName(context.getString(R.string.notification_app_group))
+                }.build(),
+                NotificationChannelGroupCompat.Builder(EXTENSIONS_GROUP).apply {
+                    setName(context.getString(R.string.notification_extensions_group))
                 }.build(),
                 NotificationChannelGroupCompat.Builder(LIBRARY_GROUP).apply {
                     setName(context.getString(R.string.notification_library_group))
@@ -76,6 +85,16 @@ object Notifications {
             ).apply {
                 setGroup(APP_GROUP)
                 setName(context.getString(R.string.notification_app_update_success))
+            }.build()
+        )
+
+        val extensionsGroupChannels = listOf(
+            NotificationChannelCompat.Builder(
+                EXTENSIONS_UPDATES_CHANNEL,
+                NotificationManagerCompat.IMPORTANCE_DEFAULT
+            ).apply {
+                setGroup(EXTENSIONS_GROUP)
+                setName(context.getString(R.string.channel_ext_updates))
             }.build()
         )
 
@@ -140,6 +159,7 @@ object Notifications {
 
         notificationService.createNotificationChannelsCompat(
             appGroupChannels +
+                    extensionsGroupChannels +
                     libraryGroupChannels +
                     castChannels +
                     backupChannels

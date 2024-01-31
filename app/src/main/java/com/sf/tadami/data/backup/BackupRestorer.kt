@@ -65,7 +65,7 @@ class BackupRestorer(
     /**
      * Mapping of source ID to source name from backup data
      */
-    private var sourceMapping: Map<String, String> = emptyMap()
+    private var sourceMapping: Map<Long, String> = emptyMap()
 
     private val errors = mutableListOf<Pair<Date, String>>()
 
@@ -165,7 +165,7 @@ class BackupRestorer(
 
     }
 
-    private suspend fun getAnimeFromDatabase(url: String, source: String): AnimeDb? {
+    private suspend fun getAnimeFromDatabase(url: String, source: Long): AnimeDb? {
         return handler.awaitOneOrNull { animeQueries.getBySourceAndUrl(url, source) }
     }
 

@@ -14,7 +14,7 @@ fun NavGraphBuilder.animeInfosNavGraph(navController: NavHostController) {
     composable(
         route = "${AnimeInfosRoutes.DETAILS}/{sourceId}/{animeId}",
         arguments = listOf(
-            navArgument("sourceId") { type = NavType.StringType },
+            navArgument("sourceId") { type = NavType.LongType },
             navArgument("animeId") { type = NavType.LongType }
         )
     ) {
@@ -25,7 +25,7 @@ fun NavGraphBuilder.animeInfosNavGraph(navController: NavHostController) {
         this.activityClass = WebViewActivity::class
         argument("sourceId") {
             this.nullable = false
-            this.type = NavType.StringType
+            this.type = NavType.LongType
         }
         argument("title_key") {
             this.nullable = false
@@ -41,7 +41,7 @@ fun NavGraphBuilder.animeInfosNavGraph(navController: NavHostController) {
         this.activityClass = EpisodeActivity::class
         argument("sourceId") {
             this.nullable = false
-            this.type = NavType.StringType
+            this.type = NavType.LongType
         }
         argument("episode") {
             this.nullable = false

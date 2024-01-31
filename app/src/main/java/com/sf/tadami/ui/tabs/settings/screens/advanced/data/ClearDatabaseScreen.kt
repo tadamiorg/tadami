@@ -56,7 +56,7 @@ import com.sf.tadami.ui.components.grid.EmptyScreen
 import com.sf.tadami.ui.components.topappbar.ActionItem
 import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
-import com.sf.tadami.ui.tabs.settings.model.Preference
+import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.selectedBackground
 import kotlinx.coroutines.Dispatchers
@@ -268,7 +268,7 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
     }
 
     data class UiState(
-        val selection: List<String> = emptyList(),
+        val selection: List<Long> = emptyList(),
         val items: List<SourceWithCount> = emptyList(),
         val showConfirmation: Boolean = false
     )

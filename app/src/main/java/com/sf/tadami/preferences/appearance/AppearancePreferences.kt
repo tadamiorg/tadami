@@ -1,12 +1,12 @@
-package com.sf.tadami.ui.tabs.settings.screens.appearance
+package com.sf.tadami.preferences.appearance
 
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferencesIdentifier
+import com.sf.tadami.preferences.model.CustomPreferences
+import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
 import com.sf.tadami.ui.themes.AppTheme
 
 enum class ThemeMode {

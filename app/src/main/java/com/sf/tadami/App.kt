@@ -13,8 +13,8 @@ import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import coil.request.CachePolicy
 import com.sf.tadami.notifications.Notifications
-import com.sf.tadami.ui.tabs.settings.screens.appearance.AppearancePreferences
-import com.sf.tadami.ui.tabs.settings.screens.appearance.setAppCompatDelegateThemeMode
+import com.sf.tadami.preferences.appearance.AppearancePreferences
+import com.sf.tadami.preferences.appearance.setAppCompatDelegateThemeMode
 import com.sf.tadami.utils.animatorDurationScale
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers

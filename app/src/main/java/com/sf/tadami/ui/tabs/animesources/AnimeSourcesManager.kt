@@ -14,7 +14,7 @@ class AnimeSourcesManager {
         VostFree()
     )
 
-    val animeExtensions : Map<String, AnimeCatalogueSource> = extensions.associateBy { it.id }
+    val animeExtensions : Map<Long, AnimeCatalogueSource> = extensions.associateBy { it.id }
 
     fun getExtensionsByLanguage() : Map<String, MutableList<AnimeCatalogueSource>> = animeExtensions.values
         .fold(mutableMapOf()) { langMap, animeSource ->
@@ -22,7 +22,7 @@ class AnimeSourcesManager {
             langMap
         }
 
-    fun getExtensionById(id: String?): AnimeCatalogueSource {
-        return animeExtensions[id] ?: StubSource(id ?: "Unknown")
+    fun getExtensionById(id: Long?): AnimeCatalogueSource {
+        return animeExtensions[id] ?: StubSource(id ?: -1)
     }
 }

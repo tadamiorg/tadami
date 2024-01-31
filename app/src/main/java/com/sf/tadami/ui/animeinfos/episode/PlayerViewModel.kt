@@ -57,7 +57,7 @@ class PlayerViewModel(
     private val updateHistoryInteractor: UpdateHistoryInteractor = Injekt.get()
     private val sourcesManager: AnimeSourcesManager = Injekt.get()
 
-    private val sourceId: String = checkNotNull(savedStateHandle["sourceId"])
+    private val sourceId: Long = checkNotNull(savedStateHandle["sourceId"])
 
     private val _episodeId = SaveableMutableSaveStateFlow<Long>(
         savedStateHandle, "episode", checkNotNull(savedStateHandle["episode"])

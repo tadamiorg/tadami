@@ -19,8 +19,8 @@ import com.sf.tadami.ui.components.grid.EmptyScreen
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
 import com.sf.tadami.ui.components.widgets.PullRefresh
-import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
-import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
+import com.sf.tadami.preferences.model.rememberDataStoreState
+import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.ui.tabs.updates.components.updatesUiItems
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.relativeTimeSpanString

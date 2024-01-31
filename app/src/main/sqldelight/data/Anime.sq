@@ -4,7 +4,7 @@ import kotlin.collections.List;
 
 CREATE TABLE Anime (
   _id INTEGER NOT NULL PRIMARY KEY,
-  source TEXT NOT NULL,
+  source INTEGER NOT NULL,
   url TEXT NOT NULL,
   title TEXT NOT NULL,
   thumbnail_url TEXT,

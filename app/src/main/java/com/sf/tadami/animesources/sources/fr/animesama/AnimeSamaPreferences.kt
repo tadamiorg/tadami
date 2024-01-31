@@ -3,8 +3,8 @@ package com.sf.tadami.animesources.sources.fr.animesama
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferencesIdentifier
+import com.sf.tadami.preferences.model.CustomPreferences
+import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
 
 data class AnimeSamaPreferences(
     val baseUrl: String,

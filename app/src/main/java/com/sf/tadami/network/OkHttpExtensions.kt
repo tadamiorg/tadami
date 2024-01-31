@@ -134,6 +134,17 @@ suspend fun Call.await(): Response {
     return await(callStack)
 }
 
+suspend fun Call.awaitSuccess(): Response {
+    val callStack = Exception().stackTrace.run { copyOfRange(1, size) }
+    val response = await(callStack)
+    if (!response.isSuccessful) {
+        response.close()
+        throw HttpException(response.code).apply { stackTrace = callStack }
+    }
+    return response
+}
+class HttpException(val code: Int) : IllegalStateException("HTTP error $code")
+
 context(Json)
 inline fun <reified T> Response.parseAs(): T {
     return decodeFromString(serializer(),this.body.string())

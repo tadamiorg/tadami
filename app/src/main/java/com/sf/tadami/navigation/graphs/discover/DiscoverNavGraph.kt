@@ -15,7 +15,7 @@ fun NavGraphBuilder.discoverNavGraph(navController: NavHostController) {
     composable(
         route = "${DiscoverRoutes.RECENT}/{sourceId}",
         arguments = listOf(
-            navArgument("sourceId") { type = NavType.StringType }
+            navArgument("sourceId") { type = NavType.LongType }
         )
     ) {
         RecentScreen(navController = navController)
@@ -23,7 +23,7 @@ fun NavGraphBuilder.discoverNavGraph(navController: NavHostController) {
     composable(
         route = "${DiscoverRoutes.SEARCH}/{sourceId}?basequery={baseQuery}",
         arguments = listOf(
-            navArgument("sourceId") { type = NavType.StringType },
+            navArgument("sourceId") { type = NavType.LongType },
             navArgument("baseQuery") {
                 nullable = true
                 defaultValue = null

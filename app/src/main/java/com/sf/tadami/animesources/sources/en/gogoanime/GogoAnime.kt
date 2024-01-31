@@ -31,7 +31,7 @@ import uy.kohesive.injekt.injectLazy
 
 class GogoAnime() : ConfigurableParsedHttpAnimeSource<GogoAnimePreferences>(GogoAnimePreferences) {
 
-    override val id: String = "GogoAnime"
+    override val id: Long = 5
 
     override val name: String = "GogoAnime"
 

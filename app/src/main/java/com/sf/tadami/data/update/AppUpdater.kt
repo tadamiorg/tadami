@@ -56,7 +56,3 @@ class AppUpdater {
         const val GITHUB_REPO = "tadamiorg/tadami"
     }
 }
-
-class AppUpdater {
-
-}

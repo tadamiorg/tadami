@@ -1,12 +1,12 @@
-package com.sf.tadami.ui.tabs.settings.screens.player
+package com.sf.tadami.preferences.player
 
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferencesIdentifier
+import com.sf.tadami.preferences.model.CustomPreferences
+import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
 
 data class PlayerPreferences(
     val seenThreshold : Int,
@@ -31,7 +31,7 @@ data class PlayerPreferences(
         const val TWENTY_FIVE = 25000L
         const val THIRTY = 30000L
     }
-    companion object : CustomPreferences<PlayerPreferences>{
+    companion object : CustomPreferences<PlayerPreferences> {
         private val SEEN_THRESHOLD =  intPreferencesKey("player_seen_threshold")
         private val DOUBLE_TAP_LENGTH = longPreferencesKey("player_double_tap_length")
         private val AUTO_PLAY = booleanPreferencesKey("player_auto_play")

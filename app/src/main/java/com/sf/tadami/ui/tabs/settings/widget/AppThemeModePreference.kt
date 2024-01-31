@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
-import com.sf.tadami.ui.tabs.settings.screens.appearance.ThemeMode
+import com.sf.tadami.preferences.appearance.ThemeMode
 
 private val options = mapOf(
     ThemeMode.SYSTEM to R.string.theme_system,

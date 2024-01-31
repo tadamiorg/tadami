@@ -14,10 +14,10 @@ import com.sf.tadami.source.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
-import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
-import com.sf.tadami.ui.tabs.settings.screens.backup.BackupPreferences
-import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
-import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferences
+import com.sf.tadami.preferences.sources.SourcesPreferences
+import com.sf.tadami.preferences.backup.BackupPreferences
+import com.sf.tadami.preferences.library.LibraryPreferences
+import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.utils.Lang
 import com.sf.tadami.utils.Lang.Companion.toPref
 import com.sf.tadami.utils.clearAllPreferences
@@ -154,7 +154,7 @@ object Migrations {
 
     /* Preferences functions for SOURCE datastore*/
     private suspend fun deleteSourcePreferences(
-        sourceId: String,
+        sourceId: Long,
         sourcesManager: AnimeSourcesManager,
         preferences: Set<Preferences.Key<*>>
     ) {
@@ -164,7 +164,7 @@ object Migrations {
     }
 
     private suspend fun deleteAllSourcePreferences(
-        sourceId: String,
+        sourceId: Long,
         sourcesManager: AnimeSourcesManager,
     ) {
         val source =
@@ -173,7 +173,7 @@ object Migrations {
     }
 
     private suspend fun replaceSourcePreferences(
-        sourceId: String,
+        sourceId: Long,
         sourcesManager: AnimeSourcesManager,
         filterPredicate: (Map.Entry<Preferences.Key<*>, Any?>) -> Boolean,
         newValue: (Any) -> Any = { it },

@@ -14,8 +14,8 @@ import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
-import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
-import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
+import com.sf.tadami.preferences.sources.SourcesPreferences
+import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.themes.colorschemes.active
 import com.sf.tadami.utils.Lang
 
