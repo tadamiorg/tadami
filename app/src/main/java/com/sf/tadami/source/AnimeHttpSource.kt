@@ -1,15 +1,15 @@
 package com.sf.tadami.source
 
 import com.sf.tadami.domain.anime.Anime
+import com.sf.tadami.network.GET
+import com.sf.tadami.network.NetworkHelper
+import com.sf.tadami.network.asCancelableObservable
 import com.sf.tadami.source.model.AnimeFilterList
 import com.sf.tadami.source.model.SAnime
 import com.sf.tadami.source.model.SEpisode
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.source.online.AnimeCatalogueSource
 import com.sf.tadami.source.online.AnimesPage
-import com.sf.tadami.network.GET
-import com.sf.tadami.network.NetworkHelper
-import com.sf.tadami.network.asCancelableObservable
 import io.reactivex.rxjava3.core.Observable
 import okhttp3.Headers
 import okhttp3.OkHttpClient

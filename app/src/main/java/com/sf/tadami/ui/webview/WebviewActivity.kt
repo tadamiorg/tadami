@@ -17,11 +17,11 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.sf.tadami.R
-import com.sf.tadami.source.AnimeHttpSource
-import com.sf.tadami.source.online.StubSource
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.utils.WebViewUtil
-import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
+import com.sf.tadami.source.AnimeHttpSource
+import com.sf.tadami.source.online.StubSource
+import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.themes.TadamiTheme
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.setComposeContent
@@ -33,7 +33,7 @@ import java.nio.charset.StandardCharsets
 
 class WebViewActivity : AppCompatActivity() {
 
-    private val sourceManager: AnimeSourcesManager by injectLazy()
+    private val sourceManager: SourceManager by injectLazy()
     private val network: NetworkHelper by injectLazy()
 
     private var assistUrl: String? = null
@@ -52,7 +52,7 @@ class WebViewActivity : AppCompatActivity() {
         assistUrl = url
 
         var headers = emptyMap<String, String>()
-        (sourceManager.getExtensionById(intent.extras!!.getLong(SOURCE_KEY)).takeIf { it !is StubSource } as AnimeHttpSource?)?.let { source ->
+        (sourceManager.getOrStub(intent.extras!!.getLong(SOURCE_KEY)).takeIf { it !is StubSource } as AnimeHttpSource?)?.let { source ->
             try {
                 headers = source.headers.toMultimap().mapValues { it.value.getOrNull(0) ?: "" }
                 url = source.baseUrl + url

@@ -1,10 +1,10 @@
 package com.sf.tadami.source
 
+import com.sf.tadami.network.asJsoup
 import com.sf.tadami.source.model.SAnime
 import com.sf.tadami.source.model.SEpisode
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.source.online.AnimesPage
-import com.sf.tadami.network.asJsoup
 import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element

@@ -4,13 +4,14 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.sf.tadami.data.DataBaseHandler
+import com.sf.tadami.data.listOfStringsAdapter
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.UpdateAnime
 import com.sf.tadami.source.model.AnimeFilterList
 import com.sf.tadami.source.model.SAnime
-import com.sf.tadami.data.listOfStringsAdapter
-import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
+import com.sf.tadami.source.online.AnimeCatalogueSource
+import com.sf.tadami.ui.tabs.browse.SourceManager
 import kotlinx.coroutines.flow.Flow
 
 interface AnimeRepository {
@@ -49,7 +50,7 @@ interface AnimeRepository {
 
 class AnimeRepositoryImpl(
     private val handler: DataBaseHandler,
-    private val sourceManager: AnimeSourcesManager,
+    private val sourceManager: SourceManager,
 ) : AnimeRepository {
 
     override suspend fun insertAnime(anime: Anime): Long? {
@@ -182,7 +183,7 @@ class AnimeRepositoryImpl(
     }
 
     override fun getLatestPager(sourceId: Long): Flow<PagingData<SAnime>> {
-        val source = sourceManager.getExtensionById(sourceId)
+        val source = sourceManager.get(sourceId) as AnimeCatalogueSource
         return Pager(
             config = PagingConfig(
                 pageSize = 20
@@ -198,7 +199,7 @@ class AnimeRepositoryImpl(
         query: String,
         filters: AnimeFilterList
     ): Flow<PagingData<SAnime>> {
-        val source = sourceManager.getExtensionById(sourceId)
+        val source = sourceManager.get(sourceId) as AnimeCatalogueSource
         return Pager(
             config = PagingConfig(
                 pageSize = 20

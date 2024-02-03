@@ -34,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -46,8 +47,9 @@ import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.data.interactors.sources.GetSourcesWithNonLibraryAnime
 import com.sf.tadami.data.sources.SourceWithCount
-import com.sf.tadami.source.online.AnimeCatalogueSource
-import com.sf.tadami.source.online.StubSource
+import com.sf.tadami.domain.source.Source
+import com.sf.tadami.domain.source.icon
+import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
@@ -56,7 +58,6 @@ import com.sf.tadami.ui.components.grid.EmptyScreen
 import com.sf.tadami.ui.components.topappbar.ActionItem
 import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
-import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.selectedBackground
 import kotlinx.coroutines.Dispatchers
@@ -209,7 +210,7 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
 
     @Composable
     private fun ClearDatabaseItem(
-        source: AnimeCatalogueSource,
+        source: Source,
         count: Long,
         isSelected: Boolean,
         onClickSelect: () -> Unit,
@@ -222,7 +223,7 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
                 .height(56.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (source is StubSource) {
+            if (source.isStub) {
                 Image(
                     imageVector = Icons.Filled.Warning,
                     contentDescription = null,
@@ -233,7 +234,7 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
                 )
             } else {
                 Image(
-                    painter = painterResource(id = source.getIconRes()!!),
+                    painter = source.icon?.let{BitmapPainter(image = it)} ?: painterResource(id = R.mipmap.ic_default_source),
                     contentDescription = null,
                     modifier = Modifier
                         .height(40.dp)
@@ -296,7 +297,7 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
         }
 
 
-        fun toggleSelection(source: AnimeCatalogueSource) = _uiState.update { state ->
+        fun toggleSelection(source: Source) = _uiState.update { state ->
             val mutableList = state.selection.toMutableList()
             if (mutableList.contains(source.id)) {
                 mutableList.remove(source.id)

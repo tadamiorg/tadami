@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">Tadami</string>
     <string name="library_tab_title">Library</string>
-    <string name="sources_tab_title">Sources</string>
+    <string name="browse_tab_title">Browse</string>
     <string name="refresh">Refresh</string>
     <string name="language_fr">French</string>
     <string name="language_en">English</string>
@@ -244,6 +244,9 @@
     <string name="label_recent_updates_long">Updates</string>
     <string name="label_more">More</string>
     <string name="label_settings">Settings</string>
+    <string name="label_explore">Explore</string>
+    <string name="label_extensions">Extensions</string>
+    <string name="label_sources">Sources</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Library last updated: %s</string>
@@ -262,4 +265,15 @@
         <item quantity="one">Extension update available</item>
         <item quantity="other">%d extension updates available</item>
     </plurals>
+    <string name="ext_updates_pending">Updates pending</string>
+    <string name="ext_installed">Installed</string>
+    <string name="ext_empty">No extensions found</string>
+    <string name="src_empty">No sources found</string>
+    <string name="ext_obsolete">Obsolete</string>
+    <string name="ext_install">Install</string>
+    <string name="ext_pending">Pending</string>
+    <string name="ext_downloading">Downloading</string>
+    <string name="ext_installing">Installing</string>
+    <string name="ext_permission_install_apps_warning">Permissions are needed to install extensions. Tap here to grant.</string>
+    <string name="ext_update_all">Update all</string>
 </resources>

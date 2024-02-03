@@ -1,24 +1,31 @@
 package com.sf.tadami.domain.source
 
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.graphics.drawable.toBitmap
+import com.sf.tadami.extensions.ExtensionManager
+import com.sf.tadami.utils.Lang
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
+
 data class Source(
     val id: Long,
-    val lang: String,
+    val lang: Lang,
     val name: String,
     val supportsLatest: Boolean,
     val isStub: Boolean,
-    val isUsedLast: Boolean = false,
+    val isConfigurable: Boolean
 ) {
-
-    val visualName: String
-        get() = when {
-            lang.isEmpty() -> name
-            else -> "$name (${lang.uppercase()})"
-        }
-
     val key: () -> String = {
         when {
-            isUsedLast -> "$id-lastused"
             else -> "$id"
         }
     }
 }
+
+val Source.icon: ImageBitmap?
+    get() {
+        return Injekt.get<ExtensionManager>().getAppIconForSource(id)
+            ?.toBitmap()
+            ?.asImageBitmap()
+    }

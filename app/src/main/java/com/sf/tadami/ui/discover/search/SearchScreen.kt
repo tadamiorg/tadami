@@ -52,9 +52,9 @@ fun SearchScreen(
     val animeListState by searchViewModel.animeList.collectAsState()
     val animeList = animeListState.collectAsLazyPagingItems()
     val sourceFilters = searchViewModel.sourceFilters.collectAsState()
+    val query by searchViewModel.query.collectAsState()
 
     var searchEnabled by rememberSaveable { mutableStateOf(false) }
-    var searchValue by rememberSaveable { mutableStateOf(baseQuery ?: "") }
     var hasBaseQuery by rememberSaveable { mutableStateOf(baseQuery!=null) }
     var isGlobalSearched by rememberSaveable { mutableStateOf(false) }
     if(hasBaseQuery){
@@ -121,7 +121,6 @@ fun SearchScreen(
                         searchViewModel.updateQuery("")
                         searchViewModel.resetData()
                         searchEnabled = false
-                        searchValue = ""
                     },
                     onSearchOpen = {
                         searchEnabled = true
@@ -131,13 +130,12 @@ fun SearchScreen(
                         searchViewModel.resetData()
                     },
                     onSearchChange = {
-                        searchValue = it
                         searchViewModel.updateQuery(it)
                     },
                     actions = listOf(
                         Action.CastButton()
                     ),
-                    searchValue = searchValue,
+                    searchValue = query,
                     backHandlerEnabled = !isGlobalSearched
                 )
             },

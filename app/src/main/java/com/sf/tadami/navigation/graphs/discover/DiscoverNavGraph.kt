@@ -8,7 +8,7 @@ import androidx.navigation.navArgument
 import com.sf.tadami.ui.discover.globalSearch.GlobalSearchScreen
 import com.sf.tadami.ui.discover.recent.RecentScreen
 import com.sf.tadami.ui.discover.search.SearchScreen
-import com.sf.tadami.ui.tabs.animesources.filters.AnimeSourcesFilerScreen
+import com.sf.tadami.ui.tabs.browse.filters.AnimeSourcesFilerScreen
 
 fun NavGraphBuilder.discoverNavGraph(navController: NavHostController) {
 

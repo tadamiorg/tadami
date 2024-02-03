@@ -10,14 +10,14 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
-import com.sf.tadami.source.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
-import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
-import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.player.PlayerPreferences
+import com.sf.tadami.preferences.sources.SourcesPreferences
+import com.sf.tadami.source.ConfigurableParsedHttpAnimeSource
+import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.utils.Lang
 import com.sf.tadami.utils.Lang.Companion.toPref
 import com.sf.tadami.utils.clearAllPreferences
@@ -37,7 +37,7 @@ object Migrations {
     suspend fun upgrade(
         context: Context,
         dataStore: DataStore<Preferences>,
-        sourcesManager: AnimeSourcesManager,
+        sourcesManager: SourceManager,
         appPreferences: AppPreferences,
         libraryPreferences: LibraryPreferences,
         playerPreferences: PlayerPreferences,
@@ -155,32 +155,32 @@ object Migrations {
     /* Preferences functions for SOURCE datastore*/
     private suspend fun deleteSourcePreferences(
         sourceId: Long,
-        sourcesManager: AnimeSourcesManager,
+        sourcesManager: SourceManager,
         preferences: Set<Preferences.Key<*>>
     ) {
         val source =
-            (sourcesManager.getExtensionById(sourceId)) as ConfigurableParsedHttpAnimeSource<*>
+            (sourcesManager.getOrStub(sourceId)) as ConfigurableParsedHttpAnimeSource<*>
         deletePreferences(source.dataStore, preferences)
     }
 
     private suspend fun deleteAllSourcePreferences(
         sourceId: Long,
-        sourcesManager: AnimeSourcesManager,
+        sourcesManager: SourceManager,
     ) {
         val source =
-            (sourcesManager.getExtensionById(sourceId)) as ConfigurableParsedHttpAnimeSource<*>
+            (sourcesManager.getOrStub(sourceId)) as ConfigurableParsedHttpAnimeSource<*>
         source.dataStore.clearAllPreferences()
     }
 
     private suspend fun replaceSourcePreferences(
         sourceId: Long,
-        sourcesManager: AnimeSourcesManager,
+        sourcesManager: SourceManager,
         filterPredicate: (Map.Entry<Preferences.Key<*>, Any?>) -> Boolean,
         newValue: (Any) -> Any = { it },
         newKey: (Preferences.Key<*>) -> String,
     ) {
         val source =
-            (sourcesManager.getExtensionById(sourceId)) as ConfigurableParsedHttpAnimeSource<*>
+            (sourcesManager.getOrStub(sourceId)) as ConfigurableParsedHttpAnimeSource<*>
         replacePreferences(source.dataStore, filterPredicate, newValue, newKey)
     }
 

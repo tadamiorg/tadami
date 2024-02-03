@@ -24,13 +24,13 @@ import com.sf.tadami.Migrations
 import com.sf.tadami.R
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.notifications.cast.CastProxyService
-import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
-import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
-import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
-import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.player.PlayerPreferences
+import com.sf.tadami.preferences.sources.SourcesPreferences
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
+import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.themes.TadamiTheme
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
     private val errorChannel = ErrorChannel()
     private var ready = false
     private val dataStore : DataStore<Preferences> = Injekt.get()
-    private val sourcesManager : AnimeSourcesManager = Injekt.get()
+    private val sourcesManager : SourceManager = Injekt.get()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val isLaunch = savedInstanceState == null

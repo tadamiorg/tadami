@@ -5,14 +5,19 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extensions.api.ExtensionsApi
+import com.sf.tadami.extensions.model.InstallStep
 import com.sf.tadami.extensions.model.LoadResult
 import com.sf.tadami.extensions.util.ExtensionsInstaller
 import com.sf.tadami.extensions.util.ExtensionsLoader
+import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerNotifier
+import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerReceiver
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.source.online.StubSource
 import com.sf.tadami.ui.utils.UiToasts
+import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -23,11 +28,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import com.sf.tadami.R
-import com.sf.tadami.extensions.model.InstallStep
-import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerNotifier
-import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerReceiver
-import com.sf.tadami.utils.editPreference
 
 class ExtensionManager(
     private val context: Context,

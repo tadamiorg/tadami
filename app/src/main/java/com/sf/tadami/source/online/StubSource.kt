@@ -48,7 +48,7 @@ class StubSource(
     }
 
     companion object {
-        fun from(source: AnimeCatalogueSource): StubSource {
+        fun from(source: Source): StubSource {
             return StubSource(id = source.id, lang = source.lang, name = source.name)
         }
     }

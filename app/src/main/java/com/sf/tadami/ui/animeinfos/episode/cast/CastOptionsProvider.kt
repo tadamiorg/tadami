@@ -11,8 +11,8 @@ import com.google.android.gms.cast.framework.media.CastMediaOptions
 import com.google.android.gms.cast.framework.media.MediaIntentReceiver
 import com.google.android.gms.cast.framework.media.NotificationOptions
 import com.sf.tadami.R
-import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.preferences.player.PlayerPreferences
+import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt

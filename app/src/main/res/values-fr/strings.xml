@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="library_tab_title">Bibliothèque</string>
-    <string name="sources_tab_title">Sources</string>
+    <string name="browse_tab_title">Explorer</string>
     <string name="refresh">Rafraichir</string>
     <string name="language_fr">Français</string>
     <string name="language_en">Anglais</string>
@@ -256,6 +256,9 @@
     <string name="label_recent_updates_long">Mises à jour</string>
     <string name="label_more">Plus</string>
     <string name="label_settings">Paramètres</string>
+    <string name="label_explore">Explorer</string>
+    <string name="label_extensions">Extensions</string>
+    <string name="label_sources">Sources</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Dernière mise à jour de la bibliothèque le : %s</string>
@@ -272,4 +275,15 @@
         <item quantity="many">%d mises à jour d\'extensions disponibles</item>
         <item quantity="other">%d mises à jour d\'extensions disponibles</item>
     </plurals>
+    <string name="ext_updates_pending">Mises à jour en attente</string>
+    <string name="ext_installed">Installée</string>
+    <string name="ext_empty">Aucunes extensions trouvées</string>
+    <string name="src_empty">Aucunes sources trouvées</string>
+    <string name="ext_obsolete">Obsolète</string>
+    <string name="ext_install">Installer</string>
+    <string name="ext_pending">En attente</string>
+    <string name="ext_downloading">En cours de téléchargement</string>
+    <string name="ext_installing">En cours d\'installation</string>
+    <string name="ext_permission_install_apps_warning">Des permissions sont nécessaires pour installer des extensions. Appuyer ici pour les accorder.</string>
+    <string name="ext_update_all">Tout mettre à jour</string>
 </resources>

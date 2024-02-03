@@ -113,3 +113,13 @@ fun AnimeAndSourceTitles(
 fun DotSeparatorText() {
     Text(text = " • ")
 }
+
+@Composable
+fun DotSeparatorNoSpaceText(
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = "•",
+        modifier = modifier,
+    )
+}

@@ -11,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavDestination
@@ -18,17 +19,18 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
-import com.sf.tadami.ui.components.material.AnimatedVectorDrawable
-import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.library.LibraryPreferences
+import com.sf.tadami.preferences.model.rememberDataStoreState
+import com.sf.tadami.ui.components.material.AnimatedVectorDrawable
 
 @Composable
 fun BottomNavBar(
+    modifier : Modifier = Modifier,
     items: List<HomeNavItems>,
     currentDestination: NavDestination?,
     navController: NavHostController
 ) {
-    NavigationBar {
+    NavigationBar(modifier=modifier) {
         items.forEach { item ->
             AddItem(item, currentDestination, navController)
         }

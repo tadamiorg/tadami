@@ -9,6 +9,7 @@ import com.sf.tadami.data.AndroidDatabaseHandler
 import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.data.anime.AnimeRepositoryImpl
+import com.sf.tadami.data.dateColumnAdapter
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.episode.EpisodeRepositoryImpl
 import com.sf.tadami.data.history.HistoryRepository
@@ -16,27 +17,36 @@ import com.sf.tadami.data.history.HistoryRepositoryImpl
 import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.anime.FetchIntervalInteractor
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.extension.GetExtensionsByType
 import com.sf.tadami.data.interactors.history.GetHistoryInteractor
 import com.sf.tadami.data.interactors.history.GetNextEpisodeInteractor
 import com.sf.tadami.data.interactors.history.RemoveHistoryInteractor
 import com.sf.tadami.data.interactors.history.UpdateHistoryInteractor
 import com.sf.tadami.data.interactors.library.LibraryInteractor
+import com.sf.tadami.data.interactors.sources.GetEnabledSources
 import com.sf.tadami.data.interactors.sources.GetSourcesWithNonLibraryAnime
 import com.sf.tadami.data.interactors.updates.GetUpdatesInteractor
+import com.sf.tadami.data.listOfStringsAdapter
 import com.sf.tadami.data.sources.SourceRepository
 import com.sf.tadami.data.sources.SourceRepositoryImpl
+import com.sf.tadami.data.sources.StubSourceRepository
+import com.sf.tadami.data.sources.StubSourceRepositoryImpl
 import com.sf.tadami.data.updates.UpdatesRepository
 import com.sf.tadami.data.updates.UpdatesRepositoryImpl
-import com.sf.tadami.data.dateColumnAdapter
-import com.sf.tadami.data.listOfStringsAdapter
+import com.sf.tadami.extensions.ExtensionManager
 import com.sf.tadami.network.NetworkHelper
-import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
+import com.sf.tadami.ui.tabs.browse.SourceManager
+import com.sf.tadami.ui.tabs.browse.SourceManagerImplementation
 import data.Anime
 import data.History
 import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import uy.kohesive.injekt.api.*
+import uy.kohesive.injekt.api.InjektModule
+import uy.kohesive.injekt.api.InjektRegistrar
+import uy.kohesive.injekt.api.addSingleton
+import uy.kohesive.injekt.api.addSingletonFactory
+import uy.kohesive.injekt.api.get
 
 class AppModule(private val app: Application) : InjektModule {
 
@@ -85,9 +95,18 @@ class AppModule(private val app: Application) : InjektModule {
             AndroidDatabaseHandler(get())
         }
 
-        // Sources
+        // Extensions
 
-        addSingletonFactory{AnimeSourcesManager()}
+        addSingletonFactory { ExtensionManager(app) }
+
+        // Sources
+        addSingletonFactory<StubSourceRepository>{
+            StubSourceRepositoryImpl(get())
+        }
+
+        addSingletonFactory<SourceManager>{
+            SourceManagerImplementation(app,get(),get())
+        }
 
         // DataSources
 
@@ -146,6 +165,10 @@ class AppModule(private val app: Application) : InjektModule {
             GetSourcesWithNonLibraryAnime(get())
         }
 
+        addSingletonFactory {
+            GetEnabledSources(get(),get())
+        }
+
         // History interactors
 
         addSingletonFactory {
@@ -166,6 +189,12 @@ class AppModule(private val app: Application) : InjektModule {
             GetUpdatesInteractor(get())
         }
 
+        // Extensions Interactors
+
+        addSingletonFactory {
+            GetExtensionsByType(get(),get())
+        }
+
         // HttpClient
 
         addSingletonFactory { NetworkHelper(app) }
@@ -180,7 +209,7 @@ class AppModule(private val app: Application) : InjektModule {
         // Asynchronously init expensive components for a faster cold start
         ContextCompat.getMainExecutor(app).execute {
             get<NetworkHelper>()
-            get<AnimeSourcesManager>()
+            get<SourceManager>()
             get<Database>()
         }
     }

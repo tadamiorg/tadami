@@ -42,14 +42,14 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
 import com.sf.tadami.R
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.preferences.advanced.AdvancedPreferences
+import com.sf.tadami.preferences.model.rememberDataStoreState
+import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.animeinfos.episode.PlayerViewModel
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
 import com.sf.tadami.ui.animeinfos.episode.player.controls.QualityDialog
 import com.sf.tadami.ui.components.widgets.ContentLoader
-import com.sf.tadami.preferences.model.rememberDataStoreState
-import com.sf.tadami.preferences.advanced.AdvancedPreferences
-import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.utils.UiToasts
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds

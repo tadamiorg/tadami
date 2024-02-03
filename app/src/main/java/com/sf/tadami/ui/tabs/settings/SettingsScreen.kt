@@ -7,7 +7,10 @@ import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.OndemandVideo
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.VideoLibrary
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -15,9 +18,9 @@ import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
 import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
+import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
-import com.sf.tadami.preferences.model.Preference
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

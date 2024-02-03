@@ -4,9 +4,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
-import com.sf.tadami.ui.components.filters.SortItem
 import com.sf.tadami.preferences.library.LibrarySort
 import com.sf.tadami.preferences.library.LibrarySort.SortType
+import com.sf.tadami.ui.components.filters.SortItem
 
 @Composable
 fun SortTab(

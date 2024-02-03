@@ -4,12 +4,12 @@ import android.content.Context
 import android.net.Uri
 import com.sf.tadami.R
 import com.sf.tadami.data.backup.BackupUtil
-import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
+import com.sf.tadami.ui.tabs.browse.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class BackupFileValidator(
-    private val sourceManager: AnimeSourcesManager = Injekt.get(),
+    private val sourceManager: SourceManager = Injekt.get(),
 ) {
 
     /**

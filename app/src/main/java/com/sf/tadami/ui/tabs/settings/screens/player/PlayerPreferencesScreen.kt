@@ -6,11 +6,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
-import com.sf.tadami.preferences.player.PlayerPreferences
-import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.preferences.model.rememberDataStoreState
+import com.sf.tadami.preferences.player.PlayerPreferences
+import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 
 class PlayerPreferencesScreen(
     navController : NavHostController

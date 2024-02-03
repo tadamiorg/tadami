@@ -9,9 +9,10 @@ import androidx.paging.map
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.toDomainAnime
+import com.sf.tadami.source.AnimeHttpSource
 import com.sf.tadami.source.model.AnimeFilterList
 import com.sf.tadami.source.online.StubSource
-import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
+import com.sf.tadami.ui.tabs.browse.SourceManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,13 +26,13 @@ class SearchViewModel(
     stateHandle: SavedStateHandle
 ) : ViewModel() {
     private val animeRepository: AnimeRepository = Injekt.get()
-    private val sourcesManager: AnimeSourcesManager = Injekt.get()
+    private val sourcesManager: SourceManager = Injekt.get()
 
     private val sourceId: Long = checkNotNull(stateHandle["sourceId"])
     val source by lazy {
-        val s = sourcesManager.getExtensionById(sourceId)
+        val s = sourcesManager.getOrStub(sourceId)
         if(s is StubSource) throw Exception("Not installed : $sourceId")
-        s
+        s as AnimeHttpSource
     }
 
     private val filtersList = source.getFilterList()

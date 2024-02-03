@@ -15,10 +15,10 @@ import com.sf.tadami.R
 import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.preferences.appearance.ThemeMode
 import com.sf.tadami.preferences.appearance.setAppCompatDelegateThemeMode
-import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.preferences.model.rememberDataStoreState
+import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.ui.tabs.settings.widget.AppThemeModePreference
 import com.sf.tadami.ui.tabs.settings.widget.AppThemePreference
 

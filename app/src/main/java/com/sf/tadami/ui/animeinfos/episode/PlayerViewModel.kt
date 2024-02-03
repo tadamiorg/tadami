@@ -13,10 +13,10 @@ import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.data.interactors.history.UpdateHistoryInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.network.utils.TadaErrorConsumer
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.source.online.StubSource
-import com.sf.tadami.network.utils.TadaErrorConsumer
-import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
+import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.SaveableMutableSaveStateFlow
 import com.sf.tadami.ui.utils.UiToasts
 import io.reactivex.rxjava3.disposables.Disposable
@@ -55,7 +55,7 @@ class PlayerViewModel(
     private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
     private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
     private val updateHistoryInteractor: UpdateHistoryInteractor = Injekt.get()
-    private val sourcesManager: AnimeSourcesManager = Injekt.get()
+    private val sourcesManager: SourceManager = Injekt.get()
 
     private val sourceId: Long = checkNotNull(savedStateHandle["sourceId"])
 
@@ -64,7 +64,7 @@ class PlayerViewModel(
     )
     private val episodeId = _episodeId.asStateFlow()
 
-    private val source = sourcesManager.getExtensionById(sourceId)
+    private val source = sourcesManager.getOrStub(sourceId)
 
     private val _currentEpisode: MutableStateFlow<Episode?> = MutableStateFlow(null)
     val currentEpisode: StateFlow<Episode?> = _currentEpisode.asStateFlow()

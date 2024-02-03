@@ -33,9 +33,9 @@ import com.google.android.gms.common.api.Status
 import com.google.android.gms.common.images.WebImage
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.notifications.cast.CastProxyService
 import com.sf.tadami.source.model.OkhttpHeadersSerializer
 import com.sf.tadami.source.model.StreamSource
-import com.sf.tadami.notifications.cast.CastProxyService
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel

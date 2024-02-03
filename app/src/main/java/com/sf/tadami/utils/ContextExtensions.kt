@@ -151,3 +151,14 @@ fun Context.hasMiuiPackageInstaller() : Boolean {
 fun Context.getUriSize(uri: Uri): Long? {
     return UniFile.fromUri(this, uri)?.length()?.takeIf { it >= 0 }
 }
+
+fun Context.launchRequestPackageInstallsPermission() {
+    val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+            data = Uri.parse("package:$packageName")
+        }
+    } else {
+        Intent(Settings.ACTION_SECURITY_SETTINGS)
+    }
+    startActivity(intent)
+}

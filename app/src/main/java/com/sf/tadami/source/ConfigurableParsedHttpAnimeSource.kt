@@ -9,9 +9,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.navigation.NavHostController
-import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
+import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
