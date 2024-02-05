@@ -57,6 +57,10 @@ class AppModule(private val app: Application) : InjektModule {
 
         addSingleton(app)
 
+        // Scopes Handler
+
+        addSingleton(ScopesHandler())
+
         // Database
 
         addSingletonFactory<SqlDriver> {

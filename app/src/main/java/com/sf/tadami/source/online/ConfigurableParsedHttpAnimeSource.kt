@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.navigation.NavHostController
+import com.sf.tadami.ScopesHandler
 import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
@@ -26,7 +27,11 @@ abstract class ConfigurableParsedHttpAnimeSource<T : CustomPreferencesIdentifier
     // Preferences
     private val PREFERENCES_FILE_NAME : String by lazy { "anime_source_$id" }
 
+    private val scopesHandler : ScopesHandler = Injekt.get()
+
     val dataStore: DataStore<Preferences> by lazy {
+        val newScope = CoroutineScope(Dispatchers.IO+ SupervisorJob())
+        scopesHandler.dataStoreScopes[id] = newScope
         PreferenceDataStoreFactory.create(
             corruptionHandler = ReplaceFileCorruptionHandler(
                 produceNewData = { emptyPreferences() }
@@ -37,7 +42,7 @@ abstract class ConfigurableParsedHttpAnimeSource<T : CustomPreferencesIdentifier
                     PREFERENCES_FILE_NAME
                 )
             ),
-            scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+            scope = newScope,
             produceFile = {
                 Injekt.get<Application>().preferencesDataStoreFile(PREFERENCES_FILE_NAME)
             }
