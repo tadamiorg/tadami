@@ -9,8 +9,8 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import com.sf.tadami.BuildConfig
 import com.sf.tadami.domain.extensions.Extension
-import com.sf.tadami.extensions.model.LoadResult
-import com.sf.tadami.extensions.util.ExtensionsLoader
+import com.sf.tadami.extension.model.LoadResult
+import com.sf.tadami.extension.util.ExtensionsLoader
 import com.sf.tadami.ui.main.MainActivity
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.DelicateCoroutinesApi

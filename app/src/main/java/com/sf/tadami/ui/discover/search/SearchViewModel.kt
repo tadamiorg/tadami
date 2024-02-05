@@ -9,9 +9,9 @@ import androidx.paging.map
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.toDomainAnime
-import com.sf.tadami.source.AnimeHttpSource
+import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.source.model.AnimeFilterList
-import com.sf.tadami.source.online.StubSource
+import com.sf.tadami.source.StubSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

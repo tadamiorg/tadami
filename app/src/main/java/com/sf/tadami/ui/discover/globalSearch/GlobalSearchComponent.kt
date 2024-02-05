@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
 import com.sf.tadami.domain.anime.Anime
-import com.sf.tadami.source.online.AnimeCatalogueSource
+import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchCardRow
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchErrorResultItem
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchItemResult

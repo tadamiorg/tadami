@@ -1,13 +1,13 @@
 package com.sf.tadami.ui.tabs.browse
 
 import android.content.Context
-import com.sf.tadami.data.download.DownloadManager
+import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.sources.StubSourceRepository
-import com.sf.tadami.extensions.ExtensionManager
-import com.sf.tadami.source.AnimeHttpSource
-import com.sf.tadami.source.online.AnimeCatalogueSource
-import com.sf.tadami.source.online.Source
-import com.sf.tadami.source.online.StubSource
+import com.sf.tadami.extension.ExtensionManager
+import com.sf.tadami.source.online.AnimeHttpSource
+import com.sf.tadami.source.AnimeCatalogueSource
+import com.sf.tadami.source.Source
+import com.sf.tadami.source.StubSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -41,7 +41,7 @@ class SourceManagerImplementation(
     private val sourceRepository: StubSourceRepository,
 ) : SourceManager {
 
-    private val downloadManager: DownloadManager by injectLazy()
+    private val tadamiDownloadManager: TadamiDownloadManager by injectLazy()
 
     private val scope = CoroutineScope(Job() + Dispatchers.IO)
 
@@ -106,7 +106,7 @@ class SourceManagerImplementation(
             if (dbSource == source) return@launch
             sourceRepository.upsertStubSource(source.id, source.lang.name, source.name)
             if (dbSource != null) {
-                downloadManager.renameSource(dbSource, source)
+                tadamiDownloadManager.renameSource(dbSource, source)
             }
         }
     }

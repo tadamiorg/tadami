@@ -1,10 +1,10 @@
-package com.sf.tadami.extensions.util
+package com.sf.tadami.extension.util
 
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import com.sf.tadami.extensions.ExtensionManager
-import com.sf.tadami.extensions.model.InstallStep
+import com.sf.tadami.extension.ExtensionManager
+import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.utils.hasMiuiPackageInstaller
 import uy.kohesive.injekt.Injekt

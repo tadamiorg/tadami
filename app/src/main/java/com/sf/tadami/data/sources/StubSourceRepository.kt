@@ -1,7 +1,7 @@
 package com.sf.tadami.data.sources
 
 import com.sf.tadami.data.DataBaseHandler
-import com.sf.tadami.source.online.StubSource
+import com.sf.tadami.source.StubSource
 import com.sf.tadami.utils.Lang
 import kotlinx.coroutines.flow.Flow
 

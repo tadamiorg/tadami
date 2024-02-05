@@ -1,13 +1,13 @@
-package com.sf.tadami.extensions.api
+package com.sf.tadami.extension.api
 
 import android.content.Context
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.domain.extensions.Extension
-import com.sf.tadami.extensions.ExtensionManager
-import com.sf.tadami.extensions.model.LoadResult
-import com.sf.tadami.extensions.util.ExtensionsLoader
+import com.sf.tadami.extension.ExtensionManager
+import com.sf.tadami.extension.model.LoadResult
+import com.sf.tadami.extension.util.ExtensionsLoader
 import com.sf.tadami.network.GET
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.awaitSuccess
@@ -117,7 +117,7 @@ internal class ExtensionsApi {
                     versionName = it.version,
                     versionCode = it.code,
                     apiVersion = it.extractLibVersion(),
-                    lang = Lang.valueOfOrDefault(it.lang),
+                    lang = langMapper(it.lang),
                     sources = it.sources?.map(extensionSourceMapper).orEmpty(),
                     apkName = it.apk,
                     iconUrl = "$repoUrl/icon/${it.pkg}.png",
@@ -125,6 +125,8 @@ internal class ExtensionsApi {
                 )
             }
     }
+
+
 
     fun getApkUrl(extension: Extension.Available): String {
         return "${extension.repoUrl}/apk/${extension.apkName}"
@@ -154,10 +156,18 @@ private data class ExtensionSourceJsonObject(
     val baseUrl: String,
 )
 
+private fun langMapper(lang : String) : Lang{
+    return when(lang){
+        "en" -> Lang.ENGLISH
+        "fr" -> Lang.FRENCH
+        else -> Lang.UNKNOWN
+    }
+}
+
 private val extensionSourceMapper: (ExtensionSourceJsonObject) -> Extension.Available.Source = {
     Extension.Available.Source(
         id = it.id,
-        lang = Lang.valueOfOrDefault(it.lang),
+        lang = langMapper(it.lang),
         name = it.name,
         baseUrl = it.baseUrl,
     )

@@ -19,8 +19,8 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.sf.tadami.R
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.utils.WebViewUtil
-import com.sf.tadami.source.AnimeHttpSource
-import com.sf.tadami.source.online.StubSource
+import com.sf.tadami.source.online.AnimeHttpSource
+import com.sf.tadami.source.StubSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.themes.TadamiTheme
 import com.sf.tadami.ui.utils.UiToasts

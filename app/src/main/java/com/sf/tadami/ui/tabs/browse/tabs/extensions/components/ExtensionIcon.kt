@@ -20,7 +20,7 @@ import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
-import com.sf.tadami.extensions.util.ExtensionsLoader
+import com.sf.tadami.extension.util.ExtensionsLoader
 import com.sf.tadami.utils.rememberResourceBitmapPainter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

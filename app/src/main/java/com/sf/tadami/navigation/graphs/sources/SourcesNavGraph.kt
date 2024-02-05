@@ -9,7 +9,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
-import com.sf.tadami.source.ConfigurableParsedHttpAnimeSource
+import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.ui.tabs.browse.BrowseScreen
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import uy.kohesive.injekt.Injekt

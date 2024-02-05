@@ -1,11 +1,11 @@
 package com.sf.tadami.data.download
 
 import android.util.Log
-import com.sf.tadami.source.online.Source
+import com.sf.tadami.source.Source
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class DownloadManager(
+class TadamiDownloadManager(
     private val provider: DownloadProvider = Injekt.get(),
 ) {
     /**

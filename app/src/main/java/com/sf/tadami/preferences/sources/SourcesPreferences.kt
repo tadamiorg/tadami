@@ -20,6 +20,7 @@ data class SourcesPreferences(
 
     companion object : CustomPreferences<SourcesPreferences> {
         private val HIDDEN_SOURCES =  stringSetPreferencesKey("hidden_sources")
+        private val DEFAULT_EXTENSIONS_REPO = "https://raw.githubusercontent.com/tadamiorg/tadami-extensions-source/repo"
         val ENABLED_LANGUAGES =  stringSetPreferencesKey("enabled_languages")
         val LAST_EXT_CHECK = longPreferencesKey(CustomPreferences.appStateKey("last_ext_check"))
         val EXTENSIONS_REPOS = stringSetPreferencesKey("extensions_repos")
@@ -31,7 +32,7 @@ data class SourcesPreferences(
                 enabledLanguages = preferences[ENABLED_LANGUAGES] ?: Lang.getAllLangs().toPref(),
                 lastExtCheck = preferences[LAST_EXT_CHECK] ?: 0,
                 extensionUpdatesCount = preferences[EXT_UPDATES_COUNT] ?: 0,
-                extensionsRepos = preferences[EXTENSIONS_REPOS] ?: emptySet()
+                extensionsRepos = preferences[EXTENSIONS_REPOS] ?: setOf(DEFAULT_EXTENSIONS_REPO)
             )
         }
 

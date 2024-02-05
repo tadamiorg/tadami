@@ -1,9 +1,9 @@
 package com.sf.tadami.data.sources
 
 import com.sf.tadami.data.DataBaseHandler
-import com.sf.tadami.source.ConfigurableParsedHttpAnimeSource
-import com.sf.tadami.source.online.Source
-import com.sf.tadami.source.online.StubSource
+import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
+import com.sf.tadami.source.Source
+import com.sf.tadami.source.StubSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

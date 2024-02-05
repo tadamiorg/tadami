@@ -1,8 +1,8 @@
 package com.sf.tadami.domain.extensions
 
 import android.graphics.drawable.Drawable
-import com.sf.tadami.source.online.Source
-import com.sf.tadami.source.online.StubSource
+import com.sf.tadami.source.Source
+import com.sf.tadami.source.StubSource
 import com.sf.tadami.utils.Lang
 
 sealed class Extension {

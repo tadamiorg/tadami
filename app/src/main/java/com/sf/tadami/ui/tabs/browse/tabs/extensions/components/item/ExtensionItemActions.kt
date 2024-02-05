@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions.components.item
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
@@ -12,11 +13,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
-import com.sf.tadami.extensions.model.InstallStep
+import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.ui.utils.padding
 
 @Composable
@@ -29,7 +31,6 @@ fun ExtensionItemActions(
     onClickItemSecondaryAction: (Extension) -> Unit = {},
 ) {
     val isIdle = installStep.isCompleted()
-
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),

@@ -27,7 +27,7 @@ import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.library.LibraryPreferences
-import com.sf.tadami.source.online.StubSource
+import com.sf.tadami.source.StubSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.awaitSingleOrError
 import com.sf.tadami.ui.utils.getUriCompat

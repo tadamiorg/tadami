@@ -4,7 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.domain.extensions.Extensions
-import com.sf.tadami.extensions.ExtensionManager
+import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import kotlinx.coroutines.flow.Flow

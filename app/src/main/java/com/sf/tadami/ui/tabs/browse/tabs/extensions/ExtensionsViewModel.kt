@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions
 
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
@@ -7,11 +8,11 @@ import androidx.lifecycle.viewModelScope
 import com.sf.tadami.R
 import com.sf.tadami.data.interactors.extension.GetExtensionsByType
 import com.sf.tadami.domain.extensions.Extension
-import com.sf.tadami.extensions.ExtensionManager
-import com.sf.tadami.extensions.model.InstallStep
+import com.sf.tadami.extension.ExtensionManager
+import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.preferences.extensions.ExtensionsPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
-import com.sf.tadami.source.AnimeHttpSource
+import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import com.sf.tadami.utils.launchIO
 import kotlinx.coroutines.FlowPreview

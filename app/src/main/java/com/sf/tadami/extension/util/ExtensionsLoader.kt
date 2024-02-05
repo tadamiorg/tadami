@@ -1,4 +1,4 @@
-package com.sf.tadami.extensions.util
+package com.sf.tadami.extension.util
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
@@ -8,9 +8,9 @@ import android.os.Build
 import android.util.Log
 import androidx.core.content.pm.PackageInfoCompat
 import com.sf.tadami.domain.extensions.Extension
-import com.sf.tadami.extensions.model.LoadResult
-import com.sf.tadami.source.online.AnimeCatalogueSource
-import com.sf.tadami.source.online.Source
+import com.sf.tadami.extension.model.LoadResult
+import com.sf.tadami.source.AnimeCatalogueSource
+import com.sf.tadami.source.Source
 import com.sf.tadami.utils.Lang
 import dalvik.system.PathClassLoader
 import kotlinx.coroutines.async
@@ -19,8 +19,8 @@ import kotlinx.coroutines.runBlocking
 
 internal object ExtensionsLoader {
 
-    private const val EXTENSION_FEATURE = "tadami.extensions"
-    private const val METADATA_SOURCE_CLASS = "tadami.extensions.class"
+    private const val EXTENSION_FEATURE = "tadami.extension"
+    private const val METADATA_SOURCE_CLASS = "tadami.extension.class"
     const val API_VERSION_MIN = 1
     const val API_VERSION_MAX = 1
 
@@ -154,6 +154,7 @@ internal object ExtensionsLoader {
                     }
                 } catch (e: Throwable) {
                     Log.e("LoadExtension","Extension load error: $extName ($it)")
+                    e.printStackTrace()
                     return LoadResult.Error
                 }
             }

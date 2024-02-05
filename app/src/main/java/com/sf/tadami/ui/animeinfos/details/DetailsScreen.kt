@@ -24,7 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
-import com.sf.tadami.source.online.StubSource
+import com.sf.tadami.source.StubSource
 import com.sf.tadami.ui.animeinfos.details.episodes.filters.DisplayTab
 import com.sf.tadami.ui.animeinfos.details.episodes.filters.FilterTab
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar

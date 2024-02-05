@@ -1,4 +1,4 @@
-package com.sf.tadami.extensions.util
+package com.sf.tadami.extension.util
 
 import android.app.DownloadManager
 import android.content.BroadcastReceiver
@@ -14,8 +14,8 @@ import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.domain.extensions.Extension
-import com.sf.tadami.extensions.installer.Installer
-import com.sf.tadami.extensions.model.InstallStep
+import com.sf.tadami.extension.installer.Installer
+import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallService
 import com.sf.tadami.preferences.extensions.ExtensionInstallerEnum
 import com.sf.tadami.preferences.extensions.ExtensionsPreferences
@@ -262,7 +262,6 @@ internal class ExtensionsInstaller(private val context: Context) {
          */
         override fun onReceive(context: Context, intent: Intent?) {
             val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0) ?: return
-
             // Avoid events for downloads we didn't request
             if (id !in activeDownloads.values) return
 
@@ -281,7 +280,6 @@ internal class ExtensionsInstaller(private val context: Context) {
                     val localUri = cursor.getString(
                         cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI),
                     ).removePrefix(FILE_SCHEME)
-
                     installApk(id, File(localUri).getUriCompat(context))
                 }
             }

@@ -1,4 +1,4 @@
-package com.sf.tadami.extensions.installer
+package com.sf.tadami.extension.installer
 
 import android.app.PendingIntent
 import android.app.Service
@@ -11,7 +11,7 @@ import android.os.Build
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.IntentSanitizer
-import com.sf.tadami.extensions.model.InstallStep
+import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.ui.utils.getParcelableExtraCompat
 import com.sf.tadami.ui.utils.use
 import com.sf.tadami.utils.getUriSize

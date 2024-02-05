@@ -1,4 +1,4 @@
-package com.sf.tadami.extensions.installer
+package com.sf.tadami.extension.installer
 
 import android.app.Service
 import android.content.BroadcastReceiver
@@ -6,10 +6,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
+import android.util.Log
 import androidx.annotation.CallSuper
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.sf.tadami.extensions.ExtensionManager
-import com.sf.tadami.extensions.model.InstallStep
+import com.sf.tadami.extension.ExtensionManager
+import com.sf.tadami.extension.model.InstallStep
 import uy.kohesive.injekt.injectLazy
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicReference

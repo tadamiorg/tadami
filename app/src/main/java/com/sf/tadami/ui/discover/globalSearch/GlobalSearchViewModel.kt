@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.domain.anime.toDomainAnime
 import com.sf.tadami.preferences.sources.SourcesPreferences
-import com.sf.tadami.source.online.AnimeCatalogueSource
+import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchItemResult
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.awaitSingleOrError

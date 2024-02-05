@@ -14,7 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
-import com.sf.tadami.extensions.model.InstallStep
+import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.ui.animeinfos.details.infos.DotSeparatorNoSpaceText
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.secondaryItemAlpha

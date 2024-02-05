@@ -74,6 +74,11 @@
             android:name=".notifications.cast.CastProxyService"
             android:exported="false" />
 
+        <service
+            android:name=".notifications.extensionsinstaller.ExtensionInstallService"
+            android:exported="false"
+            android:foregroundServiceType="shortService" />
+
         <receiver android:name=".notifications.cast.CastReceiver" />
         <receiver android:name=".notifications.libraryupdate.LibraryUpdateReceiver" />
         <receiver android:name=".notifications.appupdate.AppUpdateReceiver" />

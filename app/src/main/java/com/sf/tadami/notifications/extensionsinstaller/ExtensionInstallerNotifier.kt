@@ -14,15 +14,15 @@ import com.sf.tadami.utils.notify
 class ExtensionInstallerNotifier(private val context: Context) {
 
     val updateNotification =
-        NotificationCompat.Builder(context, Notifications.CAST_PROXY_STATUS_CHANNEL).apply {
-            setSmallIcon(R.drawable.ic_tada)
-            setAutoCancel(false)
-            setOngoing(true)
-            setShowWhen(false)
-            setContentTitle(context.getString(R.string.ext_install_service_notif))
-            setProgress(100, 100, true)
-            color = getNotificationsColor(context)
-        }.build()
+            NotificationCompat.Builder(context, Notifications.EXTENSIONS_UPDATES_CHANNEL).apply {
+                setSmallIcon(R.drawable.ic_tada)
+                setAutoCancel(false)
+                setOngoing(true)
+                setShowWhen(false)
+                setContentTitle(context.getString(R.string.ext_install_service_notif))
+                setProgress(100, 100, true)
+                color = getNotificationsColor(context)
+            }
 
     fun notify(context: Context, pkgName: String, action: String) {
         Intent(action).apply {
@@ -31,6 +31,7 @@ class ExtensionInstallerNotifier(private val context: Context) {
             context.sendBroadcast(this)
         }
     }
+
     fun notifyAdded(context: Context, pkgName: String) {
         notify(
             context,

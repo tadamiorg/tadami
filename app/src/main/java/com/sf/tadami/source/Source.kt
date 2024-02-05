@@ -1,4 +1,4 @@
-package com.sf.tadami.source.online
+package com.sf.tadami.source
 
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.source.model.SAnime

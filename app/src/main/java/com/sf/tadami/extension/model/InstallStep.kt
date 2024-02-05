@@ -1,4 +1,4 @@
-package com.sf.tadami.extensions.model
+package com.sf.tadami.extension.model
 
 enum class InstallStep {
     Idle, Pending, Downloading, Installing, Installed, Error;

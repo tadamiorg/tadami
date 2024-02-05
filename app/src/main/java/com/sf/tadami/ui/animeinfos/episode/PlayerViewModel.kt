@@ -15,7 +15,7 @@ import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.network.utils.TadaErrorConsumer
 import com.sf.tadami.source.model.StreamSource
-import com.sf.tadami.source.online.StubSource
+import com.sf.tadami.source.StubSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.SaveableMutableSaveStateFlow
 import com.sf.tadami.ui.utils.UiToasts

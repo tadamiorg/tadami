@@ -1,4 +1,4 @@
-package com.sf.tadami.source
+package com.sf.tadami.source.online
 
 import android.app.Application
 import androidx.datastore.core.DataStore
@@ -24,7 +24,7 @@ abstract class ConfigurableParsedHttpAnimeSource<T : CustomPreferencesIdentifier
     ParsedAnimeHttpSource() {
 
     // Preferences
-    private val PREFERENCES_FILE_NAME by lazy { "anime_source_$id" }
+    private val PREFERENCES_FILE_NAME : String by lazy { "anime_source_$id" }
 
     val dataStore: DataStore<Preferences> by lazy {
         PreferenceDataStoreFactory.create(
@@ -44,7 +44,7 @@ abstract class ConfigurableParsedHttpAnimeSource<T : CustomPreferencesIdentifier
         )
     }
 
-    val preferences by lazy {
+    val preferences : T by lazy {
         runBlocking {
             dataStore.getPreferencesGroup(prefGroup)
         }

@@ -1,4 +1,4 @@
-package com.sf.tadami.extensions
+package com.sf.tadami.extension
 
 import android.content.Context
 import android.graphics.drawable.Drawable
@@ -7,15 +7,15 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
-import com.sf.tadami.extensions.api.ExtensionsApi
-import com.sf.tadami.extensions.model.InstallStep
-import com.sf.tadami.extensions.model.LoadResult
-import com.sf.tadami.extensions.util.ExtensionsInstaller
-import com.sf.tadami.extensions.util.ExtensionsLoader
+import com.sf.tadami.extension.api.ExtensionsApi
+import com.sf.tadami.extension.model.InstallStep
+import com.sf.tadami.extension.model.LoadResult
+import com.sf.tadami.extension.util.ExtensionsInstaller
+import com.sf.tadami.extension.util.ExtensionsLoader
 import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerNotifier
 import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerReceiver
 import com.sf.tadami.preferences.sources.SourcesPreferences
-import com.sf.tadami.source.online.StubSource
+import com.sf.tadami.source.StubSource
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
@@ -50,8 +50,6 @@ class ExtensionManager(
 
     private val _installedExtensionsFlow = MutableStateFlow(emptyList<Extension.Installed>())
     val installedExtensionsFlow = _installedExtensionsFlow.asStateFlow()
-
-    private var subLanguagesEnabledOnFirstRun = sourcesPreferences.enabledLanguages
 
     fun getAppIconForSource(sourceId: Long): Drawable? {
         val pkgName =
@@ -107,7 +105,6 @@ class ExtensionManager(
             }
             emptyList()
         }
-
         _availableExtensionsFlow.value = extensions
         updatedInstalledExtensionsStatuses(extensions)
         setupAvailableExtensionsSourcesDataMap(extensions)

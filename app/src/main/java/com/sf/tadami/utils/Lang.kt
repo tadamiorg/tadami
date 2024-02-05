@@ -2,7 +2,7 @@ package com.sf.tadami.utils
 
 import android.content.res.Resources
 import com.sf.tadami.R
-import com.sf.tadami.source.online.AnimeCatalogueSource
+import com.sf.tadami.source.AnimeCatalogueSource
 
 enum class Lang(private val langRes : Int) {
     ENGLISH(R.string.language_en),

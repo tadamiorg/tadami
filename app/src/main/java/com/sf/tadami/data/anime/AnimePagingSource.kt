@@ -4,8 +4,8 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.sf.tadami.source.model.AnimeFilterList
 import com.sf.tadami.source.model.SAnime
-import com.sf.tadami.source.online.AnimeCatalogueSource
-import com.sf.tadami.source.online.AnimesPage
+import com.sf.tadami.source.AnimeCatalogueSource
+import com.sf.tadami.source.AnimesPage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.rx3.await
 import kotlinx.coroutines.withContext

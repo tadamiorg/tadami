@@ -6,10 +6,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.IBinder
 import android.util.Log
-import com.sf.tadami.extensions.installer.Installer
-import com.sf.tadami.extensions.installer.TadamiPackageInstaller
-import com.sf.tadami.extensions.util.ExtensionsInstaller
-import com.sf.tadami.extensions.util.ExtensionsInstaller.Companion.EXTRA_DOWNLOAD_ID
+import com.sf.tadami.extension.installer.Installer
+import com.sf.tadami.extension.installer.TadamiPackageInstaller
+import com.sf.tadami.extension.util.ExtensionsInstaller
+import com.sf.tadami.extension.util.ExtensionsInstaller.Companion.EXTRA_DOWNLOAD_ID
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.extensions.ExtensionInstallerEnum
 
@@ -20,7 +20,7 @@ class ExtensionInstallService : Service() {
 
     override fun onCreate() {
         notifier = ExtensionInstallerNotifier(applicationContext)
-        startForeground(Notifications.EXTENSIONS_INSTALLER_ID, notifier.updateNotification)
+        startForeground(Notifications.EXTENSIONS_INSTALLER_ID, notifier.updateNotification.build())
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -65,7 +65,7 @@ class ExtensionInstallService : Service() {
             return Intent(context, ExtensionInstallService::class.java)
                 .setDataAndType(uri, ExtensionsInstaller.APK_MIME)
                 .putExtra(EXTRA_DOWNLOAD_ID, downloadId)
-                .putExtra(EXTRA_INSTALLER, installer)
+                .putExtra(EXTRA_INSTALLER, installer.name)
         }
     }
 }

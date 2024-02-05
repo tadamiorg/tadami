@@ -1,5 +1,6 @@
 package com.sf.tadami.data.interactors.sources
 
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.data.sources.SourceRepository
@@ -14,13 +15,16 @@ class GetEnabledSources(
     private val repository: SourceRepository,
     private val dataStore: DataStore<Preferences>,
 ) {
-
     fun subscribe(): Flow<List<Source>> {
         return combine(
             dataStore.getPreferencesGroupAsFlow(SourcesPreferences),
             repository.getSources(),
-        ) { (enabledLanguages), sources ->
-            sources.filter { it.lang.name in enabledLanguages }
+        ) { preferences, sources ->
+            val enabledLanguages = preferences.enabledLanguages
+            val hiddenSources = preferences.hiddenSources
+            sources
+                .filter { it.lang.name in enabledLanguages }
+                .filterNot { it.id.toString() in hiddenSources }
                 .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
                 .flatMap {
                     mutableListOf(it)

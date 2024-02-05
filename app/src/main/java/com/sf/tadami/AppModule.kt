@@ -10,6 +10,8 @@ import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.data.anime.AnimeRepositoryImpl
 import com.sf.tadami.data.dateColumnAdapter
+import com.sf.tadami.data.download.TadamiDownloadManager
+import com.sf.tadami.data.download.DownloadProvider
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.episode.EpisodeRepositoryImpl
 import com.sf.tadami.data.history.HistoryRepository
@@ -33,7 +35,7 @@ import com.sf.tadami.data.sources.StubSourceRepository
 import com.sf.tadami.data.sources.StubSourceRepositoryImpl
 import com.sf.tadami.data.updates.UpdatesRepository
 import com.sf.tadami.data.updates.UpdatesRepositoryImpl
-import com.sf.tadami.extensions.ExtensionManager
+import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.tabs.browse.SourceManagerImplementation
@@ -102,6 +104,16 @@ class AppModule(private val app: Application) : InjektModule {
         // Sources
         addSingletonFactory<StubSourceRepository>{
             StubSourceRepositoryImpl(get())
+        }
+
+        // Downloads
+
+        addSingletonFactory {
+            DownloadProvider(app)
+        }
+
+        addSingletonFactory {
+            TadamiDownloadManager()
         }
 
         addSingletonFactory<SourceManager>{
@@ -205,6 +217,8 @@ class AppModule(private val app: Application) : InjektModule {
                 explicitNulls = false
             }
         }
+
+
 
         // Asynchronously init expensive components for a faster cold start
         ContextCompat.getMainExecutor(app).execute {

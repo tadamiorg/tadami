@@ -36,7 +36,7 @@ data class ExtensionsPreferences(
         }
 
         override fun transform(preferences: Preferences): ExtensionsPreferences {
-            val context = Injekt.get<App>()
+            val context = App.getAppContext()!!
             return ExtensionsPreferences(
                 extensionInstallerEnum = preferences[EXTENSION_INSTALLER]?.let{
                     ExtensionInstallerEnum.valueOf(it)
