@@ -16,6 +16,7 @@
         <item quantity="many">%d episodes</item>
         <item quantity="other">%d episodes</item>
     </plurals>
+    <string name="empty_screen">Eh bien, c\'est gênant</string>
     <!-- Strings used for fragments for navigation -->
     <string name="unknown_author">Auteur Inconnu</string>
     <string name="unknown_status">Status Inconnu</string>
@@ -259,6 +260,7 @@
     <string name="label_explore">Explorer</string>
     <string name="label_extensions">Extensions</string>
     <string name="label_sources">Sources</string>
+    <string name="label_extension_info">Informations sur l\'extension</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Dernière mise à jour de la bibliothèque le : %s</string>
@@ -286,4 +288,8 @@
     <string name="ext_installing">En cours d\'installation</string>
     <string name="ext_permission_install_apps_warning">Des permissions sont nécessaires pour installer des extensions. Appuyer ici pour les accorder.</string>
     <string name="ext_update_all">Tout mettre à jour</string>
+    <string name="ext_info_version">Version</string>
+    <string name="ext_info_language">Langue</string>
+    <string name="ext_app_info">Infos sur l\'application</string>
+    <string name="ext_uninstall">Désinstaller</string>
 </resources>

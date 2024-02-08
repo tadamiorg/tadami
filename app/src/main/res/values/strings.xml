@@ -15,6 +15,7 @@
         <item quantity="many">%d episodes</item>
         <item quantity="other">%d episodes</item>
     </plurals>
+    <string name="empty_screen">Well, this is awkward</string>
     <string name="information_no_recent_episodes">No new episodes</string>
     <!-- Strings used for fragments for navigation -->
     <string name="unknown_author">Unknown Auhtor</string>
@@ -247,6 +248,7 @@
     <string name="label_explore">Explore</string>
     <string name="label_extensions">Extensions</string>
     <string name="label_sources">Sources</string>
+    <string name="label_extension_info">Extension info</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Library last updated: %s</string>
@@ -276,4 +278,8 @@
     <string name="ext_installing">Installing</string>
     <string name="ext_permission_install_apps_warning">Permissions are needed to install extensions. Tap here to grant.</string>
     <string name="ext_update_all">Update all</string>
+    <string name="ext_info_version">Version</string>
+    <string name="ext_info_language">Language</string>
+    <string name="ext_app_info">App info</string>
+    <string name="ext_uninstall">Uninstall</string>
 </resources>

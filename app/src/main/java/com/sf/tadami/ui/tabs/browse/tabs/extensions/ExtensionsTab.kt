@@ -73,7 +73,7 @@ fun extensionsTab(
             },
             onInstallExtension = extensionsViewModel::installExtension,
             onOpenExtension = {
-                // TODO Add informations screen on extension
+                navController.navigate("${DiscoverRoutes.EXTENSION_DETAILS}/${it.pkgName}")
             },
             onUninstallExtension = { extensionsViewModel.uninstallExtension(it) },
             onUpdateExtension = extensionsViewModel::updateExtension,
