@@ -8,8 +8,6 @@ import com.sf.tadami.App
 import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
 import com.sf.tadami.utils.hasMiuiPackageInstaller
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 data class ExtensionsPreferences(
     val extensionInstallerEnum : ExtensionInstallerEnum

@@ -22,7 +22,8 @@ fun SourcesComponent(
     contentPadding: PaddingValues,
     onClickItem: (Source) -> Unit,
     onLongClickItem: (Source) -> Unit = onClickItem,
-    onOptionsClicked : (Source) -> Unit = {}
+    onOptionsClicked : (Source) -> Unit = {},
+    onRecentClicked: (Source) -> Unit = {},
 ) {
     ContentLoader(isLoading = uiState.isLoading) {
         when {
@@ -58,7 +59,8 @@ fun SourcesComponent(
                                 source = model.source,
                                 onClickItem = onClickItem,
                                 onLongClickItem = onLongClickItem,
-                                onOptionsClicked = onOptionsClicked
+                                onOptionsClicked = onOptionsClicked,
+                                onRecentClicked = onRecentClicked
                             )
                         }
                     }

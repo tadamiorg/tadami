@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.tabs.browse.filters.components
+package com.sf.tadami.ui.tabs.browse.tabs.sources.filters.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

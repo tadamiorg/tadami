@@ -8,7 +8,8 @@ import androidx.navigation.navArgument
 import com.sf.tadami.ui.discover.globalSearch.GlobalSearchScreen
 import com.sf.tadami.ui.discover.recent.RecentScreen
 import com.sf.tadami.ui.discover.search.SearchScreen
-import com.sf.tadami.ui.tabs.browse.filters.AnimeSourcesFilerScreen
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.filters.ExtensionsFilterScreen
+import com.sf.tadami.ui.tabs.browse.tabs.sources.filters.SourcesFilterScreen
 
 fun NavGraphBuilder.discoverNavGraph(navController: NavHostController) {
 
@@ -42,7 +43,11 @@ fun NavGraphBuilder.discoverNavGraph(navController: NavHostController) {
     }
     composable(route = DiscoverRoutes.SOURCES_FILTER)
     {
-        AnimeSourcesFilerScreen(navController = navController)
+        SourcesFilterScreen(navController = navController)
+    }
+    composable(route = DiscoverRoutes.EXTENSIONS_FILTER)
+    {
+        ExtensionsFilterScreen(navController = navController)
     }
 }
 
@@ -51,4 +56,5 @@ object DiscoverRoutes {
     const val SEARCH = "search"
     const val GLOBAL_SEARCH = "global_search"
     const val SOURCES_FILTER = "sources_filter"
+    const val EXTENSIONS_FILTER = "extensions_filter"
 }

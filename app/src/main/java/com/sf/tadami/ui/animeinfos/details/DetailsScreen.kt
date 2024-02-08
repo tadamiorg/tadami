@@ -25,6 +25,7 @@ import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.source.StubSource
+import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.ui.animeinfos.details.episodes.filters.DisplayTab
 import com.sf.tadami.ui.animeinfos.details.episodes.filters.FilterTab
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
@@ -189,7 +190,7 @@ fun DetailsScreen(
                     if (url != null && title != null) {
                         if (detailsViewModel.source !is StubSource) {
                             val encodedUrl = URLEncoder.encode(
-                                uiState.details?.url,
+                                (detailsViewModel.source as AnimeHttpSource).baseUrl + uiState.details?.url,
                                 StandardCharsets.UTF_8.toString()
                             )
                             navHostController.navigate("${AnimeInfosRoutes.WEBVIEW}/${detailsViewModel.source.id}/$title/$encodedUrl")

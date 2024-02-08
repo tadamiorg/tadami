@@ -1,6 +1,5 @@
 package com.sf.tadami.data.interactors.sources
 
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.data.sources.SourceRepository

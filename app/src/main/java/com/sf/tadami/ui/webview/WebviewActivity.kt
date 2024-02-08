@@ -20,7 +20,6 @@ import com.sf.tadami.R
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.source.online.AnimeHttpSource
-import com.sf.tadami.source.StubSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.themes.TadamiTheme
 import com.sf.tadami.ui.utils.UiToasts
@@ -48,15 +47,13 @@ class WebViewActivity : AppCompatActivity() {
             return
         }
 
-        var url = URLDecoder.decode(intent.extras?.getString(URL_KEY), StandardCharsets.UTF_8.toString()) ?: return
+        val url = URLDecoder.decode(intent.extras?.getString(URL_KEY), StandardCharsets.UTF_8.toString()) ?: return
         assistUrl = url
 
         var headers = emptyMap<String, String>()
-        (sourceManager.getOrStub(intent.extras!!.getLong(SOURCE_KEY)).takeIf { it !is StubSource } as AnimeHttpSource?)?.let { source ->
+        (sourceManager.get(intent.extras!!.getLong(SOURCE_KEY)) as? AnimeHttpSource)?.let { source ->
             try {
                 headers = source.headers.toMultimap().mapValues { it.value.getOrNull(0) ?: "" }
-                url = source.baseUrl + url
-                assistUrl = url
             } catch (e: Exception) {
                 Log.e("Failed to build headers",e.stackTraceToString())
             }

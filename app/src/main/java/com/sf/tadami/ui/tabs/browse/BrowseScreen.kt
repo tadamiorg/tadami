@@ -28,7 +28,7 @@ fun BrowseScreen(
         titleRes = R.string.browse_tab_title,
         tabs = listOf(
             sourcesTab(navController),
-            extensionsTab()
+            extensionsTab(navController)
         ),
         searchValue = extensionsState.searchQuery,
         onSearchChange = extensionsViewModel::search,

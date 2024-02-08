@@ -9,8 +9,9 @@ import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
-abstract class ParsedAnimeHttpSource : AnimeHttpSource() {
+abstract class ParsedAnimeHttpSource(sourceId : Long) : AnimeHttpSource() {
 
+    override val id: Long = sourceId
     // Search
     protected abstract fun searchSelector(): String
     protected abstract fun searchAnimeFromElement(element: Element): SAnime?

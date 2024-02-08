@@ -8,9 +8,9 @@ import com.sf.tadami.data.listOfStringsAdapter
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.UpdateAnime
+import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.source.model.AnimeFilterList
 import com.sf.tadami.source.model.SAnime
-import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import kotlinx.coroutines.flow.Flow
 

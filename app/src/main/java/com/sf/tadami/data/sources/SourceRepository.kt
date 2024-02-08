@@ -1,9 +1,10 @@
 package com.sf.tadami.data.sources
 
 import com.sf.tadami.data.DataBaseHandler
-import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.source.Source
 import com.sf.tadami.source.StubSource
+import com.sf.tadami.source.online.AnimeHttpSource
+import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -11,6 +12,8 @@ import com.sf.tadami.domain.source.Source as DomainSource
 
 interface SourceRepository {
     fun getSources(): Flow<List<DomainSource>>
+
+    fun getOnlineSources(): Flow<List<DomainSource>>
 
     fun getSourcesWithNonLibraryAnime(): Flow<List<SourceWithCount>>
 
@@ -33,6 +36,15 @@ class SourceRepositoryImpl(
             }
         }
     }
+
+    override fun getOnlineSources(): Flow<List<DomainSource>> {
+        return sourceManager.catalogueSources.map { sources ->
+            sources
+                .filterIsInstance<AnimeHttpSource>()
+                .map(::mapSourceToDomainSource)
+        }
+    }
+
     override fun getSourcesWithNonLibraryAnime(): Flow<List<SourceWithCount>> {
         val sourceIdWithNonLibraryAnime = handler.subscribeToList { animeQueries.getSourceIdsWithNonLibraryAnime() }
         return sourceIdWithNonLibraryAnime.map { sourceId ->

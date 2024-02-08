@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.tabs.browse.filters
+package com.sf.tadami.ui.tabs.browse.tabs.sources.filters
 
 import android.annotation.SuppressLint
 import androidx.compose.material.icons.Icons
@@ -10,23 +10,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
-import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
-import com.sf.tadami.ui.tabs.browse.SourceManager
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AnimeSourcesFilerScreen(
+fun SourcesFilterScreen(
     navController: NavHostController,
-    sourcesManager: SourceManager = Injekt.get()
+    sourcesFilterViewModel: SourcesFilterViewModel = viewModel()
 ) {
+
+    val uiState by sourcesFilterViewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -37,9 +37,7 @@ fun AnimeSourcesFilerScreen(
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
-                actions = listOf(
-                    Action.CastButton()
-                ),
+                actions = listOf(),
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
@@ -53,7 +51,12 @@ fun AnimeSourcesFilerScreen(
     ) {
         SourcesFilterComponent(
             contentPadding = it,
-            sources = remember { emptyMap() }
+            uiState = uiState,
+            backHandle = {
+                navController.navigateUp()
+            },
+            onClickLanguage = sourcesFilterViewModel::toggleLanguage,
+            onClickSource = sourcesFilterViewModel::toggleSource
         )
     }
 }

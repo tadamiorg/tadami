@@ -9,9 +9,9 @@ import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.UpdateEpisode
 import com.sf.tadami.domain.episode.copyFromSEpisode
 import com.sf.tadami.domain.episode.toUpdateEpisode
+import com.sf.tadami.source.Source
 import com.sf.tadami.source.model.SAnime
 import com.sf.tadami.source.model.SEpisode
-import com.sf.tadami.source.Source
 import java.time.Instant
 import java.time.ZonedDateTime
 import java.util.TreeSet

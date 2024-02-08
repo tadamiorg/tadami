@@ -20,6 +20,7 @@ fun SourceItem(
     source: Source,
     onClickItem: (Source) -> Unit,
     onLongClickItem: (Source) -> Unit,
+    onRecentClicked: (Source) -> Unit,
     onOptionsClicked: (Source) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -30,7 +31,7 @@ fun SourceItem(
         onLongClickItem = { onLongClickItem(source) },
         action = {
             if (source.supportsLatest) {
-                TextButton(onClick = { onClickItem(source) }) {
+                TextButton(onClick = { onRecentClicked(source) }) {
                     Text(
                         text = stringResource(R.string.anime_sources_screen_recents_btn),
                         style = LocalTextStyle.current.copy(

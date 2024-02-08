@@ -22,7 +22,7 @@ import uy.kohesive.injekt.api.get
 @Composable
 fun <T> rememberDataStoreState(
     customPrefs: CustomPreferences<T>,
-    customDataStore : DataStore<Preferences>? = null
+    customDataStore: DataStore<Preferences>? = null
 ): DataStoreState<T> {
     val dataStore: DataStore<Preferences> = customDataStore ?: Injekt.get()
     return remember(dataStore) {
@@ -32,6 +32,48 @@ fun <T> rememberDataStoreState(
         )
     }
 }
+
+@Composable
+fun rememberUnknownDataStoreState(
+    unknownDataStore: DataStore<Preferences>
+): UnknownDataStoreState {
+    val dataStore: DataStore<Preferences> = unknownDataStore
+    return remember(dataStore) {
+        UnknownDataStoreState(
+            dataStore = dataStore,
+        )
+    }
+}
+
+class UnknownDataStoreState(
+    private val dataStore: DataStore<Preferences>,
+) {
+
+    private val _value = MutableStateFlow(
+        runBlocking {
+            dataStore.data.first()
+        }
+    )
+    val value: StateFlow<Preferences> = _value.asStateFlow()
+
+    fun <T> setValue(newValue: T, key: Preferences.Key<T>) {
+        runBlocking {
+            dataStore.edit { preferences ->
+                preferences[key] = newValue
+            }
+        }
+    }
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            dataStore.data
+                .collectLatest { prefs ->
+                    _value.update { prefs }
+                }
+        }
+    }
+}
+
 
 class DataStoreState<T>(
     private val dataStore: DataStore<Preferences>,
@@ -53,7 +95,6 @@ class DataStoreState<T>(
                 customPrefs.setPrefs(newValue, preferences)
             }
         }
-        _value.update { newValue }
     }
 
     init {

@@ -108,7 +108,7 @@ fun ExtensionContent(
                     onClickItemSecondaryAction = {
                         when (it) {
                             is Extension.Available -> onOpenWebView(it)
-                            is Extension.Installed -> onOpenExtension(it)
+                            is Extension.Installed -> onUninstallExtension(it)
                             else -> {}
                         }
                     },

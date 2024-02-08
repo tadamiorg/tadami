@@ -1,6 +1,6 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.BasePlugin
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 buildscript {
     dependencies {

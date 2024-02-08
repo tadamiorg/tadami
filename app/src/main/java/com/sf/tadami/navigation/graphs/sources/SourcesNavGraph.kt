@@ -6,14 +6,13 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
+import androidx.navigation.activity
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
-import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.ui.tabs.browse.BrowseScreen
-import com.sf.tadami.ui.tabs.browse.SourceManager
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import com.sf.tadami.ui.tabs.browse.tabs.sources.preferences.SourcePreferencesScreen
+import com.sf.tadami.ui.webview.WebViewActivity
 
 fun NavGraphBuilder.sourcesNavGraph(
     navController: NavHostController,
@@ -27,19 +26,34 @@ fun NavGraphBuilder.sourcesNavGraph(
             navController = navController
         )
     }
+
+    activity("${SourcesRoutes.EXTENSIONS_WEBVIEW}/{sourceId}/{title_key}/{url_key}") {
+        this.activityClass = WebViewActivity::class
+        argument("sourceId") {
+            this.nullable = false
+            this.type = NavType.LongType
+        }
+        argument("title_key") {
+            this.nullable = false
+            this.type = NavType.StringType
+        }
+        argument("url_key") {
+            this.nullable = false
+            this.type = NavType.StringType
+        }
+    }
+
     composable(
         route = "${SourcesRoutes.SETTINGS}/{sourceId}",
         arguments = listOf(
             navArgument("sourceId") { type = NavType.LongType }
         )
     ) {
-        val sourcesManager: SourceManager = Injekt.get()
-        val source =
-            sourcesManager.getOrStub(it.arguments?.getLong("sourceId")!!) as ConfigurableParsedHttpAnimeSource<*>
-        source.getPreferenceScreen(navController).Content()
+        SourcePreferencesScreen(navController = navController)
     }
 }
 
 object SourcesRoutes {
     const val SETTINGS = "sources_settings"
+    const val EXTENSIONS_WEBVIEW = "extensions_webview"
 }

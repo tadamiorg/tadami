@@ -10,8 +10,8 @@ import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.data.anime.AnimeRepositoryImpl
 import com.sf.tadami.data.dateColumnAdapter
-import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.download.DownloadProvider
+import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.episode.EpisodeRepositoryImpl
 import com.sf.tadami.data.history.HistoryRepository
@@ -19,6 +19,7 @@ import com.sf.tadami.data.history.HistoryRepositoryImpl
 import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.anime.FetchIntervalInteractor
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.extension.GetExtensionLanguages
 import com.sf.tadami.data.interactors.extension.GetExtensionsByType
 import com.sf.tadami.data.interactors.history.GetHistoryInteractor
 import com.sf.tadami.data.interactors.history.GetNextEpisodeInteractor
@@ -26,6 +27,7 @@ import com.sf.tadami.data.interactors.history.RemoveHistoryInteractor
 import com.sf.tadami.data.interactors.history.UpdateHistoryInteractor
 import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.data.interactors.sources.GetEnabledSources
+import com.sf.tadami.data.interactors.sources.GetLanguagesWithSources
 import com.sf.tadami.data.interactors.sources.GetSourcesWithNonLibraryAnime
 import com.sf.tadami.data.interactors.updates.GetUpdatesInteractor
 import com.sf.tadami.data.listOfStringsAdapter
@@ -185,6 +187,10 @@ class AppModule(private val app: Application) : InjektModule {
             GetEnabledSources(get(),get())
         }
 
+        addSingletonFactory {
+            GetLanguagesWithSources(get(),get())
+        }
+
         // History interactors
 
         addSingletonFactory {
@@ -209,6 +215,10 @@ class AppModule(private val app: Application) : InjektModule {
 
         addSingletonFactory {
             GetExtensionsByType(get(),get())
+        }
+
+        addSingletonFactory {
+            GetExtensionLanguages(get(),get())
         }
 
         // HttpClient

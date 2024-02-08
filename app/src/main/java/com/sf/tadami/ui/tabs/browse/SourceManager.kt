@@ -4,10 +4,10 @@ import android.content.Context
 import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.sources.StubSourceRepository
 import com.sf.tadami.extension.ExtensionManager
-import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.source.Source
 import com.sf.tadami.source.StubSource
+import com.sf.tadami.source.online.AnimeHttpSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

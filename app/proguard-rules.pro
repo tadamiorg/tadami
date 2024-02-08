@@ -20,12 +20,10 @@
 -keep,allowoptimization class com.sf.tadami.network.OkHttpExtensionsKt { public protected *; }
 -keep,allowoptimization class com.sf.tadami.network.RequestsKt { public protected *; }
 -keep,allowoptimization class com.sf.tadami.domain.anime.Anime { public protected *; }
--keep,allowoptimization class com.sf.tadami.preferences.model.CustomPreferences { public protected *; }
--keep,allowoptimization class com.sf.tadami.preferences.model.DataStoreState { public protected *; }
--keep,allowoptimization class com.sf.tadami.preferences.model.Preference { public protected *; }
+-keep,allowoptimization class com.sf.tadami.preferences.model.SourcePreference$** { public protected *; }
+-keep,allowoptimization class com.sf.tadami.ui.tabs.browse.tabs.sources.preferences.SourcesPreferencesContent { public protected *; }
 -keep,allowoptimization class com.sf.tadami.source.** { public protected *; }
 -keep,allowoptimization class com.sf.tadami.ui.components.data.Action { public protected *; }
--keep,allowoptimization class com.sf.tadami.ui.tabs.settings.components.PreferenceScreen { public protected *; }
 -keep,allowoptimization class com.sf.tadami.ui.utils.** { public protected *; }
 
 ##---------------Begin: proguard configuration for kotlinx.serialization  ----------
