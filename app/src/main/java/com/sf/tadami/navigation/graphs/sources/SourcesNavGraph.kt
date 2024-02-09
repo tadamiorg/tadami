@@ -19,7 +19,7 @@ fun NavGraphBuilder.sourcesNavGraph(
     tabsNavPadding : PaddingValues
 ) {
     composable(
-        route = HomeNavItems.Sources.route,
+        route = HomeNavItems.Browse.route,
     ) {
         BrowseScreen(
             modifier = Modifier.padding(tabsNavPadding),

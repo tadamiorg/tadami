@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
@@ -132,11 +133,11 @@ class ExtensionsViewModel : ViewModel() {
 
         dataStore.getPreferencesGroupAsFlow(SourcesPreferences).onEach {
             _uiState.update { state -> state.copy(updates = it.extensionUpdatesCount) }
-        }
+        }.launchIn(viewModelScope)
 
         dataStore.getPreferencesGroupAsFlow(ExtensionsPreferences).onEach {
             _uiState.update { state -> state.copy(installer = it.extensionInstallerEnum) }
-        }
+        }.launchIn(viewModelScope)
 
     }
 

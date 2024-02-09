@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.tabs.browse.tabs.sources.filters
 
-import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable

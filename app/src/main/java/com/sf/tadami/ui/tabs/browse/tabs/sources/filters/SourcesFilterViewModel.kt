@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.tabs.browse.tabs.sources.filters
 
-import android.util.Log
 import androidx.compose.runtime.Immutable
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences

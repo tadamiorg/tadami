@@ -25,8 +25,6 @@ import com.sf.tadami.utils.Lang
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-
-// TODO Fix updates badges
 @Composable
 fun extensionsTab(
     navController: NavHostController,

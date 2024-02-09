@@ -21,16 +21,17 @@ import androidx.navigation.NavHostController
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
+import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.ui.components.material.AnimatedVectorDrawable
 
 @Composable
 fun BottomNavBar(
-    modifier : Modifier = Modifier,
+    modifier: Modifier = Modifier,
     items: List<HomeNavItems>,
     currentDestination: NavDestination?,
     navController: NavHostController
 ) {
-    NavigationBar(modifier=modifier) {
+    NavigationBar(modifier = modifier) {
         items.forEach { item ->
             AddItem(item, currentDestination, navController)
         }
@@ -50,16 +51,31 @@ fun RowScope.AddItem(
     }
 
     val libraryPreferences by rememberDataStoreState(customPrefs = LibraryPreferences).value.collectAsState()
+    val sourcesPreferences by rememberDataStoreState(customPrefs = SourcesPreferences).value.collectAsState()
 
     NavigationBarItem(
         icon = {
             BadgedBox(
                 badge = {
-                    if(libraryPreferences.newUpdatesCount > 0 && item.route == HomeNavItems.Updates.route){
-                        Badge {
-                            Text(
-                                text = libraryPreferences.newUpdatesCount.toString(),
-                            )
+                    when (item.route) {
+                        HomeNavItems.Browse.route -> {
+                            if (sourcesPreferences.extensionUpdatesCount > 0) {
+                                Badge {
+                                    Text(
+                                        text = sourcesPreferences.extensionUpdatesCount.toString(),
+                                    )
+                                }
+                            }
+                        }
+
+                        HomeNavItems.Updates.route -> {
+                            if (libraryPreferences.newUpdatesCount > 0) {
+                                Badge {
+                                    Text(
+                                        text = libraryPreferences.newUpdatesCount.toString(),
+                                    )
+                                }
+                            }
                         }
                     }
                 }

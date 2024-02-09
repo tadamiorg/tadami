@@ -203,7 +203,7 @@ fun LibraryScreen(
                 }
             },
             onEmptyRefreshClicked = {
-                navController.navigate(HomeNavItems.Sources.route) {
+                navController.navigate(HomeNavItems.Browse.route) {
                     popUpTo(navController.graph.findStartDestination().id) {
                         saveState = true
                     }
