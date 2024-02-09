@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.browse.tabs.sources.filters
 
+import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
@@ -30,11 +31,12 @@ fun SourcesFilterComponent(
         }
 
         val successState = uiState as SourcesFilterUiState.Success
+
         FastScrollLazyColumn(
             contentPadding = contentPadding,
         ) {
             successState.items.forEach { (language, sources) ->
-                val enabled = language in successState.enabledLanguages
+                val enabled = language.name in successState.enabledLanguages
                 item(
                     key = language,
                     contentType = "source-filter-header",

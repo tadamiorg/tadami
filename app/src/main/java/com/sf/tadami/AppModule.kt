@@ -188,7 +188,7 @@ class AppModule(private val app: Application) : InjektModule {
         }
 
         addSingletonFactory {
-            GetLanguagesWithSources(get(),get())
+            GetLanguagesWithSources(app,get(),get())
         }
 
         // History interactors
@@ -218,7 +218,7 @@ class AppModule(private val app: Application) : InjektModule {
         }
 
         addSingletonFactory {
-            GetExtensionLanguages(get(),get())
+            GetExtensionLanguages(app,get(),get())
         }
 
         // HttpClient

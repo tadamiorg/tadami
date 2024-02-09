@@ -19,11 +19,12 @@ data class SourcesPreferences(
 ) : CustomPreferencesIdentifier {
 
     companion object : CustomPreferences<SourcesPreferences> {
+        private const val DEFAULT_EXTENSIONS_REPO = "https://raw.githubusercontent.com/tadamiorg/tadami-extensions/main"
+
         private val HIDDEN_SOURCES =  stringSetPreferencesKey("hidden_sources")
-        private val DEFAULT_EXTENSIONS_REPO = "https://raw.githubusercontent.com/tadamiorg/tadami-extensions/main"
+        private val EXTENSIONS_REPOS = stringSetPreferencesKey("extensions_repos")
         val ENABLED_LANGUAGES =  stringSetPreferencesKey("enabled_languages")
         val LAST_EXT_CHECK = longPreferencesKey(CustomPreferences.appStateKey("last_ext_check"))
-        val EXTENSIONS_REPOS = stringSetPreferencesKey("extensions_repos")
         val EXT_UPDATES_COUNT = intPreferencesKey("ext_updates_count")
 
         override fun transform(preferences: Preferences): SourcesPreferences {

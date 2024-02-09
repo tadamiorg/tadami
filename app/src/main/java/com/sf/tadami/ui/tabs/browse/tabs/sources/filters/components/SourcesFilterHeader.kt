@@ -8,15 +8,15 @@ import com.sf.tadami.utils.Lang
 
 @Composable
 fun SourcesFilterHeader(
-    language: String,
+    language: Lang,
     enabled: Boolean,
     onClickItem: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     TogglePreference(
         modifier = modifier,
-        title = stringResource(id = Lang.getLangByName(language)!!.getRes()),
+        title = stringResource(id = language.getRes()),
         checked = enabled,
-        onCheckedChanged = { onClickItem(language) },
+        onCheckedChanged = { onClickItem(language.name) },
     )
 }

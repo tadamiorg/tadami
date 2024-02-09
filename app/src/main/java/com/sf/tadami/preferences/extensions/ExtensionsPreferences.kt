@@ -14,7 +14,7 @@ data class ExtensionsPreferences(
 ) : CustomPreferencesIdentifier {
 
     companion object : CustomPreferences<ExtensionsPreferences> {
-        val EXTENSION_INSTALLER =  stringPreferencesKey("extension_installer")
+        private val EXTENSION_INSTALLER =  stringPreferencesKey("extension_installer")
 
         private fun getDefaultInstaller(context : Context) : ExtensionInstallerEnum{
             return if (context.hasMiuiPackageInstaller()) {
