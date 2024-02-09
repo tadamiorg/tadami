@@ -3,3 +3,21 @@ CREATE TABLE Source(
     lang TEXT NOT NULL,
     name TEXT NOT NULL
 );
+
+-- Replace old sources ids with new ones
+ALTER TABLE Anime
+RENAME COLUMN source TO old_source;
+
+ALTER TABLE Anime
+ADD COLUMN source INTEGER NOT NULL;
+
+UPDATE Anime
+SET source = CASE
+    WHEN old_source = 'GogoAnime' THEN 1
+    WHEN old_source = 'AnimeSama' THEN 2
+    WHEN old_source = 'VostFree' THEN 3
+    ELSE old_source
+END;
+
+ALTER TABLE Anime
+DROP COLUMN old_source;

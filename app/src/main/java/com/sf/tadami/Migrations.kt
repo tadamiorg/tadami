@@ -72,6 +72,12 @@ object Migrations {
                     }
                 )
             }
+
+            if (oldVersion < 29) {
+                deleteDataStore("anime_source_GogoAnime",context)
+                deleteDataStore("anime_source_AnimeSama",context)
+                deleteDataStore("anime_source_VostFree",context)
+            }
         }
     }
 
