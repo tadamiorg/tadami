@@ -61,7 +61,7 @@ class AppModule(private val app: Application) : InjektModule {
 
         // Scopes Handler
 
-        addSingleton(ScopesHandler())
+        addSingleton(DataStoresHandler())
 
         // Database
 

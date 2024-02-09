@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.R
-import com.sf.tadami.ScopesHandler
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.api.ExtensionsApi
 import com.sf.tadami.extension.model.InstallStep
@@ -21,7 +20,6 @@ import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,8 +31,7 @@ import uy.kohesive.injekt.api.get
 
 class ExtensionManager(
     private val context: Context,
-    private val dataStore: DataStore<Preferences> = Injekt.get(),
-    private val scopesHandler : ScopesHandler = Injekt.get()
+    private val dataStore: DataStore<Preferences> = Injekt.get()
 ) {
     var isInitialized = false
         private set
@@ -245,8 +242,6 @@ class ExtensionManager(
         val installedExtension = _installedExtensionsFlow.value.find { it.pkgName == pkgName }
 
         if (installedExtension != null) {
-            scopesHandler.dataStoreScopes[installedExtension.sources.first().id]?.cancel()
-            scopesHandler.dataStoreScopes.remove(installedExtension.sources.first().id)
             _installedExtensionsFlow.value -= installedExtension
         }
     }
