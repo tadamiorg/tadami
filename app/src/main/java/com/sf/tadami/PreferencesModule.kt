@@ -25,7 +25,6 @@ class PreferencesModule(private val app: Application) : InjektModule {
                 corruptionHandler = ReplaceFileCorruptionHandler(
                     produceNewData = { emptyPreferences() }
                 ),
-                migrations = listOf(SharedPreferencesMigration(app, USER_PREFERENCES)),
                 scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
                 produceFile = { app.preferencesDataStoreFile(USER_PREFERENCES) }
             )

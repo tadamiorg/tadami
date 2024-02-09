@@ -98,9 +98,9 @@ fun GlobalSearchResultItem(
             Column {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                 )
-                Text(text = subtitle)
+                Text(text = subtitle,style = MaterialTheme.typography.bodySmall)
             }
             IconButton(onClick = onClick) {
                 Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null)
