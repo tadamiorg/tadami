@@ -112,6 +112,9 @@ class BackupRestorer(
 
         restoreAmount = backup.backupAnime.size + 1 // +3 for categories, app prefs, source prefs
 
+        val backupMaps = backup.backupSources
+        sourceMapping = backupMaps.associate { it.sourceId to it.name }
+
         now = ZonedDateTime.now()
         currentFetchWindow = fetchInterval.getWindow(now)
 

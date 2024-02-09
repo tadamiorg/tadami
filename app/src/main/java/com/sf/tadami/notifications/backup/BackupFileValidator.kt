@@ -18,15 +18,29 @@ class BackupFileValidator(
      * @throws Exception if anime cannot be found.
      * @return List of missing sources or missing trackers.
      */
-    fun validate(context: Context, uri: Uri) {
+    fun validate(context: Context, uri: Uri): Results  {
         val backup = try {
             BackupUtil.decodeBackup(context, uri)
         } catch (e: Exception) {
             throw IllegalStateException(e)
         }
 
+        val sources = backup.backupSources.associate { it.sourceId to it.name }
+        val missingSources = sources
+            .filter { sourceManager.get(it.key) == null }
+            .entries.map {
+                sourceManager.getOrStub(it.key,it.value).toString()
+            }
+            .distinct()
+            .sorted()
+
         if (backup.backupAnime.isEmpty()) {
             throw IllegalStateException(context.getString(R.string.invalid_backup_file_missing_anime))
         }
+        return Results(missingSources)
     }
+
+    data class Results(
+        val missingSources: List<String>
+    )
 }

@@ -27,7 +27,7 @@ interface SourceManager {
 
     fun get(sourceKey: Long): Source?
 
-    fun getOrStub(sourceKey: Long): Source
+    fun getOrStub(sourceKey: Long, name : String? = null): Source
 
     fun getOnlineSources(): List<AnimeHttpSource>
 
@@ -85,9 +85,9 @@ class SourceManagerImplementation(
         return sourcesMapFlow.value[sourceKey]
     }
 
-    override fun getOrStub(sourceKey: Long): Source {
+    override fun getOrStub(sourceKey: Long, name : String?): Source {
         return sourcesMapFlow.value[sourceKey] ?: stubSourcesMap.getOrPut(sourceKey) {
-            runBlocking { createStubSource(sourceKey) }
+            runBlocking { createStubSource(sourceKey,name) }
         }
     }
 
@@ -111,7 +111,7 @@ class SourceManagerImplementation(
         }
     }
 
-    private suspend fun createStubSource(id: Long): StubSource {
+    private suspend fun createStubSource(id: Long, name: String? = null): StubSource {
         sourceRepository.getStubSource(id)?.let {
             return it
         }
@@ -119,7 +119,7 @@ class SourceManagerImplementation(
             registerStubSource(it)
             return it
         }
-        return StubSource(id = id, name = "")
+        return StubSource(id = id, name = name ?: "")
     }
 
 }
