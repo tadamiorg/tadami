@@ -1,5 +1,23 @@
 CREATE VIEW LibraryView AS
-SELECT Anime.*,COUNT(*) AS episodes,TOTAL(Episode.seen = 0) AS unseen_episodes
+SELECT
+Anime._id,
+Anime.source,
+Anime.url,
+Anime.title,
+Anime.thumbnail_url,
+Anime.release,
+Anime.status,
+Anime.description,
+Anime.genres,
+Anime.last_update,
+Anime.next_update,
+Anime.calculate_interval,
+Anime.favorite,
+Anime.initialized,
+Anime.episode_flags,
+Anime.date_added,
+COUNT(*) AS episodes,
+TOTAL(Episode.seen = 0) AS unseen_episodes
 FROM Anime
 LEFT JOIN Episode ON Anime._id = Episode.anime_id
 WHERE Anime.favorite = 1

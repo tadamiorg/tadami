@@ -191,7 +191,7 @@ object Migrations {
     }
 
     /* Preferences functions for ALL datastore*/
-    private fun deleteDataStore(
+    fun deleteDataStore(
         dataStoreFileName: String,
         context: Context
     ) {

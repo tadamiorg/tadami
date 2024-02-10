@@ -1,6 +1,9 @@
 package com.sf.tadami.ui.tabs.browse
 
 import android.content.Context
+import com.sf.tadami.App
+import com.sf.tadami.DataStoresHandler
+import com.sf.tadami.Migrations
 import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.sources.StubSourceRepository
 import com.sf.tadami.extension.ExtensionManager
@@ -17,6 +20,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
@@ -43,6 +48,8 @@ class SourceManagerImplementation(
 
     private val tadamiDownloadManager: TadamiDownloadManager by injectLazy()
 
+    private val dataStoresHandler : DataStoresHandler = Injekt.get()
+
     private val scope = CoroutineScope(Job() + Dispatchers.IO)
 
     private val sourcesMapFlow = MutableStateFlow(ConcurrentHashMap<Long, Source>())
@@ -64,6 +71,17 @@ class SourceManagerImplementation(
                         extension.sources.forEach {
                             mutableMap[it.id] = it
                             registerStubSource(StubSource.from(it))
+                        }
+                    }
+                    val context = App.getAppContext()
+                    sourcesMapFlow.value.forEach { (id, source) ->
+                        // Check if the key exists in the new map
+                        if (!mutableMap.containsKey(id)) {
+                            // If not, add it to the list
+                            if(context!=null){
+                                dataStoresHandler.removeDataStore(source.id)
+                                Migrations.deleteDataStore("anime_source_${source.id}", App.getAppContext()!!)
+                            }
                         }
                     }
                     sourcesMapFlow.value = mutableMap

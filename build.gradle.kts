@@ -17,6 +17,7 @@ plugins {
     alias(androidx.plugins.com.android.library) apply false
     alias(kotlinx.plugins.android) apply false
     alias(kotlinx.plugins.serialization) apply false
+    alias(libs.plugins.dotenv)
 }
 
 subprojects {

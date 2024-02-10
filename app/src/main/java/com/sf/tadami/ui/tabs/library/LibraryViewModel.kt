@@ -1,6 +1,7 @@
 package com.sf.tadami.ui.tabs.library
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
@@ -40,6 +41,7 @@ class LibraryViewModel : ViewModel() {
     init {
         viewModelScope.launch(Dispatchers.IO){
             libraryInteractor.subscribe().collectLatest { libraryList ->
+                Log.e("Library",libraryList.toString())
                 _libraryList.update { libraryList.toLibraryItems() }
                 if(!_initLoaded.value){
                     _initLoaded.update { true }
