@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode.player
 
+import android.util.Log
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedDispatcher
@@ -389,7 +390,7 @@ fun VideoPlayer(
                 onTapYoutube = {
                     shouldShowControls = shouldShowControls.not()
                 },
-                playerSeekValue = { playerPreferences.doubleTapLength },
+                playerSeekValue = playerPreferences.doubleTapLength,
                 onPauseToggle = {
                     when {
                         exoPlayer.isPlaying -> {

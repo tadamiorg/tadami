@@ -345,9 +345,7 @@ fun CastVideoPlayer(
                     hasPreviousIterator.hasNext()
                 },
                 videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty(),
-                playerSeekValue = {
-                    playerPreferences.doubleTapLength
-                },
+                playerSeekValue = playerPreferences.doubleTapLength,
                 onTapYoutube = {},
                 onPlayerSettings = {
                     openSettingsDialog = true

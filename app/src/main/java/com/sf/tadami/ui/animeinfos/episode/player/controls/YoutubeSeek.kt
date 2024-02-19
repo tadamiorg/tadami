@@ -22,6 +22,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -52,10 +53,12 @@ fun GetYoutubeGesture(
     onSimpleTap: () -> Unit,
     onSeekingChange : (Boolean) -> Unit,
     lockedControls : Boolean,
-    playerSeekValue: () -> Long,
+    playerSeekValue: Long,
 ) {
     val preferencesSeekValue by remember(playerSeekValue){
-        mutableLongStateOf(playerSeekValue()/1000)
+        derivedStateOf{
+            playerSeekValue/1000
+        }
     }
     val coroutineScope = rememberCoroutineScope()
     var isSeeking by remember { mutableStateOf(false) }
@@ -125,7 +128,7 @@ fun GetYoutubeGesture(
                 .weight(1f)
                 .fillMaxSize()
                 .clip(LeftShape)
-                .pointerInput(leftInteractionSource) {
+                .pointerInput(leftInteractionSource,preferencesSeekValue) {
                     if(!lockedControls){
                         youtubeDetectTapGestures(
                             onPress = { offset: Offset ->
@@ -143,8 +146,7 @@ fun GetYoutubeGesture(
                                 if (isSeeking) {
                                     onSeekBackward()
                                     if (leftRipple == null) leftRipple = leftRippleEffect
-                                    if (seekedTime > 0) seekedTime =
-                                        -preferencesSeekValue else seekedTime -= preferencesSeekValue
+                                    if (seekedTime > 0) seekedTime = -preferencesSeekValue else seekedTime -= preferencesSeekValue
                                     resetTap()
                                 } else {
                                     onSimpleTap()
@@ -190,7 +192,7 @@ fun GetYoutubeGesture(
                 .weight(1f)
                 .fillMaxSize()
                 .clip(RightShape)
-                .pointerInput(rightInteractionSource) {
+                .pointerInput(rightInteractionSource,preferencesSeekValue) {
                     if(!lockedControls){
                         youtubeDetectTapGestures(
                             onPress = { offset: Offset ->
