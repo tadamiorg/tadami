@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -45,6 +46,7 @@ internal fun BasePreference(
     subcomponent: @Composable (ColumnScope.() -> Unit)? = null,
     icon: @Composable (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
+    customPrefsVerticalPadding : Dp? = null,
     widget: @Composable (() -> Unit)? = null,
 ) {
     val highlighted = LocalPreferenceHighlighted.current
@@ -66,7 +68,7 @@ internal fun BasePreference(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(vertical = PrefsVerticalPadding),
+                .padding(vertical = customPrefsVerticalPadding ?: PrefsVerticalPadding),
         ) {
             if (!title.isNullOrBlank()) {
                 Text(
@@ -124,5 +126,5 @@ internal fun Modifier.highlightBackground(highlighted: Boolean): Modifier = comp
 
 internal val TrailingWidgetBuffer = 16.dp
 internal val PrefsHorizontalPadding = 16.dp
-internal val PrefsVerticalPadding = 8.dp
+internal val PrefsVerticalPadding = 16.dp
 internal val TitleFontSize = 16.sp

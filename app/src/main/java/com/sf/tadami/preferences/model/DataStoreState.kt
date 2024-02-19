@@ -1,6 +1,5 @@
 package com.sf.tadami.preferences.model
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.datastore.core.DataStore

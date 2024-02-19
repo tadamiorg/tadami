@@ -35,6 +35,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
+import com.sf.tadami.R
 import com.sf.tadami.ui.animeinfos.episode.player.controls.youtube.SeekAnimation
 import com.sf.tadami.ui.animeinfos.episode.player.controls.youtube.shapes.LeftShape
 import com.sf.tadami.ui.animeinfos.episode.player.controls.youtube.shapes.RightShape
@@ -43,7 +44,6 @@ import com.sf.tadami.ui.utils.padding
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.sf.tadami.R
 
 @Composable
 fun GetYoutubeGesture(

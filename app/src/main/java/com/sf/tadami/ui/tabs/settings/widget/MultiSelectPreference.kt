@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
+import androidx.compose.ui.unit.Dp
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
@@ -17,6 +18,7 @@ import com.sf.tadami.ui.components.dialog.alert.DialogCheckBoxRow
 
 @Composable
 fun <T>MultiSelectPreference(
+    customPrefsVerticalPadding : Dp? = null,
     value : Set<T>,
     items : Map<T,Pair<String,Boolean>>,
     title : String,
@@ -28,6 +30,7 @@ fun <T>MultiSelectPreference(
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
     TextPreference(
+        customPrefsVerticalPadding = customPrefsVerticalPadding,
         title = title,
         subtitle = subtitleProvider(),
         onPreferenceClick = {

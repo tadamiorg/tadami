@@ -8,12 +8,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.Dp
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.components.dialog.alert.DialogButtonRow
 
 @Composable
 fun <T : Any>SelectPreference(
+    customPrefsVerticalPadding : Dp? = null,
     value : T,
     items : Map<out T,String>,
     title : String,
@@ -23,6 +25,7 @@ fun <T : Any>SelectPreference(
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
     TextPreference(
+        customPrefsVerticalPadding = customPrefsVerticalPadding,
         title = title,
         subtitle = subtitleProvider(),
         onPreferenceClick = {

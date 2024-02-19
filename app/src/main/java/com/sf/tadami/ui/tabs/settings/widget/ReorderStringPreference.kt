@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.utils.moveItemDown
@@ -21,6 +22,7 @@ import com.sf.tadami.ui.utils.padding
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReorderStringPreference(
+    customPrefsVerticalPadding : Dp? = null,
     valueList : List<String>,
     items : Map<String,String>,
     title : String,
@@ -31,6 +33,7 @@ fun ReorderStringPreference(
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
     TextPreference(
+        customPrefsVerticalPadding = customPrefsVerticalPadding,
         title = title,
         subtitle = subtitleProvider(),
         onPreferenceClick = {

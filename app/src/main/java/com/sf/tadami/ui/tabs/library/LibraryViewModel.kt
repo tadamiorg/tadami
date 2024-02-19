@@ -1,7 +1,6 @@
 package com.sf.tadami.ui.tabs.library
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor

@@ -28,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.sf.tadami.R
@@ -39,6 +40,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun EditTextPreferenceWidget(
+    customPrefsVerticalPadding : Dp? = null,
     title: String,
     subtitle: String?,
     icon: ImageVector?,
@@ -49,6 +51,7 @@ fun EditTextPreferenceWidget(
     var isDialogShown by rememberSaveable { mutableStateOf(false) }
 
     TextPreference(
+        customPrefsVerticalPadding = customPrefsVerticalPadding,
         title = title,
         subtitle = subtitle?.format(value),
         icon = icon,

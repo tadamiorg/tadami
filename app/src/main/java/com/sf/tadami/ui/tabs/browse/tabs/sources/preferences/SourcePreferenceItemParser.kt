@@ -1,12 +1,12 @@
 package com.sf.tadami.ui.tabs.browse.tabs.sources.preferences
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.Dp
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.preferences.model.SourcePreference
 import com.sf.tadami.ui.tabs.settings.widget.EditTextPreferenceWidget
@@ -19,6 +19,7 @@ import com.sf.tadami.ui.tabs.settings.widget.TogglePreference
 fun SourcePreferenceItemParser(
     item: SourcePreference.PreferenceItem<*>,
     prefs: Preferences,
+    customPrefsVerticalPadding : Dp? =  null,
     onPrefChanged: (key: Preferences.Key<*>, value: Any) -> Unit
 ) {
     AnimatedVisibility(
@@ -30,6 +31,7 @@ fun SourcePreferenceItemParser(
 
                 is SourcePreference.PreferenceItem.SelectPreference<*> -> {
                     SelectPreference(
+                        customPrefsVerticalPadding = customPrefsVerticalPadding,
                         value = prefs[item.key] ?: item.defaultValue,
                         items = item.items,
                         title = item.title,
@@ -43,6 +45,7 @@ fun SourcePreferenceItemParser(
 
                 is SourcePreference.PreferenceItem.MultiSelectPreference -> {
                     MultiSelectPreference(
+                        customPrefsVerticalPadding = customPrefsVerticalPadding,
                         value = prefs[item.key] ?: item.defaultValue,
                         items = item.items,
                         title = item.title,
@@ -59,6 +62,7 @@ fun SourcePreferenceItemParser(
 
                 is SourcePreference.PreferenceItem.TogglePreference -> {
                     TogglePreference(
+                        customPrefsVerticalPadding = customPrefsVerticalPadding,
                         title = item.title,
                         subtitle = item.subtitle,
                         icon = item.icon,
@@ -72,6 +76,7 @@ fun SourcePreferenceItemParser(
 
                 is SourcePreference.PreferenceItem.EditTextPreference -> {
                     EditTextPreferenceWidget(
+                        customPrefsVerticalPadding = customPrefsVerticalPadding,
                         title = item.title,
                         subtitle = item.subtitle,
                         icon = item.icon,
@@ -87,6 +92,7 @@ fun SourcePreferenceItemParser(
 
                 is SourcePreference.PreferenceItem.ReorderStringPreference -> {
                     ReorderStringPreference(
+                        customPrefsVerticalPadding = customPrefsVerticalPadding,
                         valueList = (prefs[item.key] ?: item.defaultValue).split(","),
                         items = item.items,
                         title = item.title,

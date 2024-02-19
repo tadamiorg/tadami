@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.Dp
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.tabs.settings.widget.EditTextPreferenceWidget
 import com.sf.tadami.ui.tabs.settings.widget.MultiSelectPreference
@@ -15,6 +16,7 @@ import com.sf.tadami.ui.tabs.settings.widget.TogglePreference
 
 @Composable
 fun PreferenceItemParser(
+    customPrefsVerticalPadding : Dp? = null,
     item: Preference.PreferenceItem<*>
 ) {
     AnimatedVisibility(
@@ -25,6 +27,7 @@ fun PreferenceItemParser(
             when(item){
                 is Preference.PreferenceItem.TextPreference -> {
                     TextPreference(
+                        customPrefsVerticalPadding = customPrefsVerticalPadding,
                         title = item.title,
                         subtitle = item.subtitle,
                         icon = item.icon,
@@ -33,6 +36,7 @@ fun PreferenceItemParser(
                 }
                 is Preference.PreferenceItem.SelectPreference<*> -> {
                     SelectPreference(
+                        customPrefsVerticalPadding = customPrefsVerticalPadding,
                         value = item.value,
                         items = item.items,
                         title = item.title,
@@ -44,6 +48,7 @@ fun PreferenceItemParser(
                 }
                 is Preference.PreferenceItem.MultiSelectPreference -> {
                     MultiSelectPreference(
+                        customPrefsVerticalPadding = customPrefsVerticalPadding,
                         value = item.value,
                         items = item.items,
                         title = item.title,
@@ -56,6 +61,7 @@ fun PreferenceItemParser(
                 }
                 is Preference.PreferenceItem.MultiSelectPreferenceInt -> {
                     MultiSelectPreference(
+                        customPrefsVerticalPadding = customPrefsVerticalPadding,
                         value = item.value,
                         items = item.items,
                         title = item.title,
@@ -68,6 +74,7 @@ fun PreferenceItemParser(
                 }
                 is Preference.PreferenceItem.TogglePreference -> {
                     TogglePreference(
+                        customPrefsVerticalPadding = customPrefsVerticalPadding,
                         title = item.title,
                         subtitle = item.subtitle,
                         icon = item.icon,
@@ -79,6 +86,7 @@ fun PreferenceItemParser(
                 }
                 is Preference.PreferenceItem.EditTextPreference -> {
                     EditTextPreferenceWidget(
+                        customPrefsVerticalPadding = customPrefsVerticalPadding,
                         title = item.title,
                         subtitle = item.subtitle,
                         icon = item.icon,

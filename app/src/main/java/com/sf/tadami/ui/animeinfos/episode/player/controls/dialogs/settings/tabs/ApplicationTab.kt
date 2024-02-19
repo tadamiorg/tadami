@@ -7,12 +7,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.sf.tadami.ui.components.screens.ScreenTabContent
+import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
 import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.player.PlayerPreferences
+import com.sf.tadami.ui.components.screens.ScreenTabContent
 import com.sf.tadami.ui.tabs.settings.components.PreferenceParser
 
 @Composable()
@@ -23,6 +24,7 @@ fun applicationTab() : ScreenTabContent {
         titleRes = R.string.notification_app_group,
     ){ contentPadding: PaddingValues, _ ->
         PreferenceParser(
+            customPrefsVerticalPadding = 8.dp,
             modifier = Modifier.padding(contentPadding),
             items = listOf(
                 getTimelineGroup(prefState = playerPreferencesState, prefs = playerPreferences)

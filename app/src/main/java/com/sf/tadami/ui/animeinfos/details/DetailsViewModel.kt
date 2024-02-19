@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.animeinfos.details
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

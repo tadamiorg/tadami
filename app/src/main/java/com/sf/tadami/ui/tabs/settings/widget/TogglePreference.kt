@@ -5,9 +5,11 @@ import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 
 @Composable
 fun TogglePreference(
+    customPrefsVerticalPadding : Dp? = null,
     modifier: Modifier = Modifier,
     title: String,
     subtitle: String? = null,
@@ -16,6 +18,7 @@ fun TogglePreference(
     onCheckedChanged: (Boolean) -> Unit,
 ) {
     TextPreference(
+        customPrefsVerticalPadding = customPrefsVerticalPadding,
         modifier = modifier,
         title = title,
         subtitle = subtitle,

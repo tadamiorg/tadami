@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.R
@@ -26,6 +27,7 @@ fun sourceTab(
         titleRes = R.string.label_source,
     ){ contentPadding: PaddingValues, _ ->
         SourcePreferenceParser(
+            customPrefsVerticalPadding = 8.dp,
             modifier = Modifier.padding(contentPadding),
             items = items,
             prefs = sourcePreferences,
