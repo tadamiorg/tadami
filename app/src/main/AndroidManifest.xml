@@ -54,11 +54,14 @@
 
         <activity
             android:name=".ui.animeinfos.episode.EpisodeActivity"
-            android:configChanges="orientation|keyboard|keyboardHidden|screenSize|screenLayout|uiMode"
+            android:supportsPictureInPicture="true"
+            android:configChanges="orientation|keyboard|keyboardHidden|smallestScreenSize|screenSize|screenLayout|uiMode"
             android:launchMode="singleTask"
             android:screenOrientation="userLandscape"
-            android:parentActivityName=".ui.main.MainActivity"
-            android:exported="true">
+            android:resizeableActivity="true"
+            android:autoRemoveFromRecents="true"
+            android:excludeFromRecents="true"
+            android:exported="false">
         </activity>
 
         <activity

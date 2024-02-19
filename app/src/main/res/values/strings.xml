@@ -216,6 +216,7 @@
     <string name="label_history">History</string>
     <string name="history_anime_time">Ep. %1$s - %2$s</string>
     <string name="information_no_recent_anime">Nothing seen recently</string>
+    <string name="youtube_gestures_seconds">%1$s seconds</string>
     <!-- Dialog option with checkbox view -->
     <string name="dialog_with_checkbox_remove_description">This will remove the seen date of this episode. Are you sure?</string>
     <string name="dialog_with_checkbox_reset">Reset all episodes for this entry</string>
@@ -248,7 +249,9 @@
     <string name="label_explore">Explore</string>
     <string name="label_extensions">Extensions</string>
     <string name="label_sources">Sources</string>
+    <string name="label_source">Source</string>
     <string name="label_extension_info">Extension info</string>
+    <string name="label_episodes">Episodes</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Library last updated: %s</string>

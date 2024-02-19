@@ -30,14 +30,13 @@ import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
-import com.sf.tadami.ui.animeinfos.episode.PlayerViewModel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.CastErrorCode
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TadamiCastError
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.tadamiCastMessageCallback
 import com.sf.tadami.ui.animeinfos.episode.cast.isCastMediaFinished
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
-import com.sf.tadami.ui.animeinfos.episode.player.controls.QualityDialog
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.QualityDialog
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.utils.ImageDefaults
 import kotlinx.coroutines.Job
@@ -273,7 +272,7 @@ fun CastVideoPlayer(
                         castSession.remoteMediaClient!!.togglePlayback()
                     }
                 },
-                onSettings = { openDialog = openDialog.not() },
+                onStreamSettings = { openDialog = openDialog.not() },
                 totalDuration = { totalDuration },
                 currentTime = { currentTime },
                 bufferedPercentage = { 0 },
@@ -308,7 +307,22 @@ fun CastVideoPlayer(
                 hasPrevious = {
                     hasPreviousIterator.hasNext()
                 },
-                videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty()
+                videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty(),
+                playerSeekValue = {playerPreferences.doubleTapLength},
+                onTapYoutube = {
+
+                },
+                onPlayerSettings = {
+
+                },
+                onEpisodesClicked = {
+
+                },
+                onPipClicked = {
+
+                },
+                lockedControls = false
+
             )
         }
     }

@@ -37,3 +37,23 @@ inline fun <T : Closeable?> Array<T>.use(block: () -> Unit) {
         }
     }
 }
+
+fun <T> List<T>.moveItemUp(index: Int) : List<T> {
+    val newList = this.toMutableList()
+    if (index > 0 && index < newList.size) {
+        val temp = newList[index]
+        newList[index] = newList[index - 1]
+        newList[index - 1] = temp
+    }
+    return newList
+}
+
+fun <T> List<T>.moveItemDown(index: Int) : List<T> {
+    val newList = this.toMutableList()
+    if (index >= 0 && index < newList.size - 1) {
+        val temp = newList[index]
+        newList[index] = newList[index + 1]
+        newList[index + 1] = temp
+    }
+    return newList
+}

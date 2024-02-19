@@ -1,8 +1,8 @@
 [versions]
-coil-version = "2.4.0"
+coil-version = "2.5.0"
 rxjava3-version = "3.1.5"
 jsoup-version="1.17.2"
-okhttp-version = "5.0.0-alpha.11"
+okhttp-version = "5.0.0-alpha.12"
 sqldelight-version = "2.0.0"
 markdown-parser-version = "0.3.2"
 http4k-bom-version = "4.42.1.0"
@@ -29,6 +29,7 @@ injekt = "com.github.inorichi.injekt:injekt-core:65b0440"
 okhttp = {group="com.squareup.okhttp3",name="okhttp",version.ref="okhttp-version"}
 okhttp-logging-interceptor = {group="com.squareup.okhttp3",name="logging-interceptor",version.ref="okhttp-version"}
 okhttp-dnsoverhttps = {group="com.squareup.okhttp3",name="okhttp-dnsoverhttps",version.ref="okhttp-version"}
+okhttp-brotli = {group="com.squareup.okhttp3",name="okhttp-brotli",version.ref="okhttp-version"}
 okio = "com.squareup.okio:okio:3.7.0"
 
 # SQLDelight
@@ -59,6 +60,6 @@ dotenv = { id="co.uzzu.dotenv.gradle", version.ref="dotenv_version" }
 [bundles]
 coil = ["coil","coil-compose"]
 rxjava = ["rxjava3","rxjava3-rxandroid"]
-okhttp = ["okhttp","okhttp-logging-interceptor","okhttp-dnsoverhttps","okio"]
+okhttp = ["okhttp","okhttp-logging-interceptor","okhttp-dnsoverhttps","okio","okhttp-brotli"]
 sqldelight = ["sqldelight-android-driver","sqldelight-coroutines-extensions","sqlite"]
 http4k = ["http4k-core","http4k-server-ktorcio"]

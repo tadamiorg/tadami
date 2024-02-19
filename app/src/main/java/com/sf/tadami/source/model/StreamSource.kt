@@ -14,7 +14,9 @@ import okhttp3.Headers
 @Serializable
 data class StreamSource(
     val url : String = "",
-    val quality : String = "",
+    val fullName: String = "",
+    val quality: String = "",
+    val server: String = "",
     @Serializable(with = OkhttpHeadersSerializer::class)
     val headers: Headers? = null
 )

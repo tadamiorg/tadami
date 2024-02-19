@@ -1,7 +1,7 @@
 package com.sf.tadami.ui.components.dialog.alert
 
 
-import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -28,7 +28,7 @@ fun CustomAlertDialog(
     textContentColor: Color = AlertDialogDefaults.textContentColor,
     tonalElevation: Dp = AlertDialogDefaults.TonalElevation,
     properties: DialogProperties = DialogProperties(),
-    text: @Composable ColumnScope.() -> Unit = {},
+    text: @Composable BoxScope.() -> Unit = {},
 ) {
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -42,9 +42,7 @@ fun CustomAlertDialog(
                 ) {
                     CompositionLocalProvider(LocalDismissRequest provides onDismissRequest) {
                         dismissButton?.let {
-
                             it()
-
                         }
                         confirmButton()
                     }

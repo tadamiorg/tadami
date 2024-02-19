@@ -68,11 +68,25 @@ sealed class SourcePreference {
             override val enabled: Boolean = true,
             override val onValueChanged: (newValue: String) -> Boolean = { true },
         ) : PreferenceItem<String>()
+
+        data class ReorderStringPreference(
+            val key : Preferences.Key<String>,
+            var value : String,
+            var items : Map<String,String>,
+            val defaultValue: String,
+            override val title: String,
+            override val subtitle: String? = "%s",
+            override val icon: ImageVector? = null,
+            override val enabled: Boolean = true,
+            val overrideOkButton : Boolean = false,
+            override val onValueChanged: (newValue: String) -> Boolean = { true },
+        ) : PreferenceItem<String>()
     }
 
     data class PreferenceCategory(
         override val title: String,
         override val enabled: Boolean = true,
+        val videoCategory : Boolean = false,
         val preferenceItems : List<PreferenceItem<*>> = emptyList()
     ) : SourcePreference()
 

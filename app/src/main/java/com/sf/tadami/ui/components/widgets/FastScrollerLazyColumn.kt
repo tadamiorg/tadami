@@ -19,6 +19,8 @@ fun FastScrollLazyColumn(
     state: LazyListState = rememberLazyListState(),
     contentPadding: PaddingValues = PaddingValues(0.dp),
     reverseLayout: Boolean = false,
+    thumbAlways : Boolean = false,
+    noEndPadding : Boolean = false,
     verticalArrangement: Arrangement.Vertical =
         if (!reverseLayout) Arrangement.Top else Arrangement.Bottom,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
@@ -28,6 +30,8 @@ fun FastScrollLazyColumn(
     VerticalFastScroller(
         listState = state,
         modifier = modifier,
+        thumbAlways = thumbAlways,
+        noEndPadding = noEndPadding,
         topContentPadding = contentPadding.calculateTopPadding(),
         endContentPadding = contentPadding.calculateEndPadding(LocalLayoutDirection.current),
     ) {

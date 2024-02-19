@@ -1,12 +1,11 @@
-package com.sf.tadami.ui.animeinfos.episode.player.controls
+package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -25,6 +24,7 @@ import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 import com.sf.tadami.ui.components.dialog.simple.SimpleDialog
+import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
 
 @Composable
 fun QualityDialog(
@@ -37,13 +37,16 @@ fun QualityDialog(
     val (selectedOption, onOptionSelected) = remember {
         mutableStateOf(selectedSource ?: sources.firstOrNull())
     }
-    
+    val listState = rememberLazyListState()
+
     SimpleDialog(
         opened = opened,
         title = { Text(text = stringResource(id = R.string.player_screen_qd_title)) },
         onDismissRequest = onDismissRequest,
         confirmButton = {
-            DefaultDialogConfirmButton {
+            DefaultDialogConfirmButton(
+                enabled = selectedOption != selectedSource
+            ) {
                 if (selectedOption != null) {
                     onSelectSource(selectedOption)
                     onDismissRequest()
@@ -51,19 +54,23 @@ fun QualityDialog(
             }
         },
         dismissButton = {
-            DefaultDialogCancelButton(onDismissRequest = onDismissRequest)
+            DefaultDialogCancelButton()
         }
     ) {
         LaunchedEffect(Unit){
-            onOptionSelected(selectedSource ?: sources.firstOrNull())
+            val realSource = selectedSource ?: sources.firstOrNull()
+            onOptionSelected(realSource)
+            listState.animateScrollToItem(realSource?.let { sources.indexOf(it) }.takeIf { it !=-1 } ?: 0)
         }
-        LazyColumn {
+        FastScrollLazyColumn(
+            thumbAlways = true,
+            state = listState
+        ) {
             items(sources) { source ->
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
                         .defaultMinSize(1.dp, 1.dp)
+                        .fillMaxWidth()
                         .selectable(
                             selected = (source == selectedOption),
                             onClick = {
@@ -81,7 +88,7 @@ fun QualityDialog(
                         }
                     )
                     Text(
-                        text = source.quality,
+                        text = source.fullName,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
@@ -96,13 +103,13 @@ fun QualityDialog(
 fun PreviewQualityDialog() {
     QualityDialog(
         sources = listOf(
-        StreamSource("", "Gogoanime : 1080P", null),
-        StreamSource("", "VidCdn : 1080P", null),
-        StreamSource("", "Embed : 1080P", null),
-        StreamSource("", "StreamSB : 1080P", null),
-        StreamSource("", "Uptolaod : 1080P", null),
-        StreamSource("", "Vaginette : 1080P", null),
-        StreamSource("", "Viloeur : 1080P", null),
+        StreamSource("", "Gogoanime : 1080P", "","",null),
+        StreamSource("", "VidCdn : 1080P", "","",null),
+        StreamSource("", "Embed : 1080P", "","",null),
+        StreamSource("", "StreamSB : 1080P", "","",null),
+        StreamSource("", "Uptolaod : 1080P", "","",null),
+        StreamSource("", "Vaginette : 1080P", "","",null),
+        StreamSource("", "Viloeur : 1080P", "","",null),
     ),
         onSelectSource = {},
         onDismissRequest = {},

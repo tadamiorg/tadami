@@ -7,12 +7,12 @@ import com.sf.tadami.data.interactors.sources.GetEnabledSources
 import com.sf.tadami.domain.source.Source
 import com.sf.tadami.utils.Lang
 import com.sf.tadami.utils.launchIO
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
-import okhttp3.internal.toImmutableList
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.util.TreeMap

@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.animeinfos.episode
+package com.sf.tadami.ui.animeinfos.episode.player
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -16,6 +16,8 @@ import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.network.utils.TadaErrorConsumer
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
+import com.sf.tadami.ui.animeinfos.episode.EpisodeUiState
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.SaveableMutableSaveStateFlow
 import com.sf.tadami.ui.utils.UiToasts
@@ -66,6 +68,14 @@ class PlayerViewModel(
 
     private val source = sourcesManager.getOrStub(sourceId)
 
+    val sourceDataStore = if(source is ConfigurableParsedHttpAnimeSource<*>) {
+        source.dataStore
+    } else null
+
+    val sourceDataStoreScreen = if(source is ConfigurableParsedHttpAnimeSource<*>) {
+        source.getPreferenceScreen().preferences
+    } else emptyList()
+
     private val _currentEpisode: MutableStateFlow<Episode?> = MutableStateFlow(null)
     val currentEpisode: StateFlow<Episode?> = _currentEpisode.asStateFlow()
 
@@ -109,6 +119,12 @@ class PlayerViewModel(
 
     private val _idleLock = MutableStateFlow(false)
     val idleLock = _idleLock.asStateFlow()
+
+    private val _lockedControls = MutableStateFlow(false)
+    val lockedControls = _lockedControls.asStateFlow()
+
+    private val _playerInitiatedPause = MutableStateFlow(false)
+    val playerInitiatedPause = _playerInitiatedPause.asStateFlow()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -191,6 +207,18 @@ class PlayerViewModel(
 
     fun setIdleLock(locked: Boolean) {
         _idleLock.update { locked }
+    }
+
+    fun lockControls(locked : Boolean){
+        _lockedControls.update {
+            locked
+        }
+    }
+
+    fun setPlayerInitadtedPause(value : Boolean){
+        _playerInitiatedPause.update {
+            value
+        }
     }
 
     private fun selectEpisode(

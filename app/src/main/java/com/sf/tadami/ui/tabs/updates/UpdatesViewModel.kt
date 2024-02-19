@@ -41,7 +41,7 @@ class UpdatesViewModel : ViewModel() {
 
     init {
         viewModelScope.launchIO {
-            // Set date limit for recent chapters
+            // Set date limit for recent episodes
             val limit = ZonedDateTime.now().minusMonths(3).toInstant()
 
             getUpdatesInteractor.subscribe(limit).distinctUntilChanged().collectLatest {updates->

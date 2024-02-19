@@ -41,7 +41,6 @@ class LibraryViewModel : ViewModel() {
     init {
         viewModelScope.launch(Dispatchers.IO){
             libraryInteractor.subscribe().collectLatest { libraryList ->
-                Log.e("Library",libraryList.toString())
                 _libraryList.update { libraryList.toLibraryItems() }
                 if(!_initLoaded.value){
                     _initLoaded.update { true }

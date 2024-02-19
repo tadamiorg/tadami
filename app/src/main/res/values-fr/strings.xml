@@ -178,6 +178,7 @@
     <string name="label_history">Historique</string>
     <string name="history_anime_time">Ep. %1$s - %2$s</string>
     <string name="information_no_recent_anime">Rien de vu récemment</string>
+    <string name="youtube_gestures_seconds">%1$s secondes</string>
 
     <!-- History Dialogs -->
     <string name="dialog_with_checkbox_remove_description">Cela supprimera la date de lecture de cet épisode. Êtes-vous sûr(e) \?</string>
@@ -260,7 +261,9 @@
     <string name="label_explore">Explorer</string>
     <string name="label_extensions">Extensions</string>
     <string name="label_sources">Sources</string>
+    <string name="label_source">Source</string>
     <string name="label_extension_info">Informations sur l\'extension</string>
+    <string name="label_episodes">Episodes</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Dernière mise à jour de la bibliothèque le : %s</string>

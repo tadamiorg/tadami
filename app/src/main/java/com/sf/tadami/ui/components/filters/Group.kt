@@ -119,7 +119,6 @@ fun Group(
             ) {
                 LazyVerticalGrid(
                     modifier = Modifier
-                        .weight(1f, false)
                         .heightIn(0.dp, (screenHeight / 2).dp),
                     state = lazyGridState,
                     columns = GridCells.Adaptive(130.dp),
