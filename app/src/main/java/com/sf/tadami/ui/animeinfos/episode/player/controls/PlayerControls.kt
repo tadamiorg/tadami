@@ -54,7 +54,7 @@ fun PlayerControls(
 ) {
     val visible = remember(isVisible()) { isVisible() }
     var isSeeking by remember { mutableStateOf(false) }
-    val overlayAlpha by animateFloatAsState(targetValue = if((visible || isSeeking) && !lockedControls) 0.6f else 0f, label = "")
+    val overlayAlpha by animateFloatAsState(targetValue = if((visible || isSeeking) && !lockedControls) 0.7f else 0f, label = "")
 
 
     Box(modifier = Modifier.background(MaterialTheme.colorScheme.background.copy(alpha = overlayAlpha))) {
