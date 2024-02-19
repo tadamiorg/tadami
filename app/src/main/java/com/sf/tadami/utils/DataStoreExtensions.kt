@@ -2,7 +2,13 @@ package com.sf.tadami.utils
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
 import kotlinx.coroutines.flow.first
@@ -62,4 +68,66 @@ suspend fun <T> DataStore<Preferences>.createPreference(
     this.edit { prefs ->
         prefs[key] = value
     }
+}
+
+suspend fun DataStore<Preferences>.replacePreferences(
+    filterPredicate: (Map.Entry<Preferences.Key<*>, Any?>) -> Boolean,
+    newValue: (Any) -> Any = { it },
+    newKey: (Preferences.Key<*>) -> String,
+) {
+    this
+        .getDataStoreValues()
+        .asMap()
+        .filter(filterPredicate)
+        .forEach { (key, value) ->
+            when (value) {
+                is Int -> {
+                    this.createPreference(
+                        intPreferencesKey(newKey(key)),
+                        newValue(value) as Int
+                    )
+                    this.clearPreferences(setOf(key))
+                }
+
+                is Long -> {
+                    this.createPreference(
+                        longPreferencesKey(newKey(key)),
+                        newValue(value) as Long
+                    )
+                    this.clearPreferences(setOf(key))
+                }
+
+                is Float -> {
+                    this.createPreference(
+                        floatPreferencesKey(newKey(key)),
+                        newValue(value) as Float
+                    )
+                    this.clearPreferences(setOf(key))
+                }
+
+                is String -> {
+                    this.createPreference(
+                        stringPreferencesKey(newKey(key)),
+                        newValue(value) as String
+                    )
+                    this.clearPreferences(setOf(key))
+                }
+
+                is Boolean -> {
+                    this.createPreference(
+                        booleanPreferencesKey(newKey(key)),
+                        newValue(value) as Boolean
+                    )
+                    this.clearPreferences(setOf(key))
+                }
+
+                is Set<*> -> (value as? Set<String>)?.let {
+                    this.createPreference(
+                        stringSetPreferencesKey(newKey(key)),
+                        newValue(value) as Set<String>
+                    )
+                    this.clearPreferences(setOf(key))
+                }
+            }
+        }
 }

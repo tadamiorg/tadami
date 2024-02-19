@@ -419,11 +419,9 @@ class EpisodeActivity : AppCompatActivity() {
     /* PIP MODE HANDLING */
 
     override fun onStop() {
-        /*viewModel.saveCurrentEpisodeWatchingProgress()*/
         if (PipState.mode == PipState.ON && powerManager.isInteractive) {
             finishAndRemoveTask()
         }
-
         super.onStop()
     }
 

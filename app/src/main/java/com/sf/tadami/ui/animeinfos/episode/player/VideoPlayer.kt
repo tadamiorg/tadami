@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.animeinfos.episode.player
 
-import android.util.Log
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedDispatcher
