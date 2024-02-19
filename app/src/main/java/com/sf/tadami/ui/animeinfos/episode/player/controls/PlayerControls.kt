@@ -48,7 +48,7 @@ fun PlayerControls(
     onForward: () -> Unit,
     onTapYoutube : () -> Unit,
     playerSeekValue : () -> Long,
-    onPipClicked : () -> Unit,
+    onPipClicked : (() -> Unit)? = null,
     videoSettingsEnabled: Boolean = false,
     lockedControls : Boolean
 ) {

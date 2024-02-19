@@ -29,7 +29,7 @@ fun BottomControls(
     onEpisodesClicked: () -> Unit = {},
     isSeekable: Boolean = true,
     videoSettingsEnabled: Boolean = false,
-    onPipClicked : () -> Unit
+    onPipClicked : (() -> Unit)? = null
 ) {
     Box(
         modifier = modifier.fillMaxWidth(),
@@ -94,19 +94,19 @@ fun BottomControls(
                     )
                 }
 
-                IconButton(
-                    onClick = onPipClicked,
-                    enabled = true,
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_pip),
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        contentDescription = "Picture in picture"
-                    )
+                onPipClicked?.let {
+                    IconButton(
+                        onClick = onPipClicked,
+                        enabled = true,
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_pip),
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            contentDescription = "Picture in picture"
+                        )
+                    }
                 }
             }
-
-
         }
     }
 }
