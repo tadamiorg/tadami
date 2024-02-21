@@ -12,6 +12,7 @@ import coil.ImageLoaderFactory
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import coil.request.CachePolicy
+import com.sf.tadami.network.interceptors.ImageLoaderInterceptor
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.preferences.appearance.setAppCompatDelegateThemeMode
@@ -20,6 +21,7 @@ import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import okhttp3.OkHttpClient
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -43,6 +45,7 @@ open class App : Application(), ImageLoaderFactory {
     companion object {
         private var appContext: Context? = null
         fun getAppContext(): Context? {
+
             return appContext
         }
     }
@@ -54,6 +57,12 @@ open class App : Application(), ImageLoaderFactory {
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(this)
+            .okHttpClient {
+                OkHttpClient.Builder()
+                    // This header will be added to every image request.
+                    .addNetworkInterceptor(ImageLoaderInterceptor())
+                    .build()
+            }
             .crossfade((300 * this@App.animatorDurationScale).toInt())
             .memoryCache {
                 MemoryCache.Builder(this)

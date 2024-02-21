@@ -50,7 +50,7 @@ fun RecentScreen(
                         horizontalAlignment = Alignment.Start
                     ) {
                         Text(
-                            text = stringResource(id = R.string.discover_search_screen_title),
+                            text = stringResource(id = R.string.discover_recents_screen_title),
                             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
