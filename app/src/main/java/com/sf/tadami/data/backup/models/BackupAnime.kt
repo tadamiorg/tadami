@@ -10,7 +10,7 @@ import kotlinx.serialization.protobuf.ProtoNumber
 
 @Serializable
 data class BackupAnime @OptIn(ExperimentalSerializationApi::class) constructor(
-    @ProtoNumber(1) var source: String,
+    @ProtoNumber(1) var source: Long,
     @ProtoNumber(2) var url: String,
     @ProtoNumber(3) var title: String = "",
     @ProtoNumber(4) var thumbnailUrl: String? = null,

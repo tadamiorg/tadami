@@ -18,8 +18,10 @@ import com.sf.tadami.data.interactors.history.GetHistoryInteractor
 import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.notifications.backup.BackupFileValidator
-import com.sf.tadami.ui.tabs.settings.model.CustomPreferences
-import com.sf.tadami.ui.tabs.settings.screens.backup.BackupPreferences
+import com.sf.tadami.preferences.backup.BackupPreferences
+import com.sf.tadami.preferences.model.CustomPreferences
+import com.sf.tadami.source.Source
+import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.tabs.settings.screens.backup.BackupSerializer
 import com.sf.tadami.utils.getDataStoreValues
 import com.sf.tadami.utils.getPreferencesGroup
@@ -41,6 +43,7 @@ class BackupCreator(
     private val handler: DataBaseHandler = Injekt.get()
     private val dataStore: DataStore<Preferences> = Injekt.get()
     private val getHistory: GetHistoryInteractor = Injekt.get()
+    private val sourceManager: SourceManager = Injekt.get()
     private var backupPreferences: BackupPreferences = runBlocking {
         dataStore.getPreferencesGroup(BackupPreferences)
     }
@@ -59,6 +62,7 @@ class BackupCreator(
         val backup = Backup(
             backupAnimes(databaseAnime, flags),
             backupAppPreferences(flags),
+            backupSources(databaseAnime)
         )
 
         var file: UniFile? = null
@@ -175,4 +179,20 @@ class BackupCreator(
                 }
             }
     }
+
+    private fun backupSources(animes: List<LibraryAnime>): List<BackupSource> {
+        return animes
+            .asSequence()
+            .map(LibraryAnime::source)
+            .distinct()
+            .map(sourceManager::getOrStub)
+            .map { it.toBackupSource() }
+            .toList()
+    }
+
+    private fun Source.toBackupSource() =
+        BackupSource(
+            name = this.name,
+            sourceId = this.id,
+        )
 }

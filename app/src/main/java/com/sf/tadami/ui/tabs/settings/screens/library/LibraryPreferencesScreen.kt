@@ -27,13 +27,14 @@ import com.commandiron.wheel_picker_compose.core.WheelPickerDefaults
 import com.commandiron.wheel_picker_compose.core.WheelTextPicker
 import com.sf.tadami.R
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
+import com.sf.tadami.preferences.library.LibraryPreferences
+import com.sf.tadami.preferences.model.DataStoreState
+import com.sf.tadami.preferences.model.Preference
+import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 import com.sf.tadami.ui.tabs.settings.components.PreferenceScreen
-import com.sf.tadami.ui.tabs.settings.model.DataStoreState
-import com.sf.tadami.ui.tabs.settings.model.Preference
-import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
 import com.sf.tadami.ui.utils.defaultParser
 import com.sf.tadami.ui.utils.toPrefMultiCheckbox
 

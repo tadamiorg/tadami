@@ -6,7 +6,7 @@ import com.sf.tadami.domain.anime.LibraryAnime
 object AnimeMapper {
     fun mapAnime(
         id: Long,
-        source: String,
+        source: Long,
         url: String,
         title: String,
         thumbnailUrl: String?,
@@ -42,7 +42,7 @@ object AnimeMapper {
 
     fun mapLibraryAnime(
         id: Long,
-        source: String,
+        source: Long,
         url: String,
         title: String,
         thumbnailUrl: String?,

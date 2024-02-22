@@ -12,6 +12,7 @@ import java.util.Locale
 data class Backup @OptIn(ExperimentalSerializationApi::class) constructor(
     @ProtoNumber(1) val backupAnime: List<BackupAnime>,
     @ProtoNumber(100) var backupPreferences: List<BackupPreference> = emptyList(),
+    @ProtoNumber(101) var backupSources: List<BackupSource> = emptyList(),
 ) {
 
     companion object {

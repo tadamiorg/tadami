@@ -9,7 +9,7 @@ import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.data.interactors.updates.GetUpdatesInteractor
 import com.sf.tadami.domain.updates.UpdatesWithRelations
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
-import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
+import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.ui.utils.addOrRemove
 import com.sf.tadami.utils.editPreferences
 import com.sf.tadami.utils.getPreferencesGroup
@@ -41,7 +41,7 @@ class UpdatesViewModel : ViewModel() {
 
     init {
         viewModelScope.launchIO {
-            // Set date limit for recent chapters
+            // Set date limit for recent episodes
             val limit = ZonedDateTime.now().minusMonths(3).toInstant()
 
             getUpdatesInteractor.subscribe(limit).distinctUntilChanged().collectLatest {updates->
@@ -57,7 +57,9 @@ class UpdatesViewModel : ViewModel() {
     fun resetNewUpdatesCount(){
         viewModelScope.launchIO {
             val libraryPreferences = dataStore.getPreferencesGroup(LibraryPreferences)
-            dataStore.editPreferences(libraryPreferences.copy(newUpdatesCount = 0),LibraryPreferences)
+            dataStore.editPreferences(libraryPreferences.copy(newUpdatesCount = 0),
+                LibraryPreferences
+            )
         }
     }
 

@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.sf.tadami.R
@@ -50,9 +51,11 @@ import com.sf.tadami.ui.utils.secondaryItemAlpha
 internal fun AppThemePreference(
     value: AppTheme,
     amoled: Boolean,
+    customPrefsVerticalPadding : Dp? = null,
     onItemClick: (AppTheme) -> Unit,
 ) {
     BasePreference(
+        customPrefsVerticalPadding = customPrefsVerticalPadding,
         subcomponent = {
             AppThemesList(
                 currentTheme = value,

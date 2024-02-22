@@ -12,7 +12,7 @@ class GetSourcesWithNonLibraryAnime(
         return repository.getSourcesWithNonLibraryAnime()
     }
 
-    suspend fun delete(sourcesIds : List<String>){
+    suspend fun delete(sourcesIds : List<Long>){
         repository.deleteAnimesNotInLibraryBySourceIds(sourcesIds)
     }
 }

@@ -15,8 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
-import com.sf.tadami.network.api.model.AnimeFilter
-import com.sf.tadami.network.api.model.AnimeFilterList
+import com.sf.tadami.source.model.AnimeFilter
+import com.sf.tadami.source.model.AnimeFilterList
 import com.sf.tadami.ui.components.dialog.sheets.BottomSheet
 import com.sf.tadami.ui.components.filters.CheckBox
 import com.sf.tadami.ui.components.filters.Group

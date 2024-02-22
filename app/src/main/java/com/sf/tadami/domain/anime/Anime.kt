@@ -1,12 +1,12 @@
 package com.sf.tadami.domain.anime
 
 import androidx.compose.ui.state.ToggleableState
-import com.sf.tadami.network.api.model.SAnime
+import com.sf.tadami.source.model.SAnime
 import data.Anime as AnimeDb
 
 data class Anime(
     val id: Long,
-    val source: String,
+    val source: Long,
     val url: String,
     val title: String,
     val thumbnailUrl: String?,
@@ -92,7 +92,7 @@ data class Anime(
 
         fun create() = Anime(
             id = -1L,
-            source = "",
+            source = -1L,
             url = "",
             title = "",
             thumbnailUrl = null,
@@ -111,7 +111,7 @@ data class Anime(
     }
 }
 
-fun SAnime.toDomainAnime(source: String): Anime {
+fun SAnime.toDomainAnime(source: Long): Anime {
     return Anime.create().copy(
         source = source,
         url = url,

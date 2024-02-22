@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">Tadami</string>
     <string name="library_tab_title">Library</string>
-    <string name="sources_tab_title">Sources</string>
+    <string name="browse_tab_title">Browse</string>
     <string name="refresh">Refresh</string>
     <string name="language_fr">French</string>
     <string name="language_en">English</string>
@@ -15,6 +15,7 @@
         <item quantity="many">%d episodes</item>
         <item quantity="other">%d episodes</item>
     </plurals>
+    <string name="empty_screen">Well, this is awkward</string>
     <string name="information_no_recent_episodes">No new episodes</string>
     <!-- Strings used for fragments for navigation -->
     <string name="unknown_author">Unknown Auhtor</string>
@@ -103,7 +104,7 @@
     <string name="discover_search_filters_independent">Filters ignores each other</string>
     <string name="webview_required">Webview is required for Tadami</string>
     <string name="webview_outdated">Please update the WebView app for better compatibility</string>
-    <string name="notification_library_update_skipped_not_caught_up">Skipped because there are unseen episodes</string>
+    <string name="notification_library_update_skipped_not_caught_up">Skipped because there are too much unseen episodes</string>
     <string name="notification_library_updates_skipped">Skipped updates</string>
     <string name="notification_library_update_skipped_result">%1$d update(s) skipped</string>
     <string name="tap_see_details">Tap to see details</string>
@@ -215,6 +216,7 @@
     <string name="label_history">History</string>
     <string name="history_anime_time">Ep. %1$s - %2$s</string>
     <string name="information_no_recent_anime">Nothing seen recently</string>
+    <string name="youtube_gestures_seconds">%1$s seconds</string>
     <!-- Dialog option with checkbox view -->
     <string name="dialog_with_checkbox_remove_description">This will remove the seen date of this episode. Are you sure?</string>
     <string name="dialog_with_checkbox_reset">Reset all episodes for this entry</string>
@@ -244,6 +246,12 @@
     <string name="label_recent_updates_long">Updates</string>
     <string name="label_more">More</string>
     <string name="label_settings">Settings</string>
+    <string name="label_explore">Explore</string>
+    <string name="label_extensions">Extensions</string>
+    <string name="label_sources">Sources</string>
+    <string name="label_source">Source</string>
+    <string name="label_extension_info">Extension info</string>
+    <string name="label_episodes">Episodes</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Library last updated: %s</string>
@@ -252,4 +260,29 @@
 
     <!-- Appearance preferences -->
     <string name="pref_appearance_summary">Theme</string>
+
+    <!-- Extensions -->
+    <string name="ext_install_service_notif">Installing extension…</string>
+    <string name="notification_extensions_group">Extensions</string>
+    <string name="channel_ext_updates">Extension updates</string>
+    <string name="extension_api_error">Failed to fetch available extensions</string>
+    <plurals name="update_check_notification_ext_updates">
+        <item quantity="one">Extension update available</item>
+        <item quantity="other">%d extension updates available</item>
+    </plurals>
+    <string name="ext_updates_pending">Updates pending</string>
+    <string name="ext_installed">Installed</string>
+    <string name="ext_empty">No extensions found</string>
+    <string name="src_empty">No sources found</string>
+    <string name="ext_obsolete">Obsolete</string>
+    <string name="ext_install">Install</string>
+    <string name="ext_pending">Pending</string>
+    <string name="ext_downloading">Downloading</string>
+    <string name="ext_installing">Installing</string>
+    <string name="ext_permission_install_apps_warning">Permissions are needed to install extensions. Tap here to grant.</string>
+    <string name="ext_update_all">Update all</string>
+    <string name="ext_info_version">Version</string>
+    <string name="ext_info_language">Language</string>
+    <string name="ext_app_info">App info</string>
+    <string name="ext_uninstall">Uninstall</string>
 </resources>

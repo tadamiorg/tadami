@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
 import com.sf.tadami.domain.anime.Anime
-import com.sf.tadami.network.api.online.AnimeCatalogueSource
+import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchCardRow
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchErrorResultItem
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchItemResult
@@ -98,9 +98,9 @@ fun GlobalSearchResultItem(
             Column {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                 )
-                Text(text = subtitle)
+                Text(text = subtitle,style = MaterialTheme.typography.bodySmall)
             }
             IconButton(onClick = onClick) {
                 Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null)

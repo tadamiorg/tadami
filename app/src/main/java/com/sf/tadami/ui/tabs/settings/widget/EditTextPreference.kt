@@ -17,7 +17,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -29,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.sf.tadami.R
@@ -40,6 +40,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun EditTextPreferenceWidget(
+    customPrefsVerticalPadding : Dp? = null,
     title: String,
     subtitle: String?,
     icon: ImageVector?,
@@ -47,9 +48,10 @@ fun EditTextPreferenceWidget(
     defaultValue: String?,
     onConfirm: (String) -> Boolean,
 ) {
-    var isDialogShown by remember { mutableStateOf(false) }
+    var isDialogShown by rememberSaveable { mutableStateOf(false) }
 
     TextPreference(
+        customPrefsVerticalPadding = customPrefsVerticalPadding,
         title = title,
         subtitle = subtitle?.format(value),
         icon = icon,

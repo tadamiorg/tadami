@@ -16,6 +16,7 @@ fun SearchTopAppBar(
     navigationIcon: @Composable () -> Unit = {},
     colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
     searchOpened: Boolean = false,
+    searchEnabled : Boolean = true,
     onSearchCancel: () -> Unit = {},
     onSearchOpen: () -> Unit = {},
     onSearchChange: (value: String) -> Unit,
@@ -28,7 +29,7 @@ fun SearchTopAppBar(
     Column(
         modifier = modifier,
     ) {
-        if (searchOpened) {
+        if (searchOpened && searchEnabled) {
             SearchBarExpanded(
                 colors = colors,
                 onSearchCancel = onSearchCancel,
@@ -42,6 +43,7 @@ fun SearchTopAppBar(
             SearchBarCollapsed(
                 colors = colors,
                 title = title,
+                searchEnabled = searchEnabled,
                 navigationIcon = navigationIcon,
                 onSearchOpen = onSearchOpen,
                 actions = actions

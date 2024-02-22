@@ -1,10 +1,10 @@
 package com.sf.tadami.data.update
 
 import com.sf.tadami.BuildConfig
-import com.sf.tadami.network.requests.okhttp.GET
-import com.sf.tadami.network.requests.okhttp.HttpClient
-import com.sf.tadami.network.requests.okhttp.asObservableSuccess
-import com.sf.tadami.network.requests.okhttp.parseAs
+import com.sf.tadami.network.GET
+import com.sf.tadami.network.NetworkHelper
+import com.sf.tadami.network.asObservableSuccess
+import com.sf.tadami.network.parseAs
 import com.sf.tadami.ui.utils.awaitSingleOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -13,12 +13,12 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class AppUpdater {
-    private val httpClient : HttpClient = Injekt.get()
+    private val networkHelper : NetworkHelper = Injekt.get()
     private val json : Json = Injekt.get()
 
     suspend fun checkForUpdate() : AppUpdate{
         return withContext(Dispatchers.IO) {
-            val response = httpClient.client
+            val response = networkHelper.client
                 .newCall(GET("https://api.github.com/repos/$GITHUB_REPO/releases/latest"))
                 .asObservableSuccess()
                 .awaitSingleOrNull(printErrors = false) ?: return@withContext AppUpdate.NoNewUpdate

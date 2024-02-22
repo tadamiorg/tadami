@@ -13,6 +13,9 @@ import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -31,90 +34,87 @@ fun HomeScreen(
     navController: NavHostController,
     homeScreenViewModel: HomeScreenViewModel = viewModel()
 ) {
-     val items = remember {
-         listOf(
-             HomeNavItems.Library,
-             HomeNavItems.Updates,
-             HomeNavItems.History,
-             HomeNavItems.Sources,
-             HomeNavItems.Settings
-         )
-     }
+    val items = remember {
+        listOf(
+            HomeNavItems.Library,
+            HomeNavItems.Updates,
+            HomeNavItems.History,
+            HomeNavItems.Browse,
+            HomeNavItems.Settings
+        )
+    }
 
-     val navBackStackEntry by navController.currentBackStackEntryAsState()
-     val currentDestination = navBackStackEntry?.destination
+    val bottomBarHeight by homeScreenViewModel.barHeight.collectAsState()
 
-     val displayed = homeScreenViewModel.bottomNavDisplayed
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
 
-     var manualDisplay by rememberSaveable { mutableStateOf(true) }
-     val bottomBarDestination = items.any { it.route == currentDestination?.route }
+    val displayed = homeScreenViewModel.bottomNavDisplayed
 
-     val librarySheetState =
-         rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
-     val coroutineScope = rememberCoroutineScope()
+    var manualDisplay by rememberSaveable { mutableStateOf(true) }
+    val bottomBarDestination = items.any { it.route == currentDestination?.route }
 
-     LaunchedEffect(bottomBarDestination, manualDisplay) {
-         displayed.targetState = bottomBarDestination && manualDisplay
-     }
+    val librarySheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+    val coroutineScope = rememberCoroutineScope()
+    val density = LocalDensity.current
 
-     TadaBottomSheetLayout(
-         sheetState = librarySheetState,
-         sheetContent = {
-             LibrarySheetContent(sheetState = librarySheetState)
-         }
-     ) {
-         Scaffold(
-             bottomBar = {
-                 AnimatedVisibility(
-                     visibleState = displayed,
-                     enter = slideInVertically(
-                         initialOffsetY = { fullHeight -> fullHeight / 2 },
-                         animationSpec = spring(
-                             stiffness = Spring.StiffnessMedium
-                         )
-                     ),
-                     exit = slideOutVertically(
-                         targetOffsetY = { fullHeight -> fullHeight },
-                         animationSpec = spring(
-                             stiffness = Spring.StiffnessMedium
-                         )
-                     )
-                 ) {
-                     BottomNavBar(
-                         navController = navController,
-                         items = items,
-                         currentDestination = currentDestination
-                     )
-                 }
-             }
-         ) { tabsNavPadding ->
+    LaunchedEffect(bottomBarDestination, manualDisplay) {
+        displayed.targetState = bottomBarDestination && manualDisplay
+    }
 
-             val innerPadding by remember(displayed.currentState) {
-                 derivedStateOf {
-                     when {
-                         displayed.isIdle && displayed.currentState -> tabsNavPadding
-                         else -> {
-                             PaddingValues(0.dp)
-                         }
-                     }
-                 }
-             }
+    TadaBottomSheetLayout(
+        sheetState = librarySheetState,
+        sheetContent = {
+            LibrarySheetContent(sheetState = librarySheetState)
+        }
+    ) {
+        Scaffold(
+            bottomBar = {
+                AnimatedVisibility(
+                    visibleState = displayed,
+                    enter = slideInVertically(
+                        initialOffsetY = { fullHeight -> fullHeight / 2 },
+                        animationSpec = spring(
+                            stiffness = Spring.StiffnessMedium
+                        )
+                    ),
+                    exit = slideOutVertically(
+                        targetOffsetY = { fullHeight -> fullHeight },
+                        animationSpec = spring(
+                            stiffness = Spring.StiffnessMedium
+                        )
+                    )
+                ) {
+                    BottomNavBar(
+                        modifier = Modifier.onGloballyPositioned {
+                            with(density) {
+                                val heightDp = it.size.height.toDp()
+                                homeScreenViewModel.setBarHeight(heightDp)
+                            }
+                        },
+                        navController = navController,
+                        items = items,
+                        currentDestination = currentDestination
+                    )
+                }
+            }
+        ) {
 
-             HomeNavGraph(
-                 navController = navController,
-                 tabsNavPadding = innerPadding,
-                 bottomNavDisplay = displayed.currentState,
-                 setNavDisplay = { manualDisplay = it },
-                 librarySheetVisible =
-                 librarySheetState.isVisible
-                         || librarySheetState.targetValue == ModalBottomSheetValue.Expanded
-                         || librarySheetState.targetValue == ModalBottomSheetValue.HalfExpanded,
-                 showLibrarySheet = {
-                     coroutineScope.launch {
-                         librarySheetState.show()
-                     }
-                 }
-             )
-         }
-     }
+            HomeNavGraph(
+                navController = navController,
+                tabsNavPadding = PaddingValues(bottom = if(!manualDisplay && !displayed.currentState) 0.dp else bottomBarHeight),
+                bottomNavDisplay = displayed.currentState,
+                setNavDisplay = { manualDisplay = it },
+                librarySheetVisible =
+                librarySheetState.isVisible
+                        || librarySheetState.targetValue == ModalBottomSheetValue.Expanded
+                        || librarySheetState.targetValue == ModalBottomSheetValue.HalfExpanded,
+                showLibrarySheet = {
+                    coroutineScope.launch {
+                        librarySheetState.show()
+                    }
+                },
+            )
+        }
+    }
 }

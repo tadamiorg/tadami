@@ -9,7 +9,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.R
-import com.sf.tadami.ui.tabs.settings.screens.appearance.AppearancePreferences
+import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.ui.themes.colorschemes.GreenAppleColorScheme
 import com.sf.tadami.ui.themes.colorschemes.LavenderColorScheme
 import com.sf.tadami.ui.themes.colorschemes.MidnightDuskColorScheme

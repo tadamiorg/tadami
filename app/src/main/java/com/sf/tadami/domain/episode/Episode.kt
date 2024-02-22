@@ -1,6 +1,6 @@
 package com.sf.tadami.domain.episode
 
-import com.sf.tadami.network.api.model.SEpisode
+import com.sf.tadami.source.model.SEpisode
 
 data class Episode(
     val id : Long,

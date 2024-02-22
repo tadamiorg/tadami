@@ -6,10 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.domain.anime.toDomainAnime
-import com.sf.tadami.network.api.online.AnimeCatalogueSource
+import com.sf.tadami.preferences.sources.SourcesPreferences
+import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchItemResult
-import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
-import com.sf.tadami.ui.tabs.settings.externalpreferences.source.SourcesPreferences
+import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.awaitSingleOrError
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +26,7 @@ import uy.kohesive.injekt.api.get
 
 class GlobalSearchViewModel() : ViewModel() {
     private val animeRepository: AnimeRepository = Injekt.get()
-    private val sourcesManager: AnimeSourcesManager = Injekt.get()
+    private val sourcesManager: SourceManager = Injekt.get()
     private val dataStore : DataStore<Preferences> = Injekt.get()
 
     private val _query = MutableStateFlow("")
@@ -36,11 +36,11 @@ class GlobalSearchViewModel() : ViewModel() {
         dataStore.getPreferencesGroup(SourcesPreferences)
     }
 
-    private val filteredExtensions = sourcesManager.animeExtensions.filter { (_,source) ->
-        source.lang.name in sourcesPrefs.enabledLanguages && source.id !in sourcesPrefs.hiddenSources
+    private val filteredExtensions = sourcesManager.getCatalogueSources().filter { source ->
+        source.lang.name in sourcesPrefs.enabledLanguages && "${source.id}" !in sourcesPrefs.hiddenSources
     }
 
-    private val loadingItems = filteredExtensions.map { (_, source) -> source }.associateWith { GlobalSearchItemResult.Loading }
+    private val loadingItems = filteredExtensions.associateWith { GlobalSearchItemResult.Loading }
 
     private val _animesBySource = MutableStateFlow(GlobalSearchUiState(emptyMap()))
     val animesBySource = _animesBySource.asStateFlow()
@@ -53,7 +53,7 @@ class GlobalSearchViewModel() : ViewModel() {
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            filteredExtensions.map { (_, source) ->
+            filteredExtensions.map { source ->
                 async {
                     try {
                         val page = source.fetchSearch(1, _query.value, source.getFilterList(),true)

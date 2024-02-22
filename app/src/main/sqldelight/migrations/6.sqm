@@ -1,0 +1,100 @@
+CREATE TABLE Source(
+    _id INTEGER NOT NULL PRIMARY KEY,
+    lang TEXT NOT NULL,
+    name TEXT NOT NULL
+);
+
+-- Drop Views
+DROP VIEW IF EXISTS LibraryView;
+DROP VIEW IF EXISTS HistoryView;
+DROP VIEW IF EXISTS UpdatesView;
+
+-- Replace old sources ids with new ones
+ALTER TABLE Anime
+RENAME COLUMN source TO old_source;
+
+ALTER TABLE Anime
+ADD COLUMN source INTEGER NOT NULL DEFAULT 0;
+
+UPDATE Anime
+SET source = (CASE
+    WHEN old_source = 'GogoAnime' THEN 1
+    WHEN old_source = 'AnimeSama' THEN 2
+    WHEN old_source = 'VostFree' THEN 3
+END);
+
+ALTER TABLE Anime
+DROP COLUMN old_source;
+
+-- Recreate views
+CREATE VIEW LibraryView AS
+SELECT
+Anime._id,
+Anime.source,
+Anime.url,
+Anime.title,
+Anime.thumbnail_url,
+Anime.release,
+Anime.status,
+Anime.description,
+Anime.genres,
+Anime.last_update,
+Anime.next_update,
+Anime.calculate_interval,
+Anime.favorite,
+Anime.initialized,
+Anime.episode_flags,
+Anime.date_added,
+COUNT(*) AS episodes,
+TOTAL(Episode.seen = 0) AS unseen_episodes
+FROM Anime
+LEFT JOIN Episode ON Anime._id = Episode.anime_id
+WHERE Anime.favorite = 1
+GROUP BY Anime._id;
+
+
+CREATE VIEW HistoryView AS
+SELECT
+    History._id AS id,
+    Anime._id AS animeId,
+    Episode._id AS episodeId,
+    Anime.title,
+    Anime.thumbnail_url AS thumbnailUrl,
+    Anime.source,
+    Anime.favorite,
+    Episode.episode_number AS episodeNumber,
+    History.seen_at AS seenAt,
+    max_seen_at.seen_at AS maxSeenAt,
+    max_seen_at.episode_id AS maxSeenAtEpisodeId
+FROM Anime
+JOIN Episode
+ON Anime._id = Episode.anime_id
+JOIN History
+ON Episode._id = History.episode_id
+JOIN (
+    SELECT Episode.anime_id,Episode._id AS episode_id, MAX(History.seen_at) AS seen_at
+    FROM Episode JOIN History
+    ON Episode._id = History.episode_id
+    GROUP BY Episode.anime_id
+) AS max_seen_at
+ON Episode.anime_id = max_seen_at.anime_id;
+
+CREATE VIEW UpdatesView AS
+SELECT
+    Anime._id AS animeId,
+    Anime.title AS animeTitle,
+    Episode._id AS episodeId,
+    Episode.name AS episodeName,
+    Episode.seen,
+    Episode.time_seen,
+    Episode.total_time,
+    Anime.source,
+    Anime.favorite,
+    Anime.thumbnail_url AS thumbnailUrl,
+    Episode.date_upload AS dateUpload,
+    Episode.date_fetch AS dateFetch
+FROM Anime JOIN Episode
+ON Anime._id = Episode.anime_id
+WHERE favorite = 1
+AND date_fetch > date_added
+ORDER BY date_fetch DESC;

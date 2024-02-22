@@ -12,7 +12,7 @@ object UpdatesMapper {
         seen: Boolean,
         timeSeen: Long,
         totalTime : Long,
-        sourceId: String,
+        sourceId: Long,
         favorite: Boolean,
         thumbnailUrl: String?,
         dateUpload: Long,

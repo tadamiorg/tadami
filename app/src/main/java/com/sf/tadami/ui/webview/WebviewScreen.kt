@@ -38,7 +38,7 @@ import com.google.accompanist.web.rememberWebViewNavigator
 import com.google.accompanist.web.rememberWebViewState
 import com.sf.tadami.BuildConfig
 import com.sf.tadami.R
-import com.sf.tadami.network.requests.utils.setDefaultSettings
+import com.sf.tadami.network.utils.setDefaultSettings
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar

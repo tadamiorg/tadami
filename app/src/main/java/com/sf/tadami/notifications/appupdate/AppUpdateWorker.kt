@@ -11,11 +11,11 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
-import com.sf.tadami.network.requests.okhttp.GET
-import com.sf.tadami.network.requests.okhttp.HttpClient
-import com.sf.tadami.network.requests.okhttp.asObservableSuccess
-import com.sf.tadami.network.requests.okhttp.newCachelessCallWithProgress
-import com.sf.tadami.network.requests.okhttp.saveTo
+import com.sf.tadami.network.GET
+import com.sf.tadami.network.NetworkHelper
+import com.sf.tadami.network.asObservableSuccess
+import com.sf.tadami.network.newCachelessCallWithProgress
+import com.sf.tadami.network.saveTo
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.notifications.utils.okhttp.ProgressListener
 import com.sf.tadami.ui.utils.awaitSingleOrNull
@@ -35,7 +35,7 @@ class AppUpdateWorker(
 ) : CoroutineWorker(context, params) {
 
     private val notifier = AppUpdateNotifier(context)
-    private val network: HttpClient = Injekt.get()
+    private val network: NetworkHelper = Injekt.get()
 
     override suspend fun doWork(): Result {
         try {

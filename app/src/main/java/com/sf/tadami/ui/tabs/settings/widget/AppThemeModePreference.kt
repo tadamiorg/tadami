@@ -10,8 +10,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import com.sf.tadami.R
-import com.sf.tadami.ui.tabs.settings.screens.appearance.ThemeMode
+import com.sf.tadami.preferences.appearance.ThemeMode
 
 private val options = mapOf(
     ThemeMode.SYSTEM to R.string.theme_system,
@@ -23,9 +24,11 @@ private val options = mapOf(
 @Composable
 fun AppThemeModePreference(
     value: ThemeMode,
+    customPrefsVerticalPadding : Dp? = null,
     onItemClick: (ThemeMode) -> Unit,
 ) {
     BasePreference(
+        customPrefsVerticalPadding = customPrefsVerticalPadding,
         subcomponent = {
             MultiChoiceSegmentedButtonRow(
                 modifier = Modifier

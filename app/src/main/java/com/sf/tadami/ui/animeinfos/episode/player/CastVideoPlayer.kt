@@ -27,18 +27,19 @@ import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.media.RemoteMediaClient.*
 import com.sf.tadami.R
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.preferences.model.rememberDataStoreState
+import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
-import com.sf.tadami.ui.animeinfos.episode.PlayerViewModel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.CastErrorCode
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TadamiCastError
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.tadamiCastMessageCallback
 import com.sf.tadami.ui.animeinfos.episode.cast.isCastMediaFinished
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
-import com.sf.tadami.ui.animeinfos.episode.player.controls.QualityDialog
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.EpisodesDialog
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.QualityDialog
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.SettingsDialog
 import com.sf.tadami.ui.components.widgets.ContentLoader
-import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
-import com.sf.tadami.ui.tabs.settings.screens.player.PlayerPreferences
 import com.sf.tadami.ui.utils.ImageDefaults
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -63,6 +64,7 @@ fun CastVideoPlayer(
 
     val episodeUiState by playerViewModel.uiState.collectAsState()
     val currentEpisode by playerViewModel.currentEpisode.collectAsState()
+    val episodes by playerViewModel.episodes.collectAsState()
 
     val isFetchingSources by playerViewModel.isFetchingSources.collectAsState()
 
@@ -86,7 +88,13 @@ fun CastVideoPlayer(
 
     val idleLock by playerViewModel.idleLock.collectAsState()
 
-    var isIdle by remember{ mutableStateOf( isCastMediaFinished(castSession.remoteMediaClient?.idleReason) ) }
+    var isIdle by remember { mutableStateOf(isCastMediaFinished(castSession.remoteMediaClient?.idleReason)) }
+
+    var openStreamDialog by remember { mutableStateOf(false) }
+
+    var openSettingsDialog by remember { mutableStateOf(false) }
+
+    var openEpisodesDialog by remember { mutableStateOf(false) }
 
     fun updateTime() {
         activityContext.setUpdateTimeJob(
@@ -99,7 +107,7 @@ fun CastVideoPlayer(
         )
     }
 
-    fun resetTimers(){
+    fun resetTimers() {
         activityContext.stopCastEpisode()?.setResultCallback {
             currentTime = 0
             totalDuration = 0
@@ -118,7 +126,8 @@ fun CastVideoPlayer(
             override fun onStatusUpdated() {
                 super.onStatusUpdated()
                 isPlaying = castSession.remoteMediaClient!!.isPlaying
-                isIdle = isCastMediaFinished(castSession.remoteMediaClient!!.idleReason) && castSession.remoteMediaClient!!.loadingItem == null
+                isIdle =
+                    isCastMediaFinished(castSession.remoteMediaClient!!.idleReason) && castSession.remoteMediaClient!!.loadingItem == null
             }
 
             override fun onMediaError(error: MediaError) {
@@ -127,6 +136,7 @@ fun CastVideoPlayer(
                     MediaError.ERROR_REASON_APP_ERROR -> {
                         Log.e("Media Error", error.toJson().toString())
                     }
+
                     else -> {
                         coroutineScope.launch {
                             snackbarHostState.showSnackbar(
@@ -166,24 +176,24 @@ fun CastVideoPlayer(
         }
     }
 
-    LaunchedEffect(key1 = episodeUiState.loadError){
-        if(episodeUiState.loadError){
+    LaunchedEffect(key1 = episodeUiState.loadError) {
+        if (episodeUiState.loadError) {
             dispatcher.onBackPressed()
         }
     }
 
-    LaunchedEffect(idleLock){
-        if(idleLock){
+    LaunchedEffect(idleLock) {
+        if (idleLock) {
             totalDuration = 0
             currentTime = 0
         }
     }
 
-    if(playerPreferences.autoPlay){
+    if (playerPreferences.autoPlay) {
         LaunchedEffect(isIdle && !idleLock) {
             val autoIdle = isIdle && !idleLock
-            if(currentTime>0L && totalDuration>0L){
-                if(autoIdle && hasNextIterator.hasPrevious()){
+            if (currentTime > 0L && totalDuration > 0L) {
+                if (autoIdle && hasNextIterator.hasPrevious()) {
                     val next = hasNextIterator.previous()
                     selectEpisode(next)
                 }
@@ -196,16 +206,40 @@ fun CastVideoPlayer(
 
             if (episodeUiState.availableSources.isNotEmpty()) {
                 QualityDialog(
-                    opened = openDialog,
+                    opened = openStreamDialog,
                     sources = episodeUiState.availableSources,
                     onSelectSource = {
                         updateTime()
                         playerViewModel.selectSource(it)
                     },
                     selectedSource = episodeUiState.selectedSource,
-                    onDismissRequest = { openDialog = false }
+                    onDismissRequest = {
+                        openStreamDialog = false
+                    }
                 )
             }
+
+            EpisodesDialog(
+                opened = openEpisodesDialog,
+                onDismissRequest = {
+                    openEpisodesDialog = false
+                },
+                onConfirm = {
+                    selectEpisode(it)
+                },
+                displayMode = anime?.displayMode,
+                episodes = episodes,
+                initialEpisode = currentEpisode
+            )
+
+            SettingsDialog(
+                opened = openSettingsDialog,
+                onDismissRequest = {
+                    openSettingsDialog = false
+                },
+                sourceDatastore = playerViewModel.sourceDataStore,
+                sourcePrefsitems = playerViewModel.sourceDataStoreScreen
+            )
 
             AsyncImage(
                 model = anime?.thumbnailUrl,
@@ -235,7 +269,8 @@ fun CastVideoPlayer(
                         isPlaying = false
                         castSession.remoteMediaClient!!.pause()
                     }
-                    currentTime = (currentTime - playerPreferences.doubleTapLength).coerceAtLeast(0L)
+                    currentTime =
+                        (currentTime - playerPreferences.doubleTapLength).coerceAtLeast(0L)
                     debounceSeekJob = coroutineScope.launch {
                         delay(500.milliseconds)
                         castSession.remoteMediaClient!!.seek(getSeek(currentTime))
@@ -259,21 +294,22 @@ fun CastVideoPlayer(
                         isPlaying = false
                         castSession.remoteMediaClient!!.pause()
                     }
-                    currentTime = (currentTime + playerPreferences.doubleTapLength).coerceAtMost(totalDuration)
+                    currentTime =
+                        (currentTime + playerPreferences.doubleTapLength).coerceAtMost(totalDuration)
                     debounceSeekJob = coroutineScope.launch {
                         delay(500.milliseconds)
                         castSession.remoteMediaClient!!.seek(getSeek(currentTime))
                     }
                 },
                 onPauseToggle = {
-                    if(isIdle && !idleLock){
+                    if (isIdle && !idleLock) {
                         updateTime()
                         activityContext.retryLoadRequest()
-                    }else{
+                    } else {
                         castSession.remoteMediaClient!!.togglePlayback()
                     }
                 },
-                onSettings = { openDialog = openDialog.not() },
+                onStreamSettings = { openStreamDialog = true },
                 totalDuration = { totalDuration },
                 currentTime = { currentTime },
                 bufferedPercentage = { 0 },
@@ -308,7 +344,17 @@ fun CastVideoPlayer(
                 hasPrevious = {
                     hasPreviousIterator.hasNext()
                 },
-                videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty()
+                videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty(),
+                playerSeekValue = playerPreferences.doubleTapLength,
+                onTapYoutube = {},
+                onPlayerSettings = {
+                    openSettingsDialog = true
+                },
+                onEpisodesClicked = {
+                    openEpisodesDialog = true
+                },
+                lockedControls = false
+
             )
         }
     }
@@ -319,12 +365,15 @@ private fun getErrorMessage(context: Context, errorCode: Int?): String {
         CastErrorCode.COMMUNICATION.code -> {
             context.resources.getString(R.string.cast_error_communication, errorCode)
         }
+
         CastErrorCode.UNSUPPORTED.code -> {
             context.getString(R.string.cast_error_unsupported)
         }
+
         CastErrorCode.LOAD_FAILED.code -> {
             context.getString(R.string.cast_error_load_failed)
         }
+
         else -> {
             context.resources.getString(R.string.cast_error_unknown, errorCode)
         }

@@ -8,7 +8,7 @@ import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.ui.components.data.EpisodeItem
-import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
+import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.addOrRemove
 import com.sf.tadami.ui.utils.awaitSingleOrNull
 import kotlinx.coroutines.Dispatchers
@@ -28,14 +28,14 @@ class DetailsViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val sourcesManager: AnimeSourcesManager = Injekt.get()
+    private val sourcesManager: SourceManager = Injekt.get()
     private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
     private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
 
     private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
-    private val sourceId: String = checkNotNull(savedStateHandle["sourceId"])
+    private val sourceId: Long = checkNotNull(savedStateHandle["sourceId"])
 
-    val source = sourcesManager.getExtensionById(sourceId)
+    val source = sourcesManager.getOrStub(sourceId)
 
     private val _uiState = MutableStateFlow(DetailsUiState())
     val uiState: StateFlow<DetailsUiState> = _uiState.asStateFlow()

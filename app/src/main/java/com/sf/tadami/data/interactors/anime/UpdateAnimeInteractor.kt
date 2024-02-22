@@ -9,9 +9,9 @@ import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.UpdateEpisode
 import com.sf.tadami.domain.episode.copyFromSEpisode
 import com.sf.tadami.domain.episode.toUpdateEpisode
-import com.sf.tadami.network.api.model.SAnime
-import com.sf.tadami.network.api.model.SEpisode
-import com.sf.tadami.network.api.online.Source
+import com.sf.tadami.source.Source
+import com.sf.tadami.source.model.SAnime
+import com.sf.tadami.source.model.SEpisode
 import java.time.Instant
 import java.time.ZonedDateTime
 import java.util.TreeSet
@@ -109,14 +109,14 @@ class UpdateAnimeInteractor(
             }
         }
 
-        // Used to not set upload date of older chapters
-        // to a higher value than newer chapters
+        // Used to not set upload date of older episodes
+        // to a higher value than newer episodes
         var maxSeenUploadDate = 0L
 
         for (sourceEpisode in sourceEpisodes) {
             var episode = sourceEpisode
 
-            // Recognize chapter number for the chapter.
+            // Recognize episode number for the episode.
             val episodeNumber = episode.episodeNumber
             episode = episode.copy(episodeNumber = episodeNumber)
 
@@ -169,11 +169,11 @@ class UpdateAnimeInteractor(
             deletedEpisodeNumbers.add(episode.episodeNumber.toDouble())
         }
 
-        val deletedChapterNumberDateFetchMap = removedEpisodes.sortedByDescending { it.dateFetch }
+        val deletedEpisodeNumberDateFetchMap = removedEpisodes.sortedByDescending { it.dateFetch }
             .associate { it.episodeNumber to it.dateFetch }
 
         // Date fetch is set in such a way that the upper ones will have bigger value than the lower ones
-        // Sources MUST return the chapters from most to less recent, which is common.
+        // Sources MUST return the episodes from most to less recent, which is common.
         var itemCount = newEpisodes.size
         var updatedToAdd = newEpisodes.map { toAddItem ->
             var episode = toAddItem.copy(dateFetch = nowMillis + itemCount--)
@@ -185,7 +185,7 @@ class UpdateAnimeInteractor(
             )
 
             // Try to to use the fetch date of the original entry to not pollute 'Updates' tab
-            deletedChapterNumberDateFetchMap[episode.episodeNumber]?.let {
+            deletedEpisodeNumberDateFetchMap[episode.episodeNumber]?.let {
                 episode = episode.copy(dateFetch = it)
             }
 
@@ -209,8 +209,8 @@ class UpdateAnimeInteractor(
         }
         awaitUpdateFetchInterval(anime, now, fetchWindow)
 
-        // Set this manga as updated since chapters were changed
-        // Note that last_update actually represents last time the chapter list changed at all
+        // Set this anime as updated since episodes were changed
+        // Note that last_update actually represents last time the episode list changed at all
         awaitUpdateLastUpdate(anime.id)
 
         val reAddedUrls = reAdded.map { it.url }.toHashSet()

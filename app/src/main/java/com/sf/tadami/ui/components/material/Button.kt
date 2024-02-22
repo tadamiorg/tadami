@@ -8,6 +8,8 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.FocusInteraction
 import androidx.compose.foundation.interaction.HoverInteraction
@@ -16,11 +18,14 @@ import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Button
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ElevatedButton
@@ -28,6 +33,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -44,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.sf.tadami.ui.utils.padding
 import androidx.compose.material3.ButtonDefaults as M3ButtonDefaults
 
 
@@ -457,4 +464,98 @@ class ButtonColors internal constructor(
         result = 31 * result + disabledContentColor.hashCode()
         return result
     }
+}
+@Immutable
+class IconButtonColors constructor(
+    val containerColor: Color,
+    val contentColor: Color,
+    val disabledContainerColor: Color,
+    val disabledContentColor: Color,
+) {
+    /**
+     * Represents the container color for this icon button, depending on [enabled].
+     *
+     * @param enabled whether the icon button is enabled
+     */
+    @Stable
+    internal fun containerColor(enabled: Boolean): Color =
+        if (enabled) containerColor else disabledContainerColor
+
+    /**
+     * Represents the content color for this icon button, depending on [enabled].
+     *
+     * @param enabled whether the icon button is enabled
+     */
+    @Stable
+    internal fun contentColor(enabled: Boolean): Color =
+        if (enabled) contentColor else disabledContentColor
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || other !is IconButtonColors) return false
+
+        if (containerColor != other.containerColor) return false
+        if (contentColor != other.contentColor) return false
+        if (disabledContainerColor != other.disabledContainerColor) return false
+        if (disabledContentColor != other.disabledContentColor) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = containerColor.hashCode()
+        result = 31 * result + contentColor.hashCode()
+        result = 31 * result + disabledContainerColor.hashCode()
+        result = 31 * result + disabledContentColor.hashCode()
+
+        return result
+    }
+}
+
+@Composable
+fun iconButtonColors(
+    containerColor: Color = Color.Transparent,
+    contentColor: Color = LocalContentColor.current,
+    disabledContainerColor: Color = Color.Transparent,
+    disabledContentColor: Color =
+        contentColor.copy(alpha = 0f)
+): IconButtonColors =
+    IconButtonColors(
+        containerColor = containerColor,
+        contentColor = contentColor,
+        disabledContainerColor = disabledContainerColor,
+        disabledContentColor = disabledContentColor,
+    )
+@Composable
+fun IconButton(
+    modifier: Modifier = Modifier,
+    size : Dp = 24.dp,
+    padding : Dp = MaterialTheme.padding.medium,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    colors: IconButtonColors = iconButtonColors(),
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    content: @Composable () -> Unit
+) {
+    @Suppress("DEPRECATION_ERROR")
+    (Box(
+        modifier = modifier
+            .minimumInteractiveComponentSize()
+            .size(size)
+            /*.clip(IconButtonTokens.StateLayerShape.value)*/
+            .background(color = colors.containerColor(enabled))
+            .clickable(
+                onClick = onClick,
+                enabled = enabled,
+                interactionSource = interactionSource,
+                indication = rememberRipple(
+                    bounded = false,
+                    radius = (size + padding) / 2
+                )
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        val contentColor = colors.contentColor(enabled)
+        CompositionLocalProvider(LocalContentColor provides contentColor, content = content)
+    })
 }

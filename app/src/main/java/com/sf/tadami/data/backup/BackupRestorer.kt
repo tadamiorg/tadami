@@ -65,7 +65,7 @@ class BackupRestorer(
     /**
      * Mapping of source ID to source name from backup data
      */
-    private var sourceMapping: Map<String, String> = emptyMap()
+    private var sourceMapping: Map<Long, String> = emptyMap()
 
     private val errors = mutableListOf<Pair<Date, String>>()
 
@@ -111,6 +111,9 @@ class BackupRestorer(
         val backup = BackupUtil.decodeBackup(context, uri)
 
         restoreAmount = backup.backupAnime.size + 1 // +3 for categories, app prefs, source prefs
+
+        val backupMaps = backup.backupSources
+        sourceMapping = backupMaps.associate { it.sourceId to it.name }
 
         now = ZonedDateTime.now()
         currentFetchWindow = fetchInterval.getWindow(now)
@@ -165,7 +168,7 @@ class BackupRestorer(
 
     }
 
-    private suspend fun getAnimeFromDatabase(url: String, source: String): AnimeDb? {
+    private suspend fun getAnimeFromDatabase(url: String, source: Long): AnimeDb? {
         return handler.awaitOneOrNull { animeQueries.getBySourceAndUrl(url, source) }
     }
 

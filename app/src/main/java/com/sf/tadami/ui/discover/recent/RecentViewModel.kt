@@ -9,8 +9,8 @@ import androidx.paging.map
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.toDomainAnime
-import com.sf.tadami.network.api.online.StubSource
-import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
+import com.sf.tadami.source.StubSource
+import com.sf.tadami.ui.tabs.browse.SourceManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import uy.kohesive.injekt.Injekt
@@ -19,11 +19,11 @@ import uy.kohesive.injekt.api.get
 class RecentViewModel(stateHandle: SavedStateHandle) : ViewModel() {
 
     private val animeRepository: AnimeRepository = Injekt.get()
-    private val sourcesManager: AnimeSourcesManager = Injekt.get()
+    private val sourcesManager: SourceManager = Injekt.get()
 
-    private val sourceId: String = checkNotNull(stateHandle["sourceId"])
+    private val sourceId: Long = checkNotNull(stateHandle["sourceId"])
     val source by lazy {
-        val s = sourcesManager.getExtensionById(sourceId)
+        val s = sourcesManager.getOrStub(sourceId)
         if(s is StubSource) throw Exception("Not installed : $sourceId")
         s
     }

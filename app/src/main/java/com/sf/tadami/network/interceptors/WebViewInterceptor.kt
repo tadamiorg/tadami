@@ -6,9 +6,9 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.Toast
 import com.sf.tadami.R
-import com.sf.tadami.network.requests.okhttp.HttpClient
-import com.sf.tadami.network.requests.utils.WebViewUtil
-import com.sf.tadami.network.requests.utils.setDefaultSettings
+import com.sf.tadami.network.NetworkHelper
+import com.sf.tadami.network.utils.WebViewUtil
+import com.sf.tadami.network.utils.setDefaultSettings
 import com.sf.tadami.ui.utils.UiToasts
 import okhttp3.Headers
 import okhttp3.Interceptor
@@ -80,7 +80,7 @@ abstract class WebViewInterceptor(private val context: Context) : Interceptor {
         return WebView(context).apply {
             setDefaultSettings()
             // Avoid sending empty User-Agent, Chromium WebView will reset to default if empty
-            settings.userAgentString = request.header("User-Agent") ?: HttpClient.DEFAULT_USER_AGENT
+            settings.userAgentString = request.header("User-Agent") ?: NetworkHelper.DEFAULT_USER_AGENT
         }
     }
 }

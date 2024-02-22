@@ -8,7 +8,7 @@ data class UpdatesWithRelations(
     val seen: Boolean,
     val timeSeen: Long,
     val totalTime : Long,
-    val sourceId: String,
+    val sourceId: Long,
     val dateFetch: Long,
     val thumbnailUrl: String?,
 )

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="library_tab_title">Bibliothèque</string>
-    <string name="sources_tab_title">Sources</string>
+    <string name="browse_tab_title">Explorer</string>
     <string name="refresh">Rafraichir</string>
     <string name="language_fr">Français</string>
     <string name="language_en">Anglais</string>
@@ -16,6 +16,7 @@
         <item quantity="many">%d episodes</item>
         <item quantity="other">%d episodes</item>
     </plurals>
+    <string name="empty_screen">Eh bien, c\'est gênant</string>
     <!-- Strings used for fragments for navigation -->
     <string name="unknown_author">Auteur Inconnu</string>
     <string name="unknown_status">Status Inconnu</string>
@@ -61,7 +62,7 @@
     <string name="preferences_player_title">Lecteur vidéo</string>
     <string name="preferences_player_timeline">Timeline</string>
     <string name="preferences_player_seenthreshold">Seuil de completion</string>
-    <string name="preferences_player_double_tap_length">Temps passé lors du double clique</string>
+    <string name="preferences_player_double_tap_length">Durée de saut par double tap</string>
     <string name="empty_library_title">Votre bibliothèque est vide</string>
     <string name="empty_library_action">Découvrir des animes</string>
     <string name="retry">Réessayer</string>
@@ -80,7 +81,7 @@
     <string name="discover_search_filters_independent">Les filtres et la recherche s\'ignorent</string>
     <string name="webview_required">WebView est requis par Tadami</string>
     <string name="webview_outdated">Veuillez mettre à jour l\'application WebView pour une meilleure compatibilité</string>
-    <string name="notification_library_update_skipped_not_caught_up">Passé car il y a des épisodes non vus</string>
+    <string name="notification_library_update_skipped_not_caught_up">Passé car il y a trop d\'épisodes non vus</string>
     <string name="notification_library_updates_skipped">Mises à jour passées</string>
     <string name="notification_library_update_skipped_result">%1$d mise(s) à jour ignorée(s)</string>
     <string name="tap_see_details">Appuyez pour voir les détails</string>
@@ -177,6 +178,7 @@
     <string name="label_history">Historique</string>
     <string name="history_anime_time">Ep. %1$s - %2$s</string>
     <string name="information_no_recent_anime">Rien de vu récemment</string>
+    <string name="youtube_gestures_seconds">%1$s secondes</string>
 
     <!-- History Dialogs -->
     <string name="dialog_with_checkbox_remove_description">Cela supprimera la date de lecture de cet épisode. Êtes-vous sûr(e) \?</string>
@@ -256,11 +258,41 @@
     <string name="label_recent_updates_long">Mises à jour</string>
     <string name="label_more">Plus</string>
     <string name="label_settings">Paramètres</string>
+    <string name="label_explore">Explorer</string>
+    <string name="label_extensions">Extensions</string>
+    <string name="label_sources">Sources</string>
+    <string name="label_source">Source</string>
+    <string name="label_extension_info">Informations sur l\'extension</string>
+    <string name="label_episodes">Episodes</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Dernière mise à jour de la bibliothèque le : %s</string>
     <string name="updates_last_update_info_just_now">À l\'instant</string>
     <string name="relative_time_span_never">Jamais</string>
 
-
+    <!-- Extensions -->
+    <string name="ext_install_service_notif">Installation de l\'extension…</string>
+    <string name="notification_extensions_group">Extensions</string>
+    <string name="channel_ext_updates">Mises à jour d\'extensions</string>
+    <string name="extension_api_error">Aucune extension trouvée</string>
+    <plurals name="update_check_notification_ext_updates">
+        <item quantity="one">Mise à jour d\'extension disponible</item>
+        <item quantity="many">%d mises à jour d\'extensions disponibles</item>
+        <item quantity="other">%d mises à jour d\'extensions disponibles</item>
+    </plurals>
+    <string name="ext_updates_pending">Mises à jour en attente</string>
+    <string name="ext_installed">Installée</string>
+    <string name="ext_empty">Aucunes extensions trouvées</string>
+    <string name="src_empty">Aucunes sources trouvées</string>
+    <string name="ext_obsolete">Obsolète</string>
+    <string name="ext_install">Installer</string>
+    <string name="ext_pending">En attente</string>
+    <string name="ext_downloading">En cours de téléchargement</string>
+    <string name="ext_installing">En cours d\'installation</string>
+    <string name="ext_permission_install_apps_warning">Des permissions sont nécessaires pour installer des extensions. Appuyer ici pour les accorder.</string>
+    <string name="ext_update_all">Tout mettre à jour</string>
+    <string name="ext_info_version">Version</string>
+    <string name="ext_info_language">Langue</string>
+    <string name="ext_app_info">Infos sur l\'application</string>
+    <string name="ext_uninstall">Désinstaller</string>
 </resources>

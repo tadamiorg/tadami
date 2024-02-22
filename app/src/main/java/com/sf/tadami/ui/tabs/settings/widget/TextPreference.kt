@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import com.sf.tadami.ui.utils.secondaryItemAlpha
 
 @Composable
@@ -18,11 +19,13 @@ fun TextPreference(
     icon: ImageVector? = null,
     iconTint: Color = MaterialTheme.colorScheme.primary,
     widget: @Composable (() -> Unit)? = null,
+    customPrefsVerticalPadding : Dp? = null,
     onPreferenceClick: (() -> Unit)? = null,
 ) {
     BasePreference(
         modifier = modifier,
         title = title,
+        customPrefsVerticalPadding = customPrefsVerticalPadding,
         subcomponent = if (!subtitle.isNullOrBlank()) {
             {
                 Text(

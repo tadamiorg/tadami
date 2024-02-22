@@ -20,7 +20,7 @@ import com.hippo.unifile.UniFile
 import com.sf.tadami.data.backup.BackupCreateFlags
 import com.sf.tadami.data.backup.BackupCreator
 import com.sf.tadami.notifications.Notifications
-import com.sf.tadami.ui.tabs.settings.screens.backup.BackupPreferences
+import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.utils.cancelNotification
 import com.sf.tadami.utils.editPreferences
 import com.sf.tadami.utils.getPreferencesGroup
@@ -58,7 +58,9 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
         return try {
             val location = BackupCreator(context).createBackup(uri, flags, isAutoBackup)
             if (isAutoBackup) {
-                dataStore.editPreferences(backupPreferences.copy(autoBackupLastTimestamp = Date().time),BackupPreferences)
+                dataStore.editPreferences(backupPreferences.copy(autoBackupLastTimestamp = Date().time),
+                    BackupPreferences
+                )
             } else {
                 notifier.showBackupComplete(UniFile.fromUri(context,location.toUri()))
             }

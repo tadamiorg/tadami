@@ -5,8 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.state.ToggleableState
 import com.sf.tadami.R
+import com.sf.tadami.preferences.library.LibraryFilter
 import com.sf.tadami.ui.components.filters.TriStateItem
-import com.sf.tadami.ui.tabs.settings.screens.library.LibraryFilter
 
 @Composable
 fun FilterTab(filters: LibraryFilter, setFilters: (filterFlags: Long) -> Unit) {

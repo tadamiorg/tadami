@@ -3,7 +3,7 @@
 -keep,allowoptimization class com.sf.tadami.**
 
 # Keep common dependencies used in extensions
--keep,allowoptimization class androidx.preference.** { public protected *; }
+-keep,allowoptimization class androidx.datastore.** { public protected *; }
 -keep,allowoptimization class kotlin.** { public protected *; }
 -keep,allowoptimization class kotlinx.coroutines.** { public protected *; }
 -keep,allowoptimization class kotlinx.serialization.** { public protected *; }
@@ -11,18 +11,32 @@
 -keep,allowoptimization class okhttp3.** { public protected *; }
 -keep,allowoptimization class okio.** { public protected *; }
 -keep,allowoptimization class org.jsoup.** { public protected *; }
--keep,allowoptimization class rx.** { public protected *; }
+-keep,allowoptimization class io.reactivex.rxjava3.** { public protected *; }
 -keep,allowoptimization class app.cash.quickjs.** { public protected *; }
 -keep,allowoptimization class uy.kohesive.injekt.** { public protected *; }
 
 # From extensions-lib
--keep,allowoptimization class com.sf.tadami.network.requests.okhttp.HttpClient { public protected *; }
--keep,allowoptimization class com.sf.tadami.network.requests.okhttp.OkHttpExtensionsKt { public protected *; }
--keep,allowoptimization class com.sf.tadami.network.requests.okhttp.RequestsKt { public protected *; }
+-keep,allowoptimization class com.sf.tadami.network.NetworkHelper { public protected *; }
+-keep,allowoptimization class com.sf.tadami.network.OkHttpExtensionsKt { public protected *; }
+-keep,allowoptimization class com.sf.tadami.network.RequestsKt { public protected *; }
+-keep,allowoptimization class com.sf.tadami.domain.anime.Anime { public protected *; }
+-keep,allowoptimization class com.sf.tadami.preferences.model.SourcePreference$** { public protected *; }
+-keep,allowoptimization class com.sf.tadami.ui.tabs.browse.tabs.sources.preferences.SourcesPreferencesContent { public protected *; }
+-keep,allowoptimization class com.sf.tadami.ui.components.data.Action { public protected *; }
+-keep,allowoptimization class com.sf.tadami.ui.utils.** { public protected *; }
+
+-keep,allowoptimization class com.sf.tadami.source.online.** { public protected *; }
+-keep,allowoptimization class com.sf.tadami.source.model.** { public protected *; }
+-keep class com.sf.tadami.source.** extends com.sf.tadami.source.Source { public protected *; }
+-keep,allowoptimization class com.sf.tadami.source.AnimesPage { public protected *; }
+-keep,allowoptimization interface com.sf.tadami.preferences.model.CustomPreferences {*;}
+-keep,allowoptimization class com.sf.tadami.preferences.model.CustomPreferences$Companion {*;}
+-keep,allowoptimization interface * extends com.sf.tadami.preferences.model.CustomPreferences
+-keep,allowoptimization class com.sf.tadami.utils.DataStoreExtensionsKt { public protected *; }
 
 ##---------------Begin: proguard configuration for kotlinx.serialization  ----------
 -keepattributes *Annotation*, InnerClasses
--dontnote kotlinx.serialization.AnnotationsKt # core serialization annotations
+-dontnote kotlinx.serialization.** # core serialization annotations
 
 # kotlinx-serialization-json specific. Add this if you have java.lang.NoClassDefFoundError kotlinx.serialization.json.JsonObjectSerializer
 -keepclassmembers class kotlinx.serialization.json.** {
@@ -33,10 +47,10 @@
 }
 
 -keep,includedescriptorclasses class eu.kanade.**$$serializer { *; }
--keepclassmembers class eu.kanade.** {
+-keepclassmembers class com.sf.** {
     *** Companion;
 }
--keepclasseswithmembers class eu.kanade.** {
+-keepclasseswithmembers class com.sf.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
 

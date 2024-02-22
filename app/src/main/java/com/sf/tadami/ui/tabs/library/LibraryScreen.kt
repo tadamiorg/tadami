@@ -34,14 +34,14 @@ import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
+import com.sf.tadami.preferences.library.LibraryPreferences
+import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.components.topappbar.ContextualSearchTopAppBar
 import com.sf.tadami.ui.tabs.library.bottomsheet.libraryFilters
 import com.sf.tadami.ui.tabs.library.bottomsheet.sortComparator
-import com.sf.tadami.ui.tabs.settings.model.rememberDataStoreState
-import com.sf.tadami.ui.tabs.settings.screens.library.LibraryPreferences
 import com.sf.tadami.ui.themes.colorschemes.active
 import kotlinx.coroutines.launch
 
@@ -203,7 +203,7 @@ fun LibraryScreen(
                 }
             },
             onEmptyRefreshClicked = {
-                navController.navigate(HomeNavItems.Sources.route) {
+                navController.navigate(HomeNavItems.Browse.route) {
                     popUpTo(navController.graph.findStartDestination().id) {
                         saveState = true
                     }

@@ -1,7 +1,12 @@
 package com.sf.tadami.ui.animeinfos.episode
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
@@ -23,6 +28,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.exoplayer.ExoPlayer
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaMetadata
@@ -33,15 +39,27 @@ import com.google.android.gms.common.api.Status
 import com.google.android.gms.common.images.WebImage
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
-import com.sf.tadami.network.api.model.OkhttpHeadersSerializer
-import com.sf.tadami.network.api.model.StreamSource
 import com.sf.tadami.notifications.cast.CastProxyService
+import com.sf.tadami.source.model.OkhttpHeadersSerializer
+import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
+import com.sf.tadami.ui.animeinfos.episode.player.ACTION_MEDIA_CONTROL
 import com.sf.tadami.ui.animeinfos.episode.player.CastVideoPlayer
+import com.sf.tadami.ui.animeinfos.episode.player.EXTRA_CONTROL_TYPE
+import com.sf.tadami.ui.animeinfos.episode.player.PIP_NEXT
+import com.sf.tadami.ui.animeinfos.episode.player.PIP_PAUSE
+import com.sf.tadami.ui.animeinfos.episode.player.PIP_PLAY
+import com.sf.tadami.ui.animeinfos.episode.player.PIP_PREVIOUS
+import com.sf.tadami.ui.animeinfos.episode.player.PIP_SKIP
+import com.sf.tadami.ui.animeinfos.episode.player.PictureInPictureHandler
+import com.sf.tadami.ui.animeinfos.episode.player.PipState
+import com.sf.tadami.ui.animeinfos.episode.player.PlayerViewModel
+import com.sf.tadami.ui.animeinfos.episode.player.PlayerViewModelFactory
 import com.sf.tadami.ui.animeinfos.episode.player.VideoPlayer
 import com.sf.tadami.ui.themes.TadamiTheme
+import com.sf.tadami.utils.powerManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -66,6 +84,8 @@ class EpisodeActivity : AppCompatActivity() {
     private var currentEpisode: Episode? = null
     private var updateTimeJob: Job? = null
     private val errorChannel = ErrorChannel()
+    private var pipReceiver: BroadcastReceiver? = null
+    private var exoPlayer: ExoPlayer? = null
 
     private lateinit var playerViewModel: PlayerViewModel
 
@@ -137,7 +157,12 @@ class EpisodeActivity : AppCompatActivity() {
             ) {
                 val snackbarHostState = remember { SnackbarHostState() }
                 Scaffold(
-                    snackbarHost = { SnackbarHost(modifier = Modifier.padding(bottom = 100.dp),hostState = snackbarHostState) }
+                    snackbarHost = {
+                        SnackbarHost(
+                            modifier = Modifier.padding(bottom = 100.dp),
+                            hostState = snackbarHostState
+                        )
+                    }
                 ) {
                     val casting by remember(isCasting.value) { mutableStateOf(isCasting.value) }
                     if (casting) {
@@ -146,7 +171,19 @@ class EpisodeActivity : AppCompatActivity() {
                             snackbarHostState = snackbarHostState
                         )
                     } else {
-                        VideoPlayer()
+                        VideoPlayer(
+                            setPlayer = {
+                                exoPlayer = it
+                            },
+                            refreshPipUi = {
+                                if(PipState.mode == PipState.ON){
+                                    updatePip(false)
+                                }
+                            },
+                            setPipMode = {
+                                updatePip(true)
+                            }
+                        )
                     }
                 }
 
@@ -173,7 +210,7 @@ class EpisodeActivity : AppCompatActivity() {
                                 val source: StreamSource = json.decodeFromString(
                                     castSession!!.remoteMediaClient!!.mediaInfo!!.customData!!.get("selectedSource") as String
                                 )
-                                if (episodeId != currentEpisode?.id?.toInt() || source.url != selectedSource?.url || source.quality != selectedSource?.quality) {
+                                if (episodeId != currentEpisode?.id?.toInt() || source.url != selectedSource?.url || source.fullName != selectedSource?.fullName) {
                                     loadRemoteMedia()
                                 }
                             }
@@ -187,12 +224,12 @@ class EpisodeActivity : AppCompatActivity() {
                 }
                 launch {
                     playerViewModel.currentEpisode.collectLatest { episode ->
-                        if(castSession != null && castSession!!.remoteMediaClient != null){
+                        if (castSession != null && castSession!!.remoteMediaClient != null) {
                             val castMedia = castSession!!.remoteMediaClient!!.mediaInfo?.customData
-                            if(castMedia!= null){
+                            if (castMedia != null) {
                                 val episodeId = castMedia.get("episodeId") as Int
                                 val currentEpisodeId = currentEpisode?.id?.toInt()
-                                if(currentEpisodeId != null && episodeId != currentEpisodeId){
+                                if (currentEpisodeId != null && episodeId != currentEpisodeId) {
                                     stopCastEpisode()
                                 }
                             }
@@ -244,13 +281,13 @@ class EpisodeActivity : AppCompatActivity() {
         }
     }
 
-    fun retryLoadRequest(){
+    fun retryLoadRequest() {
         playerViewModel.setIdleLock(true)
         loadRemoteMedia()
     }
 
     fun stopCastEpisode(): PendingResult<RemoteMediaClient.MediaChannelResult>? {
-       return castSession?.remoteMediaClient?.stop()
+        return castSession?.remoteMediaClient?.stop()
     }
 
     @SuppressLint("VisibleForTests")
@@ -286,14 +323,24 @@ class EpisodeActivity : AppCompatActivity() {
 
         var contentUrl = selectedSource!!.url
 
-        if(selectedSource!!.url.substringAfterLast("/").contains(".mp4") && selectedSource!!.headers != null){
+        if (selectedSource!!.url.substringAfterLast("/")
+                .contains(".mp4") && selectedSource!!.headers != null
+        ) {
             val proxyUrl = "http://$ipv4:8000"
 
-            val headersString = selectedSource?.headers?.let{
-                "&headers=${URLEncoder.encode(json.encodeToString(serializer = OkhttpHeadersSerializer,it),"UTF-8")}"
+            val headersString = selectedSource?.headers?.let {
+                "&headers=${
+                    URLEncoder.encode(
+                        json.encodeToString(
+                            serializer = OkhttpHeadersSerializer,
+                            it
+                        ), "UTF-8"
+                    )
+                }"
             } ?: ""
 
-            contentUrl = "$proxyUrl?url=${URLEncoder.encode(selectedSource!!.url,"UTF-8")}$headersString"
+            contentUrl =
+                "$proxyUrl?url=${URLEncoder.encode(selectedSource!!.url, "UTF-8")}$headersString"
         }
 
         val mediaInfos = MediaInfo.Builder(contentUrl)
@@ -314,7 +361,7 @@ class EpisodeActivity : AppCompatActivity() {
                         .setAutoplay(true)
                         .build()
                 ).setResultCallback { result ->
-                    if(result.status == Status.RESULT_SUCCESS){
+                    if (result.status == Status.RESULT_SUCCESS) {
                         playerViewModel.setIdleLock(false)
                     }
                 }
@@ -365,6 +412,110 @@ class EpisodeActivity : AppCompatActivity() {
             private fun onApplicationDisconnected() {
                 isCasting.value = false
                 this@EpisodeActivity.castSession = null
+            }
+        }
+    }
+
+    /* PIP MODE HANDLING */
+
+    override fun onStop() {
+        if (PipState.mode == PipState.ON && powerManager.isInteractive) {
+            finishAndRemoveTask()
+        }
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        exoPlayer = null
+        super.onDestroy()
+    }
+
+    private fun updatePip(start: Boolean) {
+        val anime = playerViewModel.anime.value ?: return
+        val episode = playerViewModel.currentEpisode.value ?: return
+        val paused = exoPlayer?.isPlaying?.not() ?: return
+        PictureInPictureHandler().update(
+            context = this,
+            title = anime.title,
+            subtitle = episode.name,
+            paused = paused,
+            replaceWithPrevious = false,
+            pipOnExit = false,
+            hasNext = playerViewModel.hasNextIterator.value.hasPrevious(),
+            hasPrevious = playerViewModel.hasPreviousIterator.value.hasNext()
+        ).let {
+            setPictureInPictureParams(it)
+            if (PipState.mode == PipState.OFF && start) {
+                PipState.mode = PipState.STARTED
+                playerViewModel.lockControls(locked = true)
+                enterPictureInPictureMode(it)
+            }
+        }
+
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
+        PipState.mode = if (isInPictureInPictureMode) PipState.ON else PipState.OFF
+
+        playerViewModel.lockControls(locked = PipState.mode == PipState.ON)
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+
+        if (PipState.mode == PipState.ON) {
+            pipReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    if (intent == null || ACTION_MEDIA_CONTROL != intent.action) {
+                        return
+                    }
+                    when (intent.getIntExtra(EXTRA_CONTROL_TYPE, 0)) {
+                        PIP_PLAY -> {
+                            exoPlayer?.play()
+                        }
+
+                        PIP_PAUSE -> {
+                            exoPlayer?.pause()
+                        }
+
+                        PIP_PREVIOUS -> {
+                            if (playerViewModel.hasPreviousIterator.value.hasNext()) {
+                                val previous = playerViewModel.hasPreviousIterator.value.next()
+                                exoPlayer?.clearMediaItems()
+                                playerViewModel.setCurrentEpisode(previous)
+                            }
+                        }
+
+                        PIP_NEXT -> {
+                            if (playerViewModel.hasNextIterator.value.hasPrevious()) {
+                                val next = playerViewModel.hasNextIterator.value.previous()
+                                exoPlayer?.clearMediaItems()
+                                playerViewModel.setCurrentEpisode(next)
+                            }
+                        }
+
+                        PIP_SKIP -> {
+                            exoPlayer?.seekTo((exoPlayer?.currentPosition ?: 0) + 10000)
+                        }
+                    }
+                }
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(
+                    pipReceiver,
+                    IntentFilter(ACTION_MEDIA_CONTROL),
+                    RECEIVER_NOT_EXPORTED
+                )
+            } else {
+                registerReceiver(pipReceiver, IntentFilter(ACTION_MEDIA_CONTROL))
+            }
+        } else {
+            if (exoPlayer?.isPlaying == false){
+                playerViewModel.lockControls(
+                    false
+                )
+            }
+            if (pipReceiver != null) {
+                unregisterReceiver(pipReceiver)
+                pipReceiver = null
             }
         }
     }

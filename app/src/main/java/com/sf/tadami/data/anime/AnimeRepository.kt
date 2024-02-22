@@ -4,13 +4,14 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.sf.tadami.data.DataBaseHandler
+import com.sf.tadami.data.listOfStringsAdapter
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.UpdateAnime
-import com.sf.tadami.network.api.model.AnimeFilterList
-import com.sf.tadami.network.api.model.SAnime
-import com.sf.tadami.network.database.listOfStringsAdapter
-import com.sf.tadami.ui.tabs.animesources.AnimeSourcesManager
+import com.sf.tadami.source.AnimeCatalogueSource
+import com.sf.tadami.source.model.AnimeFilterList
+import com.sf.tadami.source.model.SAnime
+import com.sf.tadami.ui.tabs.browse.SourceManager
 import kotlinx.coroutines.flow.Flow
 
 interface AnimeRepository {
@@ -27,9 +28,9 @@ interface AnimeRepository {
 
     fun getAnimeByIdAsFlow(id: Long): Flow<Anime>
 
-    suspend fun getAnimeBySourceAndUrl(source: String, url: String): Anime?
+    suspend fun getAnimeBySourceAndUrl(source: Long, url: String): Anime?
 
-    fun getAnimeByUrlAndSourceIdAsFlow(sourceId: String, url: String): Flow<Anime?>
+    fun getAnimeByUrlAndSourceIdAsFlow(sourceId: Long, url: String): Flow<Anime?>
 
     suspend fun updateAnime(anime: UpdateAnime) : Boolean
 
@@ -37,10 +38,10 @@ interface AnimeRepository {
 
     suspend fun deleteAnimesById(ids: List<Long>)
 
-    fun getLatestPager(sourceId: String): Flow<PagingData<SAnime>>
+    fun getLatestPager(sourceId: Long): Flow<PagingData<SAnime>>
 
     fun getSearchPager(
-        sourceId: String,
+        sourceId: Long,
         query: String,
         filters: AnimeFilterList
     ): Flow<PagingData<SAnime>>
@@ -49,7 +50,7 @@ interface AnimeRepository {
 
 class AnimeRepositoryImpl(
     private val handler: DataBaseHandler,
-    private val sourceManager: AnimeSourcesManager,
+    private val sourceManager: SourceManager,
 ) : AnimeRepository {
 
     override suspend fun insertAnime(anime: Anime): Long? {
@@ -102,11 +103,11 @@ class AnimeRepositoryImpl(
         }
     }
 
-    override suspend fun getAnimeBySourceAndUrl(source: String, url: String): Anime? {
+    override suspend fun getAnimeBySourceAndUrl(source: Long, url: String): Anime? {
         return handler.awaitOneOrNull { animeQueries.getBySourceAndUrl(url, source, AnimeMapper::mapAnime) }
     }
 
-    override fun getAnimeByUrlAndSourceIdAsFlow(sourceId: String, url: String): Flow<Anime?> {
+    override fun getAnimeByUrlAndSourceIdAsFlow(sourceId: Long, url: String): Flow<Anime?> {
         return handler.subscribeToOneOrNull {
             animeQueries.getBySourceAndUrl(
                 url,
@@ -181,8 +182,8 @@ class AnimeRepositoryImpl(
         return handler.await { animeQueries.delete(ids) }
     }
 
-    override fun getLatestPager(sourceId: String): Flow<PagingData<SAnime>> {
-        val source = sourceManager.getExtensionById(sourceId)
+    override fun getLatestPager(sourceId: Long): Flow<PagingData<SAnime>> {
+        val source = sourceManager.get(sourceId) as AnimeCatalogueSource
         return Pager(
             config = PagingConfig(
                 pageSize = 20
@@ -194,11 +195,11 @@ class AnimeRepositoryImpl(
     }
 
     override fun getSearchPager(
-        sourceId: String,
+        sourceId: Long,
         query: String,
         filters: AnimeFilterList
     ): Flow<PagingData<SAnime>> {
-        val source = sourceManager.getExtensionById(sourceId)
+        val source = sourceManager.get(sourceId) as AnimeCatalogueSource
         return Pager(
             config = PagingConfig(
                 pageSize = 20

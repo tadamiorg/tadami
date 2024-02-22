@@ -2,7 +2,7 @@ package com.sf.tadami.utils
 
 import android.content.res.Resources
 import com.sf.tadami.R
-import com.sf.tadami.network.api.online.AnimeCatalogueSource
+import com.sf.tadami.source.AnimeCatalogueSource
 
 enum class Lang(private val langRes : Int) {
     ENGLISH(R.string.language_en),
@@ -17,6 +17,13 @@ enum class Lang(private val langRes : Int) {
         fun getLangByName(name : String) : Lang?{
             return Lang.values().find {
                 it.name == name
+            }
+        }
+        fun valueOfOrDefault(value : String?) : Lang {
+            return try {
+                Lang.valueOf(value ?: "")
+            } catch (e: Exception){
+                UNKNOWN
             }
         }
         fun getAllLangs(): Set<Lang> {

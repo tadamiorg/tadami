@@ -20,12 +20,21 @@ android {
 
     defaultConfig {
         applicationId = "com.sf.tadami"
-        versionCode = 28
-        versionName = "1.4.5"
+        versionCode = 29
+        versionName = "1.5.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+    }
+
+    signingConfigs {
+        create("release"){
+            storeFile = file(env.KEY_FILE.value)
+            storePassword = env.KEY_STORE_PASSWORD.value
+            keyAlias = env.ALIAS.value
+            keyPassword = env.KEY_STORE_PASSWORD.value
         }
     }
 
@@ -36,12 +45,14 @@ android {
             isDebuggable = true
             isShrinkResources = true
             isMinifyEnabled = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
         named("release") {
             isDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
     }

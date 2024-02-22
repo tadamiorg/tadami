@@ -4,7 +4,7 @@ import kotlin.collections.List;
 
 CREATE TABLE Anime (
   _id INTEGER NOT NULL PRIMARY KEY,
-  source TEXT NOT NULL,
+  source INTEGER NOT NULL,
   url TEXT NOT NULL,
   title TEXT NOT NULL,
   thumbnail_url TEXT,
@@ -25,16 +25,65 @@ CREATE INDEX animes_favorite_index ON Anime(favorite) WHERE favorite = 1;
 CREATE INDEX anime_url_index ON Anime(url);
 
 getBySourceAndUrl:
-SELECT * FROM Anime
+SELECT
+    _id,
+    source,
+    url,
+    title,
+    thumbnail_url,
+    release,
+    status,
+    description,
+    genres,
+    last_update,
+    next_update ,
+    calculate_interval,
+    favorite,
+    initialized,
+    episode_flags,
+    date_added
+FROM Anime
 WHERE url = :url AND source = :source
 LIMIT 1;
 
 getAll:
-SELECT *
+SELECT
+    _id,
+    source,
+    url,
+    title,
+    thumbnail_url,
+    release,
+    status,
+    description,
+    genres,
+    last_update,
+    next_update ,
+    calculate_interval,
+    favorite,
+    initialized,
+    episode_flags,
+    date_added
 FROM Anime;
 
 getById:
-SELECT *
+SELECT
+    _id,
+    source,
+    url,
+    title,
+    thumbnail_url,
+    release,
+    status,
+    description,
+    genres,
+    last_update,
+    next_update ,
+    calculate_interval,
+    favorite,
+    initialized,
+    episode_flags,
+    date_added
 FROM Anime
 WHERE _id = :animeId;
 
@@ -66,7 +115,24 @@ SET source = coalesce(:source, source),
 WHERE _id = :animeId;
 
 getFavorites:
-SELECT * FROM Anime
+SELECT
+    _id,
+    source,
+    url,
+    title,
+    thumbnail_url,
+    release,
+    status,
+    description,
+    genres,
+    last_update,
+    next_update ,
+    calculate_interval,
+    favorite,
+    initialized,
+    episode_flags,
+    date_added
+FROM Anime
 WHERE favorite = 1;
 
 getSourceIdsWithNonLibraryAnime:

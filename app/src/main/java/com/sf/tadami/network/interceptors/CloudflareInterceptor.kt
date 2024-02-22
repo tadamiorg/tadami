@@ -6,9 +6,9 @@ import android.webkit.WebView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.sf.tadami.R
-import com.sf.tadami.network.requests.utils.AndroidCookieJar
-import com.sf.tadami.network.requests.utils.WebViewClientCompat
-import com.sf.tadami.network.requests.utils.isOutdated
+import com.sf.tadami.network.AndroidCookieJar
+import com.sf.tadami.network.utils.WebViewClientCompat
+import com.sf.tadami.network.utils.isOutdated
 import com.sf.tadami.ui.utils.UiToasts
 import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrl

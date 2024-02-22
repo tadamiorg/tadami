@@ -81,8 +81,8 @@ sealed class HomeNavItems(val route: String, @StringRes val name: Int, @Drawable
     data object History :
         HomeNavItems("history", R.string.label_history, R.drawable.anim_history_enter)
 
-    data object Sources :
-        HomeNavItems("anime_sources", R.string.sources_tab_title, R.drawable.anim_sources_enter)
+    data object Browse :
+        HomeNavItems("anime_sources", R.string.browse_tab_title, R.drawable.anim_sources_enter)
 
     data object Settings :
         HomeNavItems("settings", R.string.label_more, R.drawable.anim_settings_enter)

@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.sf.tadami.R
-import com.sf.tadami.network.api.model.AnimeFilter
+import com.sf.tadami.source.model.AnimeFilter
 import com.sf.tadami.ui.utils.capFirstLetter
 
 @Composable

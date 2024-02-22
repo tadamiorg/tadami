@@ -22,7 +22,7 @@ object HistoryMapper {
         episodeId: Long,
         title: String,
         thumbnailUrl: String?,
-        sourceId: String,
+        sourceId: Long,
         isFavorite: Boolean,
         episodeNumber: Double,
         seenAt: Date?
