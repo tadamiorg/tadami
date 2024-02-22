@@ -81,7 +81,7 @@
     <string name="discover_search_filters_independent">Les filtres et la recherche s\'ignorent</string>
     <string name="webview_required">WebView est requis par Tadami</string>
     <string name="webview_outdated">Veuillez mettre à jour l\'application WebView pour une meilleure compatibilité</string>
-    <string name="notification_library_update_skipped_not_caught_up">Passé car il y a des épisodes non vus</string>
+    <string name="notification_library_update_skipped_not_caught_up">Passé car il y a trop d\'épisodes non vus</string>
     <string name="notification_library_updates_skipped">Mises à jour passées</string>
     <string name="notification_library_update_skipped_result">%1$d mise(s) à jour ignorée(s)</string>
     <string name="tap_see_details">Appuyez pour voir les détails</string>

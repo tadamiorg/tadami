@@ -104,7 +104,7 @@
     <string name="discover_search_filters_independent">Filters ignores each other</string>
     <string name="webview_required">Webview is required for Tadami</string>
     <string name="webview_outdated">Please update the WebView app for better compatibility</string>
-    <string name="notification_library_update_skipped_not_caught_up">Skipped because there are unseen episodes</string>
+    <string name="notification_library_update_skipped_not_caught_up">Skipped because there are too much unseen episodes</string>
     <string name="notification_library_updates_skipped">Skipped updates</string>
     <string name="notification_library_update_skipped_result">%1$d update(s) skipped</string>
     <string name="tap_see_details">Tap to see details</string>
