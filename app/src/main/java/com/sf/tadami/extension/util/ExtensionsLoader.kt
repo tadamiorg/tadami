@@ -132,7 +132,8 @@ internal object ExtensionsLoader {
         val classLoader = try {
             PathClassLoader(appInfo.sourceDir, null, context.classLoader)
         } catch (e: Exception) {
-            Log.e("LoadExtension","Extension load error: $extName ($pkgName)")
+            Log.e("ClassLoader","Extension load error: $extName ($pkgName)")
+            Log.e("ClassLoader",e.stackTraceToString())
             return LoadResult.Error
         }
 
@@ -154,7 +155,7 @@ internal object ExtensionsLoader {
                     }
                 } catch (e: Throwable) {
                     Log.e("LoadExtension","Extension load error: $extName ($it)")
-                    e.printStackTrace()
+                    Log.e("LoadExtension Error",e.stackTraceToString())
                     return LoadResult.Error
                 }
             }

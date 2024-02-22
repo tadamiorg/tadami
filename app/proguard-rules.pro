@@ -22,9 +22,17 @@
 -keep,allowoptimization class com.sf.tadami.domain.anime.Anime { public protected *; }
 -keep,allowoptimization class com.sf.tadami.preferences.model.SourcePreference$** { public protected *; }
 -keep,allowoptimization class com.sf.tadami.ui.tabs.browse.tabs.sources.preferences.SourcesPreferencesContent { public protected *; }
--keep,allowoptimization class com.sf.tadami.source.** { public protected *; }
 -keep,allowoptimization class com.sf.tadami.ui.components.data.Action { public protected *; }
 -keep,allowoptimization class com.sf.tadami.ui.utils.** { public protected *; }
+
+-keep,allowoptimization class com.sf.tadami.source.online.** { public protected *; }
+-keep,allowoptimization class com.sf.tadami.source.model.** { public protected *; }
+-keep class com.sf.tadami.source.** extends com.sf.tadami.source.Source { public protected *; }
+-keep,allowoptimization class com.sf.tadami.source.AnimesPage { public protected *; }
+-keep,allowoptimization interface com.sf.tadami.preferences.model.CustomPreferences {*;}
+-keep,allowoptimization class com.sf.tadami.preferences.model.CustomPreferences$Companion {*;}
+-keep,allowoptimization interface * extends com.sf.tadami.preferences.model.CustomPreferences
+-keep,allowoptimization class com.sf.tadami.utils.DataStoreExtensionsKt { public protected *; }
 
 ##---------------Begin: proguard configuration for kotlinx.serialization  ----------
 -keepattributes *Annotation*, InnerClasses
