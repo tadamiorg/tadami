@@ -257,7 +257,8 @@ class LibraryUpdateWorker(
                     errors.groupBy({ it.second }, { it.first }).forEach { (error, animes) ->
                         out.write("\n! ${error}\n")
                         animes.groupBy { it.source }.forEach { (srcId, animes) ->
-                            out.write("  # $srcId\n")
+                            val sourceName = sourcesManager.getOrStub(srcId).name.takeIf { it.isNotEmpty() }
+                            out.write("  # ${sourceName ?: srcId}\n")
                             animes.forEach {
                                 out.write("    - ${it.title}\n")
                             }
