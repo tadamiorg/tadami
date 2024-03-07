@@ -1,4 +1,4 @@
-package com.sf.tadami.navigation.graphs.settings
+package com.sf.tadami.navigation.graphs.app.settings
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController

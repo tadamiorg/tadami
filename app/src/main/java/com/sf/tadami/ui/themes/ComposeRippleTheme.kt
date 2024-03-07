@@ -2,9 +2,9 @@ package com.sf.tadami.ui.themes
 
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.MaterialTheme
 
 object ComposeRippleTheme : RippleTheme {
 

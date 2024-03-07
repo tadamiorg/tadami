@@ -1,8 +1,8 @@
 package com.sf.tadami.ui.utils
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.tv.material3.MaterialTheme
 
 const val SeenItemAlpha = .38f
 const val SecondaryItemAlpha = .78f
@@ -11,8 +11,8 @@ const val GridSelectedCoverAlpha = 0.76f
 
 
 object CommonAnimeItemDefaults {
-    val GridHorizontalSpacer = 4.dp
-    val GridVerticalSpacer = 4.dp
+    val GridHorizontalSpacer = 16.dp
+    val GridVerticalSpacer = 16.dp
 
     const val BrowseLibraryCoverAlpha = 0.34f
 }

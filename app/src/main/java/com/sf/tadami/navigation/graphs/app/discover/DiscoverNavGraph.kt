@@ -1,4 +1,4 @@
-package com.sf.tadami.navigation.graphs.discover
+package com.sf.tadami.navigation.graphs.app.discover
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController

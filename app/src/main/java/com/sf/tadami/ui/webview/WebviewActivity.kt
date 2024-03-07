@@ -8,13 +8,13 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.surfaceColorAtElevation
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.sf.tadami.R
 import com.sf.tadami.network.NetworkHelper

@@ -20,7 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
-import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
+import com.sf.tadami.navigation.graphs.app.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.search.SearchTopAppBar
 import com.sf.tadami.ui.tabs.history.dialogs.DeleteAllHistoryDialog
@@ -48,8 +48,7 @@ fun HistoryScreen(
                 enabled = true,
                 onClick = {
                     historyDialogOpened = HistoryDialogs.DeleteAll
-                }),
-            Action.CastButton()
+                })
         )
     }
 

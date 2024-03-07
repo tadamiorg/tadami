@@ -1,8 +1,9 @@
 package com.sf.tadami.ui.themes.colorschemes
 
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+
 import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.darkColorScheme
+import androidx.tv.material3.lightColorScheme
 
 /**
  * Colors for Tidal Wave theme
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.Color
  */
 internal object TidalWaveColorScheme : BaseColorScheme() {
 
+    
     override val darkScheme = darkColorScheme(
         primary = Color(0xFF5ed4fc),
         onPrimary = Color(0xFF003544),
@@ -38,10 +40,10 @@ internal object TidalWaveColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFFbfc8cc),
         surfaceTint = Color(0xFF5ed4fc),
         inverseSurface = Color(0xFFffe3c4),
-        inverseOnSurface = Color(0xFF001c3b),
-        outline = Color(0xFF8a9296),
+        inverseOnSurface = Color(0xFF001c3b)
     )
 
+    
     override val lightScheme = lightColorScheme(
         primary = Color(0xFF006780),
         onPrimary = Color(0xFFffffff),
@@ -64,7 +66,6 @@ internal object TidalWaveColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFF40484c),
         surfaceTint = Color(0xFF006780),
         inverseSurface = Color(0xFF020400),
-        inverseOnSurface = Color(0xFFffe3c4),
-        outline = Color(0xFF70787c),
+        inverseOnSurface = Color(0xFFffe3c4)
     )
 }

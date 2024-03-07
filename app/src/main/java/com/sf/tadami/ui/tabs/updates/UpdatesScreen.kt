@@ -21,7 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
-import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
+import com.sf.tadami.navigation.graphs.app.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.ContextualTopAppBar
@@ -65,8 +65,7 @@ fun UpdatesScreen(
                         onClick = {
                             updatesViewModel.updateLibrary()
                         }
-                    ),
-                    Action.CastButton()
+                    )
                 ),
                 actionModeCounter = uiState.selected.size,
                 onCloseActionModeClicked = { updatesViewModel.toggleAllSelectedItems(false) },

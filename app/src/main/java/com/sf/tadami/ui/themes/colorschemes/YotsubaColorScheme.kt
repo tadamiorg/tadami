@@ -1,8 +1,9 @@
 package com.sf.tadami.ui.themes.colorschemes
 
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+
 import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.darkColorScheme
+import androidx.tv.material3.lightColorScheme
 
 /**
  * Colors for Yotsuba theme
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Color
  */
 internal object YotsubaColorScheme : BaseColorScheme() {
 
+    
     override val darkScheme = darkColorScheme(
         primary = Color(0xFFFFB59D),
         onPrimary = Color(0xFF5F1600),
@@ -39,10 +41,10 @@ internal object YotsubaColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFFD8C2BC),
         surfaceTint = Color(0xFFFFB59D),
         inverseSurface = Color(0xFFEDE0DD),
-        inverseOnSurface = Color(0xFF211A18),
-        outline = Color(0xFFA08C87),
+        inverseOnSurface = Color(0xFF211A18)
     )
 
+    
     override val lightScheme = lightColorScheme(
         primary = Color(0xFFAE3200),
         onPrimary = Color(0xFFFFFFFF),
@@ -65,7 +67,6 @@ internal object YotsubaColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFF53433F),
         surfaceTint = Color(0xFFAE3200),
         inverseSurface = Color(0xFF362F2D),
-        inverseOnSurface = Color(0xFFFBEEEB),
-        outline = Color(0xFF85736E),
+        inverseOnSurface = Color(0xFFFBEEEB)
     )
 }

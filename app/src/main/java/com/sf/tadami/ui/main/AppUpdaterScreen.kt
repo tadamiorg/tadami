@@ -2,7 +2,6 @@ package com.sf.tadami.ui.main
 
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -12,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.tv.material3.MaterialTheme
 import com.sf.tadami.R
 import com.sf.tadami.notifications.appupdate.AppUpdateWorker
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog

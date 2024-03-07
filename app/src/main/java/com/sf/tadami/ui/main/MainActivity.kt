@@ -3,33 +3,20 @@ package com.sf.tadami.ui.main
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.google.android.gms.cast.framework.CastContext
-import com.google.android.gms.cast.framework.CastSession
-import com.google.android.gms.cast.framework.SessionManagerListener
 import com.sf.tadami.AppPreferences
 import com.sf.tadami.Migrations
 import com.sf.tadami.R
-import com.sf.tadami.navigation.HomeScreen
-import com.sf.tadami.notifications.cast.CastProxyService
+import com.sf.tadami.navigation.graphs.app.AppScreen
 import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
-import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
-import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.themes.TadamiTheme
 import com.sf.tadami.utils.getPreferencesGroup
@@ -40,10 +27,6 @@ import uy.kohesive.injekt.api.get
 
 class MainActivity : AppCompatActivity() {
 
-    private var castSession: CastSession? = null
-    private var castSessionManagerListener: SessionManagerListener<CastSession>? = null
-    private lateinit var castContext: CastContext
-    private val errorChannel = ErrorChannel()
     private var ready = false
     private val dataStore : DataStore<Preferences> = Injekt.get()
     private val sourcesManager : SourceManager = Injekt.get()
@@ -72,37 +55,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        castContext = CastContext.getSharedInstance(this)
-        castSession = castContext.sessionManager.currentCastSession
-
-        setupCastListener()
-
         setContent {
 
             TadamiTheme {
-                val systemUiController = rememberSystemUiController()
-                val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
-                val navbarScrimColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
-                val isSystemInDarkTheme = isSystemInDarkTheme()
-
-                LaunchedEffect(systemUiController, statusBarBackgroundColor) {
-                    systemUiController.setStatusBarColor(
-                        color = statusBarBackgroundColor,
-                        darkIcons = statusBarBackgroundColor.luminance() > 0.5,
-                        transformColorForLightContent = { Color.Black },
-                    )
-                }
-                LaunchedEffect(systemUiController, isSystemInDarkTheme, navbarScrimColor) {
-                    systemUiController.setNavigationBarColor(
-                        color = navbarScrimColor,
-                        darkIcons = !isSystemInDarkTheme,
-                        navigationBarContrastEnforced = false,
-                        transformColorForLightContent = { Color.Black },
-                    )
-                }
                 val navController = rememberNavController()
                 AppUpdaterScreen()
-                HomeScreen(navController)
+                AppScreen(navController)
                 LaunchedEffect(navController) {
                     if (isLaunch) {
                         ready = true
@@ -116,62 +74,6 @@ class MainActivity : AppCompatActivity() {
         splashScreen?.setKeepOnScreenCondition {
             val elapsed = System.currentTimeMillis() - startTime
             elapsed <= SPLASH_MIN_DURATION || (!ready && elapsed <= SPLASH_MAX_DURATION)
-        }
-    }
-
-    override fun onResume() {
-        castContext.sessionManager.addSessionManagerListener(
-            castSessionManagerListener!!,
-            CastSession::class.java
-        )
-        super.onResume()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        castContext.sessionManager.removeSessionManagerListener(
-            castSessionManagerListener!!,
-            CastSession::class.java
-        )
-        castSession = null
-    }
-
-    private fun setupCastListener() {
-        castSessionManagerListener = object : SessionManagerListener<CastSession> {
-            override fun onSessionEnded(session: CastSession, error: Int) {
-                onApplicationDisconnected()
-            }
-
-            override fun onSessionResumed(session: CastSession, wasSuspended: Boolean) {
-                onApplicationConnected(session)
-            }
-
-            override fun onSessionResumeFailed(session: CastSession, error: Int) {
-                onApplicationDisconnected()
-            }
-
-            override fun onSessionStarted(session: CastSession, sessionId: String) {
-                onApplicationConnected(session)
-            }
-
-            override fun onSessionStartFailed(session: CastSession, error: Int) {
-                onApplicationDisconnected()
-            }
-
-            override fun onSessionStarting(session: CastSession) {}
-            override fun onSessionEnding(session: CastSession) {}
-            override fun onSessionResuming(session: CastSession, sessionId: String) {}
-            override fun onSessionSuspended(session: CastSession, reason: Int) {}
-            private fun onApplicationConnected(session: CastSession) {
-                setCastCustomChannel(session,errorChannel)
-                CastProxyService.startNow(this@MainActivity)
-                this@MainActivity.castSession = session
-            }
-
-            private fun onApplicationDisconnected() {
-                CastProxyService.stop(this@MainActivity)
-                this@MainActivity.castSession = null
-            }
         }
     }
 

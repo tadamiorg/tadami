@@ -1,8 +1,9 @@
 package com.sf.tadami.ui.themes.colorschemes
 
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
+
+import androidx.tv.material3.darkColorScheme
+import androidx.tv.material3.lightColorScheme
 
 /**
  * Colors for Default theme
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.Color
  */
 internal object TadamiColorScheme : BaseColorScheme() {
 
+    
     override val darkScheme = darkColorScheme(
         primary = Color(0xFFB0C6FF),
         onPrimary = Color(0xFF002D6E),
@@ -43,10 +45,10 @@ internal object TadamiColorScheme : BaseColorScheme() {
         onError = Color(0xFF690005),
         errorContainer = Color(0xFF93000A),
         onErrorContainer = Color(0xFFFFDAD6),
-        outline = Color(0xFF8F9099),
-        outlineVariant = Color(0xFF44464F),
+
     )
 
+    
     override val lightScheme = lightColorScheme(
         primary = Color(0xFF0058CA),
         onPrimary = Color(0xFFFFFFFF),
@@ -73,8 +75,6 @@ internal object TadamiColorScheme : BaseColorScheme() {
         error = Color(0xFFBA1A1A),
         onError = Color(0xFFFFFFFF),
         errorContainer = Color(0xFFFFDAD6),
-        onErrorContainer = Color(0xFF410002),
-        outline = Color(0xFF757780),
-        outlineVariant = Color(0xFFC5C6D0),
+        onErrorContainer = Color(0xFF410002)
     )
 }

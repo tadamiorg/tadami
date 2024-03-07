@@ -1,8 +1,9 @@
 package com.sf.tadami.ui.themes.colorschemes
 
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+
 import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.darkColorScheme
+import androidx.tv.material3.lightColorScheme
 
 /**
  * Colors for Midnight Dusk theme
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Color
  */
 internal object MidnightDuskColorScheme : BaseColorScheme() {
 
+    
     override val darkScheme = darkColorScheme(
         primary = Color(0xFFF02475),
         onPrimary = Color(0xFFFFFFFF),
@@ -39,10 +41,10 @@ internal object MidnightDuskColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFFD6C1C4),
         surfaceTint = Color(0xFFF02475),
         inverseSurface = Color(0xFF333043),
-        inverseOnSurface = Color(0xFFFFFFFF),
-        outline = Color(0xFF9F8C8F),
+        inverseOnSurface = Color(0xFFFFFFFF)
     )
 
+    
     override val lightScheme = lightColorScheme(
         primary = Color(0xFFBB0054),
         onPrimary = Color(0xFFFFFFFF),
@@ -65,7 +67,6 @@ internal object MidnightDuskColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFF524346),
         surfaceTint = Color(0xFFBB0054),
         inverseSurface = Color(0xFF313033),
-        inverseOnSurface = Color(0xFFF4F0F4),
-        outline = Color(0xFF847376),
+        inverseOnSurface = Color(0xFFF4F0F4)
     )
 }

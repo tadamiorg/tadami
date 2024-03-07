@@ -1,8 +1,9 @@
 package com.sf.tadami.ui.themes.colorschemes
 
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+
 import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.darkColorScheme
+import androidx.tv.material3.lightColorScheme
 
 /**
  * Colors for Green Apple theme
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Color
  */
 internal object GreenAppleColorScheme : BaseColorScheme() {
 
+    
     override val darkScheme = darkColorScheme(
         primary = Color(0xFF7ADB8F),
         onPrimary = Color(0xFF003915),
@@ -40,9 +42,9 @@ internal object GreenAppleColorScheme : BaseColorScheme() {
         surfaceTint = Color(0xFF7ADB8F),
         inverseSurface = Color(0xFFE1E3DD),
         inverseOnSurface = Color(0xFF1A1C19),
-        outline = Color(0xFF8B9389),
     )
 
+    
     override val lightScheme = lightColorScheme(
         primary = Color(0xFF006D2F),
         onPrimary = Color(0xFFFFFFFF),
@@ -65,7 +67,6 @@ internal object GreenAppleColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFF414941),
         surfaceTint = Color(0xFF006D2F),
         inverseSurface = Color(0xFF2F312E),
-        inverseOnSurface = Color(0xFFF0F2EC),
-        outline = Color(0xFF717970),
+        inverseOnSurface = Color(0xFFF0F2EC)
     )
 }

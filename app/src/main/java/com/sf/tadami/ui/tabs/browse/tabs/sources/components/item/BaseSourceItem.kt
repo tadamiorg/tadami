@@ -3,12 +3,12 @@ package com.sf.tadami.ui.tabs.browse.tabs.sources.components.item
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.tv.material3.MaterialTheme
 import com.sf.tadami.domain.source.Source
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.item.BaseBrowseItem
 import com.sf.tadami.ui.utils.padding

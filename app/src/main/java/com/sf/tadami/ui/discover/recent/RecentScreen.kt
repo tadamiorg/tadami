@@ -9,7 +9,6 @@ import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -26,9 +25,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.tv.material3.MaterialTheme
 import com.sf.tadami.R
-import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
-import com.sf.tadami.ui.components.data.Action
+import com.sf.tadami.navigation.graphs.app.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,9 +67,6 @@ fun RecentScreen(
                         )
                     }
                 },
-                actions = listOf(
-                    Action.CastButton()
-                ),
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(

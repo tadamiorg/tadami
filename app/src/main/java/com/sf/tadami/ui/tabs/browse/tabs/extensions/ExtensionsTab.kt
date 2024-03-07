@@ -3,17 +3,17 @@ package com.sf.tadami.ui.tabs.browse.tabs.extensions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.tv.material3.MaterialTheme
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
-import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
-import com.sf.tadami.navigation.graphs.sources.SourcesRoutes
+import com.sf.tadami.navigation.graphs.app.discover.DiscoverRoutes
+import com.sf.tadami.navigation.graphs.app.sources.SourcesRoutes
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.ui.components.data.Action
@@ -24,6 +24,7 @@ import com.sf.tadami.ui.themes.colorschemes.active
 import com.sf.tadami.utils.Lang
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+
 
 @Composable
 fun extensionsTab(
@@ -46,8 +47,7 @@ fun extensionsTab(
                 onClick = {
                     navController.navigate(DiscoverRoutes.EXTENSIONS_FILTER)
                 },
-            ),
-            Action.CastButton()
+            )
         )
     ) { contentPadding, _ ->
         ExtensionComponent(

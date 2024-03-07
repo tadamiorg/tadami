@@ -21,19 +21,13 @@ fun LibraryComponent(
     onEmptyRefreshClicked : () -> Unit,
     isRefreshing: Boolean
 ) {
-    PullRefresh(
-        refreshing = isRefreshing,
-        onRefresh = onRefresh,
-        indicatorPadding = indicatorPadding
-    ) {
-        LibraryAnimeGrid(
-            modifier = modifier,
-            animeList = libraryList,
-            initLoaded = initLoaded,
-            librarySize = librarySize,
-            onAnimeClicked = onAnimeClicked,
-            onEmptyRefreshClicked = onEmptyRefreshClicked,
-            onAnimeLongClicked = onAnimeLongCLicked,
-        )
-    }
+    LibraryAnimeGrid(
+        modifier = modifier,
+        animeList = libraryList,
+        initLoaded = initLoaded,
+        librarySize = librarySize,
+        onAnimeClicked = onAnimeClicked,
+        onEmptyRefreshClicked = onEmptyRefreshClicked,
+        onAnimeLongClicked = onAnimeLongCLicked,
+    )
 }

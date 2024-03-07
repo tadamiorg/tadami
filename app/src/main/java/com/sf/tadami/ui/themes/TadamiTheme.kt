@@ -2,12 +2,12 @@ package com.sf.tadami.ui.themes
 
 import android.content.Context
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.tv.material3.ColorScheme
+import androidx.tv.material3.MaterialTheme
 import com.sf.tadami.R
 import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.ui.themes.colorschemes.GreenAppleColorScheme
@@ -25,6 +25,7 @@ import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
+
 @Composable
 fun TadamiTheme(
     appTheme: AppTheme? = null,
@@ -32,11 +33,12 @@ fun TadamiTheme(
     isDark: Boolean? = null,
     content: @Composable () -> Unit,
 ) {
-    MaterialTheme(
+    MaterialTheme (
         colorScheme = getThemeColorScheme(appTheme, isDark,amoled),
         content = content
     )
 }
+
 
 @Composable
 @ReadOnlyComposable

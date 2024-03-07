@@ -1,8 +1,9 @@
 package com.sf.tadami.ui.themes.colorschemes
 
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+
 import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.darkColorScheme
+import androidx.tv.material3.lightColorScheme
 
 /**
  * Colors for Tako theme
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Color
  */
 internal object TakoColorScheme : BaseColorScheme() {
 
+    
     override val darkScheme = darkColorScheme(
         primary = Color(0xFFF3B375),
         onPrimary = Color(0xFF38294E),
@@ -39,10 +41,10 @@ internal object TakoColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFFCBC4CE),
         surfaceTint = Color(0xFF66577E),
         inverseSurface = Color(0xFFE5E1E6),
-        inverseOnSurface = Color(0xFF1B1B1E),
-        outline = Color(0xFF958F99),
+        inverseOnSurface = Color(0xFF1B1B1E)
     )
 
+    
     override val lightScheme = lightColorScheme(
         primary = Color(0xFF66577E),
         onPrimary = Color(0xFFF3B375),
@@ -65,7 +67,6 @@ internal object TakoColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFF49454E),
         surfaceTint = Color(0xFF66577E),
         inverseSurface = Color(0xFF313033),
-        inverseOnSurface = Color(0xFFF3EFF4),
-        outline = Color(0xFF7A757E),
+        inverseOnSurface = Color(0xFFF3EFF4)
     )
 }

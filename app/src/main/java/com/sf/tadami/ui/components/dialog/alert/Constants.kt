@@ -1,8 +1,8 @@
 package com.sf.tadami.ui.components.dialog.alert
 
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.unit.dp
+import androidx.tv.material3.MaterialTheme
 import com.sf.tadami.ui.utils.padding
 
 object AlertDialogConstants{

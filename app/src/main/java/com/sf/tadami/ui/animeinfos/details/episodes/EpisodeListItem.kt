@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,13 +20,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.tv.material3.MaterialTheme
 import com.sf.tadami.ui.animeinfos.details.infos.DotSeparatorText
 import com.sf.tadami.ui.utils.SecondaryItemAlpha
 import com.sf.tadami.ui.utils.SeenItemAlpha
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.selectedBackground
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, )
 @Composable
 fun EpisodeListItem(
     modifier: Modifier = Modifier,

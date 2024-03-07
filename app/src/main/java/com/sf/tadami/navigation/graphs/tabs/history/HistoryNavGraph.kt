@@ -1,4 +1,4 @@
-package com.sf.tadami.navigation.graphs.updates
+package com.sf.tadami.navigation.graphs.tabs.history
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -6,24 +6,20 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.sf.tadami.navigation.graphs.home.HomeNavItems
-import com.sf.tadami.ui.tabs.updates.UpdatesScreen
+import com.sf.tadami.navigation.graphs.tabs.TabsNavItems
+import com.sf.tadami.ui.tabs.history.HistoryScreen
 
-fun NavGraphBuilder.updatesNavGraph(
+fun NavGraphBuilder.historyNavGraph(
     navController: NavHostController,
     tabsNavPadding : PaddingValues,
-    bottomNavDisplay: Boolean,
-    setNavDisplay: (display: Boolean) -> Unit,
 ) {
 
     composable(
-        route = HomeNavItems.Updates.route,
+        route = TabsNavItems.History.route,
     ) {
-        UpdatesScreen(
+        HistoryScreen(
             modifier = Modifier.padding(tabsNavPadding),
             navController = navController,
-            setNavDisplay = setNavDisplay,
-            bottomNavDisplay = bottomNavDisplay,
         )
     }
 

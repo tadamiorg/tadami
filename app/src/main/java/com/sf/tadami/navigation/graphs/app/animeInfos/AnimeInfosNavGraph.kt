@@ -1,4 +1,4 @@
-package com.sf.tadami.navigation.graphs.animeInfos
+package com.sf.tadami.navigation.graphs.app.animeInfos
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController

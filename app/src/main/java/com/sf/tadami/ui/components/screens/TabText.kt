@@ -2,12 +2,12 @@ package com.sf.tadami.ui.components.screens
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
+import androidx.tv.material3.MaterialTheme
 
 @Composable
 fun TabText(text: String, badgeCount: Int? = null) {

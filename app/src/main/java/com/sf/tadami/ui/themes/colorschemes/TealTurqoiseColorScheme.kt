@@ -1,14 +1,16 @@
 package com.sf.tadami.ui.themes.colorschemes
 
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+
 import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.darkColorScheme
+import androidx.tv.material3.lightColorScheme
 
 /**
  * Colors for Teal Turqoise theme
  */
 internal object TealTurqoiseColorScheme : BaseColorScheme() {
 
+    
     override val darkScheme = darkColorScheme(
         primary = Color(0xFF40E0D0),
         onPrimary = Color(0xFF000000),
@@ -31,10 +33,10 @@ internal object TealTurqoiseColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFFDFDEDA),
         surfaceTint = Color(0xFF40E0D0),
         inverseSurface = Color(0xFFDFDEDA),
-        inverseOnSurface = Color(0xFF202125),
-        outline = Color(0xFF899391),
+        inverseOnSurface = Color(0xFF202125)
     )
 
+    
     override val lightScheme = lightColorScheme(
         primary = Color(0xFF008080),
         onPrimary = Color(0xFFFFFFFF),
@@ -57,7 +59,6 @@ internal object TealTurqoiseColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFF050505),
         surfaceTint = Color(0xFFBFDFDF),
         inverseSurface = Color(0xFF050505),
-        inverseOnSurface = Color(0xFFFAFAFA),
-        outline = Color(0xFF6F7977),
+        inverseOnSurface = Color(0xFFFAFAFA)
     )
 }

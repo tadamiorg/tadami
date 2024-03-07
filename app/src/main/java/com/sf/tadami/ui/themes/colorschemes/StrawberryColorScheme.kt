@@ -1,8 +1,9 @@
 package com.sf.tadami.ui.themes.colorschemes
 
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+
 import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.darkColorScheme
+import androidx.tv.material3.lightColorScheme
 
 /**
  * Colors for Strawberry Daiquiri theme
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Color
  */
 internal object StrawberryColorScheme : BaseColorScheme() {
 
+    
     override val darkScheme = darkColorScheme(
         primary = Color(0xFFFFB2B9),
         onPrimary = Color(0xFF67001B),
@@ -39,10 +41,10 @@ internal object StrawberryColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFFD7C1C2),
         surfaceTint = Color(0xFFFFB2B9),
         inverseSurface = Color(0xFFECDFDF),
-        inverseOnSurface = Color(0xFF201A1A),
-        outline = Color(0xFFA08C8D),
+        inverseOnSurface = Color(0xFF201A1A)
     )
 
+    
     override val lightScheme = lightColorScheme(
         primary = Color(0xFFB61E40),
         onPrimary = Color(0xFFFFFFFF),
@@ -65,7 +67,6 @@ internal object StrawberryColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFF534344),
         surfaceTint = Color(0xFFB61E40),
         inverseSurface = Color(0xFF362F2F),
-        inverseOnSurface = Color(0xFFFBEDED),
-        outline = Color(0xFF857374),
+        inverseOnSurface = Color(0xFFFBEDED)
     )
 }

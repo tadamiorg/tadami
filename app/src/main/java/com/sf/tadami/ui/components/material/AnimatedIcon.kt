@@ -5,14 +5,16 @@ import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
 import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
 import androidx.compose.animation.graphics.vector.AnimatedImageVector
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
+import androidx.tv.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.LocalContentColor
 
 @OptIn(ExperimentalAnimationGraphicsApi::class)
 @Composable
 fun AnimatedVectorDrawable(
+    modifier: Modifier = Modifier,
     @DrawableRes
     animIcon : Int,
     selected: Boolean,
@@ -21,6 +23,7 @@ fun AnimatedVectorDrawable(
 ) {
     val image = AnimatedImageVector.animatedVectorResource(animIcon)
     Icon(
+        modifier = modifier,
         painter = rememberAnimatedVectorPainter(image, selected),
         contentDescription = contentDescription,
         tint = tint

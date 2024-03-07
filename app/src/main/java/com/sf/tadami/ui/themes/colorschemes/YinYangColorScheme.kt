@@ -1,8 +1,9 @@
 package com.sf.tadami.ui.themes.colorschemes
 
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+
 import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.darkColorScheme
+import androidx.tv.material3.lightColorScheme
 
 /**
  * Colors for Yin & Yang theme
@@ -11,6 +12,7 @@ import androidx.compose.ui.graphics.Color
  */
 internal object YinYangColorScheme : BaseColorScheme() {
 
+    
     override val darkScheme = darkColorScheme(
         primary = Color(0xFFFFFFFF),
         onPrimary = Color(0xFF5A5A5A),
@@ -33,10 +35,10 @@ internal object YinYangColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFFD1D1D1),
         surfaceTint = Color(0xFFFFFFFF),
         inverseSurface = Color(0xFFE6E6E6),
-        inverseOnSurface = Color(0xFF1E1E1E),
-        outline = Color(0xFF999999),
+        inverseOnSurface = Color(0xFF1E1E1E)
     )
 
+    
     override val lightScheme = lightColorScheme(
         primary = Color(0xFF000000),
         onPrimary = Color(0xFFFFFFFF),
@@ -59,7 +61,6 @@ internal object YinYangColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFF515151),
         surfaceTint = Color(0xFF000000),
         inverseSurface = Color(0xFF333333),
-        inverseOnSurface = Color(0xFFF4F4F4),
-        outline = Color(0xFF838383),
+        inverseOnSurface = Color(0xFFF4F4F4)
     )
 }

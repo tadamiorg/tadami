@@ -22,7 +22,7 @@ import androidx.navigation.NavHostController
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.sf.tadami.R
-import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
+import com.sf.tadami.navigation.graphs.app.settings.AdvancedSettingsRoutes
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.utils.setDefaultSettings
 import com.sf.tadami.preferences.advanced.AdvancedPreferences

@@ -3,23 +3,18 @@ package com.sf.tadami.ui.components.grid
 import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -31,20 +26,32 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
+import androidx.tv.foundation.lazy.grid.TvGridCells
+import androidx.tv.foundation.lazy.grid.TvLazyGridState
+import androidx.tv.foundation.lazy.grid.TvLazyVerticalGrid
+import androidx.tv.foundation.lazy.grid.items
+import androidx.tv.foundation.lazy.grid.rememberTvLazyGridState
+import androidx.tv.material3.Border
+import androidx.tv.material3.CardBorder
+import androidx.tv.material3.CardColors
+import androidx.tv.material3.CardDefaults
+import androidx.tv.material3.CardLayoutDefaults
+import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.StandardCardLayout
 import com.sf.tadami.R
 import com.sf.tadami.data.anime.NoResultException
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
+import com.sf.tadami.ui.animeinfos.details.infos.AnimeCover
 import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.tabs.library.badges.UnseenBadge
@@ -105,11 +112,10 @@ fun AnimeGrid(
         mutableStateOf(configuration.orientation)
     }
 
-    LaunchedEffect(animeList.itemCount,animeList.loadState.refresh){
-        if(!isNavigated && configuration.orientation == rotationChanged){
+    LaunchedEffect(animeList.itemCount, animeList.loadState.refresh) {
+        if (!isNavigated && configuration.orientation == rotationChanged) {
             isLoading = animeList.itemCount == 0 && animeList.loadState.refresh is LoadState.Loading
-        }
-        else{
+        } else {
             isNavigated = false
             rotationChanged = configuration.orientation
         }
@@ -179,10 +185,10 @@ fun LibraryAnimeGrid(
     modifier: Modifier = Modifier,
     animeList: List<LibraryItem>,
     librarySize: Int,
-    initLoaded : Boolean,
+    initLoaded: Boolean,
     onAnimeClicked: (anime: LibraryItem) -> Unit,
     onAnimeLongClicked: (anime: LibraryItem) -> Unit,
-    lazyGridState: LazyGridState = rememberLazyGridState(),
+    lazyGridState: TvLazyGridState = rememberTvLazyGridState(),
     onEmptyRefreshClicked: () -> Unit,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
@@ -197,7 +203,7 @@ fun LibraryAnimeGrid(
         } else {
             libraryPreferences.portraitColumns
         }
-        if (number == 0) GridCells.Adaptive(128.dp) else GridCells.Fixed(number)
+        if (number == 0) TvGridCells.Adaptive(128.dp) else TvGridCells.Fixed(number)
     }
 
     LaunchedEffect(key1 = animeList.firstOrNull()) {
@@ -206,49 +212,57 @@ fun LibraryAnimeGrid(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        LazyVerticalGrid(
-            modifier = modifier,
-            state = lazyGridState,
-            columns = columns(),
-            verticalArrangement = Arrangement.spacedBy(CommonAnimeItemDefaults.GridVerticalSpacer),
-            horizontalArrangement = Arrangement.spacedBy(CommonAnimeItemDefaults.GridHorizontalSpacer),
-            contentPadding = contentPadding + PaddingValues(MaterialTheme.padding.extraSmall)
-        ) {
-            items(animeList, key = { it.anime.id }) { libraryItem ->
-                CompactAnimeGridItem(
-                    modifier = Modifier.animateItemPlacement(),
-                    isSelected = libraryItem.selected,
-                    anime = libraryItem.anime.toAnime(),
-                    onClick = {
-                        onAnimeClicked(libraryItem)
-                    },
-                    onLongClick = {
-                        onAnimeLongClicked(libraryItem)
-                    },
-                    coverBadgeStart = {
-                        UnseenBadge(count = libraryItem.anime.unseenEpisodes)
+    TvLazyVerticalGrid(
+        modifier = modifier,
+        state = lazyGridState,
+        columns = columns(),
+        verticalArrangement = Arrangement.spacedBy(CommonAnimeItemDefaults.GridVerticalSpacer),
+        horizontalArrangement = Arrangement.spacedBy(CommonAnimeItemDefaults.GridHorizontalSpacer),
+        contentPadding = contentPadding + PaddingValues(MaterialTheme.padding.large)
+    ) {
+        items(animeList, key = { it.anime.id }) { libraryItem ->
+            StandardCardLayout(
+                contentColor = CardLayoutDefaults.contentColor(
+                    contentColor = Color.Transparent,
+                    focusedContentColor = Color.Transparent,
+                    pressedContentColor = Color.Transparent
+                ),
+                modifier = Modifier,
+                imageCard = {
+                    CardLayoutDefaults.ImageCard(
+                        colors = CardDefaults.colors(
+                            containerColor = Color.Transparent
+                        ),
+                        onClick = {
+                            onAnimeClicked(libraryItem)
+                        },
+                        onLongClick = {
+                            onAnimeLongClicked(libraryItem)
+                        },
+                        interactionSource = it,
+                        border = CardDefaults.border(
+                            border = Border.None,
+                            focusedBorder = Border.None,
+                            pressedBorder = Border.None
+                        )
+                    ) {
+                        CompactAnimeGridItem(
+                            isSelected = libraryItem.selected,
+                            anime = libraryItem.anime.toAnime(),
+                            onClick = {
+                            },
+                            onLongClick = {
+                            },
+                            coverBadgeStart = {
+                                UnseenBadge(count = libraryItem.anime.unseenEpisodes)
+                            }
+                        )
                     }
-                )
-            }
-        }
-        if(!initLoaded){
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .align(Alignment.Center),
-                strokeWidth = 2.dp,
+
+                },
+                title = {}
             )
-        }
-        if (librarySize <= 0 && initLoaded) {
-            EmptyScreen(
-                message = stringResource(id = R.string.empty_library_title), actions = listOf(
-                    EmptyScreenAction(
-                        stringResId = R.string.empty_library_action,
-                        icon = Icons.Outlined.ArrowForward,
-                        onClick = onEmptyRefreshClicked
-                    )
-                )
-            )
+
         }
     }
 }
@@ -261,6 +275,6 @@ private fun LoadingItem() {
             .padding(vertical = MaterialTheme.padding.medium),
         horizontalArrangement = Arrangement.Center,
     ) {
-        CircularProgressIndicator()
+
     }
 }

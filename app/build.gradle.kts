@@ -46,14 +46,14 @@ android {
             isShrinkResources = true
             isMinifyEnabled = true
             signingConfig = signingConfigs.getByName("release")
-            proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"),"proguard-android-optimize.txt", "proguard-rules.pro")
         }
         named("release") {
             isDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
-            proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"),"proguard-android-optimize.txt","proguard-rules.pro")
         }
     }
 
@@ -150,11 +150,10 @@ dependencies {
 
     // Cast Dependencies
     implementation(androidx.appcompat)
-    implementation(androidx.bundles.cast)
 
-    // Http4k proxy to cast streams
-    implementation(platform(libs.http4k.bom))
-    implementation(libs.bundles.http4k)
+    // Android TV
+    implementation(androidx.bundles.androidtv)
+
 
     // JSUnpacker
     implementation(libs.jsunpacker)
@@ -164,7 +163,8 @@ dependencies {
 tasks {
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.freeCompilerArgs += listOf(
-            "-Xcontext-receivers"
+            "-Xcontext-receivers",
+            "-opt-in=androidx.tv.material3.ExperimentalTvMaterial3Api",
         )
     }
 }

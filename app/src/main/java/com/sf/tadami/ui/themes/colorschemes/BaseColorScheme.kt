@@ -1,9 +1,10 @@
 package com.sf.tadami.ui.themes.colorschemes
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.ColorScheme
+
 
 internal abstract class BaseColorScheme {
 
@@ -26,6 +27,7 @@ internal abstract class BaseColorScheme {
             }
     }
 }
+
 
 val ColorScheme.active: Color
     @Composable

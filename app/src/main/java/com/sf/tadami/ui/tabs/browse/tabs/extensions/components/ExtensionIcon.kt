@@ -3,7 +3,6 @@ package com.sf.tadami.ui.tabs.browse.tabs.extensions.components
 import android.util.DisplayMetrics
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -17,6 +16,7 @@ import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.core.graphics.drawable.toBitmap
+import androidx.tv.material3.MaterialTheme
 import coil.compose.AsyncImage
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension

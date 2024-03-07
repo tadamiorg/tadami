@@ -1,8 +1,9 @@
 package com.sf.tadami.ui.themes.colorschemes
 
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+
 import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.darkColorScheme
+import androidx.tv.material3.lightColorScheme
 
 /**
  * Colors for Lavender theme
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.Color
  */
 internal object LavenderColorScheme : BaseColorScheme() {
 
+    
     override val darkScheme = darkColorScheme(
         primary = Color(0xFFA177FF),
         onPrimary = Color(0xFF111129),
@@ -38,10 +40,10 @@ internal object LavenderColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xFFE8E8E8),
         surfaceTint = Color(0xFFA177FF),
         inverseSurface = Color(0xFF221247),
-        inverseOnSurface = Color(0xFFDEE8FF),
-        outline = Color(0xA8905FFF),
+        inverseOnSurface = Color(0xFFDEE8FF)
     )
 
+    
     override val lightScheme = lightColorScheme(
         primary = Color(0xFF7B46AF),
         onPrimary = Color(0xFFEDE2FF),
@@ -64,7 +66,6 @@ internal object LavenderColorScheme : BaseColorScheme() {
         onSurfaceVariant = Color(0xD849454E),
         surfaceTint = Color(0xFF7B46AF),
         inverseSurface = Color(0xFF313033),
-        inverseOnSurface = Color(0xFFF3EFF4),
-        outline = Color(0xFF7B46AF),
+        inverseOnSurface = Color(0xFFF3EFF4)
     )
 }

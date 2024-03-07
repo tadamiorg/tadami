@@ -4,15 +4,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.TravelExplore
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+
+import androidx.tv.material3.MaterialTheme
 import com.sf.tadami.R
-import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
-import com.sf.tadami.navigation.graphs.sources.SourcesRoutes
+import com.sf.tadami.navigation.graphs.app.discover.DiscoverRoutes
+import com.sf.tadami.navigation.graphs.app.sources.SourcesRoutes
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.ui.components.data.Action
@@ -20,6 +21,7 @@ import com.sf.tadami.ui.components.screens.ScreenTabContent
 import com.sf.tadami.ui.tabs.browse.tabs.sources.components.SourcesComponent
 import com.sf.tadami.ui.themes.colorschemes.active
 import com.sf.tadami.utils.Lang
+
 
 @Composable
 fun sourcesTab(
@@ -48,8 +50,7 @@ fun sourcesTab(
                 onClick = {
                     navController.navigate(DiscoverRoutes.SOURCES_FILTER)
                 },
-            ),
-            Action.CastButton()
+            )
         ),
         content = { contentPadding, snackbarHostState ->
             SourcesComponent(
