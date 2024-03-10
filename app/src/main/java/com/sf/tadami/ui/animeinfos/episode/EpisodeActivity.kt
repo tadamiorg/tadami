@@ -13,14 +13,21 @@ import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -29,6 +36,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.exoplayer.ExoPlayer
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaMetadata
@@ -39,9 +47,11 @@ import com.google.android.gms.common.api.Status
 import com.google.android.gms.common.images.WebImage
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.domain.episode.toSEpisode
 import com.sf.tadami.notifications.cast.CastProxyService
 import com.sf.tadami.source.model.OkhttpHeadersSerializer
 import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
@@ -59,6 +69,7 @@ import com.sf.tadami.ui.animeinfos.episode.player.PlayerViewModel
 import com.sf.tadami.ui.animeinfos.episode.player.PlayerViewModelFactory
 import com.sf.tadami.ui.animeinfos.episode.player.VideoPlayer
 import com.sf.tadami.ui.themes.TadamiTheme
+import com.sf.tadami.ui.webview.WebViewActivity
 import com.sf.tadami.utils.powerManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
@@ -92,6 +103,7 @@ class EpisodeActivity : AppCompatActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
 
+        delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_YES;
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
@@ -155,6 +167,26 @@ class EpisodeActivity : AppCompatActivity() {
                 isDark = true,
                 amoled = true
             ) {
+                val systemUiController = rememberSystemUiController()
+                val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
+                val navbarScrimColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+                val isSystemInDarkTheme = isSystemInDarkTheme()
+
+                LaunchedEffect(systemUiController, statusBarBackgroundColor) {
+                    systemUiController.setStatusBarColor(
+                        color = statusBarBackgroundColor,
+                        darkIcons = statusBarBackgroundColor.luminance() > 0.5,
+                        transformColorForLightContent = { Color.Black },
+                    )
+                }
+                LaunchedEffect(systemUiController, isSystemInDarkTheme, navbarScrimColor) {
+                    systemUiController.setNavigationBarColor(
+                        color = navbarScrimColor,
+                        darkIcons = !isSystemInDarkTheme,
+                        navigationBarContrastEnforced = false,
+                        transformColorForLightContent = { Color.Black },
+                    )
+                }
                 val snackbarHostState = remember { SnackbarHostState() }
                 Scaffold(
                     snackbarHost = {
@@ -168,7 +200,17 @@ class EpisodeActivity : AppCompatActivity() {
                     if (casting) {
                         CastVideoPlayer(
                             castSession = castSession!!,
-                            snackbarHostState = snackbarHostState
+                            snackbarHostState = snackbarHostState,
+                            onWebViewOpen = {
+                                val httpSource = playerViewModel.source as? AnimeHttpSource
+                                val url = playerViewModel.currentEpisode.value?.let{
+                                    httpSource?.getEpisodeUrl(it.toSEpisode())
+                                }
+                                val title = playerViewModel.anime.value?.title
+                                if(httpSource != null && url != null && title != null){
+                                    openChapterInWebView(url= url, sourceId = httpSource.id, animeTitle = title)
+                                }
+                            }
                         )
                     } else {
                         VideoPlayer(
@@ -176,19 +218,33 @@ class EpisodeActivity : AppCompatActivity() {
                                 exoPlayer = it
                             },
                             refreshPipUi = {
-                                if(PipState.mode == PipState.ON){
+                                if (PipState.mode == PipState.ON) {
                                     updatePip(false)
                                 }
                             },
                             setPipMode = {
                                 updatePip(true)
+                            },
+                            onWebViewOpen = {
+                                val httpSource = playerViewModel.source as? AnimeHttpSource
+                                val url = playerViewModel.currentEpisode.value?.let{
+                                    httpSource?.getEpisodeUrl(it.toSEpisode())
+                                }
+                                val title = playerViewModel.anime.value?.title
+                                if(httpSource != null && url != null && title != null){
+                                    openChapterInWebView(url= url, sourceId = httpSource.id, animeTitle = title)
+                                }
                             }
                         )
                     }
                 }
-
             }
         }
+    }
+
+    private fun openChapterInWebView(url: String, sourceId: Long, animeTitle: String) {
+        val intent = WebViewActivity.newIntent(this@EpisodeActivity, url, sourceId, animeTitle)
+        startActivity(intent)
     }
 
     private fun observeData() {
@@ -508,7 +564,7 @@ class EpisodeActivity : AppCompatActivity() {
                 registerReceiver(pipReceiver, IntentFilter(ACTION_MEDIA_CONTROL))
             }
         } else {
-            if (exoPlayer?.isPlaying == false){
+            if (exoPlayer?.isPlaying == false) {
                 playerViewModel.lockControls(
                     false
                 )

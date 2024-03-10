@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.mediarouter.app.MediaRouteButton
 import com.google.android.gms.cast.framework.CastButtonFactory
@@ -32,7 +36,8 @@ fun TopControl(
     modifier: Modifier = Modifier,
     title: () -> String,
     episode: String,
-    onBackClicked: () -> Unit
+    onBackClicked: () -> Unit,
+    onWebViewOpen : () -> Unit
 ) {
     val videoTitle = remember(title()) { title() }
     val episodeNumber = remember(episode) { episode }
@@ -41,12 +46,14 @@ fun TopControl(
 
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.Absolute.Left) {
 
-        IconButton(onClick = onBackClicked) {
+        IconButton(onClick = onBackClicked, size = 36.dp) {
             Icon(painter = painterResource(id = R.drawable.ic_back_arrow), contentDescription = "Go back",tint = MaterialTheme.colorScheme.onSurface)
         }
 
         Column(
-            modifier = Modifier.weight(1f).padding(horizontal = MaterialTheme.padding.small),
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = MaterialTheme.padding.small),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start
         ) {
@@ -70,7 +77,18 @@ fun TopControl(
 
         }
 
+        IconButton(
+            onClick = onWebViewOpen,
+            size = 36.dp
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Public,
+                contentDescription = "Open in Webview",
+                tint = MaterialTheme.colorScheme.onSurface)
+        }
+
         AndroidView(
+            modifier = Modifier.size(36.dp + MaterialTheme.padding.medium),
             factory = {
                 MediaRouteButton(context)
             },
@@ -87,7 +105,8 @@ fun PreviewTopControl() {
     TopControl(
         Modifier.fillMaxWidth(),
         { "Ore ga ojô-sama gakkô ni 'shomin sample' toshite gettsu sareta ken" },
-        "episode 5"
+        "episode 5",
+        {}
     ) {}
 
 }

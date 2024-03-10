@@ -65,6 +65,7 @@ fun VideoPlayer(
     dispatcher: OnBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current!!.onBackPressedDispatcher,
     playerViewModel: PlayerViewModel = viewModel(LocalContext.current as EpisodeActivity),
     setPlayer: (ExoPlayer) -> Unit,
+    onWebViewOpen : () -> Unit,
     setPipMode: () -> Unit,
     refreshPipUi : () -> Unit
 ) {
@@ -449,7 +450,8 @@ fun VideoPlayer(
                     openSettingsDialog = true
                 },
                 onPipClicked = setPipMode,
-                lockedControls = lockedControls
+                lockedControls = lockedControls,
+                onWebViewOpen = onWebViewOpen
             )
 
         }

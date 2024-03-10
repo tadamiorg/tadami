@@ -134,4 +134,15 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
         }
     }
 
+    /**
+     * Returns the url of the provided episode
+     *
+     * @since extensions-lib 1.1
+     * @param episode the episode
+     * @return url of the episode
+     */
+    open fun getEpisodeUrl(episode: SEpisode): String {
+        return episodeRequest(episode.url).url.toString()
+    }
+
 }

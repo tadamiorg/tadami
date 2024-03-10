@@ -540,8 +540,8 @@ fun IconButton(
     @Suppress("DEPRECATION_ERROR")
     (Box(
         modifier = modifier
+            .size(size + padding)
             .minimumInteractiveComponentSize()
-            .size(size)
             /*.clip(IconButtonTokens.StateLayerShape.value)*/
             .background(color = colors.containerColor(enabled))
             .clickable(
@@ -553,7 +553,7 @@ fun IconButton(
                     radius = (size + padding) / 2
                 )
             ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         val contentColor = colors.contentColor(enabled)
         CompositionLocalProvider(LocalContentColor provides contentColor, content = content)

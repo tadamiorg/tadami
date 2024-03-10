@@ -5,7 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,8 +29,12 @@ import androidx.navigation.NavHostController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
+import com.sf.tadami.navigation.graphs.sources.SourcesRoutes
+import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,12 +74,26 @@ fun RecentScreen(
                     }
                 },
                 actions = listOf(
+                    Action.Vector(
+                        title = R.string.stub_text,
+                        icon = Icons.Outlined.Public,
+                        onClick = {
+                            val httpSource = recentViewModel.source as? AnimeHttpSource
+                            httpSource?.let{
+                                val encodedUrl = URLEncoder.encode(
+                                    it.baseUrl,
+                                    StandardCharsets.UTF_8.toString()
+                                )
+                                navController.navigate("${SourcesRoutes.EXTENSIONS_WEBVIEW}/${it.id}/${it.name}/${encodedUrl}")
+                            }
+                        }
+                    ),
                     Action.CastButton()
                 ),
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
-                            imageVector = Icons.Outlined.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = null,
                         )
                     }
