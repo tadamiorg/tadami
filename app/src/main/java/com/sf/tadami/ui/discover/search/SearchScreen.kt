@@ -8,6 +8,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -42,11 +43,15 @@ import androidx.navigation.NavHostController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
+import com.sf.tadami.navigation.graphs.sources.SourcesRoutes
+import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.filters.TadaBottomSheetLayout
 import com.sf.tadami.ui.components.topappbar.search.SearchTopAppBar
 import com.sf.tadami.ui.utils.padding
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
@@ -161,6 +166,20 @@ fun SearchScreen(
                         searchViewModel.updateQuery(it)
                     },
                     actions = listOf(
+                        Action.Vector(
+                            title = R.string.stub_text,
+                            icon = Icons.Outlined.Public,
+                            onClick = {
+                                val httpSource = searchViewModel.source as? AnimeHttpSource
+                                httpSource?.let{
+                                    val encodedUrl = URLEncoder.encode(
+                                        it.baseUrl,
+                                        StandardCharsets.UTF_8.toString()
+                                    )
+                                    navController.navigate("${SourcesRoutes.EXTENSIONS_WEBVIEW}/${it.id}/${it.name}/${encodedUrl}")
+                                }
+                            }
+                        ),
                         Action.CastButton()
                     ),
                     searchValue = query,

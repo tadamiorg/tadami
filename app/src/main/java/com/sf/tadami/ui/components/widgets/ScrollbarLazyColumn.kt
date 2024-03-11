@@ -26,6 +26,7 @@ fun ScrollbarLazyColumn(
         if (!reverseLayout) Arrangement.Top else Arrangement.Bottom,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     userScrollEnabled: Boolean = true,
+    scrollBarAlwaysOn : Boolean = false,
     content: LazyListScope.() -> Unit,
 ) {
     val direction = LocalLayoutDirection.current
@@ -39,6 +40,7 @@ fun ScrollbarLazyColumn(
                 state = state,
                 reverseScrolling = reverseLayout,
                 positionOffsetPx = positionOffset,
+                alwaysOn = scrollBarAlwaysOn
             ),
         state = state,
         contentPadding = contentPadding,

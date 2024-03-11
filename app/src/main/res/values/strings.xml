@@ -181,6 +181,7 @@
     <string name="action_web_view" translatable="false">WebView</string>
     <string name="pref_clear_cookies">Clear cookies</string>
     <string name="action_open_in_browser">Open in browser</string>
+    <string name="action_open_in_webview">Open in WebView</string>
     <string name="preferences_advanced">Advanced</string>
     <string name="preferences_advanced_data">Data</string>
     <string name="preferences_advanced_subtitle">User agent, data, webview</string>

@@ -53,6 +53,7 @@ fun CastVideoPlayer(
     dispatcher: OnBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current!!.onBackPressedDispatcher,
     playerViewModel: PlayerViewModel = viewModel(LocalContext.current as EpisodeActivity),
     snackbarHostState: SnackbarHostState,
+    onWebViewOpen : () -> Unit,
     castSession: CastSession
 ) {
 
@@ -80,8 +81,6 @@ fun CastVideoPlayer(
     var currentTime by remember { mutableStateOf(0L) }
 
     var isPlaying by remember { mutableStateOf(castSession.remoteMediaClient?.isPlaying ?: false) }
-
-    var openDialog by remember { mutableStateOf(false) }
 
     var debounceSeekJob: Job? by remember { mutableStateOf(null) }
     val coroutineScope = rememberCoroutineScope()
@@ -353,7 +352,8 @@ fun CastVideoPlayer(
                 onEpisodesClicked = {
                     openEpisodesDialog = true
                 },
-                lockedControls = false
+                lockedControls = false,
+                onWebViewOpen = onWebViewOpen
 
             )
         }

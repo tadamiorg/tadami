@@ -66,7 +66,7 @@ class PlayerViewModel(
     )
     private val episodeId = _episodeId.asStateFlow()
 
-    private val source = sourcesManager.getOrStub(sourceId)
+    val source = sourcesManager.getOrStub(sourceId)
 
     val sourceDataStore = if(source is ConfigurableParsedHttpAnimeSource<*>) {
         source.dataStore

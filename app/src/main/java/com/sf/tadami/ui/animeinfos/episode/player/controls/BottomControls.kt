@@ -16,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sf.tadami.R
 import com.sf.tadami.ui.components.material.IconButton
@@ -42,10 +43,11 @@ fun BottomControls(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(
                     onClick = onPlayerSettings,
                     enabled = true,
+                    size = 36.dp,
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_settings),
@@ -57,6 +59,7 @@ fun BottomControls(
                 IconButton(
                     onClick = onStreamSettings,
                     enabled = videoSettingsEnabled,
+                    size = 36.dp,
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_video_settings),
@@ -71,6 +74,7 @@ fun BottomControls(
                 IconButton(
                     onClick = onEpisodesClicked,
                     enabled = true,
+                    size = 36.dp,
                 ) {
                     Icon(
                         modifier = Modifier.graphicsLayer {
@@ -84,7 +88,7 @@ fun BottomControls(
 
             }
 
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 // Ignore Opening Button
                 Button(onClick = onSkipOp, enabled = isSeekable) {
                     Text(
@@ -98,6 +102,7 @@ fun BottomControls(
                     IconButton(
                         onClick = onPipClicked,
                         enabled = true,
+                        size = 36.dp,
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_pip),

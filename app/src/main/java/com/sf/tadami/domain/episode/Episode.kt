@@ -45,6 +45,16 @@ data class Episode(
     }
 }
 
+fun Episode.toSEpisode() : SEpisode{
+    return SEpisode.create().apply {
+        url = this@toSEpisode.url
+        name = this@toSEpisode.name
+        episodeNumber = this@toSEpisode.episodeNumber
+        dateUpload = this@toSEpisode.dateUpload
+        languages = this@toSEpisode.languages
+    }
+}
+
 fun Episode.copyFromSEpisode(other : SEpisode) : Episode{
     return this.copy(
         url = other.url,

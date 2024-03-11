@@ -20,8 +20,8 @@ android {
 
     defaultConfig {
         applicationId = "com.sf.tadami"
-        versionCode = 29
-        versionName = "1.5.0"
+        versionCode = 30
+        versionName = "1.5.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -146,7 +146,7 @@ dependencies {
     implementation(androidx.splashscreen)
 
     // Mardown parser
-    implementation(libs.mardown.parser)
+    implementation(libs.bundles.richtext)
 
     // Cast Dependencies
     implementation(androidx.appcompat)

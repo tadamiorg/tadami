@@ -40,6 +40,7 @@ fun PlayerControls(
     onStreamSettings: () -> Unit,
     onPlayerSettings: () -> Unit,
     onEpisodesClicked: () -> Unit,
+    onWebViewOpen : () -> Unit,
     onBack: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
@@ -83,7 +84,8 @@ fun PlayerControls(
                         .fillMaxWidth(),
                     title = title,
                     episode = episode,
-                    onBackClicked = onBack
+                    onBackClicked = onBack,
+                    onWebViewOpen = onWebViewOpen
                 )
 
                 // center player controls

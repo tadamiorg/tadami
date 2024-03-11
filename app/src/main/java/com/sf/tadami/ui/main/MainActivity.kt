@@ -1,14 +1,17 @@
 package com.sf.tadami.ui.main
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.datastore.core.DataStore
@@ -22,6 +25,7 @@ import com.google.android.gms.cast.framework.SessionManagerListener
 import com.sf.tadami.AppPreferences
 import com.sf.tadami.Migrations
 import com.sf.tadami.R
+import com.sf.tadami.extension.api.ExtensionsApi
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.notifications.cast.CastProxyService
 import com.sf.tadami.preferences.backup.BackupPreferences
@@ -32,6 +36,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.themes.TadamiTheme
+import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -102,6 +107,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 val navController = rememberNavController()
                 AppUpdaterScreen()
+                ExtensionsCheckForUpdates()
                 HomeScreen(navController)
                 LaunchedEffect(navController) {
                     if (isLaunch) {
@@ -116,6 +122,21 @@ class MainActivity : AppCompatActivity() {
         splashScreen?.setKeepOnScreenCondition {
             val elapsed = System.currentTimeMillis() - startTime
             elapsed <= SPLASH_MIN_DURATION || (!ready && elapsed <= SPLASH_MAX_DURATION)
+        }
+    }
+
+    @Composable
+    private fun ExtensionsCheckForUpdates() {
+        val context = LocalContext.current
+
+        // Extensions updates
+        LaunchedEffect(Unit) {
+            try {
+                val extsUpdates = ExtensionsApi().checkForUpdates(context)
+                dataStore.editPreference(extsUpdates?.size ?: 0,SourcesPreferences.EXT_UPDATES_COUNT)
+            } catch (e: Exception) {
+                Log.e("ExtensionsCheckForUpdates", e.stackTraceToString())
+            }
         }
     }
 
