@@ -67,6 +67,7 @@ fun ExtensionDetailsScreen(
                         Action.Vector(
                             title = R.string.stub_text,
                             icon = Icons.AutoMirrored.Outlined.Launch,
+                            enabled = url != null,
                             onClick = {
                                 if (url != null) {
                                     uriHandler.openUri(url)
