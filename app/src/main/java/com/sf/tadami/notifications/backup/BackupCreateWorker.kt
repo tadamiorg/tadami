@@ -62,7 +62,7 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
                     BackupPreferences
                 )
             } else {
-                notifier.showBackupComplete(UniFile.fromUri(context,location.toUri()))
+                notifier.showBackupComplete(UniFile.fromUri(context,location.toUri())!!)
             }
             Result.success()
         } catch (e: Exception) {

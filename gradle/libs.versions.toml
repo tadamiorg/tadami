@@ -53,7 +53,7 @@ http4k-server-ktorcio = { group = "org.http4k", name = "http4k-server-ktorcio"}
 
 # JSUnpacker
 jsunpacker = "dev.datlag.jsunpacker:jsunpacker:1.0.1"
-unifile = "com.github.tachiyomiorg:unifile:17bec43"
+unifile = "com.github.tachiyomiorg:unifile:7c257e1c64"
 
 [plugins]
 dotenv = { id="co.uzzu.dotenv.gradle", version.ref="dotenv_version" }

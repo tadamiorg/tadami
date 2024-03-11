@@ -167,9 +167,11 @@ class BackupPreferencesScreen(
 
                 context.contentResolver.takePersistableUriPermission(uri, flags)
                 val file = UniFile.fromUri(context, uri)
-                prefState.setValue(prefs.copy(
-                    autoBackupFolder = file.uri.toString()
-                ))
+                file?.let {
+                    prefState.setValue(prefs.copy(
+                        autoBackupFolder = it.uri.toString()
+                    ))
+                }
             }
         }
 
