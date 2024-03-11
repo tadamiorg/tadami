@@ -146,7 +146,7 @@ dependencies {
     implementation(androidx.splashscreen)
 
     // Mardown parser
-    implementation(libs.mardown.parser)
+    implementation(libs.bundles.richtext)
 
     // Cast Dependencies
     implementation(androidx.appcompat)

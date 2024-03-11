@@ -161,13 +161,15 @@ private class MinimumTouchTargetModifier(val size: DpSize) : LayoutModifier {
 fun Modifier.drawVerticalScrollbar(
     state: LazyListState,
     reverseScrolling: Boolean = false,
+    alwaysOn: Boolean = false,
     // The amount of offset the scrollbar position towards the start of the layout
     positionOffsetPx: Float = 0f,
-): Modifier = drawScrollbar(state, Orientation.Vertical, reverseScrolling, positionOffsetPx)
+): Modifier = drawScrollbar(state, Orientation.Vertical, reverseScrolling, positionOffsetPx,alwaysOn)
 
 private fun Modifier.drawScrollbar(
     orientation: Orientation,
     reverseScrolling: Boolean,
+    alwaysOn : Boolean = false,
     onDraw: ContentDrawScope.(
         reverseDirection: Boolean,
         atEnd: Boolean,
@@ -220,7 +222,7 @@ private fun Modifier.drawScrollbar(
     Modifier
         .nestedScroll(nestedScrollConnection)
         .drawWithContent {
-            onDraw(reverseDirection, atEnd, thickness, color, alpha::value)
+            onDraw(reverseDirection, atEnd, thickness, color) { if (alwaysOn) 1f else alpha.value }
         }
 }
 
@@ -229,9 +231,11 @@ private fun Modifier.drawScrollbar(
     orientation: Orientation,
     reverseScrolling: Boolean,
     positionOffset: Float,
+    alwaysOn: Boolean
 ): Modifier = drawScrollbar(
     orientation,
     reverseScrolling,
+    alwaysOn
 ) { reverseDirection, atEnd, thickness, color, alpha ->
     val layoutInfo = state.layoutInfo
     val viewportSize = if (orientation == Orientation.Horizontal) {

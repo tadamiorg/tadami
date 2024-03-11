@@ -4,9 +4,9 @@ rxjava3-version = "3.1.5"
 jsoup-version="1.17.2"
 okhttp-version = "5.0.0-alpha.12"
 sqldelight-version = "2.0.0"
-markdown-parser-version = "0.3.2"
 http4k-bom-version = "4.42.1.0"
 dotenv_version = "4.0.0"
+richtext = "1.0.0-alpha01"
 
 [libraries]
 
@@ -43,7 +43,8 @@ sqldelight-gradle = { module = "app.cash.sqldelight:gradle-plugin", version.ref 
 wheel-picker = "com.github.commandiron:WheelPickerCompose:1.1.10"
 
 # Markdown parser
-mardown-parser = {group="com.github.jeziellago",name="compose-markdown",version.ref="markdown-parser-version"}
+richtext-commonmark = { module = "com.halilibo.compose-richtext:richtext-commonmark", version.ref = "richtext" }
+richtext-m3 = { module = "com.halilibo.compose-richtext:richtext-ui-material3", version.ref = "richtext" }
 
 # Http4k
 http4k-bom = { group = "org.http4k", name = "http4k-bom", version.ref = "http4k-bom-version" }
@@ -63,3 +64,4 @@ rxjava = ["rxjava3","rxjava3-rxandroid"]
 okhttp = ["okhttp","okhttp-logging-interceptor","okhttp-dnsoverhttps","okio","okhttp-brotli"]
 sqldelight = ["sqldelight-android-driver","sqldelight-coroutines-extensions","sqlite"]
 http4k = ["http4k-core","http4k-server-ktorcio"]
+richtext = ["richtext-commonmark", "richtext-m3"]
