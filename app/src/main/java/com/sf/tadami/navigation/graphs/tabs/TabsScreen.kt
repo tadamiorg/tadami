@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -27,10 +28,14 @@ import com.sf.tadami.navigation.drawernav.DrawerNavBar
 
 @Composable
 fun TabsScreen(
-    openAnimeDetails : (sourceId : Long,animeId : Long) -> Unit
+    openAnimeDetails : (sourceId : Long,animeId : Long) -> Unit,
+    openSourceSearch : (sourceId : Long) -> Unit,
+    setLibraryFocusedAnime : (animeId : Long) -> Unit,
+    libraryFocusedAnime : Long
 ) {
 
     val navController = rememberNavController()
+    val focusManager = LocalFocusManager.current
 
     val items = remember {
         listOf(
@@ -86,9 +91,12 @@ fun TabsScreen(
     ) {
         TabsNavGraph(
             navController = navController,
-            tabsNavPadding = PaddingValues(start = 56.dp + 24.dp ),
+            tabsNavPadding = PaddingValues(start = 80.dp ),
             setNavDisplay = {},
-            openAnimeDetails = openAnimeDetails
+            openAnimeDetails = openAnimeDetails,
+            openSourceSearch = openSourceSearch,
+            libraryFocusedAnime = libraryFocusedAnime,
+            setLibraryFocusedAnime = setLibraryFocusedAnime
         )
     }
 }

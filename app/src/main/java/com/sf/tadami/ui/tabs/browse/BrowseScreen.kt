@@ -18,6 +18,7 @@ import com.sf.tadami.ui.tabs.browse.tabs.sources.sourcesTab
 fun BrowseScreen(
     modifier : Modifier = Modifier,
     navController : NavHostController,
+    openSourceSearch : (sourceId : Long) -> Unit,
     extensionsViewModel : ExtensionsViewModel = viewModel(LocalContext.current as MainActivity)
 ) {
     // Hoisted for extensions tab's search bar
@@ -27,7 +28,7 @@ fun BrowseScreen(
         modifier = modifier,
         titleRes = R.string.browse_tab_title,
         tabs = listOf(
-            sourcesTab(navController),
+            sourcesTab(navController,openSourceSearch),
             extensionsTab(navController)
         ),
         searchValue = extensionsState.searchQuery,

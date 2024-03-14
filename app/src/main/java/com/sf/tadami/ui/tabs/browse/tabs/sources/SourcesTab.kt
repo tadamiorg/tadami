@@ -26,6 +26,7 @@ import com.sf.tadami.utils.Lang
 @Composable
 fun sourcesTab(
     navController: NavHostController,
+    openSourceSearch : (sourceId : Long) -> Unit,
     sourcesTabViewModel: SourcesTabViewModel = viewModel()
 ): ScreenTabContent {
     val uiState by sourcesTabViewModel.uiState.collectAsState()
@@ -57,7 +58,8 @@ fun sourcesTab(
                 uiState = uiState,
                 contentPadding = contentPadding,
                 onClickItem = { source ->
-                    navController.navigate("${DiscoverRoutes.SEARCH}/${source.id}")
+                    openSourceSearch(source.id)
+
                 },
                 onRecentClicked = { source ->
                     navController.navigate("${DiscoverRoutes.RECENT}/${source.id}")

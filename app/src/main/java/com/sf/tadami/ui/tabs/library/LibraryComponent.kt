@@ -3,6 +3,7 @@ package com.sf.tadami.ui.tabs.library
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.components.grid.LibraryAnimeGrid
@@ -19,15 +20,9 @@ fun LibraryComponent(
     onRefresh: () -> Unit,
     indicatorPadding: PaddingValues = PaddingValues(0.dp),
     onEmptyRefreshClicked : () -> Unit,
+    onFocusChanged : (animeId : Long) -> Unit,
+    libFocusRequesters : Map<Long,FocusRequester>,
     isRefreshing: Boolean
 ) {
-    LibraryAnimeGrid(
-        modifier = modifier,
-        animeList = libraryList,
-        initLoaded = initLoaded,
-        librarySize = librarySize,
-        onAnimeClicked = onAnimeClicked,
-        onEmptyRefreshClicked = onEmptyRefreshClicked,
-        onAnimeLongClicked = onAnimeLongCLicked,
-    )
+    MoviesScreen(modifier = modifier,libraryList = libraryList, onItemFocus = {_,_ ->})
 }

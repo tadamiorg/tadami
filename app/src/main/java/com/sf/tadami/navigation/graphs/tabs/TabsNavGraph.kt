@@ -19,7 +19,10 @@ fun TabsNavGraph(
     navController: NavHostController,
     tabsNavPadding: PaddingValues,
     setNavDisplay: (display: Boolean) -> Unit,
-    openAnimeDetails : (sourceId : Long,animeId : Long) -> Unit
+    libraryFocusedAnime : Long,
+    setLibraryFocusedAnime : (animeId : Long) -> Unit,
+    openAnimeDetails : (sourceId : Long,animeId : Long) -> Unit,
+    openSourceSearch : (sourceId : Long) -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -32,7 +35,9 @@ fun TabsNavGraph(
             tabsNavPadding = tabsNavPadding,
             setNavDisplay = setNavDisplay,
             bottomNavDisplay = false,
-            openAnimeDetails = openAnimeDetails
+            libraryFocusedAnime = libraryFocusedAnime,
+            openAnimeDetails = openAnimeDetails,
+            setLibraryFocusedAnime = setLibraryFocusedAnime
         )
 
         updatesNavGraph(
@@ -50,6 +55,7 @@ fun TabsNavGraph(
         sourcesNavGraph(
             navController = navController,
             tabsNavPadding = tabsNavPadding,
+            openSourceSearch = openSourceSearch
         )
         settingsNavGraph(
             navController = navController,

@@ -1,6 +1,7 @@
 package com.sf.tadami.ui.components.grid
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,6 +28,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -190,6 +194,8 @@ fun LibraryAnimeGrid(
     onAnimeLongClicked: (anime: LibraryItem) -> Unit,
     lazyGridState: TvLazyGridState = rememberTvLazyGridState(),
     onEmptyRefreshClicked: () -> Unit,
+    onFocusChanged: (animeId: Long) -> Unit,
+    libFocusRequesters : Map<Long, FocusRequester>,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
 
@@ -203,13 +209,7 @@ fun LibraryAnimeGrid(
         } else {
             libraryPreferences.portraitColumns
         }
-        if (number == 0) TvGridCells.Adaptive(128.dp) else TvGridCells.Fixed(number)
-    }
-
-    LaunchedEffect(key1 = animeList.firstOrNull()) {
-        if (animeList.firstOrNull() != null) {
-            lazyGridState.animateScrollToItem(0)
-        }
+        if (number == 0) TvGridCells.Adaptive(96.dp) else TvGridCells.Fixed(number)
     }
 
     TvLazyVerticalGrid(
@@ -227,7 +227,13 @@ fun LibraryAnimeGrid(
                     focusedContentColor = Color.Transparent,
                     pressedContentColor = Color.Transparent
                 ),
-                modifier = Modifier,
+                modifier = Modifier.onFocusChanged {
+                    Log.e("Focused",libraryItem.anime.title)
+                    Log.e("FocusedState",it.hasFocus.toString())
+                    if (it.hasFocus) {
+                        onFocusChanged(libraryItem.anime.id)
+                    }
+                }.focusRequester(libFocusRequesters[libraryItem.anime.id]!!),
                 imageCard = {
                     CardLayoutDefaults.ImageCard(
                         colors = CardDefaults.colors(

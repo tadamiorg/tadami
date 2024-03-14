@@ -11,14 +11,16 @@ import com.sf.tadami.ui.tabs.browse.BrowseScreen
 
 fun NavGraphBuilder.sourcesNavGraph(
     navController: NavHostController,
-    tabsNavPadding : PaddingValues
+    tabsNavPadding : PaddingValues,
+    openSourceSearch : (sourceId : Long) -> Unit
 ) {
     composable(
         route = TabsNavItems.Browse.route,
     ) {
         BrowseScreen(
             modifier = Modifier.padding(tabsNavPadding),
-            navController = navController
+            navController = navController,
+            openSourceSearch = openSourceSearch
         )
     }
 }

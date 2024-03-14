@@ -1,15 +1,26 @@
 package com.sf.tadami.ui.tabs.library
 
+import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -40,6 +51,8 @@ fun LibraryScreen(
     setNavDisplay: (display: Boolean) -> Unit,
     bottomNavDisplay: Boolean,
     openAnimeDetails : (sourceId : Long,animeId : Long) -> Unit,
+    libraryFocusedAnime : Long,
+    setLibraryFocusedAnime : (animeId : Long) -> Unit,
     libraryViewModel: LibraryViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -80,61 +93,70 @@ fun LibraryScreen(
     }
 
     val isRefreshing by libraryViewModel.isRefreshing.collectAsState()
-
-    Column(modifier = modifier.fillMaxSize()) {
-        Text(
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.weight(1f, false).padding(start = MaterialTheme.padding.large, end = MaterialTheme.padding.large, top = MaterialTheme.padding.large),
-            text = stringResource(id = R.string.library_tab_title),
-            style = MaterialTheme.typography.headlineSmall
-        )
-        LibraryComponent(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxSize(),
-            libraryList = libraryList.addFilters(libraryPreferences, searchFilter),
-            librarySize = libraryList.size,
-            initLoaded = initLoaded,
-            onAnimeClicked = { libraryItem ->
-                when {
-                    libraryItem.selected -> {
-                        libraryViewModel.toggleSelected(libraryItem, false)
-                    }
-
-                    libraryList.fastAny { it.selected } -> {
-                        libraryViewModel.toggleSelected(libraryItem, true)
-                    }
-
-                    else -> {
-                        openAnimeDetails(libraryItem.anime.source,libraryItem.anime.id)
-                    }
-                }
-            },
-            onAnimeLongCLicked = { libraryItem ->
-                setNavDisplay(false)
-                libraryViewModel.toggleSelected(libraryItem, true)
-            },
-            isRefreshing = isRefreshing,
-            onRefresh = {
-                val started = libraryViewModel.refreshLibrary(context)
-                val msgRes =
-                    if (started) context.getString(R.string.update_starting) else context.getString(
-                        R.string.update_running
-                    )
-                UiToasts.showToast(msgRes)
-            },
-            onEmptyRefreshClicked = {
-                navController.navigate(TabsNavItems.Browse.route) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-
+    val focusRequester = remember { FocusRequester() }
+    val libFocusRequesters by remember(libraryList) {
+        derivedStateOf {
+            libraryList.associate {
+                it.anime.id to FocusRequester()
             }
-        )
+        }
     }
+//    LaunchedEffect(Unit) {
+//        if(libraryFocusedAnime != -1L){
+//            libFocusRequesters[libraryFocusedAnime]!!.requestFocus()
+//        }else{
+//            focusRequester.requestFocus()
+//        }
+//    }
+    LibraryComponent(
+        modifier = modifier
+            .fillMaxSize(),
+        libFocusRequesters = libFocusRequesters,
+        libraryList = libraryList.addFilters(libraryPreferences, searchFilter),
+        librarySize = libraryList.size,
+        initLoaded = initLoaded,
+        onFocusChanged = {
+            setLibraryFocusedAnime(it)
+        },
+        onAnimeClicked = { libraryItem ->
+            when {
+                libraryItem.selected -> {
+                    libraryViewModel.toggleSelected(libraryItem, false)
+                }
+
+                libraryList.fastAny { it.selected } -> {
+                    libraryViewModel.toggleSelected(libraryItem, true)
+                }
+
+                else -> {
+                    openAnimeDetails(libraryItem.anime.source,libraryItem.anime.id)
+                }
+            }
+        },
+        onAnimeLongCLicked = { libraryItem ->
+            setNavDisplay(false)
+            libraryViewModel.toggleSelected(libraryItem, true)
+        },
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            val started = libraryViewModel.refreshLibrary(context)
+            val msgRes =
+                if (started) context.getString(R.string.update_starting) else context.getString(
+                    R.string.update_running
+                )
+            UiToasts.showToast(msgRes)
+        },
+        onEmptyRefreshClicked = {
+            navController.navigate(TabsNavItems.Browse.route) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+
+        }
+    )
 }
 
 private fun List<LibraryItem>.addFilters(
