@@ -18,12 +18,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavHostController
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
 import com.sf.tadami.network.NetworkHelper
+import com.sf.tadami.network.player.PlayerNetworkHelper
 import com.sf.tadami.network.utils.setDefaultSettings
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
 import com.sf.tadami.preferences.model.DataStoreState
@@ -55,16 +57,27 @@ class AdvancedPreferencesScreen(
         )
     }
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     @OptIn(ExperimentalCoilApi::class)
     @Composable
-    private fun getDataGroup(): Preference.PreferenceCategory {
+    private fun getDataGroup(
+        playerNetworkHelper: PlayerNetworkHelper = Injekt.get()
+    ): Preference.PreferenceCategory {
         val context = LocalContext.current
         val imageLoader = remember { context.imageLoader }
-        var readableSize by remember {
+        var readableImagesCacheSize by remember {
             mutableStateOf(
                 Formatter.formatFileSize(
                     context,
                     imageLoader.diskCache?.size ?: 0
+                )
+            )
+        }
+        var readableVideosCacheSize by remember {
+            mutableStateOf(
+                Formatter.formatFileSize(
+                    context,
+                    playerNetworkHelper.cache.cacheSpace
                 )
             )
         }
@@ -73,7 +86,7 @@ class AdvancedPreferencesScreen(
             preferenceItems = listOf(
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(R.string.pref_clear_images_cache),
-                    subtitle = stringResource(R.string.used_cache, readableSize),
+                    subtitle = stringResource(R.string.used_cache, readableImagesCacheSize),
                     onClick = {
                         try {
                             imageLoader.diskCache?.clear()
@@ -83,8 +96,25 @@ class AdvancedPreferencesScreen(
                             Log.e("CacheDeletion", e.stackTraceToString())
                             UiToasts.showToast(R.string.cache_delete_error)
                         } finally {
-                            readableSize =
+                            readableImagesCacheSize =
                                 Formatter.formatFileSize(context, imageLoader.diskCache?.size ?: 0)
+                        }
+                    },
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(R.string.pref_clear_videos_cache),
+                    subtitle = stringResource(R.string.used_cache, readableVideosCacheSize),
+                    onClick = {
+                        try {
+                            playerNetworkHelper.clearCache()
+                            UiToasts.showToast(R.string.cache_deleted)
+
+                        } catch (e: Throwable) {
+                            Log.e("CacheDeletion", e.stackTraceToString())
+                            UiToasts.showToast(R.string.cache_delete_error)
+                        } finally {
+                            readableVideosCacheSize =
+                                Formatter.formatFileSize(context, playerNetworkHelper.cache.cacheSpace)
                         }
                     },
                 ),

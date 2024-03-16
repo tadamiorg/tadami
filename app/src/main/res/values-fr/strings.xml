@@ -170,6 +170,7 @@
     <string name="database_clean">Rien à effacer</string>
     <string name="action_delete">Supprimer</string>
     <string name="pref_clear_images_cache">Effacer le cache des images</string>
+    <string name="pref_clear_videos_cache">Effacer le cache des vidéos</string>
     <string name="used_cache">Utilisé : %1$s</string>
     <string name="cache_deleted">Cache effacé.</string>
     <string name="action_migrate">Migrer</string>

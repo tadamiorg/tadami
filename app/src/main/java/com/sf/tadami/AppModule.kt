@@ -39,6 +39,7 @@ import com.sf.tadami.data.updates.UpdatesRepository
 import com.sf.tadami.data.updates.UpdatesRepositoryImpl
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.network.NetworkHelper
+import com.sf.tadami.network.player.PlayerNetworkHelper
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.tabs.browse.SourceManagerImplementation
 import data.Anime
@@ -232,6 +233,9 @@ class AppModule(private val app: Application) : InjektModule {
             }
         }
 
+        // Player Network Client
+
+        addSingletonFactory { PlayerNetworkHelper(app) }
 
 
         // Asynchronously init expensive components for a faster cold start
@@ -239,6 +243,7 @@ class AppModule(private val app: Application) : InjektModule {
             get<NetworkHelper>()
             get<SourceManager>()
             get<Database>()
+            get<PlayerNetworkHelper>()
         }
     }
 }
