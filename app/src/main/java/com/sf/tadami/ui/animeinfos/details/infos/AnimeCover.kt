@@ -14,6 +14,8 @@ import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
 import coil.compose.AsyncImage
+import com.sf.tadami.R
+import com.sf.tadami.utils.rememberResourceBitmapPainter
 
 enum class AnimeCover(val ratio: Float) {
     Square(1f / 1f),
@@ -31,6 +33,7 @@ enum class AnimeCover(val ratio: Float) {
             model = data,
             placeholder = ColorPainter(CoverPlaceholderColor),
             contentDescription = contentDescription,
+            error = rememberResourceBitmapPainter(R.drawable.cover_error),
             modifier = modifier
                 .aspectRatio(ratio)
                 .clip(shape)
