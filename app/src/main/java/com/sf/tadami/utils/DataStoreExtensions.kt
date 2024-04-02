@@ -46,8 +46,8 @@ suspend fun <T : CustomPreferencesIdentifier> DataStore<Preferences>.editPrefere
     newValue: T,
     preferences: CustomPreferences<T>,
     callBack : (newValue : T) -> Unit = {}
-) {
-    this.edit { prefs ->
+) : Preferences {
+    return this.edit { prefs ->
         preferences.setPrefs(newValue,prefs)
         callBack(newValue)
     }

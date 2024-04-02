@@ -18,6 +18,7 @@ import com.sf.tadami.data.history.HistoryRepository
 import com.sf.tadami.data.history.HistoryRepositoryImpl
 import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.anime.FetchIntervalInteractor
+import com.sf.tadami.data.interactors.anime.GetAnime
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.data.interactors.extension.GetExtensionLanguages
 import com.sf.tadami.data.interactors.extension.GetExtensionsByType
@@ -49,6 +50,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import uy.kohesive.injekt.api.InjektModule
 import uy.kohesive.injekt.api.InjektRegistrar
+import uy.kohesive.injekt.api.addFactory
 import uy.kohesive.injekt.api.addSingleton
 import uy.kohesive.injekt.api.addSingletonFactory
 import uy.kohesive.injekt.api.get
@@ -171,6 +173,9 @@ class AppModule(private val app: Application) : InjektModule {
             RemoveHistoryInteractor(get())
         }
 
+        addSingletonFactory {
+            GetAnime(get())
+        }
 
         // Library interactors
 
