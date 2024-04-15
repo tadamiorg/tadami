@@ -34,6 +34,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.C
+import androidx.media3.common.C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
@@ -41,8 +43,11 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.LoadControl
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.upstream.DefaultAllocator
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.sf.tadami.R
@@ -127,6 +132,13 @@ fun VideoPlayer(
         }
     }
 
+    val loadControl = remember {
+        DefaultLoadControl.Builder().apply {
+            setBufferDurationsMs(120000, 120000, 1500, 3500)
+            setBackBuffer(120000,false)
+            setPrioritizeTimeOverSizeThresholds(true)
+        }.build()
+    }
 
     val exoPlayer = remember {
         ExoPlayer.Builder(context)
@@ -134,6 +146,7 @@ fun VideoPlayer(
                 setSeekBackIncrementMs(playerPreferences.doubleTapLength)
                 setSeekForwardIncrementMs(playerPreferences.doubleTapLength)
                 setMediaSourceFactory(dataSourceFactory)
+                setLoadControl(loadControl)
             }
             .build()
     }
@@ -360,6 +373,8 @@ fun VideoPlayer(
                 }
                 val lifecycle = lifecycleOwner.value.lifecycle
                 lifecycle.addObserver(observer)
+
+                exoPlayer.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT
 
                 onDispose {
                     updateTime()

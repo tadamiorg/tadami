@@ -18,6 +18,7 @@ import com.sf.tadami.ui.utils.padding
 fun GlobalSearchCardRow(
     titles: List<Anime>,
     onClick: (Anime) -> Unit,
+    onLongClick: (Anime) -> Unit = onClick,
 ) {
     LazyRow(
         contentPadding = PaddingValues(MaterialTheme.padding.small),
@@ -27,6 +28,7 @@ fun GlobalSearchCardRow(
             GlobalSearchCard(
                 anime = title,
                 onClick = { onClick(title) },
+                onLongClick = {onLongClick(title)}
             )
         }
     }
@@ -36,6 +38,7 @@ fun GlobalSearchCardRow(
 private fun GlobalSearchCard(
     anime: Anime,
     onClick: (Anime) -> Unit,
+    onLongClick: (Anime) -> Unit = onClick,
 ) {
     Box(modifier = Modifier.width(96.dp)) {
         AnimeGridItem(
@@ -45,7 +48,7 @@ private fun GlobalSearchCard(
                 onClick(anime)
             },
             onLongClick = {
-                onClick(anime)
+                onLongClick(anime)
             }
         )
     }

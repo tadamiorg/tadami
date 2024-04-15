@@ -12,10 +12,14 @@ import com.sf.tadami.ui.webview.WebViewActivity
 
 fun NavGraphBuilder.animeInfosNavGraph(navController: NavHostController) {
     composable(
-        route = "${AnimeInfosRoutes.DETAILS}/{sourceId}/{animeId}",
+        route = "${AnimeInfosRoutes.DETAILS}/{sourceId}/{animeId}?migrationId={migrationId}",
         arguments = listOf(
             navArgument("sourceId") { type = NavType.LongType },
-            navArgument("animeId") { type = NavType.LongType }
+            navArgument("animeId") { type = NavType.LongType },
+            navArgument("migrationId") {
+                nullable = true
+                defaultValue = null
+            }
         )
     ) {
         DetailsScreen(navController)

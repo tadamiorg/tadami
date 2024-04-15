@@ -254,6 +254,7 @@
     <string name="label_source">Source</string>
     <string name="label_extension_info">Extension info</string>
     <string name="label_episodes">Episodes</string>
+    <string name="label_migration">Migration</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Library last updated: %s</string>
@@ -287,4 +288,9 @@
     <string name="ext_info_language">Language</string>
     <string name="ext_app_info">App info</string>
     <string name="ext_uninstall">Uninstall</string>
+    <string name="delete_downloaded">Delete downloaded</string>
+    <string name="display_anime">Show anime</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_move">Move</string>
+    <string name="migration_error">An error occurred during anime migration</string>
 </resources>
