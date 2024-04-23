@@ -20,6 +20,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sf.tadami.R
@@ -38,8 +39,9 @@ fun MigrateDialog(
     oldAnime: Anime?,
     newAnime : Anime?,
     onDismissRequest: () -> Unit = {},
-    onClickTitle: () -> Unit,
+    onClickTitle: () -> Unit = {},
     onMigrate : (MigrationState) -> Unit,
+    enableShowTitle : Boolean = true,
     migrateDialogViewModel: MigrateDialogViewModel = viewModel()
 ) {
     val flags = remember { MigrationFlags.getFlags() }
@@ -53,10 +55,10 @@ fun MigrateDialog(
             ContentLoader(
                 isLoading = true,
                 subtitle = {
-                    Text(modifier = Modifier.padding(top = MaterialTheme.padding.tiny),text = stringResource(
+                    Text(textAlign = TextAlign.Center,modifier = Modifier.padding(vertical = MaterialTheme.padding.tiny, horizontal = MaterialTheme.padding.small),text = stringResource(
                         id = R.string.label_migration
                     ))
-                    Text(text = oldAnime?.title ?: "")
+                    Text(textAlign = TextAlign.Center,modifier = Modifier.padding(horizontal = MaterialTheme.padding.small),text = oldAnime?.title ?: "")
                 },
                 strokeWidth = 4.dp
             ) {}
@@ -80,6 +82,7 @@ fun MigrateDialog(
                         )
                     }
                     TextButton(
+                        enabled = enableShowTitle,
                         onClick = {
                             onDismissRequest()
                             onClickTitle()

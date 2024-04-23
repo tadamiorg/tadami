@@ -235,7 +235,9 @@ fun SearchScreen(
             oldAnime = migrateHelperState.oldAnime,
             newAnime = migrateHelperState.newAnime,
             onClickTitle = {
-
+                if(migrateHelperState.newAnime != null){
+                    navController.navigate("${AnimeInfosRoutes.DETAILS}/${migrateHelperState.newAnime!!.source}/${migrateHelperState.newAnime!!.id}?migrationId=${migrateHelperState.oldAnime!!.id}")
+                }
             },
             onMigrate = {
                 navController.popBackStack(
