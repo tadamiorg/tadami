@@ -4,7 +4,7 @@ Tadami is a learning project heavily inspired by the free and open source manga 
 It is not a production ready app and mostly a protoype used to learn android development with kotlin, jetpack compose...
 
 ## Download
-Get the app from the [releases page](https://github.com/AnimeScraper/Tadami/releases).
+Get the app from the [releases page](https://github.com/tadamiorg/tadami/releases).
 
 ## Ui
 
