@@ -31,7 +31,9 @@ fun DetailsToolbar(
     modifier: Modifier = Modifier,
     title: String,
     onBackClicked: () -> Unit,
+    onMigrateClicked : () -> Unit,
     episodesListState: LazyListState,
+    migrationEnabled : Boolean = false,
     // For Action Mode
     actionModeCounter: Int,
     onCloseClicked: () -> Unit,
@@ -71,10 +73,8 @@ fun DetailsToolbar(
                 items = listOf(
                     DropDownAction(
                         title = stringResource(id = R.string.action_migrate),
-                        onClick = {
-
-                        },
-                        enabled = false
+                        onClick = onMigrateClicked,
+                        enabled = migrationEnabled
                     )
                 )
             )

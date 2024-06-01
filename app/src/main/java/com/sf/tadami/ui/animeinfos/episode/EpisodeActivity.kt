@@ -40,7 +40,11 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaMetadata
-import com.google.android.gms.cast.framework.*
+import com.google.android.gms.cast.framework.CastContext
+import com.google.android.gms.cast.framework.CastSession
+import com.google.android.gms.cast.framework.CastState
+import com.google.android.gms.cast.framework.CastStateListener
+import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.gms.cast.framework.media.RemoteMediaClient
 import com.google.android.gms.common.api.PendingResult
 import com.google.android.gms.common.api.Status
@@ -208,7 +212,7 @@ class EpisodeActivity : AppCompatActivity() {
                                 }
                                 val title = playerViewModel.anime.value?.title
                                 if(httpSource != null && url != null && title != null){
-                                    openChapterInWebView(url= url, sourceId = httpSource.id, animeTitle = title)
+                                    openEpisodeInWebView(url= url, sourceId = httpSource.id, animeTitle = title)
                                 }
                             }
                         )
@@ -232,7 +236,7 @@ class EpisodeActivity : AppCompatActivity() {
                                 }
                                 val title = playerViewModel.anime.value?.title
                                 if(httpSource != null && url != null && title != null){
-                                    openChapterInWebView(url= url, sourceId = httpSource.id, animeTitle = title)
+                                    openEpisodeInWebView(url= url, sourceId = httpSource.id, animeTitle = title)
                                 }
                             }
                         )
@@ -242,7 +246,7 @@ class EpisodeActivity : AppCompatActivity() {
         }
     }
 
-    private fun openChapterInWebView(url: String, sourceId: Long, animeTitle: String) {
+    private fun openEpisodeInWebView(url: String, sourceId: Long, animeTitle: String) {
         val intent = WebViewActivity.newIntent(this@EpisodeActivity, url, sourceId, animeTitle)
         startActivity(intent)
     }

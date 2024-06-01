@@ -23,19 +23,22 @@ fun NavGraphBuilder.discoverNavGraph(navController: NavHostController) {
         RecentScreen(navController = navController)
     }
     composable(
-        route = "${DiscoverRoutes.SEARCH}/{sourceId}?basequery={baseQuery}",
+        route = "${DiscoverRoutes.SEARCH}/{sourceId}?initialQuery={initialQuery}&migrationId={migrationId}",
         arguments = listOf(
             navArgument("sourceId") { type = NavType.LongType },
-            navArgument("baseQuery") {
+            navArgument("initialQuery") {
                 nullable = true
                 defaultValue = null
                 type = NavType.StringType
+            },
+            navArgument("migrationId") {
+                nullable = true
+                defaultValue = null
             }
         )
     ) {
         SearchScreen(
-            navController = navController,
-            baseQuery = it.arguments?.getString("baseQuery")
+            navController = navController
         )
     }
     composable(route = DiscoverRoutes.GLOBAL_SEARCH)

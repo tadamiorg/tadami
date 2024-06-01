@@ -13,16 +13,16 @@ fun FilterTab(filters: LibraryFilter, setFilters: (filterFlags: Long) -> Unit) {
     Column {
         TriStateItem(
             label = stringResource(id = R.string.filter_unseen),
-            state = filters.readState
+            state = filters.seenState
         ) {
-            val newFilters = when (filters.readState) {
+            val newFilters = when (filters.seenState) {
                 ToggleableState.On -> filters.flags.setFlags(
-                    LibraryFilter.READ,
-                    LibraryFilter.READ_MASK
+                    LibraryFilter.SEEN,
+                    LibraryFilter.SEEN_MASK
                 )
 
-                ToggleableState.Off -> filters.flags.setFlags(0L, LibraryFilter.READ_MASK)
-                else -> filters.flags.setFlags(LibraryFilter.UNREAD, LibraryFilter.READ_MASK)
+                ToggleableState.Off -> filters.flags.setFlags(0L, LibraryFilter.SEEN_MASK)
+                else -> filters.flags.setFlags(LibraryFilter.UNSEEN, LibraryFilter.SEEN_MASK)
             }
             setFilters(newFilters)
         }

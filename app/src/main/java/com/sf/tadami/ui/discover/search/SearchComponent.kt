@@ -13,6 +13,7 @@ fun SearchComponent(
     modifier: Modifier = Modifier,
     animeList: LazyPagingItems<Anime>,
     onAnimeClicked: (anime: Anime) -> Unit,
+    onAnimeLongClicked: (anime: Anime) -> Unit = onAnimeClicked,
     snackbarHostState: SnackbarHostState,
     fabPadding: PaddingValues
 ) {
@@ -22,5 +23,6 @@ fun SearchComponent(
         animeList = animeList,
         snackbarHostState = snackbarHostState,
         onAnimeClicked = onAnimeClicked,
+        onAnimeLongClicked = onAnimeLongClicked
     )
 }

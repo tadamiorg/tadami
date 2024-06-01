@@ -4,10 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
+import com.sf.tadami.data.interactors.anime.GetAnime
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.ui.components.data.EpisodeItem
+import com.sf.tadami.ui.discover.migrate.MigrateHelperState
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.addOrRemove
 import com.sf.tadami.ui.utils.awaitSingleOrNull
@@ -31,6 +33,7 @@ class DetailsViewModel(
     private val sourcesManager: SourceManager = Injekt.get()
     private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
     private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
+    private val getAnime: GetAnime = Injekt.get()
 
     private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
     private val sourceId: Long = checkNotNull(savedStateHandle["sourceId"])
@@ -55,7 +58,23 @@ class DetailsViewModel(
             values.any { it }
         }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    private val _migrateHelperState = MutableStateFlow(MigrateHelperState())
+    val migrateHelperState = _migrateHelperState.asStateFlow()
+
     init {
+        val migrateIdString : String? = savedStateHandle["migrationId"]
+        val migrateId : Long? = migrateIdString?.toLongOrNull()
+        if(migrateId != null){
+            viewModelScope.launch {
+                val anime = getAnime.await(migrateId)!!
+                _migrateHelperState.update {
+                    it.copy(
+                        oldAnime = anime
+                    )
+                }
+            }
+        }
+
         viewModelScope.launch(Dispatchers.IO) {
             animeWithEpisodesInteractor.subscribe(animeId).collectLatest { (anime, episodes) ->
                 _uiState.update { currentState ->
@@ -71,6 +90,12 @@ class DetailsViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             val anime = animeWithEpisodesInteractor.awaitAnime(animeId)
             val episodes = animeWithEpisodesInteractor.awaitEpisodes(animeId)
+
+            _migrateHelperState.update {
+                it.copy(
+                    newAnime = anime
+                )
+            }
 
             if (!anime.initialized) {
                 _detailsRefreshing.update { true }

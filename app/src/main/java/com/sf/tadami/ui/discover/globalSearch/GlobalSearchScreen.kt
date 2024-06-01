@@ -5,9 +5,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -20,19 +17,16 @@ fun GlobalSearchScreen(
     navController: NavHostController,
     globalSearchViewModel: GlobalSearchViewModel = viewModel()
 ) {
-    var searchValue by rememberSaveable { mutableStateOf("") }
-    val animesBySource by globalSearchViewModel.animesBySource.collectAsState()
+    val uiState by globalSearchViewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
             GlobalSearchToolbar(
                 onSearch = {
-                    searchValue = it
-                    globalSearchViewModel.search(it)
+                    globalSearchViewModel.search()
                 },
                 onSearchChange = {
-                    searchValue = it
-                    globalSearchViewModel.updateQuery(it)
+                    globalSearchViewModel.updateSearchQuery(it)
                 },
                 onSearchCancel = {
                     navController.navigateUp()
@@ -40,20 +34,20 @@ fun GlobalSearchScreen(
                 actions = listOf(
                     Action.CastButton()
                 ),
-                searchValue = searchValue,
-                progress = animesBySource.progress,
-                total = animesBySource.total
+                searchValue = uiState.searchQuery,
+                progress = uiState.progress,
+                total = uiState.total
             )
         },
     ) { innerPadding ->
         GlobalSearchComponent(
             modifier = Modifier.padding(innerPadding),
-            animesBySource = animesBySource.items,
+            animesBySource = uiState.items,
             onAnimeClicked = {
                 navController.navigate("${AnimeInfosRoutes.DETAILS}/${it.source}/${it.id}")
             },
             onSourceClicked = {
-                navController.navigate("${DiscoverRoutes.SEARCH}/${it.id}?basequery=$searchValue")
+                navController.navigate("${DiscoverRoutes.SEARCH}/${it.id}?initialQuery=${uiState.searchQuery}")
             }
         )
     }

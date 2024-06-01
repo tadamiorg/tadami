@@ -11,6 +11,7 @@ import com.sf.tadami.navigation.graphs.animeInfos.animeInfosNavGraph
 import com.sf.tadami.navigation.graphs.discover.discoverNavGraph
 import com.sf.tadami.navigation.graphs.history.historyNavGraph
 import com.sf.tadami.navigation.graphs.library.libraryNavGraph
+import com.sf.tadami.navigation.graphs.migrate.migrateNavGraph
 import com.sf.tadami.navigation.graphs.settings.settingsNavGraph
 import com.sf.tadami.navigation.graphs.sources.sourcesNavGraph
 import com.sf.tadami.navigation.graphs.updates.updatesNavGraph
@@ -64,6 +65,7 @@ fun HomeNavGraph(
         /* Nested navigation */
         discoverNavGraph(navController)
         animeInfosNavGraph(navController)
+        migrateNavGraph(navController)
     }
 }
 

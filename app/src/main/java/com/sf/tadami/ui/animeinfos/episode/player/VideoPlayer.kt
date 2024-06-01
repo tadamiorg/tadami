@@ -17,6 +17,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -32,12 +34,15 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -45,6 +50,7 @@ import androidx.media3.ui.PlayerView
 import com.sf.tadami.R
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.network.player.PlayerNetworkHelper
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.player.PlayerPreferences
@@ -56,12 +62,15 @@ import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.Sett
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.utils.UiToasts
 import kotlinx.coroutines.delay
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(UnstableApi::class)
 @Composable
 fun VideoPlayer(
     modifier: Modifier = Modifier,
+    playerNetworkHelper: PlayerNetworkHelper = Injekt.get(),
     dispatcher: OnBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current!!.onBackPressedDispatcher,
     playerViewModel: PlayerViewModel = viewModel(LocalContext.current as EpisodeActivity),
     setPlayer: (ExoPlayer) -> Unit,
@@ -86,13 +95,19 @@ fun VideoPlayer(
 
     val anime by playerViewModel.anime.collectAsState()
 
-    val upstreamDataSource = DefaultHttpDataSource.Factory()
-
     val hasNextIterator by playerViewModel.hasNextIterator.collectAsState()
     val hasPreviousIterator by playerViewModel.hasPreviousIterator.collectAsState()
 
+    val upstreamDataSource = DefaultHttpDataSource.Factory()
+
+    val cacheDataSourceFactory = remember {
+        CacheDataSource.Factory()
+            .setCache(playerNetworkHelper.cache)
+            .setUpstreamDataSourceFactory(upstreamDataSource)
+    }
+
     val resolvingDataSource = ResolvingDataSource.Factory(
-        upstreamDataSource
+        cacheDataSourceFactory
     ) { dataSpec ->
         if (episodeUiState.selectedSource?.headers == null) {
             dataSpec.withRequestHeaders(
@@ -114,6 +129,13 @@ fun VideoPlayer(
         }
     }
 
+    val loadControl = remember {
+        DefaultLoadControl.Builder().apply {
+            setBufferDurationsMs(300000, 300000, 1500, 3500)
+            setBackBuffer(300000,false)
+            setPrioritizeTimeOverSizeThresholds(true)
+        }.build()
+    }
 
     val exoPlayer = remember {
         ExoPlayer.Builder(context)
@@ -121,6 +143,7 @@ fun VideoPlayer(
                 setSeekBackIncrementMs(playerPreferences.doubleTapLength)
                 setSeekForwardIncrementMs(playerPreferences.doubleTapLength)
                 setMediaSourceFactory(dataSourceFactory)
+                setLoadControl(loadControl)
             }
             .build()
     }
@@ -139,13 +162,13 @@ fun VideoPlayer(
 
     var isPlaying by remember { mutableStateOf(exoPlayer.isPlaying) }
 
-    var totalDuration by remember { mutableStateOf(0L) }
+    var totalDuration by remember { mutableLongStateOf(0L) }
 
-    var currentTime by remember { mutableStateOf(0L) }
+    var currentTime by remember { mutableLongStateOf(0L) }
 
-    var bufferedPercentage by remember { mutableStateOf(0) }
+    var bufferedPercentage by remember { mutableIntStateOf(0) }
 
-    var playbackState by remember { mutableStateOf(exoPlayer.playbackState) }
+    var playbackState by remember { mutableIntStateOf(exoPlayer.playbackState) }
 
     var openStreamDialog by remember { mutableStateOf(false) }
 
@@ -347,6 +370,8 @@ fun VideoPlayer(
                 }
                 val lifecycle = lifecycleOwner.value.lifecycle
                 lifecycle.addObserver(observer)
+
+                exoPlayer.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT
 
                 onDispose {
                     updateTime()

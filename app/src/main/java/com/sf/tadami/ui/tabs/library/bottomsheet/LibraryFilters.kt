@@ -7,7 +7,7 @@ import com.sf.tadami.ui.components.data.LibraryItem
 
 fun List<LibraryItem>.libraryFilters(filters: LibraryFilter): List<LibraryItem> {
     return this.filter {
-        when (filters.readState) {
+        when (filters.seenState) {
             ToggleableState.On -> it.anime.unseenEpisodes > 0L
             ToggleableState.Off -> it.anime.unseenEpisodes == 0L
             else -> true

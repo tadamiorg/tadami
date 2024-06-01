@@ -170,6 +170,7 @@
     <string name="database_clean">Rien à effacer</string>
     <string name="action_delete">Supprimer</string>
     <string name="pref_clear_images_cache">Effacer le cache des images</string>
+    <string name="pref_clear_videos_cache">Effacer le cache des vidéos</string>
     <string name="used_cache">Utilisé : %1$s</string>
     <string name="cache_deleted">Cache effacé.</string>
     <string name="action_migrate">Migrer</string>
@@ -265,6 +266,7 @@
     <string name="label_source">Source</string>
     <string name="label_extension_info">Informations sur l\'extension</string>
     <string name="label_episodes">Episodes</string>
+    <string name="label_migration">Migration</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Dernière mise à jour de la bibliothèque le : %s</string>
@@ -296,4 +298,9 @@
     <string name="ext_info_language">Langue</string>
     <string name="ext_app_info">Infos sur l\'application</string>
     <string name="ext_uninstall">Désinstaller</string>
+    <string name="delete_downloaded">Supprimer le(s) téléchargement(s)</string>
+    <string name="display_anime">Afficher l\'anime</string>
+    <string name="action_copy">Copier</string>
+    <string name="action_move">Déplacer</string>
+    <string name="migration_error">Une erreur s\'est produite lors de la migration de l\'anime</string>
 </resources>

@@ -5,10 +5,10 @@ import androidx.compose.ui.state.ToggleableState
 data class LibraryFilter(
     val flags : Long
 ) {
-    val readState : ToggleableState
-        get() =  when(flags and READ_MASK){
-            UNREAD -> ToggleableState.On
-            READ -> ToggleableState.Off
+    val seenState : ToggleableState
+        get() =  when(flags and SEEN_MASK){
+            UNSEEN -> ToggleableState.On
+            SEEN -> ToggleableState.Off
             else -> ToggleableState.Indeterminate
         }
 
@@ -24,9 +24,9 @@ data class LibraryFilter(
     companion object {
         const val DEFAULT_FILTER = 0x00000000L
 
-        const val READ = 0x00000001L
-        const val UNREAD = 0x00000002L
-        const val READ_MASK = 0x00000003L
+        const val SEEN = 0x00000001L
+        const val UNSEEN = 0x00000002L
+        const val SEEN_MASK = 0x00000003L
 
         const val STARTED = 0x00000004L
         const val UNSTARTED = 0x00000008L

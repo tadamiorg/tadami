@@ -60,7 +60,7 @@ open class App : Application(), ImageLoaderFactory {
             .okHttpClient {
                 OkHttpClient.Builder()
                     // This header will be added to every image request.
-                    .addNetworkInterceptor(ImageLoaderInterceptor())
+                    .addInterceptor(ImageLoaderInterceptor())
                     .build()
             }
             .crossfade((300 * this@App.animatorDurationScale).toInt())

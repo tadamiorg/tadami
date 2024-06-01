@@ -31,6 +31,7 @@ fun GlobalSearchComponent(
     modifier: Modifier = Modifier,
     animesBySource: Map<AnimeCatalogueSource, GlobalSearchItemResult>,
     onAnimeClicked: (anime: Anime) -> Unit,
+    onAnimeLongClicked: (Anime) -> Unit = onAnimeClicked,
     onSourceClicked: (AnimeCatalogueSource) -> Unit,
 ) {
     LazyColumn(modifier = modifier) {
@@ -62,6 +63,7 @@ fun GlobalSearchComponent(
                             GlobalSearchCardRow(
                                 titles = result.result,
                                 onClick = onAnimeClicked,
+                                onLongClick = onAnimeLongClicked
                             )
                         }
                         is GlobalSearchItemResult.Error -> {
