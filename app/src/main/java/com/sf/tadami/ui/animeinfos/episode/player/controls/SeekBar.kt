@@ -52,7 +52,9 @@ fun SeekBar(
             color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.labelLarge
         )
-        Box(modifier = Modifier.weight(1f).padding(horizontal = MaterialTheme.padding.medium)) {
+        Box(modifier = Modifier
+            .weight(1f)
+            .padding(horizontal = MaterialTheme.padding.medium)) {
             // buffer bar
             Slider(
                 modifier = Modifier.fillMaxWidth(),
@@ -78,7 +80,7 @@ fun SeekBar(
                 thumb = {
                     SliderDefaults.Thumb(
                         interactionSource = interactionSource,
-                        thumbSize = DpSize(15.dp, 15.dp),
+                        thumbSize = DpSize(22.dp, 22.dp),
                         modifier = Modifier.align(Alignment.Center)
                     )
                 },

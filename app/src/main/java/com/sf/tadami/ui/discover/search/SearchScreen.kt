@@ -258,5 +258,4 @@ fun SearchScreen(
             }
         )
     }
-
 }

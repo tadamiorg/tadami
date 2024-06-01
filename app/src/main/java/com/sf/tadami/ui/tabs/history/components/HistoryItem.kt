@@ -63,16 +63,16 @@ fun HistoryItem(
                 overflow = TextOverflow.Ellipsis,
                 style = textStyle,
             )
-            val readAt = remember { history.seenAt?.toTimestampString() ?: "" }
+            val seenAt = remember { history.seenAt?.toTimestampString() ?: "" }
             Text(
                 text = if (history.episodeNumber > -1) {
                     stringResource(
                         R.string.history_anime_time,
                         episodeFormatter.format(history.episodeNumber),
-                        readAt,
+                        seenAt,
                     )
                 } else {
-                    readAt
+                    seenAt
                 },
                 modifier = Modifier.padding(top = 4.dp),
                 style = textStyle,

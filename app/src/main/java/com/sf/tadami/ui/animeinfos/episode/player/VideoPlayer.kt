@@ -131,8 +131,8 @@ fun VideoPlayer(
 
     val loadControl = remember {
         DefaultLoadControl.Builder().apply {
-            setBufferDurationsMs(120000, 120000, 1500, 3500)
-            setBackBuffer(120000,false)
+            setBufferDurationsMs(300000, 300000, 1500, 3500)
+            setBackBuffer(300000,false)
             setPrioritizeTimeOverSizeThresholds(true)
         }.build()
     }

@@ -47,7 +47,7 @@ fun MigrateSearchScreen(
                         migrateViewModel.search()
                     },
                     onSearchCancel = {
-                        migrateViewModel.updateSearchQuery("")
+                        navController.navigateUp()
                     }
 
                 )

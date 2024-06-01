@@ -212,7 +212,7 @@ class EpisodeActivity : AppCompatActivity() {
                                 }
                                 val title = playerViewModel.anime.value?.title
                                 if(httpSource != null && url != null && title != null){
-                                    openChapterInWebView(url= url, sourceId = httpSource.id, animeTitle = title)
+                                    openEpisodeInWebView(url= url, sourceId = httpSource.id, animeTitle = title)
                                 }
                             }
                         )
@@ -236,7 +236,7 @@ class EpisodeActivity : AppCompatActivity() {
                                 }
                                 val title = playerViewModel.anime.value?.title
                                 if(httpSource != null && url != null && title != null){
-                                    openChapterInWebView(url= url, sourceId = httpSource.id, animeTitle = title)
+                                    openEpisodeInWebView(url= url, sourceId = httpSource.id, animeTitle = title)
                                 }
                             }
                         )
@@ -246,7 +246,7 @@ class EpisodeActivity : AppCompatActivity() {
         }
     }
 
-    private fun openChapterInWebView(url: String, sourceId: Long, animeTitle: String) {
+    private fun openEpisodeInWebView(url: String, sourceId: Long, animeTitle: String) {
         val intent = WebViewActivity.newIntent(this@EpisodeActivity, url, sourceId, animeTitle)
         startActivity(intent)
     }

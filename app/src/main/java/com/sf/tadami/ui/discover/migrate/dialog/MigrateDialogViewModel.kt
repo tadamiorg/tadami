@@ -28,7 +28,7 @@ class MigrateDialogViewModel : ViewModel() {
     private val episodeRepository: EpisodeRepository = Injekt.get()
     private val animeRepository: AnimeRepository = Injekt.get()
 
-    suspend fun migrateManga(
+    suspend fun migrateAnime(
         oldAnime: Anime,
         newAnime: Anime,
         replace: Boolean,
@@ -42,7 +42,7 @@ class MigrateDialogViewModel : ViewModel() {
         try {
             val episodes = source.fetchEpisodesList(newAnime).awaitSingleOrError()
 
-            migrateMangaInternal(
+            migrateAnimeInternal(
                 oldSource = prevSource,
                 newSource = source,
                 oldAnime = oldAnime,
@@ -59,7 +59,7 @@ class MigrateDialogViewModel : ViewModel() {
         }
     }
 
-    private suspend fun migrateMangaInternal(
+    private suspend fun migrateAnimeInternal(
         oldSource: Source?,
         newSource: Source,
         oldAnime: Anime,
@@ -68,17 +68,17 @@ class MigrateDialogViewModel : ViewModel() {
         replace: Boolean,
         flags: Int,
     ) {
-        val migrateChapters = MigrationFlags.hasEpisodes(flags)
+        val migrateEpisodes = MigrationFlags.hasEpisodes(flags)
         val deleteDownloaded = MigrationFlags.hasDeleteDownloaded(flags)
 
         try {
             updateAnimeInteractor.awaitEpisodesSyncFromSource(newAnime, sourceEpisodes, newSource)
         } catch (_: Exception) {
-            // Worst case, chapters won't be synced
+            // Worst case, episodes won't be synced
         }
 
-        // Update chapters read, bookmark and dateFetch
-        if (migrateChapters) {
+        // Update episodes seen, bookmark and dateFetch
+        if (migrateEpisodes) {
             val prevAnimeEpisodes = episodeRepository.getEpisodesByAnimeId(oldAnime.id)
             val animeEpisodes = episodeRepository.getEpisodesByAnimeId(newAnime.id)
 
@@ -113,7 +113,7 @@ class MigrateDialogViewModel : ViewModel() {
         /*// Delete downloaded
         if (deleteDownloaded) {
             if (oldSource != null) {
-                downloadManager.deleteManga(oldAnime, oldSource)
+                downloadManager.deleteAnime(oldAnime, oldSource)
             }
         }*/
 

@@ -97,7 +97,7 @@ fun MigrateDialog(
                                     Log.e("OldOrNew",oldAnime.toString())
                                 }else{
                                     coroutineScope.launchIO {
-                                        migrateDialogViewModel.migrateManga(
+                                        migrateDialogViewModel.migrateAnime(
                                             oldAnime,
                                             newAnime,
                                             false,
@@ -119,7 +119,7 @@ fun MigrateDialog(
                                     Log.e("OldOrNew",oldAnime.toString())
                                 }else{
                                     coroutineScope.launchIO {
-                                        migrateDialogViewModel.migrateManga(
+                                        migrateDialogViewModel.migrateAnime(
                                             oldAnime,
                                             newAnime,
                                             true,

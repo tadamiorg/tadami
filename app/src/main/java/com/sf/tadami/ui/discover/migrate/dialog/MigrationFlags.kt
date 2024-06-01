@@ -36,7 +36,7 @@ object MigrationFlags {
     fun getFlags() : List<MigrationFlag>{
         val flags = mutableListOf<MigrationFlag>()
         flags += MigrationFlag.create(EPISODES, true, R.string.label_episodes)
-        flags += MigrationFlag.create(DELETE_DOWNLOADED, false, R.string.delete_downloaded)
+        // flags += MigrationFlag.create(DELETE_DOWNLOADED, false, R.string.delete_downloaded)
         return flags
     }
 
