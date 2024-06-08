@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.widget
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.StartOffset
@@ -91,6 +92,7 @@ internal fun BasePreference(
     }
 }
 
+@SuppressLint("ModifierFactoryUnreferencedReceiver")
 internal fun Modifier.highlightBackground(highlighted: Boolean): Modifier = composed {
     var highlightFlag by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {

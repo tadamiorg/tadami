@@ -9,8 +9,8 @@ import androidx.compose.ui.unit.Dp
 
 @Composable
 fun TogglePreference(
-    customPrefsVerticalPadding : Dp? = null,
     modifier: Modifier = Modifier,
+    customPrefsVerticalPadding : Dp? = null,
     title: String,
     subtitle: String? = null,
     icon: ImageVector? = null,
