@@ -255,11 +255,16 @@
     <string name="label_extension_info">Extension info</string>
     <string name="label_episodes">Episodes</string>
     <string name="label_migration">Migration</string>
+    <string name="label_about">About</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Library last updated: %s</string>
     <string name="updates_last_update_info_just_now">Just now</string>
     <string name="relative_time_span_never">Never</string>
+    <string name="update_check_no_new_updates">No new updates available</string>
+    <string name="whats_new">What\&apos;s new</string>
+    <string name="version">Version</string>
+    <string name="check_for_updates">Check for updates</string>
 
     <!-- Appearance preferences -->
     <string name="pref_appearance_summary">Theme</string>

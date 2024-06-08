@@ -13,7 +13,7 @@ import androidx.compose.ui.util.fastForEach
 import androidx.datastore.preferences.core.Preferences
 
 import com.sf.tadami.preferences.model.SourcePreference
-import com.sf.tadami.ui.tabs.settings.widget.PreferenceCategory
+import com.sf.tadami.ui.tabs.more.settings.widget.PreferenceCategory
 
 @Composable
 fun SourcePreferenceParser(

@@ -14,7 +14,7 @@ import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.components.screens.ScreenTabContent
-import com.sf.tadami.ui.tabs.settings.components.PreferenceParser
+import com.sf.tadami.ui.tabs.more.settings.components.PreferenceParser
 
 @Composable()
 fun applicationTab() : ScreenTabContent {

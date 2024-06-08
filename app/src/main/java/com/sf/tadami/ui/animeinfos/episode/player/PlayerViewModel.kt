@@ -191,6 +191,10 @@ class PlayerViewModel(
         return null
     }
 
+    fun getSourceHeaders() : Map<String,String>{
+        return _uiState.value.selectedSource!!.headers!!.toMap()
+    }
+
     fun setResumeFromCastSession(
         rawUrl: String,
         selectedSource: StreamSource,

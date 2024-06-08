@@ -3,9 +3,9 @@ package com.sf.tadami.navigation.graphs.settings
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.sf.tadami.ui.tabs.settings.screens.advanced.AdvancedPreferencesScreen
-import com.sf.tadami.ui.tabs.settings.screens.advanced.background.WorkerInfosScreen
-import com.sf.tadami.ui.tabs.settings.screens.advanced.data.ClearDatabaseScreen
+import com.sf.tadami.ui.tabs.more.settings.screens.advanced.AdvancedPreferencesScreen
+import com.sf.tadami.ui.tabs.more.settings.screens.advanced.background.WorkerInfosScreen
+import com.sf.tadami.ui.tabs.more.settings.screens.advanced.data.ClearDatabaseScreen
 
 fun NavGraphBuilder.advancedNavGraph(navController: NavHostController) {
 

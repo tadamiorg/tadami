@@ -9,11 +9,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.preferences.model.SourcePreference
-import com.sf.tadami.ui.tabs.settings.widget.EditTextPreferenceWidget
-import com.sf.tadami.ui.tabs.settings.widget.MultiSelectPreference
-import com.sf.tadami.ui.tabs.settings.widget.ReorderStringPreference
-import com.sf.tadami.ui.tabs.settings.widget.SelectPreference
-import com.sf.tadami.ui.tabs.settings.widget.TogglePreference
+import com.sf.tadami.ui.tabs.more.settings.widget.EditTextPreferenceWidget
+import com.sf.tadami.ui.tabs.more.settings.widget.MultiSelectPreference
+import com.sf.tadami.ui.tabs.more.settings.widget.ReorderStringPreference
+import com.sf.tadami.ui.tabs.more.settings.widget.SelectPreference
+import com.sf.tadami.ui.tabs.more.settings.widget.TogglePreference
 
 @Composable
 fun SourcePreferenceItemParser(

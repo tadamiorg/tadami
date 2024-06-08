@@ -119,7 +119,7 @@ fun VideoPlayer(
                 )
             )
         } else {
-            dataSpec.withRequestHeaders(episodeUiState.selectedSource!!.headers!!.toMap())
+            dataSpec.withRequestHeaders(playerViewModel.getSourceHeaders())
         }
     }
 

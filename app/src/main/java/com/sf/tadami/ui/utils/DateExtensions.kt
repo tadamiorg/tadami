@@ -69,6 +69,12 @@ fun Date.toTimestampString(): String {
     return dateFormat.format(this)
 }
 
+fun Date.toDateTimestampString(dateFormatter: DateFormat): String {
+    val date = dateFormatter.format(this)
+    val time = DateFormat.getTimeInstance(DateFormat.SHORT).format(this)
+    return "$date $time"
+}
+
 @Composable
 @ReadOnlyComposable
 fun relativeTimeSpanString(epochMillis: Long): String {
