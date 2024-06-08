@@ -26,7 +26,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -52,6 +51,7 @@ import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.QualityDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.SettingsDialog
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.utils.ImageDefaults
+import com.sf.tadami.utils.rememberResourceBitmapPainter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -254,7 +254,7 @@ fun CastVideoPlayer(
             AsyncImage(
                 model = anime?.thumbnailUrl,
                 placeholder = ColorPainter(ImageDefaults.CoverPlaceholderColor),
-                error = painterResource(R.drawable.cover_error),
+                error = rememberResourceBitmapPainter(R.drawable.cover_error),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
