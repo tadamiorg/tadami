@@ -47,7 +47,7 @@ fun HomeScreen(
             HomeNavItems.Updates,
             HomeNavItems.History,
             HomeNavItems.Browse,
-            HomeNavItems.Settings
+            HomeNavItems.More
         )
     }
 

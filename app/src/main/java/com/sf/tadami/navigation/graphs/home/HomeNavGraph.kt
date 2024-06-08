@@ -7,11 +7,13 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.sf.tadami.R
+import com.sf.tadami.navigation.graphs.about.aboutNavGraph
 import com.sf.tadami.navigation.graphs.animeInfos.animeInfosNavGraph
 import com.sf.tadami.navigation.graphs.discover.discoverNavGraph
 import com.sf.tadami.navigation.graphs.history.historyNavGraph
 import com.sf.tadami.navigation.graphs.library.libraryNavGraph
 import com.sf.tadami.navigation.graphs.migrate.migrateNavGraph
+import com.sf.tadami.navigation.graphs.more.moreNavGraph
 import com.sf.tadami.navigation.graphs.settings.settingsNavGraph
 import com.sf.tadami.navigation.graphs.sources.sourcesNavGraph
 import com.sf.tadami.navigation.graphs.updates.updatesNavGraph
@@ -57,15 +59,18 @@ fun HomeNavGraph(
             navController = navController,
             tabsNavPadding = tabsNavPadding,
         )
-        settingsNavGraph(
+
+        moreNavGraph(
             navController = navController,
             tabsNavPadding = tabsNavPadding,
         )
 
         /* Nested navigation */
+        settingsNavGraph(navController)
         discoverNavGraph(navController)
         animeInfosNavGraph(navController)
         migrateNavGraph(navController)
+        aboutNavGraph(navController)
     }
 }
 
@@ -86,7 +91,7 @@ sealed class HomeNavItems(val route: String, @StringRes val name: Int, @Drawable
     data object Browse :
         HomeNavItems("anime_sources", R.string.browse_tab_title, R.drawable.anim_sources_enter)
 
-    data object Settings :
-        HomeNavItems("settings", R.string.label_more, R.drawable.anim_settings_enter)
+    data object More :
+        HomeNavItems("more", R.string.label_more, R.drawable.anim_settings_enter)
 }
 

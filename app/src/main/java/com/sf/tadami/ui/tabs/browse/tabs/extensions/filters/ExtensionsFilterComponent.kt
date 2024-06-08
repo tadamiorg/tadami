@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.ui.components.widgets.ContentLoader
-import com.sf.tadami.ui.tabs.settings.widget.TogglePreference
+import com.sf.tadami.ui.tabs.more.settings.widget.TogglePreference
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

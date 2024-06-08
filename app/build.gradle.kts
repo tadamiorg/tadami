@@ -1,3 +1,7 @@
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.TimeZone
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -20,8 +24,8 @@ android {
 
     defaultConfig {
         applicationId = "com.sf.tadami"
-        versionCode = 31
-        versionName = "1.5.2"
+        versionCode = 32
+        versionName = "1.5.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -47,6 +51,7 @@ android {
             isMinifyEnabled = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
+            buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")
         }
         named("release") {
             isDebuggable = false
@@ -54,6 +59,7 @@ android {
             isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
+            buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")
         }
     }
 
@@ -76,6 +82,13 @@ android {
             }
         }
     }
+}
+
+fun getBuildDate(): String {
+    val date = Date()
+    val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    format.timeZone = TimeZone.getTimeZone("UTC")
+    return format.format(date)
 }
 
 dependencies {

@@ -11,8 +11,8 @@ import com.sf.tadami.ui.components.data.Action
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TadaTopAppBar(
-    title: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    title: @Composable () -> Unit = {},
     navigationIcon: @Composable () -> Unit = {},
     actions: List<Action> = emptyList(),
     colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),

@@ -267,11 +267,16 @@
     <string name="label_extension_info">Informations sur l\'extension</string>
     <string name="label_episodes">Episodes</string>
     <string name="label_migration">Migration</string>
+    <string name="label_about">À propos</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Dernière mise à jour de la bibliothèque le : %s</string>
     <string name="updates_last_update_info_just_now">À l\'instant</string>
     <string name="relative_time_span_never">Jamais</string>
+    <string name="update_check_no_new_updates">Aucune mise à jour disponible</string>
+    <string name="whats_new">Quoi de neuf</string>
+    <string name="version">Version</string>
+    <string name="check_for_updates">Rechercher des mises à jour</string>
 
     <!-- Extensions -->
     <string name="ext_install_service_notif">Installation de l\'extension…</string>
