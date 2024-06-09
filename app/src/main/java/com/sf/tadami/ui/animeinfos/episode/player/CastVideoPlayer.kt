@@ -2,7 +2,6 @@ package com.sf.tadami.ui.animeinfos.episode.player
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.ActivityInfo
 import android.util.Log
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
@@ -131,7 +130,6 @@ fun CastVideoPlayer(
     }
 
     DisposableEffect(Unit) {
-        activityContext.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
         val mediaCallback = object : Callback() {
             override fun onStatusUpdated() {
                 super.onStatusUpdated()
@@ -182,7 +180,6 @@ fun CastVideoPlayer(
             castSession.removeMessageReceivedCallbacks(ErrorChannel.NAMESPACE)
             castSession.remoteMediaClient?.removeProgressListener(progressListener)
             castSession.remoteMediaClient?.unregisterCallback(mediaCallback)
-            activityContext.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
         }
     }
 

@@ -20,7 +20,7 @@ fun NavGraphBuilder.animeInfosNavGraph(navController: NavHostController) {
                 nullable = true
                 defaultValue = null
             }
-        )
+        ),
     ) {
         DetailsScreen(navController)
     }

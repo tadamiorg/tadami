@@ -18,7 +18,7 @@ fun NavGraphBuilder.libraryNavGraph(
     showLibrarySheet: () -> Unit,
 ) {
     composable(
-        route = HomeNavItems.Library.route,
+        route = HomeNavItems.Library.route
     ) {
         LibraryScreen(
             modifier = Modifier.padding(tabsNavPadding),
