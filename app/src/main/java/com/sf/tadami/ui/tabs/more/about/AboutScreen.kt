@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.tabs.more.about
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
