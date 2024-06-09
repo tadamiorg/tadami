@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.about
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -153,7 +154,6 @@ fun AboutScreen(
 
 
 fun getVersionName(withBuildDate: Boolean): String {
-    // TODO add build date
     return "Stable ${BuildConfig.VERSION_NAME}".let {
         if (withBuildDate) {
             "$it (${getFormattedBuildTime()})"
@@ -166,7 +166,7 @@ fun getVersionName(withBuildDate: Boolean): String {
 
 internal fun getFormattedBuildTime(): String {
     return try {
-        val inputDf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US)
+        val inputDf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
         inputDf.timeZone = TimeZone.getTimeZone("UTC")
         val buildTime = inputDf.parse(BuildConfig.BUILD_DATE)
 
