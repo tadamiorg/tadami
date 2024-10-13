@@ -4,7 +4,6 @@ import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.UpdateAnime
-import com.sf.tadami.domain.anime.toUpdateAnime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.UpdateEpisode
 import com.sf.tadami.domain.episode.copyFromSEpisode
@@ -62,11 +61,15 @@ class UpdateAnimeInteractor(
         val thumbnailUrl = remoteAnime.thumbnailUrl?.takeIf { it.isNotEmpty() }
 
         return animeRepository.updateAnime(
-            localAnime.copyFrom(remoteAnime).toUpdateAnime().copy(
+            UpdateAnime(
+                id = localAnime.id,
                 title = title,
+                description = remoteAnime.description,
+                genres = remoteAnime.genres,
                 thumbnailUrl = thumbnailUrl,
-                initialized = true
-            ),
+                status = remoteAnime.status,
+                initialized = true,
+            )
         )
     }
 
