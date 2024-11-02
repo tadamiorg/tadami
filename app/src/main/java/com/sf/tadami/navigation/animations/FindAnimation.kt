@@ -5,6 +5,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.navigation.NavBackStackEntry
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
+import com.sf.tadami.navigation.graphs.onboarding.OnboardingRoutes
 
 fun AnimatedContentTransitionScope<NavBackStackEntry>.findExitAnimation(forward : Boolean) : ExitTransition {
     return when {
@@ -15,6 +16,7 @@ fun AnimatedContentTransitionScope<NavBackStackEntry>.findExitAnimation(forward 
 
 fun AnimatedContentTransitionScope<NavBackStackEntry>.findEnterAnimation(forward : Boolean) : EnterTransition {
     return when {
+        targetState.destination.route === OnboardingRoutes.ONBOARDING -> fadeIn()
         !HomeNavItems.includes(initialState.destination.route) || !HomeNavItems.includes(targetState.destination.route) -> slideInHorizontallyAndFadeIn(forward)
         else -> fadeIn()
     }

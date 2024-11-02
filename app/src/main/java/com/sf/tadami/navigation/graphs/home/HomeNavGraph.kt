@@ -4,6 +4,8 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.sf.tadami.R
@@ -16,9 +18,12 @@ import com.sf.tadami.navigation.graphs.history.historyNavGraph
 import com.sf.tadami.navigation.graphs.library.libraryNavGraph
 import com.sf.tadami.navigation.graphs.migrate.migrateNavGraph
 import com.sf.tadami.navigation.graphs.more.moreNavGraph
+import com.sf.tadami.navigation.graphs.onboarding.onboardingNavGraph
 import com.sf.tadami.navigation.graphs.settings.settingsNavGraph
 import com.sf.tadami.navigation.graphs.sources.sourcesNavGraph
 import com.sf.tadami.navigation.graphs.updates.updatesNavGraph
+import com.sf.tadami.preferences.app.BasePreferences
+import com.sf.tadami.preferences.model.rememberDataStoreState
 
 @Composable
 fun HomeNavGraph(
@@ -29,6 +34,9 @@ fun HomeNavGraph(
     librarySheetVisible: Boolean,
     showLibrarySheet: () -> Unit,
 ) {
+    val basePreferencesState = rememberDataStoreState(BasePreferences)
+    val basePreferences by basePreferencesState.value.collectAsState()
+
     NavHost(
         navController = navController,
         route = GRAPH.HOME,
@@ -47,6 +55,12 @@ fun HomeNavGraph(
         }
     ) {
 
+        /* Onboarding screen */
+        onboardingNavGraph(
+            navController = navController,
+            basePreferencesState = basePreferencesState
+        )
+
         /* Home Tabs */
         libraryNavGraph(
             navController = navController,
@@ -54,7 +68,8 @@ fun HomeNavGraph(
             setNavDisplay = setNavDisplay,
             bottomNavDisplay = bottomNavDisplay,
             librarySheetVisible = librarySheetVisible,
-            showLibrarySheet = showLibrarySheet
+            showLibrarySheet = showLibrarySheet,
+            basePreferences = basePreferences
         )
 
         updatesNavGraph(

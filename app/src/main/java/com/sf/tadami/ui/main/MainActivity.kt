@@ -105,6 +105,7 @@ class MainActivity : AppCompatActivity() {
                         transformColorForLightContent = { Color.Black },
                     )
                 }
+
                 val navController = rememberNavController()
                 AppUpdaterScreen()
                 ExtensionsCheckForUpdates()
@@ -114,8 +115,6 @@ class MainActivity : AppCompatActivity() {
                         ready = true
                     }
                 }
-
-
             }
         }
         val startTime = System.currentTimeMillis()

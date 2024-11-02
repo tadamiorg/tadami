@@ -3,7 +3,7 @@ package com.sf.tadami.data.backup
 import android.content.Context
 import android.net.Uri
 import com.sf.tadami.data.backup.models.Backup
-import com.sf.tadami.ui.tabs.more.settings.screens.backup.BackupSerializer
+import com.sf.tadami.ui.tabs.more.settings.screens.data.BackupSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import okio.buffer
 import okio.gzip

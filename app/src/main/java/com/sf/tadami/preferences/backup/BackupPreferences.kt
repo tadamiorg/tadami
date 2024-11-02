@@ -4,17 +4,12 @@ import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
-import com.sf.tadami.data.providers.AndroidFoldersProvider
 import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 data class BackupPreferences(
     val autoBackupMaxFiles: Int,
     val autoBackupInterval: Int,
-    val autoBackupFolder: String,
     val autoBackupLastTimestamp : Long
 ) : CustomPreferencesIdentifier {
 
@@ -36,15 +31,12 @@ data class BackupPreferences(
     companion object : CustomPreferences<BackupPreferences> {
         private val AUTO_BACKUP_MAX_FILES = intPreferencesKey("auto_backup_max_files")
         private val AUTO_BACKUP_INTERVAL = intPreferencesKey("auto_backup_interval")
-        private val AUTO_BACKUP_FOLDER = stringPreferencesKey("auto_backup_folder")
         private val AUTO_BACKUP_LAST_TIMESTAMP = longPreferencesKey("auto_backup_last_timestamp")
 
         override fun transform(preferences: Preferences): BackupPreferences {
-            val foldersProviders: AndroidFoldersProvider = Injekt.get()
             return BackupPreferences(
                 autoBackupMaxFiles = preferences[AUTO_BACKUP_MAX_FILES] ?: AutoBackupMaxFiles.TWO,
                 autoBackupInterval = preferences[AUTO_BACKUP_INTERVAL] ?: AutoBackupIntervalItems.DISABLED,
-                autoBackupFolder = preferences[AUTO_BACKUP_FOLDER] ?: foldersProviders.backupPath(),
                 autoBackupLastTimestamp = preferences[AUTO_BACKUP_LAST_TIMESTAMP] ?: 0L
             )
         }
@@ -52,7 +44,6 @@ data class BackupPreferences(
         override fun setPrefs(newValue: BackupPreferences, preferences: MutablePreferences) {
             preferences[AUTO_BACKUP_MAX_FILES] = newValue.autoBackupMaxFiles
             preferences[AUTO_BACKUP_INTERVAL] = newValue.autoBackupInterval
-            preferences[AUTO_BACKUP_FOLDER] = newValue.autoBackupFolder
             preferences[AUTO_BACKUP_LAST_TIMESTAMP] = newValue.autoBackupLastTimestamp
         }
     }

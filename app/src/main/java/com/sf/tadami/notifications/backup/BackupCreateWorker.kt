@@ -21,6 +21,7 @@ import com.sf.tadami.data.backup.BackupCreateFlags
 import com.sf.tadami.data.backup.BackupCreator
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.backup.BackupPreferences
+import com.sf.tadami.preferences.storage.StoragePreferences
 import com.sf.tadami.utils.cancelNotification
 import com.sf.tadami.utils.editPreferences
 import com.sf.tadami.utils.getPreferencesGroup
@@ -43,11 +44,12 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
         val isAutoBackup = inputData.getBoolean(IS_AUTO_BACKUP_KEY, true)
         val dataStore : DataStore<Preferences> = Injekt.get()
         val backupPreferences = dataStore.getPreferencesGroup(BackupPreferences)
+        val storagePreferences = dataStore.getPreferencesGroup(StoragePreferences)
 
         if (isAutoBackup && BackupRestoreWorker.isRunning(context)) return Result.retry()
 
         val uri = inputData.getString(LOCATION_URI_KEY)?.toUri()
-            ?: backupPreferences.autoBackupFolder.toUri()
+            ?: storagePreferences.storageDir.toUri()
         val flags = inputData.getInt(BACKUP_FLAGS_KEY, BackupCreateFlags.AutomaticDefaults)
 
         try {

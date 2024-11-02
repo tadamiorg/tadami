@@ -79,11 +79,11 @@ fun SettingsScreen(
                     }
                 ),
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(id = R.string.settings_tab_library_backup_preferences_title),
+                    title = stringResource(id = R.string.settings_tab_library_data_preferences_title),
                     subtitle = stringResource(id = R.string.settings_tab_library_backup_preferences_subtitle),
                     icon = Icons.Outlined.Backup,
                     onClick = {
-                        navController.navigate(SettingsRoutes.BACKUP)
+                        navController.navigate(SettingsRoutes.DATA)
                     }
                 ),
                 Preference.PreferenceItem.TextPreference(

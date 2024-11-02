@@ -4,7 +4,9 @@ import android.content.Context
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.backup.BackupPreferences
@@ -71,6 +73,10 @@ object Migrations {
                 deleteDataStore("anime_source_AnimeSama",context)
                 deleteDataStore("anime_source_VostFree",context)
             }
+
+            if (oldVersion < 34) {
+                deletePreference(dataStore, stringPreferencesKey("auto_backup_folder"))
+            }
         }
     }
 
@@ -80,6 +86,15 @@ object Migrations {
         preferences: Set<Preferences.Key<*>>
     ) {
         dataStore.clearPreferences(preferences)
+    }
+
+    private suspend fun deletePreference(
+        dataStore: DataStore<Preferences>,
+        preference: Preferences.Key<*>
+    ) {
+        dataStore.edit {
+            it.remove(preference)
+        }
     }
 
     private suspend fun deleteAllPreferences(

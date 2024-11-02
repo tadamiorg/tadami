@@ -38,6 +38,7 @@ import com.sf.tadami.data.sources.StubSourceRepository
 import com.sf.tadami.data.sources.StubSourceRepositoryImpl
 import com.sf.tadami.data.updates.UpdatesRepository
 import com.sf.tadami.data.updates.UpdatesRepositoryImpl
+import com.sf.tadami.domain.storage.StorageManager
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.player.PlayerNetworkHelper
@@ -112,6 +113,12 @@ class AppModule(private val app: Application) : InjektModule {
         // Sources
         addSingletonFactory<StubSourceRepository>{
             StubSourceRepositoryImpl(get())
+        }
+
+        // Storage
+
+        addSingletonFactory {
+            StorageManager(app,get())
         }
 
         // Downloads

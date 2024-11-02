@@ -57,7 +57,7 @@
     <string name="preferences_library_update_restrictions_subtitle">Restrictions : %s</string>
     <string name="settings_tab_library_preferences_title">Library</string>
     <string name="settings_tab_library_preferences_subtitle">Display, updates</string>
-    <string name="settings_tab_library_backup_preferences_title">Backup and restore</string>
+    <string name="settings_tab_library_data_preferences_title">Data and storage</string>
     <string name="settings_tab_library_backup_preferences_subtitle">Manual and automatic backups</string>
     <string name="settings_tab_library_player_preferences_title">Player</string>
     <string name="settings_tab_library_player_preferences_subtitle">Timeline configuration</string>
@@ -142,6 +142,13 @@
     <string name="preferences_backup_frequency">Backup frequency</string>
     <string name="preferences_backup_directory">Backup location</string>
     <string name="preferences_backup_maxfiles">Maximum backup files</string>
+    <string name="backup_info">You should keep copies of backups in other places as well. Backups may contain sensitive data including any stored passwords; be careful if sharing.</string>
+    <string name="last_auto_backup_info">Last automatically backed up: %s</string>
+    <string name="restore_miui_warning">Backup/restore may not function properly if MIUI Optimization is disabled.</string>
+    <string name="pref_storage_location_info">Used for automatic backups and episodes downloads.</string>
+    <string name="available_disk_space_info">Available: %1$s / Total: %2$s</string>
+    <string name="pref_storage_usage">Storage usage</string>
+    <string name="pref_storage_location">Storage location</string>
     <string name="notification_backup_group">Backups</string>
     <string name="notification_backup_complete">Backup/Restore completed status</string>
     <string name="notification_backup_progress">Progress of backup/restore</string>
@@ -298,4 +305,27 @@
     <string name="action_copy">Copy</string>
     <string name="action_move">Move</string>
     <string name="migration_error">An error occurred during anime migration</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_storage_action_select">Select a folder</string>
+    <string name="pref_onboarding_guide">Onboarding guide</string>
+    <string name="onboarding_guides_new_user">New to %s? We recommend checking out the getting started guide.</string>
+    <string name="onboarding_action_finish">Get started</string>
+    <string name="onboarding_storage_selection_required">A folder must be selected</string>
+    <string name="onboarding_heading">Welcome!</string>
+    <string name="onboarding_guides_returning_user">Reinstalling %s?</string>
+    <string name="onboarding_action_skip">Skip</string>
+    <string name="onboarding_action_next">Next</string>
+    <string name="onboarding_description">Let\&apos;s set some things up first. You can always change these in the settings later too.</string>
+    <string name="no_location_set">No storage location set</string>
+    <string name="onboarding_storage_info">Select a folder where %1$s will store episodes downloads, backups, and more.\n\nA dedicated folder is recommended.\n\nSelected folder: %2$s</string>
+    <string name="onboarding_permission_install_apps">Install apps permission</string>
+    <string name="onboarding_permission_install_apps_description">To install source extensions.</string>
+    <string name="onboarding_permission_notifications">Notification permission</string>
+    <string name="onboarding_permission_notifications_description">Get notified for library updates and more.</string>
+    <string name="onboarding_permission_ignore_battery_opts">Background battery usage</string>
+    <string name="onboarding_permission_action_grant">Grant</string>
+    <string name="file_picker_uri_permission_unsupported">Failed to acquire persistent folder access. The app may behave unexpectedly.</string>
+    <string name="invalid_location">Invalid location: %s</string>
+    <string name="onboarding_permission_ignore_battery_opts_description">Avoid interruptions to long-running library updates, downloads, and backup restores.</string>
 </resources>

@@ -1,6 +1,8 @@
 package com.sf.tadami.data.providers
 
 import android.content.Context
+import android.os.Environment
+import androidx.core.net.toUri
 import com.sf.tadami.R
 import java.io.File
 
@@ -8,14 +10,13 @@ class AndroidFoldersProvider(
     private val context: Context,
 )  {
 
-    fun backupDir(): File {
+    fun directory(): File {
         return File(
-            context.filesDir.absolutePath + File.separator + context.getString(R.string.app_name),
-            "backup",
+            Environment.getExternalStorageDirectory().absolutePath + File.separator + context.getString(R.string.app_name),
         )
     }
 
-    fun backupPath(): String {
-        return backupDir().absolutePath
+    fun path(): String {
+        return directory().toUri().toString()
     }
 }

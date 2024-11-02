@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.tabs.more.settings.screens.backup
+package com.sf.tadami.ui.tabs.more.settings.screens.data
 
 import com.sf.tadami.data.backup.models.Backup
 import kotlinx.serialization.ExperimentalSerializationApi

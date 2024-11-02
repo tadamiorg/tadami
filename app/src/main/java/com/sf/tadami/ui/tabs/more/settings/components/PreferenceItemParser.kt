@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.tabs.more.settings.widget.EditTextPreferenceWidget
+import com.sf.tadami.ui.tabs.more.settings.widget.InfoWidget
 import com.sf.tadami.ui.tabs.more.settings.widget.MultiSelectPreference
 import com.sf.tadami.ui.tabs.more.settings.widget.SelectPreference
 import com.sf.tadami.ui.tabs.more.settings.widget.TextPreference
@@ -25,6 +26,9 @@ fun PreferenceItemParser(
         exit = shrinkVertically() + fadeOut(),
         content = {
             when(item){
+                is Preference.PreferenceItem.InfoPreference -> {
+                    InfoWidget(item.title)
+                }
                 is Preference.PreferenceItem.TextPreference -> {
                     TextPreference(
                         customPrefsVerticalPadding = customPrefsVerticalPadding,

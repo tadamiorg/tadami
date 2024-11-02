@@ -238,6 +238,13 @@
     <string name="preferences_backup_directory">Dossier de sauvegarde</string>
     <string name="preferences_backup_maxfiles">Nombre maximal de sauvegardes</string>
     <string name="preferences_backup_category_manual">Sauvegardes manuelles</string>
+    <string name="pref_storage_location">Emplacement de stockage</string>
+    <string name="pref_storage_location_info">Utilisé pour les backups automatiques et téléchargements des épisodes</string>
+    <string name="available_disk_space_info">Disponible : %1$s / Total : %2$s</string>
+    <string name="pref_storage_usage">Utilisation du stockage</string>
+    <string name="backup_info">Vous devez également conserver des copies des sauvegardes à d\&apos;autres endroits.</string>
+    <string name="last_auto_backup_info">Dernière sauvegarde automatique : %s</string>
+    <string name="restore_miui_warning">La sauvegarde/restauration peut ne pas fonctionner correctement si l\&apos;optimisation MIUI est désactivée.</string>
     <string-array name="preferences_backup_create_fields">
         <item>Entrées de la bibliothèque</item>
         <item>Episodes</item>
@@ -248,7 +255,7 @@
     <!-- Settings -->
     <string name="settings_tab_library_preferences_title">Bibliothèque</string>
     <string name="settings_tab_library_preferences_subtitle">"Affichage, mises à jour "</string>
-    <string name="settings_tab_library_backup_preferences_title">Sauvegarder et restaurer</string>
+    <string name="settings_tab_library_data_preferences_title">Données et stockage</string>
     <string name="settings_tab_library_backup_preferences_subtitle">Sauvegardes manuelles et automatiques</string>
     <string name="settings_tab_library_player_preferences_title">Lecteur vidéo</string>
     <string name="settings_tab_library_player_preferences_subtitle">Configuration de la timeline</string>
@@ -308,4 +315,26 @@
     <string name="action_copy">Copier</string>
     <string name="action_move">Déplacer</string>
     <string name="migration_error">Une erreur s\'est produite lors de la migration de l\'anime</string>
+
+    <string name="onboarding_storage_action_select">Sélectionnez un dossier</string>
+    <string name="pref_onboarding_guide">Guide de premier lancement</string>
+    <string name="onboarding_guides_new_user">Nouveau sur %s ? Nous vous recommandons de jeter un œil au guide de démarrage.</string>
+    <string name="onboarding_action_finish">Commencer</string>
+    <string name="onboarding_storage_selection_required">Un dossier doit être sélectionné</string>
+    <string name="onboarding_heading">Bienvenue !</string>
+    <string name="onboarding_guides_returning_user">De retour sur %s ?</string>
+    <string name="onboarding_action_skip">Passer</string>
+    <string name="onboarding_action_next">Suivant</string>
+    <string name="onboarding_description">Commençons par paramétrer certaines choses. Vous pouvez toujours changer ces paramètres plus tard.</string>
+    <string name="no_location_set">Aucun emplacement de stockage défini</string>
+    <string name="onboarding_storage_info">Sélectionnez un dossier où %1$s stockera les épisodes téléchargés, les sauvegardes et plus encore. \n \nUn dossier dédié est recommandé. \n \nDossier sélectionné : %2$s</string>
+    <string name="onboarding_permission_install_apps">Permission d\&apos;installer des applications</string>
+    <string name="onboarding_permission_install_apps_description">Pour installer des extensions de source.</string>
+    <string name="onboarding_permission_notifications">Permission de notifications</string>
+    <string name="onboarding_permission_notifications_description">Soyez notifié des mises à jour de la bibliothèque et autre.</string>
+    <string name="onboarding_permission_ignore_battery_opts">Utilisation de la batterie en arrière-plan</string>
+    <string name="onboarding_permission_action_grant">Accorder</string>
+    <string name="file_picker_uri_permission_unsupported">Impossible d\'obtenir un accès persistant au dossier. L\'application pourrait avoir un comportement inattendu.</string>
+    <string name="invalid_location">Emplacement invalide : %s</string>
+    <string name="onboarding_permission_ignore_battery_opts_description">Évite l\&apos;interruption des mises à jour de bibliothèque, des téléchargements de chapitres, et des restaurations de sauvegardes.</string>
 </resources>
