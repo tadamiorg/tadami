@@ -90,6 +90,11 @@
             android:exported="false"
             android:foregroundServiceType="shortService" />
 
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
+
         <receiver android:name=".notifications.cast.CastReceiver" />
         <receiver android:name=".notifications.libraryupdate.LibraryUpdateReceiver" />
         <receiver android:name=".notifications.appupdate.AppUpdateReceiver" />

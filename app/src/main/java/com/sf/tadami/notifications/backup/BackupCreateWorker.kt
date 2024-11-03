@@ -1,7 +1,9 @@
 package com.sf.tadami.notifications.backup
 
 import android.content.Context
+import android.content.pm.ServiceInfo
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
@@ -81,6 +83,11 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
         return ForegroundInfo(
             Notifications.BACKUP_PROGRESS_ID,
             notifier.showBackupProgress().build(),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            } else {
+                0
+            },
         )
     }
 

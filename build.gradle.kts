@@ -38,11 +38,11 @@ subprojects {
 
     plugins.withType<BasePlugin> {
         configure<BaseExtension> {
-            compileSdkVersion(34)
+            compileSdkVersion(35)
             defaultConfig {
                 minSdk = 28
                 //noinspection ExpiredTargetSdkVersion
-                targetSdk = 29
+                targetSdk = 35
             }
 
             compileOptions {

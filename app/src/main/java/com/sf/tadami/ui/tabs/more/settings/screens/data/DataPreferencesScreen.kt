@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavHostController
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
@@ -125,7 +126,7 @@ class DataPreferencesScreen(
         }
 
         return Preference.PreferenceCategory(
-            title = stringResource(R.string.preferences_backup_title),
+            title = stringResource(R.string.settings_tab_library_data_preferences_title),
             preferenceItems = persistentListOf(
                 // Manual actions
                 Preference.PreferenceItem.CustomPreference(
@@ -205,6 +206,7 @@ class DataPreferencesScreen(
         )
     }
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     @OptIn(ExperimentalCoilApi::class)
     @Composable
     private fun getDataGroup(
