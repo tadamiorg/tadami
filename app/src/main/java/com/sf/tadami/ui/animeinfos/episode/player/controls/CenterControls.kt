@@ -2,8 +2,9 @@ package com.sf.tadami.ui.animeinfos.episode.player.controls
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material.ripple.LocalRippleTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -14,8 +15,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
 import com.sf.tadami.ui.components.material.IconButton
-import com.sf.tadami.ui.themes.ComposeRippleTheme
+import com.sf.tadami.ui.themes.ComposeRippleConfiguration
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CenterControls(
     modifier: Modifier = Modifier,
@@ -37,7 +39,7 @@ fun CenterControls(
         verticalAlignment = Alignment.CenterVertically
     ) {
         //replay button
-        CompositionLocalProvider(LocalRippleTheme provides ComposeRippleTheme) {
+        CompositionLocalProvider(LocalRippleConfiguration provides ComposeRippleConfiguration) {
 
             IconButton(enabled = hasPreviousEp, onClick = onPrevious,size = 40.dp) {
                 Icon(

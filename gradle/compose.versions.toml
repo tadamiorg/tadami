@@ -1,6 +1,6 @@
 [versions]
-compiler = "1.5.3"
-compose-bom = "2024.05.00"
+compiler = "2.0.21"
+compose-bom = "2024.10.01"
 accompanist = "0.34.0"
 activity = "1.9.3"
 

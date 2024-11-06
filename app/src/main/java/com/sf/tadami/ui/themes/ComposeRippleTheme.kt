@@ -1,23 +1,16 @@
 package com.sf.tadami.ui.themes
 
 import androidx.compose.material.ripple.RippleAlpha
-import androidx.compose.material.ripple.RippleTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.RippleConfiguration
 import androidx.compose.ui.graphics.Color
 
-object ComposeRippleTheme : RippleTheme {
+private val ComposeRippleAlpha = RippleAlpha(
+    pressedAlpha = 0.2f,
+    focusedAlpha = 0.4f,
+    draggedAlpha = 0.4f,
+    hoveredAlpha = 0.4f
+)
 
-    @Composable
-    override fun defaultColor(): Color {
-        return MaterialTheme.colorScheme.primary;
-    }
-
-    @Composable
-    override fun rippleAlpha(): RippleAlpha {
-        return RippleTheme.defaultRippleAlpha(
-            MaterialTheme.colorScheme.background,
-            lightTheme = true
-        )
-    }
-}
+@OptIn(ExperimentalMaterial3Api::class)
+val ComposeRippleConfiguration = RippleConfiguration(color = Color.Red, rippleAlpha = ComposeRippleAlpha)

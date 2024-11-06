@@ -7,6 +7,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     kotlin("plugin.serialization")
     id("app.cash.sqldelight")
+    alias(kotlinx.plugins.compose.compiler)
 }
 
 sqldelight {
@@ -21,6 +22,7 @@ sqldelight {
 
 android {
     namespace = "com.sf.tadami"
+    android.buildFeatures.buildConfig=true
 
     defaultConfig {
         applicationId = "com.sf.tadami"
@@ -28,6 +30,7 @@ android {
         versionName = "1.5.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -47,11 +50,8 @@ android {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-DEBUG"
             isDebuggable = true
-            isShrinkResources = true
-            isMinifyEnabled = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
-            buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")
         }
         named("release") {
             isDebuggable = false
@@ -59,7 +59,6 @@ android {
             isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
-            buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")
         }
     }
 
@@ -69,8 +68,9 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion = compose.versions.compiler.get()
+        // TODO check to remove
     }
-    packagingOptions {
+    packaging {
         resources {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }
@@ -176,8 +176,10 @@ dependencies {
 }
 tasks {
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.freeCompilerArgs += listOf(
-            "-Xcontext-receivers"
-        )
+        compilerOptions {
+            freeCompilerArgs = listOf(
+                "-Xcontext-receivers"
+            )
+        }
     }
 }

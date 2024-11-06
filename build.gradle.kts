@@ -15,6 +15,7 @@ buildscript {
 plugins {
     alias(androidx.plugins.com.android.application) apply false
     alias(androidx.plugins.com.android.library) apply false
+    alias(kotlinx.plugins.compose.compiler) apply false
     alias(kotlinx.plugins.android) apply false
     alias(kotlinx.plugins.serialization) apply false
     alias(libs.plugins.dotenv)

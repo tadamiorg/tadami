@@ -13,8 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
-import com.sf.tadami.ui.utils.minimumTouchTargetSize
 import com.sf.tadami.ui.utils.padding
+
+/* TODO Maybe use only material3 instead of material*/
 
 @Composable
 fun DialogButtonRow(
@@ -33,7 +34,6 @@ fun DialogButtonRow(
                 onClick = { if (!isSelected) onSelected() },
             )
             .fillMaxWidth()
-            .minimumTouchTargetSize()
     ) {
         RadioButton(
             selected = isSelected,

@@ -13,7 +13,7 @@ import com.sf.tadami.ui.components.topappbar.ActionItem
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBarCollapsed(
-    colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
+    colors: TopAppBarColors = TopAppBarDefaults.mediumTopAppBarColors(),
     title: @Composable () -> Unit,
     navigationIcon: @Composable () -> Unit = {},
     onSearchOpen: () -> Unit,

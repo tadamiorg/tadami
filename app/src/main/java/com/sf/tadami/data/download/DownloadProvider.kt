@@ -22,7 +22,7 @@ class DownloadProvider(
      * @param source the source to query.
      */
     fun findSourceDir(source: Source): UniFile? {
-        return downloadsDir?.findFile(getSourceDirName(source), true)
+        return downloadsDir?.findFile(getSourceDirName(source))
     }
 
     /**

@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import com.sf.tadami.ui.utils.minimumTouchTargetSize
 import com.sf.tadami.ui.utils.padding
 
 @Composable
@@ -30,7 +29,6 @@ fun DialogCheckBoxRow(
                 selected = isSelected,
                 onClick = { onSelected(isSelected) },
             )
-            .minimumTouchTargetSize()
             .fillMaxWidth(),
     ) {
         Checkbox(
