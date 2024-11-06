@@ -23,8 +23,6 @@ data class BackupPreferences(
     companion object : CustomPreferences<BackupPreferences> {
         private val AUTO_BACKUP_INTERVAL = intPreferencesKey("auto_backup_interval")
         val AUTO_BACKUP_LAST_TIMESTAMP = longPreferencesKey("auto_backup_last_timestamp")
-        // TODO remove MAX files from datastore migrations
-
 
         override fun transform(preferences: Preferences): BackupPreferences {
             return BackupPreferences(

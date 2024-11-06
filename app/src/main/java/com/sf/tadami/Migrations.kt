@@ -76,6 +76,7 @@ object Migrations {
 
             if (oldVersion < 34) {
                 deletePreference(dataStore, stringPreferencesKey("auto_backup_folder"))
+                deletePreference(dataStore, stringPreferencesKey("auto_backup_max_files"))
             }
         }
     }
