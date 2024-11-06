@@ -15,7 +15,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import com.sf.tadami.ui.utils.padding
 
-/* TODO Maybe use only material3 instead of material*/
+/* TODO
+    - Maybe use only material3 instead of material
+    - fix colors everywhere
+    - fix player progress bar
+    - fix backups and restore
+*/
 
 @Composable
 fun DialogButtonRow(
