@@ -2,9 +2,11 @@ package com.sf.tadami.notifications.backup
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import com.sf.tadami.R
-import com.sf.tadami.data.backup.BackupUtil
+import com.sf.tadami.data.backup.BackupDecoder
 import com.sf.tadami.ui.tabs.browse.SourceManager
+import kotlinx.serialization.ExperimentalSerializationApi
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -18,9 +20,10 @@ class BackupFileValidator(
      * @throws Exception if anime cannot be found.
      * @return List of missing sources or missing trackers.
      */
+    @OptIn(ExperimentalSerializationApi::class)
     fun validate(context: Context, uri: Uri): Results  {
         val backup = try {
-            BackupUtil.decodeBackup(context, uri)
+            BackupDecoder(context).decode(uri)
         } catch (e: Exception) {
             throw IllegalStateException(e)
         }
@@ -29,6 +32,7 @@ class BackupFileValidator(
         val missingSources = sources
             .filter { sourceManager.get(it.key) == null }
             .entries.map {
+                Log.e("Source",it.value)
                 sourceManager.getOrStub(it.key,it.value).toString()
             }
             .distinct()

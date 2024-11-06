@@ -26,7 +26,7 @@ abstract class ConfigurableParsedHttpAnimeSource<T : CustomPreferencesIdentifier
     ParsedAnimeHttpSource(sourceId) {
 
     // Preferences
-    private val PREFERENCES_FILE_NAME: String by lazy { "anime_source_$id" }
+    val PREFERENCES_FILE_NAME: String by lazy { "anime_source_$id" }
 
     private val dataStoresHandler: DataStoresHandler = Injekt.get()
 

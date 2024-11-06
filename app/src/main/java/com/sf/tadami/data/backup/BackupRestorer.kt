@@ -10,11 +10,13 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
+import com.sf.tadami.DataStoresHandler
 import com.sf.tadami.R
 import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.data.backup.models.BackupAnime
 import com.sf.tadami.data.backup.models.BackupHistory
 import com.sf.tadami.data.backup.models.BackupPreference
+import com.sf.tadami.data.backup.models.BackupSourcePreferences
 import com.sf.tadami.data.backup.models.BooleanPreferenceValue
 import com.sf.tadami.data.backup.models.FloatPreferenceValue
 import com.sf.tadami.data.backup.models.IntPreferenceValue
@@ -32,8 +34,11 @@ import com.sf.tadami.notifications.backup.BackupNotifier
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.utils.createFileInCacheDir
 import com.sf.tadami.utils.editPreference
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.File
@@ -53,6 +58,7 @@ class BackupRestorer(
     private val updateAnime: UpdateAnimeInteractor = Injekt.get()
     private val episodeRepository: EpisodeRepository = Injekt.get()
     private val fetchInterval: FetchIntervalInteractor = Injekt.get()
+    private val dataStoresHandler : DataStoresHandler = Injekt.get()
 
     private val dataStore: DataStore<Preferences> = Injekt.get()
 
@@ -61,31 +67,23 @@ class BackupRestorer(
 
     private var restoreAmount = 0
     private var restoreProgress = 0
+    private val errors = mutableListOf<Pair<Date, String>>()
 
     /**
      * Mapping of source ID to source name from backup data
      */
     private var sourceMapping: Map<Long, String> = emptyMap()
 
-    private val errors = mutableListOf<Pair<Date, String>>()
-
-    suspend fun syncFromBackup(uri: Uri): Boolean {
+    suspend fun restore(uri: Uri, options: RestoreOptions) {
         val startTime = System.currentTimeMillis()
-        restoreProgress = 0
-        errors.clear()
 
-        if (!performRestore(uri)) {
-            return false
-        }
+        restoreFromFile(uri,options)
 
-        val endTime = System.currentTimeMillis()
-        val time = endTime - startTime
+        val time =  System.currentTimeMillis() - startTime
 
         val logFile = writeErrorLog()
 
         notifier.showRestoreComplete(time, errors.size, logFile.parent, logFile.name)
-
-        return true
     }
 
     private fun writeErrorLog(): File {
@@ -107,65 +105,86 @@ class BackupRestorer(
         return File("")
     }
 
-    private suspend fun performRestore(uri: Uri): Boolean {
-        val backup = BackupUtil.decodeBackup(context, uri)
-
-        restoreAmount = backup.backupAnime.size + 1 // +3 for categories, app prefs, source prefs
+    @OptIn(ExperimentalSerializationApi::class)
+    private suspend fun restoreFromFile(uri: Uri, options: RestoreOptions) {
+        val backup = BackupDecoder(context).decode(uri)
 
         val backupMaps = backup.backupSources
         sourceMapping = backupMaps.associate { it.sourceId to it.name }
 
+        if (options.libraryEntries) {
+            restoreAmount += backup.backupAnime.size
+        }
+        if (options.appSettings) {
+            restoreAmount += 1
+        }
+        if (options.sourcesSettings) {
+            restoreAmount += 1
+        }
+
         now = ZonedDateTime.now()
         currentFetchWindow = fetchInterval.getWindow(now)
 
-        return coroutineScope {
-            restoreAppPreferences(backup.backupPreferences)
-
-            // Restore individual anime
-            backup.backupAnime.forEach {
-                if (!isActive) {
-                    return@coroutineScope false
-                }
-
-                restoreAnime(it)
+        coroutineScope {
+            if (options.appSettings) {
+                restoreAppPreferences(backup.backupPreferences)
             }
-
-            true
+            if (options.sourcesSettings) {
+                restoreSourcesPreferences(backup.backupSourcePreferences)
+            }
+            if (options.libraryEntries) {
+                restoreAnime(backup.backupAnime)
+            }
         }
     }
 
-    private suspend fun restoreAnime(backupAnime: BackupAnime) {
-        val anime = backupAnime.getAnimeImpl()
-        val episodes = backupAnime.getEpisodeImpl()
-        val history = backupAnime.history
-
-        try {
-            val dbAnime = getAnimeFromDatabase(anime.url, anime.source)
-            val restoredAnime = if (dbAnime == null) {
-                // Anime not in database
-                restoreNonExistingAnime(anime, episodes,history)
-            } else {
-                // Anime in database
-                // Copy information from anime already in database
-                val updatedAnime = restoreExistingAnime(anime, dbAnime)
-                // Fetch rest of anime information
-                restoreUpdatedAnime(updatedAnime, episodes, history)
-            }
-            updateAnime.awaitUpdateFetchInterval(restoredAnime, now, currentFetchWindow)
-        } catch (e: Exception) {
-            val sourceName = sourceMapping[anime.source] ?: anime.source
-            errors.add(Date() to "${anime.title} [$sourceName]: ${e.message}")
+    private fun CoroutineScope.restoreSourcesPreferences(preferences: List<BackupSourcePreferences>) = launch {
+        ensureActive()
+        preferences.forEach {
+            val sourceDataStore = dataStoresHandler.getDataStore(it.sourceKey,"anime_source_${it.sourceKey}")
+            restorePreferences(it.prefs,sourceDataStore)
         }
 
         restoreProgress += 1
-
-        showRestoreProgress(
-            restoreProgress,
-            restoreAmount,
-            anime.title,
-            context.getString(R.string.restoring_backup),
+        notifier.showRestoreProgress(
+            content = context.getString(R.string.sources_settings),
+            progress = restoreProgress,
+            maxAmount = restoreAmount,
         )
+    }
 
+    private fun CoroutineScope.restoreAnime(backupAnimes: List<BackupAnime>) = launch {
+        backupAnimes.forEach { backupAnime ->
+            ensureActive()
+            val anime = backupAnime.getAnimeImpl()
+            try {
+                val episodes = backupAnime.getEpisodeImpl()
+                val history = backupAnime.history
+                val dbAnime = getAnimeFromDatabase(anime.url, anime.source)
+                val restoredAnime = if (dbAnime == null) {
+                    // Anime not in database
+                    restoreNonExistingAnime(anime, episodes,history)
+                } else {
+                    // Anime in database
+                    // Copy information from anime already in database
+                    val updatedAnime = restoreExistingAnime(anime, dbAnime)
+                    // Fetch rest of anime information
+                    restoreUpdatedAnime(updatedAnime, episodes, history)
+                }
+                updateAnime.awaitUpdateFetchInterval(restoredAnime, now, currentFetchWindow)
+            } catch (e: Exception) {
+                val sourceName = sourceMapping[anime.source] ?: anime.source
+                errors.add(Date() to "${anime.title} [$sourceName]: ${e.message}")
+            }
+
+            restoreProgress += 1
+            showRestoreProgress(
+                restoreProgress,
+                restoreAmount,
+                anime.title,
+                context.getString(R.string.restoring_backup),
+            )
+        }
     }
 
     private suspend fun getAnimeFromDatabase(url: String, source: Long): AnimeDb? {
@@ -338,7 +357,8 @@ class BackupRestorer(
         }
     }
 
-    private suspend fun restoreAppPreferences(preferences: List<BackupPreference>) {
+    private fun CoroutineScope.restoreAppPreferences(preferences: List<BackupPreference>) = launch {
+        ensureActive()
         restorePreferences(preferences, dataStore)
 
         LibraryUpdateWorker.setupTask(context)

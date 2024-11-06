@@ -4,7 +4,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
+import com.sf.tadami.navigation.graphs.settings.DataSettingsRoutes
 import com.sf.tadami.preferences.app.BasePreferences
 import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.ui.main.onboarding.OnboardingScreen
@@ -23,7 +23,7 @@ fun NavGraphBuilder.onboardingNavGraph(
             },
             onRestoreBackup = {
                 basePreferencesState.setValue(BasePreferences(onboardingComplete = true))
-                navController.navigate(SettingsRoutes.DATA) {
+                navController.navigate(DataSettingsRoutes.HOME) {
                     popUpTo(navController.graph.findStartDestination().id)
                 }
             }

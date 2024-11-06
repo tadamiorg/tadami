@@ -1,5 +1,6 @@
 package com.sf.tadami.source
 
+import com.sf.tadami.App
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.source.model.AnimeFilterList
 import com.sf.tadami.source.model.SAnime
@@ -23,6 +24,8 @@ class StubSource(
         return Observable.error(getSourceNotInstalledException())
     }
 
+    private val isInvalid: Boolean = (name == "Unknown") || (lang == Lang.UNKNOWN) || (name.isBlank())
+
     override fun fetchLatest(page: Int): Observable<AnimesPage> {
         return Observable.error(getSourceNotInstalledException())
     }
@@ -45,6 +48,14 @@ class StubSource(
 
     private fun getSourceNotInstalledException(): SourceNotInstalledException {
         return SourceNotInstalledException()
+    }
+
+    override fun toString(): String {
+        val appContext = App.getAppContext()
+        if (appContext != null) {
+            if (!isInvalid) "$name (${lang.getRes()})" else id.toString()
+        }
+        return if (!isInvalid) name else id.toString()
     }
 
     companion object {

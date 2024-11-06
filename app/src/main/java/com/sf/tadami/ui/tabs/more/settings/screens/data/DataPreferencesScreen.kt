@@ -36,6 +36,7 @@ import coil.imageLoader
 import com.hippo.unifile.UniFile
 import com.sf.tadami.R
 import com.sf.tadami.data.providers.AndroidFoldersProvider
+import com.sf.tadami.navigation.graphs.settings.DataSettingsRoutes
 import com.sf.tadami.network.player.PlayerNetworkHelper
 import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.notifications.backup.BackupRestoreWorker
@@ -54,11 +55,13 @@ import com.sf.tadami.utils.DeviceUtil
 import kotlinx.collections.immutable.persistentListOf
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 class DataPreferencesScreen(
-    navController: NavHostController
+    private val navController: NavHostController
 ) : PreferenceScreen {
-    override val title: Int = R.string.preferences_backup_title
+    override val title: Int = R.string.settings_tab_library_data_preferences_title
 
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 
@@ -122,11 +125,16 @@ class DataPreferencesScreen(
                 return@rememberLauncherForActivityResult
             }
 
-            // TODO navigate to restore backup screen
+            val encodedUrl = URLEncoder.encode(
+                it.toString(),
+                StandardCharsets.UTF_8.toString()
+            )
+
+            navController.navigate("${DataSettingsRoutes.RESTORE_BACKUP}/${encodedUrl}")
         }
 
         return Preference.PreferenceCategory(
-            title = stringResource(R.string.settings_tab_library_data_preferences_title),
+            title = stringResource(R.string.preferences_backup_title),
             preferenceItems = persistentListOf(
                 // Manual actions
                 Preference.PreferenceItem.CustomPreference(
@@ -144,7 +152,7 @@ class DataPreferencesScreen(
                                     modifier = Modifier.fillMaxHeight(),
                                     checked = false,
                                     onCheckedChange = {
-                                        // TODO navigate to create backup screen
+                                        navController.navigate(DataSettingsRoutes.CREATE_BACKUP)
                                     },
                                     shape = SegmentedButtonDefaults.itemShape(0, 2),
                                 ) {

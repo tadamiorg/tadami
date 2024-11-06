@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <bool name="is_tablet">false</bool>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <bool name="is_tablet" tools:ignore="PrivateResource">false</bool>
 </resources>

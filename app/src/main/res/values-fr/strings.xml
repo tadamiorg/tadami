@@ -11,6 +11,12 @@
     <string name="discover_recents_screen_title">Récents</string>
     <string name="anime_sources_screen_recents_btn">Récents</string>
     <string name="information_no_recent_episodes">Aucun épisodes récents</string>
+    <string name="exception_offline">Aucune connexion internet</string>
+    <string name="exception_unknown_host">Impossible de joindre %s</string>
+    <string name="backup_restore_missing_sources">Sources manquantes :</string>
+    <string name="backup_restore_content_full">Vous devrez installer les extensions manquantes et vous connecter ensuite aux services de suivi pour les utiliser.</string>
+    <string name="invalid_backup_file">Fichier de sauvegarde invalide :</string>
+    <string name="invalid_backup_file_error">Erreur complète :</string>
     <plurals name="details_screen_episodes_number">
         <item quantity="one">%d episode</item>
         <item quantity="many">%d episodes</item>
@@ -245,12 +251,8 @@
     <string name="backup_info">Vous devez également conserver des copies des sauvegardes à d\&apos;autres endroits.</string>
     <string name="last_auto_backup_info">Dernière sauvegarde automatique : %s</string>
     <string name="restore_miui_warning">La sauvegarde/restauration peut ne pas fonctionner correctement si l\&apos;optimisation MIUI est désactivée.</string>
-    <string-array name="preferences_backup_create_fields">
-        <item>Entrées de la bibliothèque</item>
-        <item>Episodes</item>
-        <item>Préférences de l\'application</item>
-        <item>Historique</item>
-    </string-array>
+    <string name="library_entries">Entrées de la bibliothèque</string>
+    <string name="sources_settings">Paramètres des sources</string>
 
     <!-- Settings -->
     <string name="settings_tab_library_preferences_title">Bibliothèque</string>

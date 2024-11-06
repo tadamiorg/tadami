@@ -4,8 +4,6 @@
     <color name="cover_placeholder">#1F888888</color>
 
     <!-- ActionMode status bar color -->
-    <color name="abc_decor_view_status_guard" tools:override="true">@android:color/transparent</color>
-    <color name="abc_decor_view_status_guard_light" tools:override="true">@android:color/transparent</color>
 
     <!-- Themes notifications colors -->
     <color name="lavender_primary">#A177FF</color>

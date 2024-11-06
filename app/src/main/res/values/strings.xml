@@ -10,6 +10,12 @@
     <string name="discover_recents_screen_title">Recents</string>
     <string name="request_error_response">Could not scrape source. Error Code : %1$s</string>
     <string name="request_bypass_cloudflare_failure">Failed to bypass Cloudflare</string>
+    <string name="exception_offline">No Internet connection</string>
+    <string name="exception_unknown_host">Couldn\&apos;t reach %s</string>
+    <string name="backup_restore_content_full">You may need to install any missing extensions and log in to tracking services afterwards to use them.</string>
+    <string name="backup_restore_missing_sources">Missing sources:</string>
+    <string name="invalid_backup_file">Invalid backup file:</string>
+    <string name="invalid_backup_file_error">Full error:</string>
     <plurals name="details_screen_episodes_number">
         <item quantity="one">%d episode</item>
         <item quantity="many">%d episodes</item>
@@ -20,8 +26,6 @@
     <!-- Strings used for fragments for navigation -->
     <string name="unknown_author">Unknown Auhtor</string>
     <string name="unknown_status">Unknown Status</string>
-    <string name="details_screen_description_arrow_up">Less</string>
-    <string name="details_screen_description_arrow_down">More</string>
     <string name="unknown_description">No description found !</string>
     <string name="player_screen_episode_label">Episode</string>
     <string name="player_screen_qd_ok_btn">Ok</string>
@@ -34,7 +38,6 @@
     <string name="player_screen_source_load_error">Stream source %1$s can\'t load</string>
     <string name="player_screen_empty_sources">No video sources found</string>
     <string name="stub_text" translatable="false">stub</string>
-    <string name="request_unknown_error">Network error : %1$s</string>
     <string name="default_string">Default</string>
     <string name="preferences_library_title">Library</string>
     <string name="preferences_library_columns">Items per row</string>
@@ -100,8 +103,6 @@
     <string name="notification_downloading_app_update">Downloading update…</string>
     <string name="notification_app_update_tap_install">Tap to install</string>
     <string name="download">Download</string>
-    <string name="vostfree_search_length_error">Search query must be at least 4 caracters long</string>
-    <string name="discover_search_filters_independent">Filters ignores each other</string>
     <string name="webview_required">Webview is required for Tadami</string>
     <string name="webview_outdated">Please update the WebView app for better compatibility</string>
     <string name="notification_library_update_skipped_not_caught_up">Skipped because there are too much unseen episodes</string>
@@ -126,22 +127,10 @@
     <string name="details_screen_start_button">Start</string>
     <string name="details_screen_resume_button">Resume</string>
     <string name="unknown_error">Unknown error</string>
-    <string name="preferences_backup_category_manual">Manual saves</string>
-    <string-array name="preferences_backup_create_fields">
-        <item>Library entries</item>
-        <item>Episodes</item>
-        <item>App preferences</item>
-        <item>History</item>
-    </string-array>
     <string name="preferences_backup_create_title">Create a save</string>
-    <string name="preferences_backup_create_subtitle">May be used to restore current library</string>
-    <string name="preferences_backup_restore_subtitle">Restore library from backup file</string>
     <string name="preferences_backup_restore_title">Restore backup</string>
     <string name="preferences_backup_title">Backup and restore</string>
-    <string name="preferences_backup_category_auto">Automatic backups</string>
     <string name="preferences_backup_frequency">Backup frequency</string>
-    <string name="preferences_backup_directory">Backup location</string>
-    <string name="preferences_backup_maxfiles">Maximum backup files</string>
     <string name="backup_info">You should keep copies of backups in other places as well. Backups may contain sensitive data including any stored passwords; be careful if sharing.</string>
     <string name="last_auto_backup_info">Last automatically backed up: %s</string>
     <string name="restore_miui_warning">Backup/restore may not function properly if MIUI Optimization is disabled.</string>
@@ -165,7 +154,6 @@
         <item quantity="one">Done in %1$s with %2$s error</item>
         <item quantity="other">Done in %1$s with %2$s errors</item>
     </plurals>
-    <string name="missing_storage_permission">Storage permissions not granted</string>
     <string name="create_backup_file_error">Couldn\\\'t create a backup file</string>
     <string name="empty_backup_error">No library entries to back up</string>
     <string name="invalid_backup_file_missing_anime">Backup does not contain any library entries.</string>
@@ -177,9 +165,6 @@
     <string name="restore_in_progress">Restore is already in progress</string>
     <string name="source_not_installed">Source not installed: %1$s</string>
     <string name="category_network">Network</string>
-    <string name="sources_preferences_base_url">Override the base url</string>
-    <string name="sources_preferences_base_url_subtitle">If you want to modify the source base address in case it is not working already.</string>
-    <string name="sources_preferences_title">Settings - %1$s</string>
     <string name="default_string_formatted">Default : %1$s</string>
     <string name="clipboard_copied">Copied to clipboard</string>
     <string name="information_webview_required">WebView is required for the app to function</string>
@@ -226,6 +211,8 @@
     <string name="history_anime_time">Ep. %1$s - %2$s</string>
     <string name="information_no_recent_anime">Nothing seen recently</string>
     <string name="youtube_gestures_seconds">%1$s seconds</string>
+    <string name="library_entries">Library entries</string>
+    <string name="sources_settings">Source settings</string>
     <!-- Dialog option with checkbox view -->
     <string name="dialog_with_checkbox_remove_description">This will remove the seen date of this episode. Are you sure?</string>
     <string name="dialog_with_checkbox_reset">Reset all episodes for this entry</string>
@@ -255,7 +242,6 @@
     <string name="label_recent_updates_long">Updates</string>
     <string name="label_more">More</string>
     <string name="label_settings">Settings</string>
-    <string name="label_explore">Explore</string>
     <string name="label_extensions">Extensions</string>
     <string name="label_sources">Sources</string>
     <string name="label_source">Source</string>
@@ -300,7 +286,6 @@
     <string name="ext_info_language">Language</string>
     <string name="ext_app_info">App info</string>
     <string name="ext_uninstall">Uninstall</string>
-    <string name="delete_downloaded">Delete downloaded</string>
     <string name="display_anime">Show anime</string>
     <string name="action_copy">Copy</string>
     <string name="action_move">Move</string>
@@ -308,13 +293,9 @@
 
     <!-- Onboarding -->
     <string name="onboarding_storage_action_select">Select a folder</string>
-    <string name="pref_onboarding_guide">Onboarding guide</string>
-    <string name="onboarding_guides_new_user">New to %s? We recommend checking out the getting started guide.</string>
     <string name="onboarding_action_finish">Get started</string>
-    <string name="onboarding_storage_selection_required">A folder must be selected</string>
     <string name="onboarding_heading">Welcome!</string>
     <string name="onboarding_guides_returning_user">Reinstalling %s?</string>
-    <string name="onboarding_action_skip">Skip</string>
     <string name="onboarding_action_next">Next</string>
     <string name="onboarding_description">Let\&apos;s set some things up first. You can always change these in the settings later too.</string>
     <string name="no_location_set">No storage location set</string>

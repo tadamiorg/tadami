@@ -102,6 +102,13 @@ fun Context.isConnectedToWifi(): Boolean {
     }
 }
 
+fun Context.isOnline(): Boolean {
+    val activeNetwork = connectivityManager.activeNetwork ?: return false
+    val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+    val maxTransport = NetworkCapabilities.TRANSPORT_LOWPAN
+    return (NetworkCapabilities.TRANSPORT_CELLULAR..maxTransport).any(networkCapabilities::hasTransport)
+}
+
 fun Context.openInBrowser(url: String, forceDefaultBrowser: Boolean = false) {
     this.openInBrowser(url.toUri(), forceDefaultBrowser)
 }
@@ -153,12 +160,9 @@ fun Context.getUriSize(uri: Uri): Long? {
 }
 
 fun Context.launchRequestPackageInstallsPermission() {
-    val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    val intent =
         Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
             data = Uri.parse("package:$packageName")
         }
-    } else {
-        Intent(Settings.ACTION_SECURITY_SETTINGS)
-    }
     startActivity(intent)
 }

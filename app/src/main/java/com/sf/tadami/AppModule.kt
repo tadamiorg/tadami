@@ -49,6 +49,7 @@ import data.History
 import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.protobuf.ProtoBuf
 import uy.kohesive.injekt.api.InjektModule
 import uy.kohesive.injekt.api.InjektRegistrar
 import uy.kohesive.injekt.api.addSingleton
@@ -100,6 +101,10 @@ class AppModule(private val app: Application) : InjektModule {
                     seen_atAdapter = dateColumnAdapter
                 )
             )
+        }
+
+        addSingletonFactory<ProtoBuf> {
+            ProtoBuf
         }
 
         addSingletonFactory<DataBaseHandler> {

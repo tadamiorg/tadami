@@ -1,6 +1,5 @@
 package com.sf.tadami.data.backup
 
-import android.Manifest
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -9,9 +8,6 @@ import androidx.datastore.preferences.core.Preferences
 import com.hippo.unifile.UniFile
 import com.sf.tadami.R
 import com.sf.tadami.data.DataBaseHandler
-import com.sf.tadami.data.backup.BackupCreateFlags.BACKUP_APP_PREFS
-import com.sf.tadami.data.backup.BackupCreateFlags.BACKUP_EPISODE
-import com.sf.tadami.data.backup.BackupCreateFlags.BACKUP_HISTORY
 import com.sf.tadami.data.backup.models.*
 import com.sf.tadami.data.episode.EpisodeMapper
 import com.sf.tadami.data.interactors.history.GetHistoryInteractor
@@ -21,12 +17,11 @@ import com.sf.tadami.notifications.backup.BackupFileValidator
 import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.source.Source
+import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
-import com.sf.tadami.ui.tabs.more.settings.screens.data.BackupSerializer
+import com.sf.tadami.ui.tabs.more.settings.screens.data.backup.BackupSerializer
+import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getDataStoreValues
-import com.sf.tadami.utils.getPreferencesGroup
-import com.sf.tadami.utils.hasPermission
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.protobuf.ProtoBuf
 import okio.buffer
@@ -35,18 +30,17 @@ import okio.sink
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.FileOutputStream
+import java.time.Instant
 
 class BackupCreator(
     private val context: Context,
+    private val isAutoBackup: Boolean,
 ) {
 
     private val handler: DataBaseHandler = Injekt.get()
     private val dataStore: DataStore<Preferences> = Injekt.get()
     private val getHistory: GetHistoryInteractor = Injekt.get()
     private val sourceManager: SourceManager = Injekt.get()
-    private var backupPreferences: BackupPreferences = runBlocking {
-        dataStore.getPreferencesGroup(BackupPreferences)
-    }
     private val getLibary: LibraryInteractor = Injekt.get()
 
 
@@ -54,42 +48,37 @@ class BackupCreator(
     internal val parser = ProtoBuf
 
     @OptIn(ExperimentalSerializationApi::class)
-    suspend fun createBackup(uri: Uri, flags: Int, isAutoBackup: Boolean): String {
-        if (!context.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            throw IllegalStateException(context.getString(R.string.missing_storage_permission))
-        }
-        val databaseAnime = getLibary.await()
-        val backup = Backup(
-            backupAnimes(databaseAnime, flags),
-            backupAppPreferences(flags),
-            backupSources(databaseAnime)
-        )
-
+    suspend fun createBackup(uri: Uri, options: BackupOptions): String {
         var file: UniFile? = null
         try {
-            file = (
-                    if (isAutoBackup) {
-                        // Get dir of file and create
-                        val dir = UniFile.fromUri(context, uri)
+            file = if (isAutoBackup) {
+                // Get dir of file and create
+                val dir = UniFile.fromUri(context, uri)
 
-                        // Delete older backups
-                        dir?.listFiles { _, filename -> Backup.filenameRegex.matches(filename) }
-                            .orEmpty()
-                            .sortedByDescending { it.name }
-                            .drop(backupPreferences.autoBackupMaxFiles - 1)
-                            .forEach { it.delete() }
+                // Delete older backups
+                dir?.listFiles { _, filename -> Backup.filenameRegex.matches(filename) }
+                    .orEmpty()
+                    .sortedByDescending { it.name }
+                    .drop(MAX_AUTO_BACKUPS - 1)
+                    .forEach { it.delete() }
 
-                        // Create new file to place backup
-                        dir?.createFile(Backup.getFilename())
-                    } else {
-                        UniFile.fromUri(context, uri)
-                    }
-                    )
-                ?: throw Exception(context.getString(R.string.create_backup_file_error))
-
-            if (!file.isFile) {
-                throw IllegalStateException("Failed to get handle on a backup file")
+                // Create new file to place backup
+                dir?.createFile(Backup.getFilename())
+            } else {
+                UniFile.fromUri(context, uri)
             }
+
+            if (file == null || !file.isFile) {
+                throw IllegalStateException(context.getString(R.string.create_backup_file_error))
+            }
+
+            val databaseAnime = getLibary.await()
+            val backup = Backup(
+                backupAnimes(databaseAnime, options),
+                backupAppPreferences(options),
+                backupSources(databaseAnime),
+                backupSourcePreferences(options)
+            )
 
             val byteArray = parser.encodeToByteArray(BackupSerializer, backup)
             if (byteArray.isEmpty()) {
@@ -105,6 +94,10 @@ class BackupCreator(
             // Make sure it's a valid backup file
             BackupFileValidator().validate(context, fileUri)
 
+            if (isAutoBackup) {
+                dataStore.editPreference(Instant.now().toEpochMilli(),BackupPreferences.AUTO_BACKUP_LAST_TIMESTAMP)
+            }
+
             return fileUri.toString()
         } catch (e: Exception) {
             Log.e("BackupCreator", e.stackTraceToString())
@@ -113,36 +106,40 @@ class BackupCreator(
         }
     }
 
-    private suspend fun backupAnimes(animes: List<LibraryAnime>, flags: Int): List<BackupAnime> {
+    private suspend fun backupAnimes(
+        animes: List<LibraryAnime>,
+        options: BackupOptions
+    ): List<BackupAnime> {
+        if (!options.libraryEntries) return emptyList()
         return animes.map {
-            backupAnime(it, flags)
+            backupAnime(it, options)
         }
     }
 
-    private suspend fun backupAnime(anime: LibraryAnime, options: Int): BackupAnime {
+    private suspend fun backupAnime(anime: LibraryAnime, options: BackupOptions): BackupAnime {
         // Entry for this anime
         val animeObject = BackupAnime.copyFrom(anime)
 
         // Check if user wants episode information in backup
-        if (options and BACKUP_EPISODE == BACKUP_EPISODE) {
+        if (options.episodes) {
             // Backup all the episodes
             handler.awaitList {
                 episodeQueries.getEpisodesByAnimeId(
                     animeId = anime.id,
                     mapper = EpisodeMapper::mapBackupEpisode,
-
-                    )
+                )
             }
                 .takeUnless(List<BackupEpisode>::isEmpty)
                 ?.let { animeObject.episodes = it }
         }
 
         // Check if user wants history information in backup
-        if (options and BACKUP_HISTORY == BACKUP_HISTORY) {
+        if (options.history) {
             val historyByAnimeId = getHistory.await(anime.id)
             if (historyByAnimeId.isNotEmpty()) {
                 val history = historyByAnimeId.map { history ->
-                    val episode = handler.awaitOne { episodeQueries.getEpisodeById(history.episodeId) }
+                    val episode =
+                        handler.awaitOne { episodeQueries.getEpisodeById(history.episodeId) }
                     BackupHistory(episode.url, history.seenAt?.time ?: 0L)
                 }
                 if (history.isNotEmpty()) {
@@ -154,8 +151,9 @@ class BackupCreator(
         return animeObject
     }
 
-    private suspend fun backupAppPreferences(flags: Int): List<BackupPreference> {
-        if (flags and BACKUP_APP_PREFS != BACKUP_APP_PREFS) return emptyList()
+    private suspend fun backupAppPreferences(options: BackupOptions): List<BackupPreference> {
+        if (!options.appSettings) return emptyList()
+
         return dataStore.getDataStoreValues().asMap().toBackupPreferences()
     }
 
@@ -180,6 +178,19 @@ class BackupCreator(
             }
     }
 
+    private suspend fun backupSourcePreferences(options: BackupOptions): List<BackupSourcePreferences> {
+        if (!options.sourcesSettings) return emptyList()
+        return sourceManager.getCatalogueSources()
+            .filterIsInstance<ConfigurableParsedHttpAnimeSource<*>>()
+            .map {
+                BackupSourcePreferences(
+                    it.id,
+                    it.dataStore.getDataStoreValues().asMap().toBackupPreferences()
+                )
+            }
+            .filter { it.prefs.isNotEmpty() }
+    }
+
     private fun backupSources(animes: List<LibraryAnime>): List<BackupSource> {
         return animes
             .asSequence()
@@ -195,4 +206,8 @@ class BackupCreator(
             name = this.name,
             sourceId = this.id,
         )
+
+    companion object {
+        private const val MAX_AUTO_BACKUPS: Int = 4
+    }
 }
