@@ -23,6 +23,7 @@ import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.data.backup.BackupOptions
 import com.sf.tadami.data.backup.models.Backup
+import com.sf.tadami.data.backup.models.BackupUtils
 import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.components.banners.WarningBanner
@@ -100,7 +101,7 @@ class CreateBackupScreen(
                 onClickAction = {
                     if (!BackupCreateWorker.isManualJobRunning(context)) {
                         try {
-                            chooseBackupDir.launch(Backup.getFilename())
+                            chooseBackupDir.launch(BackupUtils.getFilename())
                         } catch (e: ActivityNotFoundException) {
                             UiToasts.showToast(R.string.file_picker_error)
                         }

@@ -19,7 +19,6 @@ import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.source.Source
 import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
-import com.sf.tadami.ui.tabs.more.settings.screens.data.backup.BackupSerializer
 import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getDataStoreValues
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -56,14 +55,14 @@ class BackupCreator(
                 val dir = UniFile.fromUri(context, uri)
 
                 // Delete older backups
-                dir?.listFiles { _, filename -> Backup.filenameRegex.matches(filename) }
+                dir?.listFiles { _, filename -> BackupUtils.filenameRegex.matches(filename) }
                     .orEmpty()
                     .sortedByDescending { it.name }
                     .drop(MAX_AUTO_BACKUPS - 1)
                     .forEach { it.delete() }
 
                 // Create new file to place backup
-                dir?.createFile(Backup.getFilename())
+                dir?.createFile(BackupUtils.getFilename())
             } else {
                 UniFile.fromUri(context, uri)
             }
@@ -80,7 +79,7 @@ class BackupCreator(
                 backupSourcePreferences(options)
             )
 
-            val byteArray = parser.encodeToByteArray(BackupSerializer, backup)
+            val byteArray = parser.encodeToByteArray(Backup.serializer(), backup)
             if (byteArray.isEmpty()) {
                 throw IllegalStateException(context.getString(R.string.empty_backup_error))
             }
