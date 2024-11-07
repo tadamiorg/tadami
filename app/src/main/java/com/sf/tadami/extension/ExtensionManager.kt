@@ -53,18 +53,17 @@ class ExtensionManager(
     val installedExtensionsFlow = _installedExtensionsFlow.asStateFlow()
 
     fun getAppIconForSource(sourceId: Long): Drawable? {
-        val pkgName =
-            _installedExtensionsFlow.value.find { ext -> ext.sources.any { it.id == sourceId } }?.pkgName
-        if (pkgName != null) {
-            return iconMap[pkgName] ?: iconMap.getOrPut(pkgName) {
-                ExtensionsLoader.getExtensionPackageInfoFromPkgName(
-                    context,
-                    pkgName
-                )!!.applicationInfo
-                    .loadIcon(context.packageManager)
+        val pkgName = _installedExtensionsFlow.value
+            .find { ext ->
+                ext.sources.any { it.id == sourceId }
             }
+            ?.pkgName
+            ?: return null
+
+        return iconMap[pkgName] ?: iconMap.getOrPut(pkgName) {
+            ExtensionsLoader.getExtensionPackageInfoFromPkgName(context, pkgName)!!.applicationInfo!!
+                .loadIcon(context.packageManager)
         }
-        return null
     }
 
     private val _availableExtensionsFlow = MutableStateFlow(emptyList<Extension.Available>())

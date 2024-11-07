@@ -1,22 +1,22 @@
 [versions]
-agp = "8.2.2"
-core-ktx = "1.13.1"
-lifecycle_version = "2.8.1"
-worker_version = "2.9.0"
-paging_version = "3.3.0"
+agp = "8.6.1"
+core-ktx = "1.15.0"
+lifecycle_version = "2.8.7"
+worker_version = "2.10.0"
+paging_version = "3.3.2"
 appcompat_version = "1.7.0"
 splashscreen_version = "1.0.1"
-webkit_version = "1.11.0"
+webkit_version = "1.12.1"
 datastore_version = "1.1.1"
 cast_mediarouter_version = "1.7.0"
 cast_framework_version="21.5.0"
-navigation-version = "2.7.7"
-exoplayer_version = "1.3.1"
+navigation-version = "2.8.3"
+exoplayer_version = "1.4.1"
 
 # Test
 junit = "4.13.2"
-androidx-test-ext-junit = "1.1.5"
-espresso-core = "3.5.1"
+androidx-test-ext-junit = "1.2.1"
+espresso-core = "3.6.1"
 
 [libraries]
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
@@ -45,7 +45,7 @@ worker = { group = "androidx.work", name="work-runtime-ktx", version.ref = "work
 paging-runtime = { group = "androidx.paging", name="paging-runtime", version.ref = "paging_version" }
 paging-common = { group = "androidx.paging", name="paging-common", version.ref = "paging_version" }
 paging-rxjava3 = { group = "androidx.paging", name="paging-rxjava3", version.ref = "paging_version" }
-paging-compose = { group = "androidx.paging", name="paging-compose", version="3.3.0-alpha02"}
+paging-compose = { group = "androidx.paging", name="paging-compose", version.ref="paging_version"}
 
 # Cast libs
 cast-mediarouter = { module="androidx.mediarouter:mediarouter", version.ref="cast_mediarouter_version" }
@@ -66,7 +66,7 @@ exoplayer-rtsp = {group = "androidx.media3", name="media3-exoplayer-rtsp", versi
 exoplayer-smoothstreaming = {group = "androidx.media3", name="media3-exoplayer-smoothstreaming", version.ref="exoplayer_version"}
 
 # Material
-material = "com.google.android.material:material:1.10.0"
+material = "com.google.android.material:material:1.12.0"
 
 [plugins]
 com-android-application = { id = "com.android.application", version.ref = "agp" }

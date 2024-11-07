@@ -1,6 +1,8 @@
 package com.sf.tadami.notifications.appupdate
 
 import android.content.Context
+import android.content.pm.ServiceInfo
+import android.os.Build
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.Data
@@ -64,7 +66,12 @@ class AppUpdateWorker(
     override suspend fun getForegroundInfo(): ForegroundInfo {
         return ForegroundInfo(
             Notifications.APP_UPDATE_DOWNLOAD_PROGRESS_ID,
-            notifier.showProgressNotification()
+            notifier.showProgressNotification(),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            } else {
+                0
+            },
         )
     }
 

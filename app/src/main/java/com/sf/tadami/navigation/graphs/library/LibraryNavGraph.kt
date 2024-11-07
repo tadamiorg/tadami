@@ -14,8 +14,6 @@ fun NavGraphBuilder.libraryNavGraph(
     tabsNavPadding : PaddingValues,
     bottomNavDisplay: Boolean,
     setNavDisplay: (display: Boolean) -> Unit,
-    librarySheetVisible: Boolean,
-    showLibrarySheet: () -> Unit,
 ) {
     composable(
         route = HomeNavItems.Library.route
@@ -24,9 +22,7 @@ fun NavGraphBuilder.libraryNavGraph(
             modifier = Modifier.padding(tabsNavPadding),
             navController = navController,
             setNavDisplay = setNavDisplay,
-            bottomNavDisplay = bottomNavDisplay,
-            librarySheetVisible = librarySheetVisible,
-            showLibrarySheet = showLibrarySheet
+            bottomNavDisplay = bottomNavDisplay
         )
     }
 }

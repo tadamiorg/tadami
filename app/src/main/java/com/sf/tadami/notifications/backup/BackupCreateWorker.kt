@@ -1,7 +1,9 @@
 package com.sf.tadami.notifications.backup
 
 import android.content.Context
+import android.content.pm.ServiceInfo
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
@@ -17,19 +19,18 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.hippo.unifile.UniFile
-import com.sf.tadami.data.backup.BackupCreateFlags
 import com.sf.tadami.data.backup.BackupCreator
+import com.sf.tadami.data.backup.BackupOptions
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.backup.BackupPreferences
+import com.sf.tadami.preferences.storage.StoragePreferences
 import com.sf.tadami.utils.cancelNotification
-import com.sf.tadami.utils.editPreferences
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.isRunning
 import com.sf.tadami.utils.workManager
 import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import java.util.Date
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
@@ -42,13 +43,14 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
     override suspend fun doWork(): Result {
         val isAutoBackup = inputData.getBoolean(IS_AUTO_BACKUP_KEY, true)
         val dataStore : DataStore<Preferences> = Injekt.get()
-        val backupPreferences = dataStore.getPreferencesGroup(BackupPreferences)
+        val storagePreferences = dataStore.getPreferencesGroup(StoragePreferences)
 
         if (isAutoBackup && BackupRestoreWorker.isRunning(context)) return Result.retry()
 
         val uri = inputData.getString(LOCATION_URI_KEY)?.toUri()
-            ?: backupPreferences.autoBackupFolder.toUri()
-        val flags = inputData.getInt(BACKUP_FLAGS_KEY, BackupCreateFlags.AutomaticDefaults)
+            ?: storagePreferences.storageDir.toUri()
+        val options = inputData.getBooleanArray(OPTIONS_KEY)?.let { BackupOptions.fromBooleanArray(it) }
+            ?: BackupOptions()
 
         try {
             setForeground(getForegroundInfo())
@@ -56,12 +58,8 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
             Log.e("BackupCreateWorker","Not allowed to run on foreground service")
         }
         return try {
-            val location = BackupCreator(context).createBackup(uri, flags, isAutoBackup)
-            if (isAutoBackup) {
-                dataStore.editPreferences(backupPreferences.copy(autoBackupLastTimestamp = Date().time),
-                    BackupPreferences
-                )
-            } else {
+            val location = BackupCreator(context,isAutoBackup).createBackup(uri, options)
+            if (!isAutoBackup) {
                 notifier.showBackupComplete(UniFile.fromUri(context,location.toUri())!!)
             }
             Result.success()
@@ -79,6 +77,11 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
         return ForegroundInfo(
             Notifications.BACKUP_PROGRESS_ID,
             notifier.showBackupProgress().build(),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            } else {
+                0
+            },
         )
     }
 
@@ -114,11 +117,11 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
             }
         }
 
-        fun startNow(context: Context, uri: Uri, flags: Int) {
+        fun startNow(context: Context, uri: Uri, options: BackupOptions) {
             val inputData = workDataOf(
                 IS_AUTO_BACKUP_KEY to false,
                 LOCATION_URI_KEY to uri.toString(),
-                BACKUP_FLAGS_KEY to flags,
+                OPTIONS_KEY to options.asBooleanArray(),
             )
             val request = OneTimeWorkRequestBuilder<BackupCreateWorker>()
                 .addTag(TAG_MANUAL)
@@ -134,4 +137,4 @@ private const val TAG_MANUAL = "$TAG_AUTO:manual"
 
 private const val IS_AUTO_BACKUP_KEY = "is_auto_backup" // Boolean
 private const val LOCATION_URI_KEY = "location_uri" // String
-private const val BACKUP_FLAGS_KEY = "backup_flags" // Int
+private const val OPTIONS_KEY = "options" // BooleanArray

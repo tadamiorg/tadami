@@ -1,13 +1,8 @@
 package com.sf.tadami.ui.components.dialog.sheets
 
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.drag
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetState
-import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEvent
@@ -17,7 +12,6 @@ import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.unit.dp
@@ -146,26 +140,6 @@ suspend fun PointerInputScope.detectTadaDragGestures(
                 onDragCancel()
             } else {
                 onDragEnd()
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-fun Modifier.preventBottomSheetJumps(sheetState: ModalBottomSheetState? = null, scrollState : ScrollState? = null) : Modifier {
-    return this.pointerInput(Unit){
-        detectTadaDragGestures { change, dragAmount ->
-            val isDraggingUp = dragAmount.y < 0
-            sheetState?.let {sheetState->
-                if (isDraggingUp && sheetState.currentValue == ModalBottomSheetValue.Expanded && sheetState.targetValue == ModalBottomSheetValue.Expanded) {
-                    change.consume()
-                }
-            }
-
-            scrollState?.let{ scrollState ->
-                if (isDraggingUp && (!scrollState.canScrollForward)) {
-                    change.consume()
-                }
             }
         }
     }

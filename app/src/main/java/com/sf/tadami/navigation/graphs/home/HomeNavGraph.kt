@@ -16,19 +16,22 @@ import com.sf.tadami.navigation.graphs.history.historyNavGraph
 import com.sf.tadami.navigation.graphs.library.libraryNavGraph
 import com.sf.tadami.navigation.graphs.migrate.migrateNavGraph
 import com.sf.tadami.navigation.graphs.more.moreNavGraph
+import com.sf.tadami.navigation.graphs.onboarding.onboardingNavGraph
 import com.sf.tadami.navigation.graphs.settings.settingsNavGraph
 import com.sf.tadami.navigation.graphs.sources.sourcesNavGraph
 import com.sf.tadami.navigation.graphs.updates.updatesNavGraph
+import com.sf.tadami.preferences.app.BasePreferences
+import com.sf.tadami.preferences.model.rememberDataStoreState
 
 @Composable
 fun HomeNavGraph(
     navController: NavHostController,
     tabsNavPadding: PaddingValues,
     bottomNavDisplay: Boolean,
-    setNavDisplay: (display: Boolean) -> Unit,
-    librarySheetVisible: Boolean,
-    showLibrarySheet: () -> Unit,
+    setNavDisplay: (display: Boolean) -> Unit
 ) {
+    val basePreferencesState = rememberDataStoreState(BasePreferences)
+
     NavHost(
         navController = navController,
         route = GRAPH.HOME,
@@ -47,14 +50,18 @@ fun HomeNavGraph(
         }
     ) {
 
+        /* Onboarding screen */
+        onboardingNavGraph(
+            navController = navController,
+            basePreferencesState = basePreferencesState
+        )
+
         /* Home Tabs */
         libraryNavGraph(
             navController = navController,
             tabsNavPadding = tabsNavPadding,
             setNavDisplay = setNavDisplay,
-            bottomNavDisplay = bottomNavDisplay,
-            librarySheetVisible = librarySheetVisible,
-            showLibrarySheet = showLibrarySheet
+            bottomNavDisplay = bottomNavDisplay
         )
 
         updatesNavGraph(

@@ -16,10 +16,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -70,8 +70,14 @@ fun GetYoutubeGesture(
     var rightRipple: Indication? by remember { mutableStateOf(null) }
     var leftRipple: Indication? by remember { mutableStateOf(null) }
 
-    val leftRippleEffect = rememberRipple(bounded = true, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-    val rightRippleEffect = rememberRipple(bounded = true,color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+    val leftRippleEffect = ripple(
+        bounded = true,
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+    )
+    val rightRippleEffect = ripple(
+        bounded = true,
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+    )
 
     var backwardSeekedTime by remember {  mutableLongStateOf(0L) }
     var forwardSeekedTime by remember {  mutableLongStateOf(0L) }

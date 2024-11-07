@@ -14,7 +14,7 @@ fun SearchTopAppBar(
     modifier: Modifier = Modifier,
     title: @Composable () -> Unit = {},
     navigationIcon: @Composable () -> Unit = {},
-    colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
+    colors: TopAppBarColors = TopAppBarDefaults.mediumTopAppBarColors(),
     searchOpened: Boolean = false,
     searchEnabled : Boolean = true,
     onSearchCancel: () -> Unit = {},

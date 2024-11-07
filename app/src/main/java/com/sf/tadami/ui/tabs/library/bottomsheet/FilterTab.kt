@@ -26,7 +26,6 @@ fun FilterTab(filters: LibraryFilter, setFilters: (filterFlags: Long) -> Unit) {
             }
             setFilters(newFilters)
         }
-
         TriStateItem(
             label = stringResource(id = R.string.filter_started),
             state = filters.startedState

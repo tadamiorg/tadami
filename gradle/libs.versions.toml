@@ -1,9 +1,8 @@
 [versions]
 coil-version = "2.5.0"
-rxjava3-version = "3.1.5"
-jsoup-version="1.17.2"
-okhttp-version = "5.0.0-alpha.12"
-sqldelight-version = "2.0.0"
+jsoup-version="1.18.1"
+okhttp-version = "5.0.0-alpha.14"
+sqldelight-version = "2.0.2"
 http4k-bom-version = "4.42.1.0"
 dotenv_version = "4.0.0"
 richtext = "1.0.0-alpha01"
@@ -23,19 +22,19 @@ rxjava3-rxandroid = { group = "io.reactivex.rxjava3",name="rxandroid",version="3
 jsoup = { group = "org.jsoup",name="jsoup",version.ref="jsoup-version"}
 
 # Injekt
-injekt = "com.github.inorichi.injekt:injekt-core:65b0440"
+injekt = "com.github.mihonapp:injekt:91edab2317"
 
 # OkHttp
 okhttp = {group="com.squareup.okhttp3",name="okhttp",version.ref="okhttp-version"}
 okhttp-logging-interceptor = {group="com.squareup.okhttp3",name="logging-interceptor",version.ref="okhttp-version"}
 okhttp-dnsoverhttps = {group="com.squareup.okhttp3",name="okhttp-dnsoverhttps",version.ref="okhttp-version"}
 okhttp-brotli = {group="com.squareup.okhttp3",name="okhttp-brotli",version.ref="okhttp-version"}
-okio = "com.squareup.okio:okio:3.7.0"
+okio = "com.squareup.okio:okio:3.9.1"
 
 # SQLDelight
 sqldelight-android-driver = {group="app.cash.sqldelight",name="android-driver",version.ref="sqldelight-version"}
 sqldelight-coroutines-extensions = {group="app.cash.sqldelight",name="coroutines-extensions",version.ref="sqldelight-version"}
-sqlite = "com.github.requery:sqlite-android:3.43.0"
+sqlite = "com.github.requery:sqlite-android:3.45.0"
 sqldelight-dialects-sql = { module = "app.cash.sqldelight:sqlite-3-38-dialect", version.ref = "sqldelight-version" }
 sqldelight-gradle = { module = "app.cash.sqldelight:gradle-plugin", version.ref = "sqldelight-version" }
 
@@ -52,8 +51,8 @@ http4k-core = { group = "org.http4k", name = "http4k-core"}
 http4k-server-ktorcio = { group = "org.http4k", name = "http4k-server-ktorcio"}
 
 # JSUnpacker
-jsunpacker = "dev.datlag.jsunpacker:jsunpacker:1.0.1"
-unifile = "com.github.tachiyomiorg:unifile:7c257e1c64"
+jsunpacker = "dev.datlag.jsunpacker:jsunpacker:1.0.2"
+unifile = "com.github.tachiyomiorg:unifile:e0def6b3dc"
 
 [plugins]
 dotenv = { id="co.uzzu.dotenv.gradle", version.ref="dotenv_version" }

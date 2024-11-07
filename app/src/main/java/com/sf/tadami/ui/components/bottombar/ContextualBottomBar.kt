@@ -1,9 +1,9 @@
 package com.sf.tadami.ui.components.bottombar
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -41,7 +41,7 @@ fun ContextualBottomBar(
     AnimatedVisibility(
         visibleState = visibleState,
         enter = expandVertically(expandFrom = Alignment.Bottom),
-        exit = shrinkVertically(shrinkTowards = Alignment.Bottom)
+        exit = ExitTransition.None
     ) {
         Row(
             modifier = Modifier

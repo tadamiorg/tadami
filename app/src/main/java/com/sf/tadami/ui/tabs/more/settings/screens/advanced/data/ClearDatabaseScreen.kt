@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Warning
@@ -20,6 +19,7 @@ import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -187,8 +187,7 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
                                 )
                             }
                         }
-
-                        Divider(thickness = 1.dp)
+                        HorizontalDivider(thickness = 1.dp)
 
                         Button(
                             modifier = Modifier

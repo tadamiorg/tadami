@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
+import com.sf.tadami.navigation.graphs.settings.DataSettingsRoutes
 import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
@@ -79,11 +80,11 @@ fun SettingsScreen(
                     }
                 ),
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(id = R.string.settings_tab_library_backup_preferences_title),
+                    title = stringResource(id = R.string.settings_tab_library_data_preferences_title),
                     subtitle = stringResource(id = R.string.settings_tab_library_backup_preferences_subtitle),
                     icon = Icons.Outlined.Backup,
                     onClick = {
-                        navController.navigate(SettingsRoutes.BACKUP)
+                        navController.navigate(DataSettingsRoutes.HOME)
                     }
                 ),
                 Preference.PreferenceItem.TextPreference(

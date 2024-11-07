@@ -36,7 +36,7 @@ fun ContextualSearchTopAppBar(
     // For Search Mode
     title: @Composable () -> Unit,
     navigationIcon: @Composable () -> Unit = {},
-    colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
+    colors: TopAppBarColors = TopAppBarDefaults.mediumTopAppBarColors(),
     actions: List<Action> = emptyList(),
     isSearchMode: Boolean = false,
     onSearchCancel: (() -> Unit)? = null,
@@ -147,7 +147,7 @@ fun ActionModeBar(
                     )
                 }
             },
-            colors = TopAppBarDefaults.smallTopAppBarColors(
+            colors = TopAppBarDefaults.mediumTopAppBarColors(
                 containerColor = MaterialTheme.colorScheme
                     .surfaceColorAtElevation(3.dp),
             ),

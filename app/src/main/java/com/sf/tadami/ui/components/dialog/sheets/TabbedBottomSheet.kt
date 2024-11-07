@@ -1,20 +1,16 @@
 package com.sf.tadami.ui.components.dialog.sheets
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,24 +27,20 @@ import androidx.compose.ui.zIndex
 import com.sf.tadami.ui.components.filters.TabbedBottomSheetContentPadding
 import kotlinx.coroutines.launch
 
-@OptIn(
-    ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
-    ExperimentalMaterialApi::class
-)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TabbedBottomSheet(
     tabs: List<TabContent>,
     beyondBoundsPageCount: Int = (tabs.size - 1).coerceAtLeast(0),
-    sheetState: ModalBottomSheetState
 ) {
     val coroutineScope = rememberCoroutineScope()
 
     val pagerState = rememberPagerState(pageCount = { tabs.size })
 
-    Column(modifier = Modifier.preventBottomSheetJumps(sheetState)) {
+    Column {
         PrimaryTabRow(
             selectedTabIndex = pagerState.currentPage,
-            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
             tabs.forEachIndexed { index, tab ->
                 Tab(
@@ -72,7 +64,7 @@ fun TabbedBottomSheet(
             modifier = Modifier.heightIn(min = largestHeight.dp),
             state = pagerState,
             verticalAlignment = Alignment.Top,
-            beyondBoundsPageCount = beyondBoundsPageCount,
+            beyondViewportPageCount = beyondBoundsPageCount,
         ) { page ->
             Box(
                 modifier = Modifier
@@ -90,6 +82,4 @@ fun TabbedBottomSheet(
             }
         }
     }
-
-
 }

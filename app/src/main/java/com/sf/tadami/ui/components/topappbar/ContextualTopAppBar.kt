@@ -96,7 +96,7 @@ fun ContextualTopAppBar(
 
             },
             colors = if (isActionMode) {
-                TopAppBarDefaults.smallTopAppBarColors(
+                TopAppBarDefaults.mediumTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme
                         .surfaceColorAtElevation(3.dp),
                 )

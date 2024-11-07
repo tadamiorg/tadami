@@ -14,4 +14,5 @@ enum class AppTheme(@StringRes val titleRes: Int) {
     TIDAL_WAVE(R.string.theme_tidalwave),
     YINYANG(R.string.theme_yinyang),
     YOTSUBA(R.string.theme_yotsuba),
+    DOOM(R.string.theme_doom)
 }

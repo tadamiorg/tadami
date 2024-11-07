@@ -15,6 +15,7 @@ buildscript {
 plugins {
     alias(androidx.plugins.com.android.application) apply false
     alias(androidx.plugins.com.android.library) apply false
+    alias(kotlinx.plugins.compose.compiler) apply false
     alias(kotlinx.plugins.android) apply false
     alias(kotlinx.plugins.serialization) apply false
     alias(libs.plugins.dotenv)
@@ -38,11 +39,11 @@ subprojects {
 
     plugins.withType<BasePlugin> {
         configure<BaseExtension> {
-            compileSdkVersion(34)
+            compileSdkVersion(35)
             defaultConfig {
                 minSdk = 28
                 //noinspection ExpiredTargetSdkVersion
-                targetSdk = 29
+                targetSdk = 35
             }
 
             compileOptions {

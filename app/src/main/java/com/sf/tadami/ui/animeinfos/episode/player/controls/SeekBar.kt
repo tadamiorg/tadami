@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +40,7 @@ fun SeekBar(
 
     val buffer = remember(bufferPercentage()) { bufferPercentage() }
     val interactionSource = remember { MutableInteractionSource() }
+    val otherInteractionSource = remember { MutableInteractionSource() }
 
     Row(
         modifier = modifier,
@@ -62,11 +64,24 @@ fun SeekBar(
                 enabled = false,
                 onValueChange = { },
                 valueRange = 0f..100f,
-                colors =
-                SliderDefaults.colors(
-                    disabledThumbColor = Color.Transparent,
-                    disabledActiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                )
+                thumb = {
+                    SliderDefaults.Thumb(
+                        interactionSource = otherInteractionSource,
+                        thumbSize = DpSize(22.dp,22.dp),
+                        colors = SliderDefaults.colors(thumbColor = Color.Transparent, disabledThumbColor = Color.Transparent)
+                    )
+                },
+                track = { sliderState ->
+                    SliderDefaults.Track(
+                        sliderState = sliderState,
+                        enabled = false,
+                        thumbTrackGapSize = 0.dp,
+                        colors = SliderDefaults.colors(
+                            disabledActiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                        ),
+                        modifier = Modifier.height(12.dp)
+                    )
+                },
             )
 
             // seek bar
@@ -80,14 +95,17 @@ fun SeekBar(
                 thumb = {
                     SliderDefaults.Thumb(
                         interactionSource = interactionSource,
-                        thumbSize = DpSize(22.dp, 22.dp),
-                        modifier = Modifier.align(Alignment.Center)
+                        thumbSize = DpSize(22.dp,22.dp)
                     )
                 },
-                colors = SliderDefaults.colors(
-                    inactiveTrackColor = Color.Transparent,
-                    disabledActiveTrackColor = MaterialTheme.colorScheme.primary
-                )
+                track = { sliderState ->
+                    SliderDefaults.Track(
+                        sliderState = sliderState,
+                        thumbTrackGapSize = 0.dp,
+                        colors = SliderDefaults.colors(inactiveTrackColor = Color.Transparent),
+                        modifier = Modifier.height(12.dp)
+                    )
+                }
             )
         }
         // show total video time

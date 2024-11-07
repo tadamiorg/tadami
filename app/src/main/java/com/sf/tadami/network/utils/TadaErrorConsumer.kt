@@ -2,13 +2,16 @@ package com.sf.tadami.network.utils
 
 import com.sf.tadami.App
 import com.sf.tadami.R
-import com.sf.tadami.network.HttpError
-import com.sf.tadami.source.StubSource
+import com.sf.tadami.data.anime.NoResultException
+import com.sf.tadami.network.HttpException
+import com.sf.tadami.source.StubSource.SourceNotInstalledException
 import com.sf.tadami.ui.utils.UiToasts
+import com.sf.tadami.utils.isOnline
 import io.reactivex.rxjava3.functions.Consumer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.net.UnknownHostException
 
 
 class TadaErrorConsumer(
@@ -19,23 +22,28 @@ class TadaErrorConsumer(
         runBlocking {
             withContext(Dispatchers.Main) {
                 when (e) {
-                    is HttpError.Failure -> {
+                    is HttpException -> {
                         App.getAppContext()?.let {
                             UiToasts.showToast(
                                 stringRes = R.string.request_error_response,
-                                args = arrayOf("${e.statusCode}")
+                                args = arrayOf("${e.code}")
                             )
                         }
-                        callback?.invoke(e,e.message, e.statusCode)
+                        callback?.invoke(e,e.message, e.code)
                     }
-
-                    is HttpError.CloudflareError -> {
-                        App.getAppContext()
-                            ?.let { UiToasts.showToast(R.string.request_bypass_cloudflare_failure) }
-                        callback?.invoke(e,e.msg, null)
+                    is UnknownHostException -> {
+                        App.getAppContext()?.let {
+                            val actualError =  if (!it.isOnline()) {
+                                it.getString(R.string.exception_offline)
+                            } else {
+                                it.getString(R.string.exception_unknown_host, e.message ?: "")
+                            }
+                            UiToasts.showToast(
+                                msg = actualError
+                            )
+                        }
                     }
-
-                    is StubSource.SourceNotInstalledException -> {
+                    is SourceNotInstalledException -> {
                         App.getAppContext()?.let {
                             UiToasts.showToast(
                                 stringRes = R.string.source_not_installed,
@@ -45,12 +53,24 @@ class TadaErrorConsumer(
                         callback?.invoke(e,e.message, null)
                     }
 
+                    is NoResultException -> {
+                        App.getAppContext()?.let {
+                            UiToasts.showToast(
+                                msg = it.getString(R.string.pager_no_results)
+                            )
+                        }
+                        callback?.invoke(e,e.message, null)
+                    }
+
                     else -> {
                         if (showUnknownError) {
                             App.getAppContext()?.let {
+                                val unknownError = when (val className = this::class.simpleName) {
+                                    "Exception", "IOException" -> e.message ?: className
+                                    else -> "$className: ${e.message}"
+                                }
                                 UiToasts.showToast(
-                                    stringRes = R.string.request_unknown_error,
-                                    args = arrayOf("${e.message}")
+                                    msg = unknownError
                                 )
                             }
                         }

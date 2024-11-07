@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.sf.tadami.R
-import com.sf.tadami.data.anime.NoResultException
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.preferences.library.LibraryPreferences
@@ -49,6 +48,7 @@ import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.tabs.library.badges.UnseenBadge
 import com.sf.tadami.ui.utils.CommonAnimeItemDefaults
+import com.sf.tadami.ui.utils.formattedMessage
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.plus
 
@@ -72,11 +72,7 @@ fun AnimeGrid(
         ?: animeList.loadState.append.takeIf { it is LoadState.Error }
 
     val getErrorMessage: (LoadState.Error) -> String = { state ->
-        when {
-            state.error is NoResultException -> context.getString(R.string.pager_no_results)
-            state.error.message.orEmpty().startsWith("HTTP error") -> "${state.error.message}: "
-            else -> state.error.message.orEmpty()
-        }
+        with(context) { state.error.formattedMessage }
     }
 
     LaunchedEffect(errorState) {

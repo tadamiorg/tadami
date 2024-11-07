@@ -1,6 +1,8 @@
 package com.sf.tadami.notifications.libraryupdate
 
 import android.content.Context
+import android.content.pm.ServiceInfo
+import android.os.Build
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -120,7 +122,12 @@ class LibraryUpdateWorker(
     override suspend fun getForegroundInfo(): ForegroundInfo {
         return ForegroundInfo(
             Notifications.LIBRARY_UPDATE_PROGRESS_ID,
-            notifier.progressNotificationBuilder.build()
+            notifier.progressNotificationBuilder.build(),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            } else {
+                0
+            },
         )
     }
 

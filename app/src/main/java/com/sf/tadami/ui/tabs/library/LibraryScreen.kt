@@ -9,10 +9,10 @@ import androidx.compose.material.icons.outlined.RemoveDone
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -39,7 +39,9 @@ import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.LibraryItem
+import com.sf.tadami.ui.components.filters.TadaBottomSheetScaffold
 import com.sf.tadami.ui.components.topappbar.ContextualSearchTopAppBar
+import com.sf.tadami.ui.tabs.library.bottomsheet.LibrarySheetContent
 import com.sf.tadami.ui.tabs.library.bottomsheet.libraryFilters
 import com.sf.tadami.ui.tabs.library.bottomsheet.sortComparator
 import com.sf.tadami.ui.themes.colorschemes.active
@@ -52,8 +54,6 @@ fun LibraryScreen(
     navController: NavHostController,
     setNavDisplay: (display: Boolean) -> Unit,
     bottomNavDisplay: Boolean,
-    showLibrarySheet: () -> Unit,
-    librarySheetVisible: Boolean,
     libraryViewModel: LibraryViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -68,6 +68,9 @@ fun LibraryScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val librarySheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showBottomSheet by remember { mutableStateOf(false) }
+
     val filterTint = if (libraryPreferences.filterFlags.isFiltered) MaterialTheme.colorScheme.active else LocalContentColor.current
     val actions = remember(libraryPreferences.filterFlags.isFiltered) {
         listOf(
@@ -78,7 +81,7 @@ fun LibraryScreen(
                 onClick = {
                     focusManager.clearFocus()
                     keyboardController?.hide()
-                    showLibrarySheet()
+                    showBottomSheet = true
                 }
             ),
             Action.CastButton()
@@ -102,9 +105,16 @@ fun LibraryScreen(
 
     val isRefreshing by libraryViewModel.isRefreshing.collectAsState()
 
-
-    Scaffold(
+    TadaBottomSheetScaffold(
         modifier = modifier,
+        sheetState = librarySheetState,
+        showSheet = showBottomSheet,
+        onDismissSheet = {
+            showBottomSheet = false
+        },
+        sheetContent = {
+            LibrarySheetContent()
+        },
         topBar = {
             ContextualSearchTopAppBar(
                 title = {
@@ -130,7 +140,6 @@ fun LibraryScreen(
                 onSearchCancel = {
                     isSearchMode = false
                 },
-                backHandlerEnabled = !librarySheetVisible,
                 onSearchClicked = {
                     isSearchMode = true
                 }

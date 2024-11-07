@@ -293,7 +293,6 @@ fun VerticalGridFastScroller(
                 val offsetRatio =
                     (offsetPerItem * scrollItemFraction) + (offsetPerItem * (columnNum - 1))
 
-                // TODO: Sometimes item height is not available when scrolling up
                 val scrollItemSize = (1..columnCount).maxOf { num ->
                     val actualIndex = if (num != columnNum) {
                         scrollItemWhole + num - columnCount

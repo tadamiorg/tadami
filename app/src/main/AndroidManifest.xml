@@ -8,8 +8,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <!-- STORAGE -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage"/>
 
     <!-- For background jobs -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -22,21 +22,30 @@
     <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
 
     <!-- To view extension packages in API 30+ -->
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission
+        android:name="android.permission.READ_APP_SPECIFIC_LOCALES"
+        tools:ignore="ProtectedPermissions" />
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
         android:name=".App"
         android:allowBackup="false"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
+        android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
+        android:preserveLegacyExternalStorage="true"
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
         android:theme="@style/Theme.Tadami"
-        android:usesCleartextTraffic="true"
-        tools:targetApi="33">
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".ui.main.MainActivity"
             android:theme="@style/Theme.Tadami.SplashScreen"
@@ -80,6 +89,11 @@
             android:name=".notifications.extensionsinstaller.ExtensionInstallService"
             android:exported="false"
             android:foregroundServiceType="shortService" />
+
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
 
         <receiver android:name=".notifications.cast.CastReceiver" />
         <receiver android:name=".notifications.libraryupdate.LibraryUpdateReceiver" />

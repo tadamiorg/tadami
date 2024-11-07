@@ -1,8 +1,8 @@
 [versions]
-compiler = "1.5.3"
-compose-bom = "2024.05.00"
+compiler = "2.0.21"
+compose-bom = "2024.10.01"
 accompanist = "0.34.0"
-activity = "1.9.0"
+activity = "1.9.3"
 
 [libraries]
 activity = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
@@ -24,6 +24,7 @@ runtime-saveable = { module = "androidx.compose.runtime:runtime-saveable"}
 material-core = { module = "androidx.compose.material:material" }
 material3-core = { module = "androidx.compose.material3:material3" }
 material-icons = { module = "androidx.compose.material:material-icons-extended" }
+compose-materialmotion = "io.github.fornewid:material-motion-compose-core:2.0.1"
 
 # Accompanist
 accompanist-webview = { module = "com.google.accompanist:accompanist-webview", version.ref = "accompanist" }
@@ -36,5 +37,5 @@ accompanist-flowlayout = { module = "com.google.accompanist:accompanist-flowlayo
 animation = ["foundation","animation","animation-graphics"]
 ui = ["ui","ui-tooling","ui-tooling-preview","ui-util"]
 runtime = ["runtime","runtime-saveable"]
-material = ["material-core","material3-core","material-icons"]
+material = ["material-core","material3-core","material-icons","compose-materialmotion"]
 accompanist = ["accompanist-webview","accompanist-permissions","accompanist-themeadapter","accompanist-systemuicontroller","accompanist-flowlayout"]

@@ -10,10 +10,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckBox
 import androidx.compose.material.icons.rounded.CheckBoxOutlineBlank
 import androidx.compose.material.icons.rounded.DisabledByDefault
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -33,7 +33,7 @@ fun TriStateItem(
                 interactionSource = remember {
                     MutableInteractionSource()
                 },
-                indication = rememberRipple(
+                indication = ripple(
                     bounded = true,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -38,6 +38,7 @@ import com.sf.tadami.data.sources.StubSourceRepository
 import com.sf.tadami.data.sources.StubSourceRepositoryImpl
 import com.sf.tadami.data.updates.UpdatesRepository
 import com.sf.tadami.data.updates.UpdatesRepositoryImpl
+import com.sf.tadami.domain.storage.StorageManager
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.player.PlayerNetworkHelper
@@ -48,6 +49,7 @@ import data.History
 import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.protobuf.ProtoBuf
 import uy.kohesive.injekt.api.InjektModule
 import uy.kohesive.injekt.api.InjektRegistrar
 import uy.kohesive.injekt.api.addSingleton
@@ -101,6 +103,10 @@ class AppModule(private val app: Application) : InjektModule {
             )
         }
 
+        addSingletonFactory<ProtoBuf> {
+            ProtoBuf
+        }
+
         addSingletonFactory<DataBaseHandler> {
             AndroidDatabaseHandler(get())
         }
@@ -112,6 +118,12 @@ class AppModule(private val app: Application) : InjektModule {
         // Sources
         addSingletonFactory<StubSourceRepository>{
             StubSourceRepositoryImpl(get())
+        }
+
+        // Storage
+
+        addSingletonFactory {
+            StorageManager(app,get())
         }
 
         // Downloads

@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
@@ -36,6 +37,11 @@ suspend fun <T : CustomPreferencesIdentifier> DataStore<Preferences>.getPreferen
     this.data.map { preferences ->
         prefsGroup.transform(preferences)
     }.first()
+
+fun DataStore<Preferences>.isSet(key: Preferences.Key<*>) : Flow<Boolean> =
+    this.data.map { preferences ->
+        preferences.contains(key)
+    }
 
 fun <T : CustomPreferencesIdentifier> DataStore<Preferences>.getPreferencesGroupAsFlow(prefsGroup: CustomPreferences<T>) =
     this.data.map { preferences ->

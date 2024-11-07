@@ -109,7 +109,7 @@ internal object ExtensionsLoader {
     private fun loadExtension(context: Context, extensionInfo: ExtensionInfo): LoadResult {
         val pkgManager = context.packageManager
         val pkgInfo = extensionInfo.packageInfo
-        val appInfo = pkgInfo.applicationInfo
+        val appInfo = pkgInfo.applicationInfo!!
         val pkgName = pkgInfo.packageName
 
         val extName = pkgManager.getApplicationLabel(appInfo).toString().substringAfter("Tadami: ")

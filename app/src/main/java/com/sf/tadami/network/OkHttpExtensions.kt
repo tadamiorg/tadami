@@ -75,7 +75,7 @@ fun Call.asCancelableObservable(): Observable<Response> {
 fun Response.handleErrors(): Response {
     val code = this.code
     if (!this.isSuccessful) {
-        throw HttpError.Failure(code)
+        throw HttpException(code)
     }
     return this
 }

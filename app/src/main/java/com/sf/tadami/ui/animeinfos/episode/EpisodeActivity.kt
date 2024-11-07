@@ -570,7 +570,9 @@ class EpisodeActivity : AppCompatActivity() {
                     RECEIVER_NOT_EXPORTED
                 )
             } else {
-                registerReceiver(pipReceiver, IntentFilter(ACTION_MEDIA_CONTROL))
+                registerReceiver(pipReceiver, IntentFilter(ACTION_MEDIA_CONTROL),
+                    RECEIVER_NOT_EXPORTED
+                )
             }
         } else {
             if (exoPlayer?.isPlaying == false) {

@@ -10,6 +10,12 @@ data class BackupPreference @OptIn(ExperimentalSerializationApi::class) construc
 )
 
 @Serializable
+data class BackupSourcePreferences @OptIn(ExperimentalSerializationApi::class) constructor(
+    @ProtoNumber(1) val sourceKey: Long,
+    @ProtoNumber(2) val prefs: List<BackupPreference>,
+)
+
+@Serializable
 sealed class PreferenceValue
 
 @Serializable

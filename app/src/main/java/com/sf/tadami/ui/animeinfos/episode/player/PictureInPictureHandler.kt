@@ -117,7 +117,6 @@ class PictureInPictureHandler {
     }
 }
 
-// TODO: https://developer.android.com/develop/ui/views/picture-in-picture#setautoenterenabled
 
 internal const val PIP_PLAY = 1
 internal const val PIP_PAUSE = 2
