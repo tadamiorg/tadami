@@ -26,6 +26,141 @@ fun FilterTab(filters: LibraryFilter, setFilters: (filterFlags: Long) -> Unit) {
             }
             setFilters(newFilters)
         }
+        TriStateItem(
+            label = stringResource(id = R.string.filter_unseen),
+            state = filters.seenState
+        ) {
+            val newFilters = when (filters.seenState) {
+                ToggleableState.On -> filters.flags.setFlags(
+                    LibraryFilter.SEEN,
+                    LibraryFilter.SEEN_MASK
+                )
+
+                ToggleableState.Off -> filters.flags.setFlags(0L, LibraryFilter.SEEN_MASK)
+                else -> filters.flags.setFlags(LibraryFilter.UNSEEN, LibraryFilter.SEEN_MASK)
+            }
+            setFilters(newFilters)
+        }
+        TriStateItem(
+            label = stringResource(id = R.string.filter_unseen),
+            state = filters.seenState
+        ) {
+            val newFilters = when (filters.seenState) {
+                ToggleableState.On -> filters.flags.setFlags(
+                    LibraryFilter.SEEN,
+                    LibraryFilter.SEEN_MASK
+                )
+
+                ToggleableState.Off -> filters.flags.setFlags(0L, LibraryFilter.SEEN_MASK)
+                else -> filters.flags.setFlags(LibraryFilter.UNSEEN, LibraryFilter.SEEN_MASK)
+            }
+            setFilters(newFilters)
+        }
+        TriStateItem(
+            label = stringResource(id = R.string.filter_unseen),
+            state = filters.seenState
+        ) {
+            val newFilters = when (filters.seenState) {
+                ToggleableState.On -> filters.flags.setFlags(
+                    LibraryFilter.SEEN,
+                    LibraryFilter.SEEN_MASK
+                )
+
+                ToggleableState.Off -> filters.flags.setFlags(0L, LibraryFilter.SEEN_MASK)
+                else -> filters.flags.setFlags(LibraryFilter.UNSEEN, LibraryFilter.SEEN_MASK)
+            }
+            setFilters(newFilters)
+        }
+        TriStateItem(
+            label = stringResource(id = R.string.filter_unseen),
+            state = filters.seenState
+        ) {
+            val newFilters = when (filters.seenState) {
+                ToggleableState.On -> filters.flags.setFlags(
+                    LibraryFilter.SEEN,
+                    LibraryFilter.SEEN_MASK
+                )
+
+                ToggleableState.Off -> filters.flags.setFlags(0L, LibraryFilter.SEEN_MASK)
+                else -> filters.flags.setFlags(LibraryFilter.UNSEEN, LibraryFilter.SEEN_MASK)
+            }
+            setFilters(newFilters)
+        }
+        TriStateItem(
+            label = stringResource(id = R.string.filter_unseen),
+            state = filters.seenState
+        ) {
+            val newFilters = when (filters.seenState) {
+                ToggleableState.On -> filters.flags.setFlags(
+                    LibraryFilter.SEEN,
+                    LibraryFilter.SEEN_MASK
+                )
+
+                ToggleableState.Off -> filters.flags.setFlags(0L, LibraryFilter.SEEN_MASK)
+                else -> filters.flags.setFlags(LibraryFilter.UNSEEN, LibraryFilter.SEEN_MASK)
+            }
+            setFilters(newFilters)
+        }
+        TriStateItem(
+            label = stringResource(id = R.string.filter_unseen),
+            state = filters.seenState
+        ) {
+            val newFilters = when (filters.seenState) {
+                ToggleableState.On -> filters.flags.setFlags(
+                    LibraryFilter.SEEN,
+                    LibraryFilter.SEEN_MASK
+                )
+
+                ToggleableState.Off -> filters.flags.setFlags(0L, LibraryFilter.SEEN_MASK)
+                else -> filters.flags.setFlags(LibraryFilter.UNSEEN, LibraryFilter.SEEN_MASK)
+            }
+            setFilters(newFilters)
+        }
+        TriStateItem(
+            label = stringResource(id = R.string.filter_unseen),
+            state = filters.seenState
+        ) {
+            val newFilters = when (filters.seenState) {
+                ToggleableState.On -> filters.flags.setFlags(
+                    LibraryFilter.SEEN,
+                    LibraryFilter.SEEN_MASK
+                )
+
+                ToggleableState.Off -> filters.flags.setFlags(0L, LibraryFilter.SEEN_MASK)
+                else -> filters.flags.setFlags(LibraryFilter.UNSEEN, LibraryFilter.SEEN_MASK)
+            }
+            setFilters(newFilters)
+        }
+        TriStateItem(
+            label = stringResource(id = R.string.filter_unseen),
+            state = filters.seenState
+        ) {
+            val newFilters = when (filters.seenState) {
+                ToggleableState.On -> filters.flags.setFlags(
+                    LibraryFilter.SEEN,
+                    LibraryFilter.SEEN_MASK
+                )
+
+                ToggleableState.Off -> filters.flags.setFlags(0L, LibraryFilter.SEEN_MASK)
+                else -> filters.flags.setFlags(LibraryFilter.UNSEEN, LibraryFilter.SEEN_MASK)
+            }
+            setFilters(newFilters)
+        }
+        TriStateItem(
+            label = stringResource(id = R.string.filter_unseen),
+            state = filters.seenState
+        ) {
+            val newFilters = when (filters.seenState) {
+                ToggleableState.On -> filters.flags.setFlags(
+                    LibraryFilter.SEEN,
+                    LibraryFilter.SEEN_MASK
+                )
+
+                ToggleableState.Off -> filters.flags.setFlags(0L, LibraryFilter.SEEN_MASK)
+                else -> filters.flags.setFlags(LibraryFilter.UNSEEN, LibraryFilter.SEEN_MASK)
+            }
+            setFilters(newFilters)
+        }
 
         TriStateItem(
             label = stringResource(id = R.string.filter_started),

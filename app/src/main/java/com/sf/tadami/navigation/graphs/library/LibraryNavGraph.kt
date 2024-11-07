@@ -17,7 +17,6 @@ fun NavGraphBuilder.libraryNavGraph(
     tabsNavPadding : PaddingValues,
     bottomNavDisplay: Boolean,
     setNavDisplay: (display: Boolean) -> Unit,
-    librarySheetVisible: Boolean,
     basePreferences: BasePreferences,
     showLibrarySheet: () -> Unit,
 ) {
@@ -29,7 +28,6 @@ fun NavGraphBuilder.libraryNavGraph(
             navController = navController,
             setNavDisplay = setNavDisplay,
             bottomNavDisplay = bottomNavDisplay,
-            librarySheetVisible = librarySheetVisible,
             showLibrarySheet = showLibrarySheet
         )
 

@@ -53,7 +53,6 @@ fun LibraryScreen(
     setNavDisplay: (display: Boolean) -> Unit,
     bottomNavDisplay: Boolean,
     showLibrarySheet: () -> Unit,
-    librarySheetVisible: Boolean,
     libraryViewModel: LibraryViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -130,7 +129,6 @@ fun LibraryScreen(
                 onSearchCancel = {
                     isSearchMode = false
                 },
-                backHandlerEnabled = !librarySheetVisible,
                 onSearchClicked = {
                     isSearchMode = true
                 }

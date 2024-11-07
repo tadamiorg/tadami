@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
@@ -34,13 +33,12 @@ import kotlinx.coroutines.launch
 fun TabbedBottomSheet(
     tabs: List<TabContent>,
     beyondBoundsPageCount: Int = (tabs.size - 1).coerceAtLeast(0),
-    sheetState: ModalBottomSheetState
 ) {
     val coroutineScope = rememberCoroutineScope()
 
     val pagerState = rememberPagerState(pageCount = { tabs.size })
 
-    Column(modifier = Modifier.preventBottomSheetJumps(sheetState)) {
+    Column() {
         PrimaryTabRow(
             selectedTabIndex = pagerState.currentPage,
             containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
@@ -85,6 +83,4 @@ fun TabbedBottomSheet(
             }
         }
     }
-
-
 }

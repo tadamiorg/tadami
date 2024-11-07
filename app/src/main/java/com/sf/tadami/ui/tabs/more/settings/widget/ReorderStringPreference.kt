@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.tabs.more.settings.widget
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -19,7 +18,6 @@ import com.sf.tadami.ui.utils.moveItemDown
 import com.sf.tadami.ui.utils.moveItemUp
 import com.sf.tadami.ui.utils.padding
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReorderStringPreference(
     customPrefsVerticalPadding : Dp? = null,
@@ -62,7 +60,7 @@ fun ReorderStringPreference(
                 ) { index, value ->
                     ReorderListItem(
                         modifier = Modifier
-                            .animateItemPlacement()
+                            .animateItem()
                             .padding(vertical = MaterialTheme.padding.tiny),
                         item = value to items[value],
                         canMoveUp = index != 0,

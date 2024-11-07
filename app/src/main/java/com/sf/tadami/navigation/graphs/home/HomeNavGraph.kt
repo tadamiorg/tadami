@@ -31,7 +31,6 @@ fun HomeNavGraph(
     tabsNavPadding: PaddingValues,
     bottomNavDisplay: Boolean,
     setNavDisplay: (display: Boolean) -> Unit,
-    librarySheetVisible: Boolean,
     showLibrarySheet: () -> Unit,
 ) {
     val basePreferencesState = rememberDataStoreState(BasePreferences)
@@ -67,7 +66,6 @@ fun HomeNavGraph(
             tabsNavPadding = tabsNavPadding,
             setNavDisplay = setNavDisplay,
             bottomNavDisplay = bottomNavDisplay,
-            librarySheetVisible = librarySheetVisible,
             showLibrarySheet = showLibrarySheet,
             basePreferences = basePreferences
         )

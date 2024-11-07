@@ -1,7 +1,5 @@
 package com.sf.tadami.ui.tabs.library.bottomsheet
 
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -18,16 +16,12 @@ fun Long.setFlags(flag: Long, mask: Long): Long {
     return this and mask.inv() or flag
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun LibrarySheetContent(
-    sheetState : ModalBottomSheetState
-) {
+fun LibrarySheetContent() {
     val libraryPreferencesStore = rememberDataStoreState(customPrefs = LibraryPreferences)
     val libraryPreferencesState by libraryPreferencesStore.value.collectAsState()
 
     TabbedBottomSheet(
-        sheetState = sheetState,
         tabs = listOf(
             TabContent(
                 titleRes = R.string.action_filter
