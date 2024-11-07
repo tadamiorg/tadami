@@ -32,7 +32,6 @@ class BackupFileValidator(
         val missingSources = sources
             .filter { sourceManager.get(it.key) == null }
             .entries.map {
-                Log.e("Source",it.value)
                 sourceManager.getOrStub(it.key,it.value).toString()
             }
             .distinct()
