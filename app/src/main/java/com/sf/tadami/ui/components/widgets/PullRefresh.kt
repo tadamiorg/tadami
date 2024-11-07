@@ -37,7 +37,6 @@ fun PullRefresh(
         onRefresh = onRefresh,
     )
 
-    // TODO try material 3 BoxPullRefresh
 
     Box(Modifier.pullRefresh(state, enabled)) {
         content()

@@ -105,7 +105,6 @@ abstract class Installer(private val service: Service) {
             queue.removeAt(0)
             processEntry(nextEntry)
         }
-        // TODO Rework exts install process + notifications and workers for new api
     }
 
     /**

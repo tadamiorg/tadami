@@ -17,12 +17,11 @@ import androidx.compose.ui.unit.Dp
 import com.sf.tadami.ui.utils.padding
 
 /* TODO
-    - Maybe use only material3 instead of material
-    - fix colors everywhere
     - fix player progress bar
     - fix backups and restore
-    - update colorschemes X
-    - fix minimalTouchSize buttons checboxes
+    - Check notifications issues
+    - try material 3 BoxPullRefresh
+    - check to remove composeOptions in gradle file
 */
 
 @Composable

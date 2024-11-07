@@ -68,7 +68,6 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion = compose.versions.compiler.get()
-        // TODO check to remove
     }
     packaging {
         resources {
