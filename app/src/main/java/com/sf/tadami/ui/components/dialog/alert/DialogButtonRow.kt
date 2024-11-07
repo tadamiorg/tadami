@@ -7,6 +7,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +42,7 @@ fun DialogButtonRow(
                 onClick = { if (!isSelected) onSelected() },
             )
             .fillMaxWidth()
+            .minimumInteractiveComponentSize()
     ) {
         RadioButton(
             selected = isSelected,
