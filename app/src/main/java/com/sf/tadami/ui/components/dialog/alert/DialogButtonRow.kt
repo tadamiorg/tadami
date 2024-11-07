@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.Dp
 import com.sf.tadami.ui.utils.padding
 
 /* TODO
-    - Check onboarding nav doing shit
     - try material 3 BoxPullRefresh
     - check to remove composeOptions in gradle file
 */

@@ -4,8 +4,6 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.sf.tadami.R
@@ -33,7 +31,6 @@ fun HomeNavGraph(
     setNavDisplay: (display: Boolean) -> Unit
 ) {
     val basePreferencesState = rememberDataStoreState(BasePreferences)
-    val basePreferences by basePreferencesState.value.collectAsState()
 
     NavHost(
         navController = navController,
@@ -64,8 +61,7 @@ fun HomeNavGraph(
             navController = navController,
             tabsNavPadding = tabsNavPadding,
             setNavDisplay = setNavDisplay,
-            bottomNavDisplay = bottomNavDisplay,
-            basePreferences = basePreferences
+            bottomNavDisplay = bottomNavDisplay
         )
 
         updatesNavGraph(

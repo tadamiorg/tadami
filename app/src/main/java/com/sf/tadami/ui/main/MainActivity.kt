@@ -8,6 +8,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
@@ -25,9 +27,12 @@ import com.sf.tadami.Migrations
 import com.sf.tadami.R
 import com.sf.tadami.extension.api.ExtensionsApi
 import com.sf.tadami.navigation.HomeScreen
+import com.sf.tadami.navigation.graphs.onboarding.OnboardingRoutes
 import com.sf.tadami.notifications.cast.CastProxyService
+import com.sf.tadami.preferences.app.BasePreferences
 import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.preferences.library.LibraryPreferences
+import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
@@ -103,13 +108,19 @@ class MainActivity : AppCompatActivity() {
                         transformColorForLightContent = { Color.Black },
                     )
                 }
-
                 val navController = rememberNavController()
+
+                val basePreferencesState = rememberDataStoreState(BasePreferences)
+                val basePreferences by basePreferencesState.value.collectAsState()
+
                 AppUpdaterScreen()
                 ExtensionsCheckForUpdates()
                 HomeScreen(navController)
                 LaunchedEffect(navController) {
                     if (isLaunch) {
+                        if (!basePreferences.onboardingComplete) {
+                            navController.navigate(OnboardingRoutes.ONBOARDING)
+                        }
                         ready = true
                     }
                 }
