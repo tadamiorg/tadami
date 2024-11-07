@@ -16,4 +16,6 @@
     <color name="tidalwave_primary">#006780</color>
     <color name="yinyang_primary">#000000</color>
     <color name="yotsuba_primary">#AE3200</color>
+    <color name="doom_primary">#FF0000</color>
+
 </resources>

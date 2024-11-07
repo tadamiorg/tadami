@@ -20,6 +20,8 @@ import com.sf.tadami.ui.utils.padding
     - fix colors everywhere
     - fix player progress bar
     - fix backups and restore
+    - update colorschemes X
+    - fix minimalTouchSize buttons checboxes
 */
 
 @Composable

@@ -233,6 +233,7 @@
     <string name="theme_yinyang">Yin &amp; Yang</string>
     <string name="theme_yotsuba">Yotsuba</string>
     <string name="theme_tidalwave">Tidal Wave</string>
+    <string name="theme_doom" translatable="false">Doom</string>
     <string name="dark_theme_pure_black">Pure black dark mode</string>
 
     <!-- Labels -->

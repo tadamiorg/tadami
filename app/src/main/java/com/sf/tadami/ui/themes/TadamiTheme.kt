@@ -10,6 +10,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.R
 import com.sf.tadami.preferences.appearance.AppearancePreferences
+import com.sf.tadami.ui.themes.colorschemes.DoomColorScheme
 import com.sf.tadami.ui.themes.colorschemes.GreenAppleColorScheme
 import com.sf.tadami.ui.themes.colorschemes.LavenderColorScheme
 import com.sf.tadami.ui.themes.colorschemes.MidnightDuskColorScheme
@@ -60,6 +61,7 @@ private fun getThemeColorScheme(
         AppTheme.TAKO -> TakoColorScheme
         AppTheme.STRAWBERRY_DAIQUIRI -> StrawberryColorScheme
         AppTheme.MIDNIGHT_DUSK -> MidnightDuskColorScheme
+        AppTheme.DOOM -> DoomColorScheme
         else -> TadamiColorScheme
     }
     return colorScheme.getColorScheme(
@@ -83,6 +85,7 @@ fun getNotificationsColor(context: Context) : Int{
         AppTheme.YOTSUBA -> R.color.yotsuba_primary
         AppTheme.TEALTURQUOISE -> R.color.tealturquoise_primary
         AppTheme.MIDNIGHT_DUSK -> R.color.midnightdusk_primary
+        AppTheme.DOOM -> R.color.doom_primary
         AppTheme.DEFAULT -> R.color.base_primary
 
     }
