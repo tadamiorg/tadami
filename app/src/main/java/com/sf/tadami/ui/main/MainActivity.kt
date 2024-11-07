@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity() {
             TadamiTheme {
                 val systemUiController = rememberSystemUiController()
                 val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
-                val navbarScrimColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+                val navbarScrimColor = MaterialTheme.colorScheme.surfaceContainer
                 val isSystemInDarkTheme = isSystemInDarkTheme()
 
                 LaunchedEffect(systemUiController, statusBarBackgroundColor) {
