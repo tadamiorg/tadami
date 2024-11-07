@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.Dp
 import com.sf.tadami.ui.utils.padding
 
 /* TODO
-    - fix player progress bar
     - fix backups and restore
     - Check notifications issues
     - try material 3 BoxPullRefresh
