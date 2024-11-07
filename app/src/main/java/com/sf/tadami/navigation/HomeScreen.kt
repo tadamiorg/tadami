@@ -7,11 +7,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,9 +26,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sf.tadami.navigation.bottomnav.BottomNavBar
 import com.sf.tadami.navigation.graphs.home.HomeNavGraph
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
-import com.sf.tadami.ui.tabs.library.bottomsheet.LibrarySheetContent
 
-@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(
@@ -59,9 +53,7 @@ fun HomeScreen(
     var manualDisplay by rememberSaveable { mutableStateOf(true) }
     val bottomBarDestination = items.any { it.route == currentDestination?.route }
 
-    val librarySheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val density = LocalDensity.current
-    var showBottomSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(bottomBarDestination, manualDisplay) {
         displayed.targetState = bottomBarDestination && manualDisplay
@@ -102,20 +94,7 @@ fun HomeScreen(
             navController = navController,
             tabsNavPadding = PaddingValues(bottom = if (!manualDisplay && !displayed.currentState) 0.dp else bottomBarHeight),
             bottomNavDisplay = displayed.currentState,
-            setNavDisplay = { manualDisplay = it },
-            showLibrarySheet = {
-                showBottomSheet = true
-            },
+            setNavDisplay = { manualDisplay = it }
         )
-        if (showBottomSheet) {
-            ModalBottomSheet(
-                sheetState = librarySheetState,
-                onDismissRequest = {
-                    showBottomSheet = false
-                }
-            ) {
-                LibrarySheetContent()
-            }
-        }
     }
 }

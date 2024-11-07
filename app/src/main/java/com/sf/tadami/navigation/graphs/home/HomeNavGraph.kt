@@ -30,8 +30,7 @@ fun HomeNavGraph(
     navController: NavHostController,
     tabsNavPadding: PaddingValues,
     bottomNavDisplay: Boolean,
-    setNavDisplay: (display: Boolean) -> Unit,
-    showLibrarySheet: () -> Unit,
+    setNavDisplay: (display: Boolean) -> Unit
 ) {
     val basePreferencesState = rememberDataStoreState(BasePreferences)
     val basePreferences by basePreferencesState.value.collectAsState()
@@ -66,7 +65,6 @@ fun HomeNavGraph(
             tabsNavPadding = tabsNavPadding,
             setNavDisplay = setNavDisplay,
             bottomNavDisplay = bottomNavDisplay,
-            showLibrarySheet = showLibrarySheet,
             basePreferences = basePreferences
         )
 

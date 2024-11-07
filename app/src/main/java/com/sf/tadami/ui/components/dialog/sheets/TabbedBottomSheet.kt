@@ -38,10 +38,10 @@ fun TabbedBottomSheet(
 
     val pagerState = rememberPagerState(pageCount = { tabs.size })
 
-    Column() {
+    Column {
         PrimaryTabRow(
             selectedTabIndex = pagerState.currentPage,
-            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
             tabs.forEachIndexed { index, tab ->
                 Tab(

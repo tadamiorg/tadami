@@ -44,6 +44,7 @@ fun TabbedSimpleDialog(
         ) {
             PrimaryTabRow(
                 selectedTabIndex = state.currentPage,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 modifier = Modifier.zIndex(1f),
             ) {
                 tabs.forEachIndexed { index, tab ->

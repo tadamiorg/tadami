@@ -17,8 +17,7 @@ fun NavGraphBuilder.libraryNavGraph(
     tabsNavPadding : PaddingValues,
     bottomNavDisplay: Boolean,
     setNavDisplay: (display: Boolean) -> Unit,
-    basePreferences: BasePreferences,
-    showLibrarySheet: () -> Unit,
+    basePreferences: BasePreferences
 ) {
     composable(
         route = HomeNavItems.Library.route
@@ -27,8 +26,7 @@ fun NavGraphBuilder.libraryNavGraph(
             modifier = Modifier.padding(tabsNavPadding),
             navController = navController,
             setNavDisplay = setNavDisplay,
-            bottomNavDisplay = bottomNavDisplay,
-            showLibrarySheet = showLibrarySheet
+            bottomNavDisplay = bottomNavDisplay
         )
 
         LaunchedEffect(Unit){
