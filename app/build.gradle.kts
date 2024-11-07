@@ -26,8 +26,8 @@ android {
 
     defaultConfig {
         applicationId = "com.sf.tadami"
-        versionCode = 33
-        versionName = "1.5.4"
+        versionCode = 34
+        versionName = "1.6.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")
@@ -61,13 +61,9 @@ android {
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
     }
-
     buildFeatures {
         compose = true
         viewBinding = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = compose.versions.compiler.get()
     }
     packaging {
         resources {

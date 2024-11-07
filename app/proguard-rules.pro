@@ -61,7 +61,7 @@
 
 ##---------------End: proguard configuration for kotlinx.serialization  ----------
 
-# XmlUtil
--keep public enum nl.adaptivity.xmlutil.EventType { *; }
+
+
 
 
