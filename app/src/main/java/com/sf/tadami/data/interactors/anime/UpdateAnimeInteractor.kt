@@ -57,7 +57,7 @@ class UpdateAnimeInteractor(
         }
 
         // if the anime isn't a favorite, set its title from source and update in db
-        val title = if (remoteTitle.isEmpty() || localAnime.favorite) null else remoteTitle
+        val title = remoteTitle.ifEmpty { null }
         val thumbnailUrl = remoteAnime.thumbnailUrl?.takeIf { it.isNotEmpty() }
 
         return animeRepository.updateAnime(

@@ -35,7 +35,7 @@ internal object DoomColorScheme : BaseColorScheme() {
         surface = Color(0xFF1B1B1B),
         onSurface = Color(0xFFFFFFFF),
         surfaceVariant = Color(0xFF303030),
-        onSurfaceVariant = Color(0xFFD8FFFFFF),
+        onSurfaceVariant = Color(0xFFD8FFFF),
         surfaceTint = Color(0xFFFF0000),
         inverseSurface = Color(0xFFFAFAFA),
         inverseOnSurface = Color(0xFF313131),
@@ -62,7 +62,7 @@ internal object DoomColorScheme : BaseColorScheme() {
         surface = Color(0xFF212121),
         onSurface = Color(0xFFFFFFFF),
         surfaceVariant = Color(0xFF4D4D4D),
-        onSurfaceVariant = Color(0xFFD849454E),
+        onSurfaceVariant = Color(0xFFD84945),
         surfaceTint = Color(0xFFFF0000), // Assuming 'surfaceTint' maps to 'doom_primary' or similar
         inverseSurface = Color(0xFF424242),
         inverseOnSurface = Color(0xFFFAFAFA),
