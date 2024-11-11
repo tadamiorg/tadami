@@ -26,8 +26,8 @@ android {
 
     defaultConfig {
         applicationId = "com.sf.tadami"
-        versionCode = 34
-        versionName = "1.6.0"
+        versionCode = 35
+        versionName = "1.6.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")

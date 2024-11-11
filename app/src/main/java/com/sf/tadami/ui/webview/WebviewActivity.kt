@@ -83,7 +83,7 @@ class WebViewActivity : AppCompatActivity() {
                 }
                 WebviewScreen(
                     onNavigateUp = { finish() },
-                    initialTitle = intent.extras?.getString(TITLE_KEY) ?: "",
+                    initialTitle = URLDecoder.decode(intent.extras?.getString(TITLE_KEY) ?: "",StandardCharsets.UTF_8.toString()),
                     url = url,
                     headers = headers,
                     onUrlChange = { assistUrl = it },

@@ -210,7 +210,13 @@ fun DetailsScreen(
                                 (detailsViewModel.source as AnimeHttpSource).baseUrl + uiState.details?.url,
                                 StandardCharsets.UTF_8.toString()
                             )
-                            navHostController.navigate("${AnimeInfosRoutes.WEBVIEW}/${detailsViewModel.source.id}/$title/$encodedUrl")
+
+                            val encodedTitle = URLEncoder.encode(
+                                title,
+                                StandardCharsets.UTF_8.toString()
+                            )
+
+                            navHostController.navigate("${AnimeInfosRoutes.WEBVIEW}/${detailsViewModel.source.id}/$encodedTitle/$encodedUrl")
                         } else {
                             UiToasts.showToast(
                                 stringRes = R.string.source_not_installed,

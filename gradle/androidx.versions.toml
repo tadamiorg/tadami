@@ -14,7 +14,6 @@ navigation-version = "2.8.3"
 exoplayer_version = "1.4.1"
 
 # Test
-junit = "4.13.2"
 androidx-test-ext-junit = "1.2.1"
 espresso-core = "3.6.1"
 
@@ -34,7 +33,6 @@ lifecycle-viewmodel-livedata = { group = "androidx.lifecycle", name="lifecycle-l
 lifecycle-viewmodel-savedstate = { group = "androidx.lifecycle", name="lifecycle-viewmodel-savedstate", version.ref = "lifecycle_version" }
 
 # Test
-junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
 

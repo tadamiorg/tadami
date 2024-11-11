@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">Tadami</string>
     <string name="library_tab_title">Library</string>
     <string name="browse_tab_title">Browse</string>
@@ -12,7 +12,7 @@
     <string name="request_bypass_cloudflare_failure">Failed to bypass Cloudflare</string>
     <string name="exception_offline">No Internet connection</string>
     <string name="exception_unknown_host">Couldn\&apos;t reach %s</string>
-    <string name="backup_restore_content_full">You may need to install any missing extensions and log in to tracking services afterwards to use them.</string>
+    <string name="backup_restore_content_full">You may need to install any missing extensions afterwards to use them.</string>
     <string name="backup_restore_missing_sources">Missing sources:</string>
     <string name="invalid_backup_file">Invalid backup file:</string>
     <string name="invalid_backup_file_error">Full error:</string>
@@ -28,7 +28,7 @@
     <string name="unknown_status">Unknown Status</string>
     <string name="unknown_description">No description found !</string>
     <string name="player_screen_episode_label">Episode</string>
-    <string name="player_screen_qd_ok_btn">Ok</string>
+    <string name="player_screen_qd_ok_btn" tools:ignore="ButtonCase,Typos">Ok</string>
     <string name="player_screen_qd_title">Select Quality</string>
     <string name="player_screen_qd_cancel_btn">Cancel</string>
     <string name="discover_search_screen_title">Search</string>
@@ -245,28 +245,11 @@
     <string name="label_settings">Settings</string>
     <string name="label_extensions">Extensions</string>
     <string name="label_sources">Sources</string>
-    <string name="label_explore">Explore</string>
     <string name="label_source">Source</string>
     <string name="label_extension_info">Extension info</string>
     <string name="label_episodes">Episodes</string>
     <string name="label_migration">Migration</string>
     <string name="label_about">About</string>
-    <!-- TODO Français rework  -->
-    <string name="preferences_backup_directory">Dossier de sauvegarde</string>
-    <string name="preferences_backup_maxfiles">Nombre maximal de sauvegardes</string>
-    <string name="preferences_backup_category_manual">Sauvegardes manuelles</string>
-    <string name="preferences_backup_category_auto">Sauvegardes automatiques</string>
-    <string name="preferences_backup_create_subtitle">Peut être utilisé pour restaurer la bibliothèque actuelle</string>
-    <string name="preferences_backup_restore_subtitle">Restaurer la bibliothèque à partir d\'un fichier de sauvegarde</string>
-    <string name="sources_preferences_title">Paramètres - %1$s</string>
-    <string name="sources_preferences_base_url">Remplacer l\'url de base</string>
-    <string name="sources_preferences_base_url_subtitle">Si vous souhaitez modifier l\'adresse de base de la source si celle-ci ne fonctionne plus.</string>
-    <string name="missing_storage_permission">Autorisations de stockage non accordées</string>
-    <string name="vostfree_search_length_error">La recherche doit faire au moins 4 caractères</string>
-    <string name="discover_search_filters_independent">Les filtres et la recherche s\'ignorent</string>
-    <string name="details_screen_description_arrow_up">Moins</string>
-    <string name="details_screen_description_arrow_down">Plus</string>
-    <string name="request_unknown_error">Erreur réseau : %1$s</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Library last updated: %s</string>
@@ -308,11 +291,6 @@
     <string name="action_copy">Copy</string>
     <string name="action_move">Move</string>
     <string name="migration_error">An error occurred during anime migration</string>
-    <string name="pref_onboarding_guide">Onboarding guide</string>
-    <string name="onboarding_guides_new_user">New to %s? We recommend checking out the getting started guide.</string>
-    <string name="onboarding_storage_selection_required">A folder must be selected</string>
-    <string name="onboarding_action_skip">Skip</string>
-    <string name="delete_downloaded">Delete downloaded</string>
 
     <!-- Onboarding -->
     <string name="onboarding_storage_action_select">Select a folder</string>

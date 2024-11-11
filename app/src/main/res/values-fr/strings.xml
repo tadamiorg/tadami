@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="library_tab_title">Bibliothèque</string>
     <string name="browse_tab_title">Explorer</string>
     <string name="refresh">Rafraichir</string>
@@ -14,7 +14,7 @@
     <string name="exception_offline">Aucune connexion internet</string>
     <string name="exception_unknown_host">Impossible de joindre %s</string>
     <string name="backup_restore_missing_sources">Sources manquantes :</string>
-    <string name="backup_restore_content_full">Vous devrez installer les extensions manquantes et vous connecter ensuite aux services de suivi pour les utiliser.</string>
+    <string name="backup_restore_content_full">Vous devrez ensuite installer les extensions manquantes pour les utiliser.</string>
     <string name="invalid_backup_file">Fichier de sauvegarde invalide :</string>
     <string name="invalid_backup_file_error">Erreur complète :</string>
     <plurals name="details_screen_episodes_number">
@@ -26,8 +26,6 @@
     <!-- Strings used for fragments for navigation -->
     <string name="unknown_author">Auteur Inconnu</string>
     <string name="unknown_status">Status Inconnu</string>
-    <string name="details_screen_description_arrow_up">Moins</string>
-    <string name="details_screen_description_arrow_down">Plus</string>
     <string name="unknown_description">Description introuvable !</string>
     <string name="player_screen_episode_label">Episode</string>
     <string name="player_screen_qd_ok_btn">Ok</string>
@@ -37,7 +35,6 @@
     <string name="discover_search_screen_search_placeholder">Rechercher par nom…</string>
     <string name="discover_search_screen_filters_group_selected_text">selectionner</string>
     <string name="player_screen_source_load_error">La source %1$s n\'a pas pu charger</string>
-    <string name="request_unknown_error">Erreur réseau : %1$s</string>
     <string name="default_string">Par défaut</string>
 
     <string name="portrait">Portrait</string>
@@ -83,8 +80,6 @@
     <string name="notification_downloading_app_update">Téléchargement de la mise à jour…</string>
     <string name="notification_app_update_tap_install"> Appuyez pour installer</string>
     <string name="download">Télécharger</string>
-    <string name="vostfree_search_length_error">La recherche doit faire au moins 4 caractères</string>
-    <string name="discover_search_filters_independent">Les filtres et la recherche s\'ignorent</string>
     <string name="webview_required">WebView est requis par Tadami</string>
     <string name="webview_outdated">Veuillez mettre à jour l\'application WebView pour une meilleure compatibilité</string>
     <string name="notification_library_update_skipped_not_caught_up">Passé car il y a trop d\'épisodes non vus</string>
@@ -95,7 +90,7 @@
     <string name="recently">Récemment</string>
     <string name="relative_time_today">Aujourd\'hui</string>
     <plurals name="relative_time">
-        <item quantity="one">Hier</item>
+        <item quantity="one" tools:ignore="ImpliedQuantity">Hier</item>
         <item quantity="many">Il y a %1$d jours</item>
         <item quantity="other">Il y a %1$d jours</item>
     </plurals>
@@ -121,11 +116,10 @@
     <string name="restoring_backup_canceled">Restauration de sauvegarde annulée</string>
     <string name="restore_completed">Restauration terminée</string>
     <string name="restore_duration">%02d min, %02d s</string>
-    <plurals name="restore_completed_message">
+    <plurals name="restore_completed_message" tools:ignore="MissingQuantity">
         <item quantity="one">Effectuée en %1$s avec %2$s erreur</item>
         <item quantity="other">Effectuée en %1$s avec %2$s erreurs</item>
     </plurals>
-    <string name="missing_storage_permission">Autorisations de stockage non accordées</string>
     <string name="create_backup_file_error">Échec de la création du fichier de sauvegarde</string>
     <string name="empty_backup_error">Aucune entrée de bibliothèque à sauvegarder</string>
     <string name="invalid_backup_file_missing_anime">La sauvegarde ne contient pas d\'entrées de bibliothèque.</string>
@@ -137,9 +131,6 @@
     <string name="restore_in_progress">Restauration déjà en cours</string>
     <string name="source_not_installed">Source non installée: %1$s</string>
     <string name="category_network">Réseau</string>
-    <string name="sources_preferences_title">Paramètres - %1$s</string>
-    <string name="sources_preferences_base_url">Remplacer l\'url de base</string>
-    <string name="sources_preferences_base_url_subtitle">Si vous souhaitez modifier l\'adresse de base de la source si celle-ci ne fonctionne plus.</string>
     <string name="default_string_formatted">Par défaut : %1$s</string>
     <string name="clipboard_copied">Copié dans le presse-papiers</string>
     <string name="information_webview_required">WebView est requis pour le fonctionnement l\'application</string>
@@ -235,15 +226,9 @@
 
     <!-- Backup prefs -->
     <string name="preferences_backup_create_title">Créer une sauvegarde</string>
-    <string name="preferences_backup_create_subtitle">Peut être utilisé pour restaurer la bibliothèque actuelle</string>
-    <string name="preferences_backup_restore_subtitle">Restaurer la bibliothèque à partir d\'un fichier de sauvegarde</string>
     <string name="preferences_backup_restore_title">Restaurer une sauvegarde</string>
     <string name="preferences_backup_title">Sauvegarder et restaurer</string>
-    <string name="preferences_backup_category_auto">Sauvegardes automatiques</string>
     <string name="preferences_backup_frequency">Fréquence de sauvegarde</string>
-    <string name="preferences_backup_directory">Dossier de sauvegarde</string>
-    <string name="preferences_backup_maxfiles">Nombre maximal de sauvegardes</string>
-    <string name="preferences_backup_category_manual">Sauvegardes manuelles</string>
     <string name="pref_storage_location">Emplacement de stockage</string>
     <string name="pref_storage_location_info">Utilisé pour les backups automatiques et téléchargements des épisodes</string>
     <string name="available_disk_space_info">Disponible : %1$s / Total : %2$s</string>
@@ -269,7 +254,6 @@
     <string name="label_recent_updates_long">Mises à jour</string>
     <string name="label_more">Plus</string>
     <string name="label_settings">Paramètres</string>
-    <string name="label_explore">Explorer</string>
     <string name="label_extensions">Extensions</string>
     <string name="label_sources">Sources</string>
     <string name="label_source">Source</string>
@@ -293,7 +277,7 @@
     <string name="channel_ext_updates">Mises à jour d\'extensions</string>
     <string name="extension_api_error">Aucune extension trouvée</string>
     <plurals name="update_check_notification_ext_updates">
-        <item quantity="one">Mise à jour d\'extension disponible</item>
+        <item quantity="one" tools:ignore="ImpliedQuantity">Mise à jour d\'extension disponible</item>
         <item quantity="many">%d mises à jour d\'extensions disponibles</item>
         <item quantity="other">%d mises à jour d\'extensions disponibles</item>
     </plurals>
@@ -312,20 +296,15 @@
     <string name="ext_info_language">Langue</string>
     <string name="ext_app_info">Infos sur l\'application</string>
     <string name="ext_uninstall">Désinstaller</string>
-    <string name="delete_downloaded">Supprimer le(s) téléchargement(s)</string>
     <string name="display_anime">Afficher l\'anime</string>
     <string name="action_copy">Copier</string>
     <string name="action_move">Déplacer</string>
     <string name="migration_error">Une erreur s\'est produite lors de la migration de l\'anime</string>
 
     <string name="onboarding_storage_action_select">Sélectionnez un dossier</string>
-    <string name="pref_onboarding_guide">Guide de premier lancement</string>
-    <string name="onboarding_guides_new_user">Nouveau sur %s ? Nous vous recommandons de jeter un œil au guide de démarrage.</string>
     <string name="onboarding_action_finish">Commencer</string>
-    <string name="onboarding_storage_selection_required">Un dossier doit être sélectionné</string>
     <string name="onboarding_heading">Bienvenue !</string>
     <string name="onboarding_guides_returning_user">De retour sur %s ?</string>
-    <string name="onboarding_action_skip">Passer</string>
     <string name="onboarding_action_next">Suivant</string>
     <string name="onboarding_description">Commençons par paramétrer certaines choses. Vous pouvez toujours changer ces paramètres plus tard.</string>
     <string name="no_location_set">Aucun emplacement de stockage défini</string>
