@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.components.topappbar.cast
 
-import android.util.Log
 import androidx.mediarouter.app.MediaRouteChooserDialogFragment
 import androidx.mediarouter.app.MediaRouteControllerDialogFragment
 import androidx.mediarouter.app.MediaRouteDialogFactory

@@ -8,14 +8,11 @@ import java.io.IOException
 
 class ProgressResponseBody(
     private val responseBody: ResponseBody,
-    progressListener: ProgressListener
+    private val progressListener: ProgressListener
 ) :
     ResponseBody() {
-    private val progressListener: ProgressListener
-    private var bufferedSource: BufferedSource? = null
-
-    init {
-        this.progressListener = progressListener
+    private val bufferedSource: BufferedSource by lazy {
+        source(responseBody.source()).buffer()
     }
 
     override fun contentType(): MediaType? {
@@ -27,10 +24,7 @@ class ProgressResponseBody(
     }
 
     override fun source(): BufferedSource {
-        if (bufferedSource == null) {
-            bufferedSource = source(responseBody.source()).buffer()
-        }
-        return bufferedSource as BufferedSource
+        return bufferedSource
     }
 
     private fun source(source: Source): Source {
@@ -45,7 +39,7 @@ class ProgressResponseBody(
                 progressListener.update(
                     totalBytesRead,
                     responseBody.contentLength(),
-                    bytesRead == -1L
+                    bytesRead == -1L,
                 )
                 return bytesRead
             }

@@ -26,13 +26,14 @@ class AppUpdateNotifier(private val context: Context) {
         }
 
 
-    fun showProgressNotification(): Notification {
+    fun showProgressNotification(title: String? = null): Notification {
         return with(progressNotificationBuilder) {
+            title?.let { setContentTitle(title) }
             setContentText(context.getString(R.string.notification_downloading_app_update))
             setSmallIcon(android.R.drawable.stat_sys_download)
             setOngoing(true)
             clearActions()
-            addAction(R.drawable.ic_close, context.getString(R.string.action_cancel), AppUpdateReceiver.getPendingIntent(context))
+            addAction(R.drawable.ic_close, context.getString(R.string.action_cancel), AppUpdateReceiver.cancelDownloadAppUpdatePendingBroadcast(context))
         }.build()
 
     }
@@ -49,20 +50,21 @@ class AppUpdateNotifier(private val context: Context) {
         context.notificationManager.notify(id, build())
     }
 
-    fun showInstallNotification(apkUri : Uri) {
-        val installIntent = getInstallApkIntent(apkUri)
+    fun promptInstall(apkUri : Uri) {
+        val installIntent = getInstallApkIntent(apkUri,context)
         context.notificationManager.notify(
             Notifications.APP_UPDATE_DOWNLOAD_SUCCESS_ID,
             NotificationCompat.Builder(context, Notifications.APP_UPDATE_DOWNLOAD_SUCCESS_CHANNEL)
                 .apply {
-                    setContentTitle(context.getString(R.string.app_name))
                     setContentText(context.getString(R.string.notification_app_update_tap_install))
-                    setSmallIcon(R.drawable.ic_tada)
-                    setLargeIcon(notificationBitmap)
-                    priority = NotificationCompat.PRIORITY_HIGH
-                    color = getNotificationsColor(context)
+                    setSmallIcon(android.R.drawable.stat_sys_download_done)
+                    setOnlyAlertOnce(false)
+                    setProgress(0, 0, false)
                     setContentIntent(installIntent)
-                    setAutoCancel(true)
+                    setOngoing(true)
+                    color = getNotificationsColor(context)
+
+                    clearActions()
                     addAction(
                         R.drawable.ic_baseline_system_update,
                         context.getString(R.string.install),
@@ -71,17 +73,43 @@ class AppUpdateNotifier(private val context: Context) {
                     addAction(
                         R.drawable.ic_close,
                         context.getString(R.string.action_cancel),
-                        AppUpdateReceiver.dismissNotification(context,Notifications.APP_UPDATE_DOWNLOAD_SUCCESS_ID),
+                        AppUpdateReceiver.dismissNotificationPendingBroadcast(context,Notifications.APP_UPDATE_DOWNLOAD_SUCCESS_ID),
                     )
                 }.build()
         )
     }
 
-    fun cancelProgressNotification() {
-        context.notificationManager.cancel(Notifications.APP_UPDATE_DOWNLOAD_PROGRESS_ID)
+    fun onDownloadError(url: String) {
+        context.notificationManager.notify(
+            Notifications.APP_UPDATE_DOWNLOAD_ERROR_ID,
+            NotificationCompat.Builder(context, Notifications.APP_UPDATE_DOWNLOAD_ERROR_CHANNEL)
+                .apply {
+                    setContentText(context.getString(R.string.update_check_notification_download_error))
+                    setSmallIcon(R.drawable.ic_warning_white)
+                    setOnlyAlertOnce(false)
+                    setProgress(0, 0, false)
+
+                    clearActions()
+                    addAction(
+                        R.drawable.ic_refresh,
+                        context.getString(R.string.retry),
+                        AppUpdateReceiver.downloadAppUpdatePendingBroadcast(context, url,  notificationId = Notifications.APP_UPDATE_DOWNLOAD_ERROR_ID),
+                    )
+                    addAction(
+                        R.drawable.ic_close,
+                        context.getString(R.string.action_cancel),
+                        AppUpdateReceiver.dismissNotificationPendingBroadcast(context, Notifications.APP_UPDATE_DOWNLOAD_ERROR_ID),
+                    )
+                }.build()
+        )
     }
 
-    private fun getInstallApkIntent(apkUri : Uri): PendingIntent {
+    fun cancel() {
+        AppUpdateReceiver.dismissNotification(context, Notifications.APP_UPDATE_DOWNLOAD_PROGRESS_ID)
+    }
+
+
+    private fun getInstallApkIntent(apkUri : Uri,context: Context): PendingIntent {
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(apkUri,"application/vnd.android.package-archive")
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION

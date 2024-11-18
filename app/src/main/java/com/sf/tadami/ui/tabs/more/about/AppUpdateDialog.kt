@@ -24,7 +24,9 @@ import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 import com.sf.tadami.ui.components.widgets.ScrollbarLazyColumn
 import com.sf.tadami.ui.main.AppUpdaterUiState
+import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.padding
+import com.sf.tadami.utils.isOnline
 
 @Composable
 fun AppUpdateDialog(
@@ -37,7 +39,11 @@ fun AppUpdateDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
             DefaultDialogConfirmButton(text = R.string.download) {
-                AppUpdateWorker.startNow(context, uiState.updateInfos!!.getDownloadLink())
+                if(!context.isOnline()){
+                    UiToasts.showToast(R.string.exception_offline)
+                }else{
+                    AppUpdateWorker.start(context, uiState.updateInfos!!.getDownloadLink(), uiState.updateInfos.version)
+                }
                 onDismissRequest()
             }
         },

@@ -26,6 +26,8 @@ object Notifications {
     const val APP_UPDATE_DOWNLOAD_PROGRESS_ID = 200
     const val APP_UPDATE_DOWNLOAD_SUCCESS_CHANNEL = "app_update_download_success_channel"
     const val APP_UPDATE_DOWNLOAD_SUCCESS_ID = 201
+    const val APP_UPDATE_DOWNLOAD_ERROR_CHANNEL = "app_update_download_error_channel"
+    const val APP_UPDATE_DOWNLOAD_ERROR_ID = 202
 
     // Cast notifications
     const val CAST_GROUP = "cast_group"
@@ -85,6 +87,13 @@ object Notifications {
             ).apply {
                 setGroup(APP_GROUP)
                 setName(context.getString(R.string.notification_app_update_success))
+            }.build(),
+            NotificationChannelCompat.Builder(
+                APP_UPDATE_DOWNLOAD_ERROR_CHANNEL,
+                NotificationManagerCompat.IMPORTANCE_DEFAULT
+            ).apply {
+                setGroup(APP_GROUP)
+                setName(context.getString(R.string.update_check_notification_download_error))
             }.build()
         )
 

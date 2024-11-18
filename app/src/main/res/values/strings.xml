@@ -291,6 +291,7 @@
     <string name="action_copy">Copy</string>
     <string name="action_move">Move</string>
     <string name="migration_error">An error occurred during anime migration</string>
+    <string name="update_check_notification_download_error">Download error</string>
 
     <!-- Onboarding -->
     <string name="onboarding_storage_action_select">Select a folder</string>

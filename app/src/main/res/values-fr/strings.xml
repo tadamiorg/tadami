@@ -246,6 +246,7 @@
     <string name="settings_tab_library_backup_preferences_subtitle">Sauvegardes manuelles et automatiques</string>
     <string name="settings_tab_library_player_preferences_title">Lecteur vidéo</string>
     <string name="settings_tab_library_player_preferences_subtitle">Configuration de la timeline</string>
+    <string name="update_check_notification_download_error">Erreur lors du téléchargement</string>
 
     <!-- Labels -->
     <string name="label_appearance">Apparence</string>

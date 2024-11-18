@@ -3,29 +3,31 @@ package com.sf.tadami.notifications.appupdate
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.os.Build
-import android.util.Log
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
-import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
-import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
+import com.sf.tadami.R
 import com.sf.tadami.network.GET
 import com.sf.tadami.network.NetworkHelper
-import com.sf.tadami.network.asObservableSuccess
+import com.sf.tadami.network.asObservable
 import com.sf.tadami.network.newCachelessCallWithProgress
 import com.sf.tadami.network.saveTo
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.notifications.utils.okhttp.ProgressListener
-import com.sf.tadami.ui.utils.awaitSingleOrNull
+import com.sf.tadami.ui.utils.awaitSingleOrError
 import com.sf.tadami.ui.utils.getUriCompat
+import com.sf.tadami.utils.setForegroundSafely
+import com.sf.tadami.utils.workManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.Call
+import okhttp3.internal.http2.ErrorCode
+import okhttp3.internal.http2.StreamResetException
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.File
@@ -40,27 +42,20 @@ class AppUpdateWorker(
     private val network: NetworkHelper = Injekt.get()
 
     override suspend fun doWork(): Result {
-        try {
-            setForegroundAsync(getForegroundInfo())
-        } catch (e: IllegalStateException) {
-            Log.d("Worker error", "Job could not be set in foreground", e)
+        val url = inputData.getString(EXTRA_DOWNLOAD_URL)
+        val title = inputData.getString(EXTRA_DOWNLOAD_TITLE) ?: context.getString(R.string.app_name)
+
+        if (url.isNullOrEmpty()) {
+            return Result.failure()
         }
-        return withContext(Dispatchers.IO) {
-            try {
-                downloadAppUpdate(inputData.getString(UPDATE_LINK)!!)
-                Result.success()
-            } catch (e: Exception) {
-                if (e is CancellationException) {
-                    // Assume success although cancelled
-                    Result.success()
-                } else {
-                    Log.d("Worker error performing task", "error", e)
-                    Result.failure()
-                }
-            } finally {
-                notifier.cancelProgressNotification()
-            }
+
+        setForegroundSafely()
+
+        withContext(Dispatchers.IO) {
+            downloadApk(title, url)
         }
+
+        return Result.success()
     }
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -75,7 +70,10 @@ class AppUpdateWorker(
         )
     }
 
-    private suspend fun downloadAppUpdate(updateLink : String) {
+    private suspend fun downloadApk(title: String, url: String) {
+        // Show notification download starting.
+        notifier.showProgressNotification(title)
+
         val progressListener = object : ProgressListener {
             // Progress of the download
             var savedProgress = 0
@@ -94,60 +92,65 @@ class AppUpdateWorker(
             }
         }
 
-        // Download the new update.
-        val call: Call = network.client.newCachelessCallWithProgress(GET(updateLink),progressListener)
-        val response = call.asObservableSuccess().awaitSingleOrNull() ?: throw Exception("Error while making the call to download the apk")
+        try {
+            // Download the new update.
+            val response = network.client.newCachelessCallWithProgress(GET(url), progressListener)
+                .asObservable().awaitSingleOrError()
 
-        // File where the apk will be saved.
-        val apkFile = File(context.externalCacheDir, "update.apk")
+            // File where the apk will be saved.
+            val apkFile = File(context.externalCacheDir, "update.apk")
 
-        if (response.isSuccessful) {
-            response.body.source().saveTo(apkFile)
-        } else {
-            response.close()
-            throw Exception("Unsuccessful response")
+            if (response.isSuccessful) {
+                response.body.source().saveTo(apkFile)
+            } else {
+                response.close()
+                throw Exception("Unsuccessful response")
+            }
+            notifier.cancel()
+            notifier.promptInstall(apkFile.getUriCompat(context))
+        } catch (e: Exception) {
+            val shouldCancel = e is CancellationException ||
+                    (e is StreamResetException && e.errorCode == ErrorCode.CANCEL)
+            if (shouldCancel) {
+                notifier.cancel()
+            } else {
+                notifier.onDownloadError(url)
+            }
         }
-        notifier.showInstallNotification(apkFile.getUriCompat(context))
     }
+
 
     companion object {
         private const val TAG = "AppUpdate"
-        private const val WORK_NAME = "app_update_work"
-        private const val UPDATE_LINK = "github_update_link"
+        const val EXTRA_DOWNLOAD_URL = "DOWNLOAD_URL"
+        const val EXTRA_DOWNLOAD_TITLE = "DOWNLOAD_TITLE"
 
-        fun startNow(
+        fun start(
             context: Context,
-            updateLink : String
+            url: String,
+            title: String? = null
         ): Boolean {
-            val wm = WorkManager.getInstance(context)
-            val infos = wm.getWorkInfosByTag(TAG).get()
-            if (infos.find { it.state == WorkInfo.State.RUNNING } != null) {
-                return false
-            }
-
-            val data = Data.Builder()
-            data.putString(UPDATE_LINK,updateLink)
-
+            val constraints = Constraints(
+                requiredNetworkType = NetworkType.CONNECTED,
+            )
             val request = OneTimeWorkRequestBuilder<AppUpdateWorker>()
+                .setConstraints(constraints)
                 .addTag(TAG)
-                .addTag(WORK_NAME)
-                .setInputData(data.build())
+                .setInputData(
+                    workDataOf(
+                        EXTRA_DOWNLOAD_URL to url,
+                        EXTRA_DOWNLOAD_TITLE to title,
+                    ),
+                )
                 .build()
-            wm.enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.KEEP, request)
+
+            context.workManager.enqueueUniqueWork(TAG, ExistingWorkPolicy.REPLACE, request)
 
             return true
         }
 
         fun stop(context: Context) {
-            val wm = WorkManager.getInstance(context)
-            val workQuery = WorkQuery.Builder.fromTags(listOf(TAG))
-                .addStates(listOf(WorkInfo.State.RUNNING))
-                .build()
-            wm.getWorkInfos(workQuery).get()
-                // Should only return one work but just in case
-                .forEach {
-                    wm.cancelWorkById(it.id)
-                }
+            context.workManager.cancelUniqueWork(TAG)
         }
     }
 }

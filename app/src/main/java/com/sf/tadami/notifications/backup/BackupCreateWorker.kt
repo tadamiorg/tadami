@@ -21,12 +21,13 @@ import androidx.work.workDataOf
 import com.hippo.unifile.UniFile
 import com.sf.tadami.data.backup.BackupCreator
 import com.sf.tadami.data.backup.BackupOptions
+import com.sf.tadami.domain.storage.StorageManager
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.backup.BackupPreferences
-import com.sf.tadami.preferences.storage.StoragePreferences
 import com.sf.tadami.utils.cancelNotification
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.isRunning
+import com.sf.tadami.utils.setForegroundSafely
 import com.sf.tadami.utils.workManager
 import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
@@ -42,21 +43,18 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
 
     override suspend fun doWork(): Result {
         val isAutoBackup = inputData.getBoolean(IS_AUTO_BACKUP_KEY, true)
-        val dataStore : DataStore<Preferences> = Injekt.get()
-        val storagePreferences = dataStore.getPreferencesGroup(StoragePreferences)
 
         if (isAutoBackup && BackupRestoreWorker.isRunning(context)) return Result.retry()
 
         val uri = inputData.getString(LOCATION_URI_KEY)?.toUri()
-            ?: storagePreferences.storageDir.toUri()
+            ?: getAutomaticBackupLocation()
+            ?: return Result.failure()
+
         val options = inputData.getBooleanArray(OPTIONS_KEY)?.let { BackupOptions.fromBooleanArray(it) }
             ?: BackupOptions()
 
-        try {
-            setForeground(getForegroundInfo())
-        } catch (e: IllegalStateException) {
-            Log.e("BackupCreateWorker","Not allowed to run on foreground service")
-        }
+        setForegroundSafely()
+
         return try {
             val location = BackupCreator(context,isAutoBackup).createBackup(uri, options)
             if (!isAutoBackup) {
@@ -83,6 +81,11 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
                 0
             },
         )
+    }
+
+    private fun getAutomaticBackupLocation(): Uri? {
+        val storageManager = Injekt.get<StorageManager>()
+        return storageManager.getAutomaticBackupsDirectory()?.uri
     }
 
     companion object {
