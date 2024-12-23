@@ -141,6 +141,12 @@ FROM Anime
 WHERE favorite = 0
 GROUP BY source;
 
+getSourceIdsWithFavoriteCount:
+SELECT source, COUNT(*)
+FROM Anime
+WHERE favorite = 1
+GROUP BY source;
+
 deleteAnimesNotInLibraryBySourceIds:
 DELETE FROM Anime
 WHERE favorite = 0 AND source IN :sourceIds;

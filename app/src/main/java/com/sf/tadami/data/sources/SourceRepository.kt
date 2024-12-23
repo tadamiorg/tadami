@@ -7,6 +7,7 @@ import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import com.sf.tadami.domain.source.Source as DomainSource
 
@@ -16,6 +17,8 @@ interface SourceRepository {
     fun getOnlineSources(): Flow<List<DomainSource>>
 
     fun getSourcesWithNonLibraryAnime(): Flow<List<SourceWithCount>>
+
+    fun getSourcesWithFavoriteCount(): Flow<List<Pair<DomainSource, Long>>>
 
     suspend fun deleteAnimesNotInLibraryBySourceIds(sourceIds : List<Long>)
 }
@@ -56,6 +59,22 @@ class SourceRepositoryImpl(
                 SourceWithCount(domainSource, count)
             }
         }
+    }
+
+    override fun getSourcesWithFavoriteCount(): Flow<List<Pair<DomainSource, Long>>> {
+        return combine(
+            handler.subscribeToList { animeQueries.getSourceIdsWithFavoriteCount() },
+            sourceManager.catalogueSources,
+        ) { sourceIdWithFavoriteCount, _ -> sourceIdWithFavoriteCount }
+            .map {
+                it.map { (sourceId, count) ->
+                    val source = sourceManager.getOrStub(sourceId)
+                    val domainSource = mapSourceToDomainSource(source).copy(
+                        isStub = source is StubSource,
+                    )
+                    domainSource to count
+                }
+            }
     }
 
     override suspend fun deleteAnimesNotInLibraryBySourceIds(sourceIds: List<Long>) {
