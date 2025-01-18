@@ -36,12 +36,13 @@ fun Call.asObservableSuccess(): Observable<Response> {
         this.execute()
     }
 }
+
 fun Call.asCancelableObservable(): Observable<Response> {
 
     return Observable.create { emitter ->
         val callback = object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                if(!call.isCanceled()){
+                if (!call.isCanceled()) {
                     emitter.onError(e)
                 }
             }
@@ -52,7 +53,7 @@ fun Call.asCancelableObservable(): Observable<Response> {
                     emitter.onNext(response)
                     emitter.onComplete()
                 } catch (e: Exception) {
-                    if(!call.isCanceled()) {
+                    if (!call.isCanceled()) {
                         emitter.onError(e)
                     }
                 }
@@ -96,7 +97,7 @@ fun OkHttpClient.newCachelessCallWithProgress(request: Request, listener: Progre
 
 fun OkHttpClient.Builder.setUserAgent(
     userAgent: String?,
-    client : NetworkHelper
+    client: NetworkHelper
 ) = apply {
     interceptors().add(0, UserAgentInterceptor(userAgent ?: client.advancedPreferences.userAgent))
 }
@@ -115,7 +116,8 @@ private suspend fun Call.await(callStack: Array<StackTraceElement>): Response {
                 override fun onFailure(call: Call, e: java.io.IOException) {
                     // Don't bother with resuming the continuation if it is already cancelled.
                     if (continuation.isCancelled) return
-                    val exception = java.io.IOException(e.message, e).apply { stackTrace = callStack }
+                    val exception =
+                        java.io.IOException(e.message, e).apply { stackTrace = callStack }
                     continuation.resumeWithException(exception)
                 }
             }
@@ -146,18 +148,19 @@ suspend fun Call.awaitSuccess(): Response {
     }
     return response
 }
+
 class HttpException(val code: Int) : IllegalStateException("HTTP error $code")
 
 context(Json)
 inline fun <reified T> Response.parseAs(): T {
-    return decodeFromString(serializer(),this.body.string())
+    return decodeFromString(serializer(), this.body.string())
 }
 
 context(Json)
 inline fun <reified T> String.decodeOrNull(): T? {
-    return try{
-        decodeFromString(serializer(),this)
-    }catch (e: Exception){
+    return try {
+        decodeFromString(serializer(), this)
+    } catch (e: Exception) {
         null
     }
 }
@@ -185,7 +188,7 @@ fun BufferedSource.saveTo(stream: OutputStream) {
     }
 }
 
-fun OkHttpClient.shortTimeOutBuilder(timeOut : Long = 5) : OkHttpClient{
+fun OkHttpClient.shortTimeOutBuilder(timeOut: Long = 5): OkHttpClient {
     return this.newBuilder().callTimeout(timeOut, TimeUnit.SECONDS).build()
 }
 
