@@ -38,6 +38,7 @@ fun PlayerControls(
     onSeekChanged: (timeMs: Float) -> Unit,
     onSeekEnd: () -> Unit = {},
     onStreamSettings: () -> Unit,
+    onTracksSettings: () -> Unit,
     onPlayerSettings: () -> Unit,
     onEpisodesClicked: () -> Unit,
     onWebViewOpen : () -> Unit,
@@ -51,6 +52,7 @@ fun PlayerControls(
     playerSeekValue : Long,
     onPipClicked : (() -> Unit)? = null,
     videoSettingsEnabled: Boolean = false,
+    tracksSettingsEnabled: Boolean = false,
     lockedControls : Boolean
 ) {
     val visible = remember(isVisible()) { isVisible() }
@@ -124,9 +126,11 @@ fun PlayerControls(
                         onStreamSettings = onStreamSettings,
                         isSeekable = !isIdle,
                         videoSettingsEnabled = videoSettingsEnabled,
+                        tracksSettingsEnabled = tracksSettingsEnabled,
                         onPlayerSettings = onPlayerSettings,
                         onEpisodesClicked = onEpisodesClicked,
-                        onPipClicked = onPipClicked
+                        onPipClicked = onPipClicked,
+                        onTracksSettings = onTracksSettings
                     )
                 }
                 AnimatedVisibility(

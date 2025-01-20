@@ -12,6 +12,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.ui.animeinfos.details.actions.AnimeActionRow
 import com.sf.tadami.ui.animeinfos.details.episodes.EpisodesHeader
@@ -26,6 +28,7 @@ import com.sf.tadami.ui.components.widgets.VerticalFastScroller
 fun DetailsComponent(
     isRefreshing : Boolean,
     contentPadding : PaddingValues,
+    fabHeightInDp: Dp,
     episodesListState : LazyListState,
     uiState : DetailsUiState,
     sourceName : String,
@@ -63,7 +66,7 @@ fun DetailsComponent(
                 contentPadding = PaddingValues(
                     start = contentPadding.calculateStartPadding(layoutDirection),
                     end = contentPadding.calculateEndPadding(layoutDirection),
-                    bottom = contentPadding.calculateBottomPadding(),
+                    bottom = contentPadding.calculateBottomPadding() + fabHeightInDp + 15.dp,
                 ),
             ) {
                 item(

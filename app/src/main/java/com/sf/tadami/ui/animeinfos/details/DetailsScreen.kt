@@ -16,12 +16,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
@@ -69,6 +73,12 @@ fun DetailsScreen(
     var isMigrationOpened by rememberSaveable {
         mutableStateOf(false)
     }
+
+    var fabHeight by remember {
+        mutableStateOf(0)
+    }
+
+    val fabHeightInDp = with(LocalDensity.current) { fabHeight.toDp() }
 
     Box {
         TadaBottomSheetScaffold(
@@ -133,27 +143,37 @@ fun DetailsScreen(
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
-                    ExtendedFloatingActionButton(
-                        text = {
-                            val isWatching = remember(uiState.episodes) {
-                                uiState.episodes.fastAny { it.episode.seen }
-                            }
-                            Text(
-                                text = stringResource(if (isWatching) R.string.details_screen_resume_button else R.string.details_screen_start_button)
-                            )
-                        },
-                        icon = {
-                            Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null)
-                        },
-                        onClick = {
-                            val resumedEpisode =
-                                uiState.episodes.reversed().find { !it.episode.seen }
-                            resumedEpisode?.let {
-                                navHostController.navigate("${AnimeInfosRoutes.EPISODE}/${detailsViewModel.source.id}/${it.episode.id}")
-                            }
-                        },
-                        expanded = episodesListState.isScrollingUp() || episodesListState.isScrolledToEnd()
-                    )
+                    DisposableEffect(
+                        ExtendedFloatingActionButton(
+                            modifier = Modifier.onGloballyPositioned {
+                                fabHeight = it.size.height
+                            },
+                            text = {
+                                val isWatching = remember(uiState.episodes) {
+                                    uiState.episodes.fastAny { it.episode.seen }
+                                }
+                                Text(
+                                    text = stringResource(if (isWatching) R.string.details_screen_resume_button else R.string.details_screen_start_button)
+                                )
+                            },
+                            icon = {
+                                Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null)
+                            },
+                            onClick = {
+                                val resumedEpisode =
+                                    uiState.episodes.reversed().find { !it.episode.seen }
+                                resumedEpisode?.let {
+                                    navHostController.navigate("${AnimeInfosRoutes.EPISODE}/${detailsViewModel.source.id}/${it.episode.id}")
+                                }
+                            },
+                            expanded = episodesListState.isScrollingUp() || episodesListState.isScrolledToEnd()
+                        )
+                    ) {
+                        onDispose {
+                            fabHeight = 0
+                        }
+                    }
+
                 }
             },
             bottomBar = {
@@ -189,6 +209,7 @@ fun DetailsScreen(
             DetailsComponent(
                 isRefreshing = isRefreshing,
                 contentPadding = contentPadding,
+                fabHeightInDp = fabHeightInDp,
                 episodesListState = episodesListState,
                 uiState = uiState,
                 sourceName = detailsViewModel.source.name,

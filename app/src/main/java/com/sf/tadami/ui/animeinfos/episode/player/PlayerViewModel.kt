@@ -16,6 +16,7 @@ import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.network.utils.TadaErrorConsumer
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.source.model.Track
 import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.ui.animeinfos.episode.EpisodeUiState
 import com.sf.tadami.ui.tabs.browse.SourceManager
@@ -173,6 +174,11 @@ class PlayerViewModel(
             currentState.copy(selectedSource = source)
         }
     }
+    fun selectedSubtitleTrack(subtitleTrack: Track.SubtitleTrack?){
+        _uiState.update { currentState ->
+            currentState.copy(selectedSubtitleTrack = subtitleTrack)
+        }
+    }
 
     fun updateTime(episode: Episode?, totalTime: Long, timeSeen: Long, threshold: Int): Job? {
         episode?.let { ep ->
@@ -233,6 +239,7 @@ class PlayerViewModel(
             currentState.copy(
                 rawUrl = null,
                 selectedSource = null,
+                selectedSubtitleTrack = null,
                 availableSources = emptyList()
             )
         }

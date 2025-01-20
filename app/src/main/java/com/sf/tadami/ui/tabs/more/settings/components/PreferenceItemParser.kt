@@ -11,6 +11,7 @@ import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.tabs.more.settings.widget.EditTextPreferenceWidget
 import com.sf.tadami.ui.tabs.more.settings.widget.InfoWidget
 import com.sf.tadami.ui.tabs.more.settings.widget.MultiSelectPreference
+import com.sf.tadami.ui.tabs.more.settings.widget.ReorderStringPreference
 import com.sf.tadami.ui.tabs.more.settings.widget.SelectPreference
 import com.sf.tadami.ui.tabs.more.settings.widget.TextPreference
 import com.sf.tadami.ui.tabs.more.settings.widget.TogglePreference
@@ -100,6 +101,20 @@ fun PreferenceItemParser(
                             val accepted = item.onValueChanged(it)
                             accepted
                         },
+                    )
+                }
+                is Preference.PreferenceItem.ReorderStringPreference -> {
+                    ReorderStringPreference(
+                        customPrefsVerticalPadding = customPrefsVerticalPadding,
+                        valueList = item.value.split(","),
+                        items = item.items,
+                        title = item.title,
+                        subtitleProvider = {
+                            item.subtitle
+                        },
+                        onValueChange = {
+                            item.onValueChanged(it)
+                        }
                     )
                 }
                 is Preference.PreferenceItem.CustomPreference -> {

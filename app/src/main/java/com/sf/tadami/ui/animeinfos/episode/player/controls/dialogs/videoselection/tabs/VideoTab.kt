@@ -1,9 +1,11 @@
-package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs
+package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.videoselection.tabs
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
@@ -12,57 +14,34 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
 import com.sf.tadami.source.model.StreamSource
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
-import com.sf.tadami.ui.components.dialog.simple.SimpleDialog
+import com.sf.tadami.ui.components.screens.ScreenTabContent
 import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
 
-@Composable
-fun QualityDialog(
-    opened: Boolean,
-    onDismissRequest: () -> Unit,
+@Composable()
+fun videoTab(
     sources: List<StreamSource>,
     selectedSource: StreamSource? = null,
-    onSelectSource: (source: StreamSource) -> Unit,
-) {
-    val (selectedOption, onOptionSelected) = remember {
-        mutableStateOf(selectedSource ?: sources.firstOrNull())
-    }
+    selectedOption: StreamSource?,
+    onOptionSelected: (StreamSource?) -> Unit
+) : ScreenTabContent {
+
     val listState = rememberLazyListState()
 
-    SimpleDialog(
-        opened = opened,
-        title = { Text(text = stringResource(id = R.string.player_screen_qd_title)) },
-        onDismissRequest = onDismissRequest,
-        confirmButton = {
-            DefaultDialogConfirmButton(
-                enabled = selectedOption != selectedSource
-            ) {
-                if (selectedOption != null) {
-                    onSelectSource(selectedOption)
-                    onDismissRequest()
-                }
-            }
-        },
-        dismissButton = {
-            DefaultDialogCancelButton()
-        }
-    ) {
+    return ScreenTabContent(
+        titleRes = R.string.label_video,
+    ){ contentPadding: PaddingValues, _ ->
         LaunchedEffect(Unit){
             val realSource = selectedSource ?: sources.firstOrNull()
             onOptionSelected(realSource)
             listState.animateScrollToItem(realSource?.let { sources.indexOf(it) }.takeIf { it !=-1 } ?: 0)
         }
         FastScrollLazyColumn(
+            modifier = Modifier.padding(contentPadding),
             thumbAlways = true,
             state = listState
         ) {
@@ -96,23 +75,4 @@ fun QualityDialog(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun PreviewQualityDialog() {
-    QualityDialog(
-        sources = listOf(
-        StreamSource("", "Gogoanime : 1080P", "","",null),
-        StreamSource("", "VidCdn : 1080P", "","",null),
-        StreamSource("", "Embed : 1080P", "","",null),
-        StreamSource("", "StreamSB : 1080P", "","",null),
-        StreamSource("", "Uptolaod : 1080P", "","",null),
-        StreamSource("", "Vaginette : 1080P", "","",null),
-        StreamSource("", "Viloeur : 1080P", "","",null),
-    ),
-        onSelectSource = {},
-        onDismissRequest = {},
-        opened = true
-    )
 }

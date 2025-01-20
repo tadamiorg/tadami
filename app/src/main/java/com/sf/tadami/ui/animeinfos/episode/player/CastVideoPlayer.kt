@@ -46,8 +46,8 @@ import com.sf.tadami.ui.animeinfos.episode.cast.channels.tadamiCastMessageCallba
 import com.sf.tadami.ui.animeinfos.episode.cast.isCastMediaFinished
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.EpisodesDialog
-import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.QualityDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.SettingsDialog
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.videoselection.VideoSelectionDialog
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.utils.ImageDefaults
 import com.sf.tadami.utils.rememberResourceBitmapPainter
@@ -212,7 +212,7 @@ fun CastVideoPlayer(
         Box(modifier = modifier) {
 
             if (episodeUiState.availableSources.isNotEmpty()) {
-                QualityDialog(
+                VideoSelectionDialog(
                     opened = openStreamDialog,
                     sources = episodeUiState.availableSources,
                     onSelectSource = {
@@ -352,6 +352,7 @@ fun CastVideoPlayer(
                     hasPreviousIterator.hasNext()
                 },
                 videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty(),
+                tracksSettingsEnabled = false,
                 playerSeekValue = playerPreferences.doubleTapLength,
                 onTapYoutube = {},
                 onPlayerSettings = {
@@ -359,6 +360,9 @@ fun CastVideoPlayer(
                 },
                 onEpisodesClicked = {
                     openEpisodesDialog = true
+                },
+                onTracksSettings = {
+
                 },
                 lockedControls = false,
                 onWebViewOpen = onWebViewOpen

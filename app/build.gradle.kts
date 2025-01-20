@@ -153,7 +153,7 @@ dependencies {
     // SplashScreen
     implementation(androidx.splashscreen)
 
-    // Mardown parser
+    // Markdown parser
     implementation(libs.bundles.richtext)
 
     // Cast Dependencies

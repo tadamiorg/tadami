@@ -250,6 +250,9 @@
     <string name="label_episodes">Episodes</string>
     <string name="label_migration">Migration</string>
     <string name="label_about">About</string>
+    <string name="label_video">Video</string>
+    <string name="label_audio">Audio</string>
+    <string name="label_subtitles">Subtitles</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Library last updated: %s</string>
@@ -310,4 +313,11 @@
     <string name="file_picker_uri_permission_unsupported">Failed to acquire persistent folder access. The app may behave unexpectedly.</string>
     <string name="invalid_location">Invalid location: %s</string>
     <string name="onboarding_permission_ignore_battery_opts_description">Avoid interruptions to long-running library updates, downloads, and backup restores.</string>
+
+    <string name="enable_subtitles_label">Automatic selection</string>
+    <string name="enable_subtitles_description">Enable this to allow subtitles to be automatically selected during playback according to your preferences</string>
+
+    <string name="subtitles_priority_label">Subtitles priority</string>
+    <string name="subtitles_priority_description">Adjust the priority of languages to load the subtitles of your preference</string>
+
 </resources>

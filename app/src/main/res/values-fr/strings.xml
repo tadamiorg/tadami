@@ -261,6 +261,9 @@
     <string name="label_episodes">Episodes</string>
     <string name="label_migration">Migration</string>
     <string name="label_about">À propos</string>
+    <string name="label_video">Vidéo</string>
+    <string name="label_audio">Audio</string>
+    <string name="label_subtitles">Sous-titres</string>
 
     <!-- Updates -->
     <string name="updates_last_update_info">Dernière mise à jour de la bibliothèque le : %s</string>
@@ -318,4 +321,12 @@
     <string name="file_picker_uri_permission_unsupported">Impossible d\'obtenir un accès persistant au dossier. L\'application pourrait avoir un comportement inattendu.</string>
     <string name="invalid_location">Emplacement invalide : %s</string>
     <string name="onboarding_permission_ignore_battery_opts_description">Évite l\&apos;interruption des mises à jour de bibliothèque, des téléchargements de chapitres, et des restaurations de sauvegardes.</string>
+
+    <string name="enable_subtitles_label">Sélection automatique</string>
+    <string name="enable_subtitles_description">Activez cette option pour permettre la sélection automatique des sous-titres lors de la lecture en fonction de vos préférences</string>
+
+    <string name="subtitles_priority_label">Priorité des sous-titres</string>
+    <string name="subtitles_priority_description">Adaptez la priorité des langues pour charger les sous-titres de votre choix</string>
+
+
 </resources>

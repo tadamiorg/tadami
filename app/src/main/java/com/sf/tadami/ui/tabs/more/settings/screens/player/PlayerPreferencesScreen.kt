@@ -24,7 +24,8 @@ class PlayerPreferencesScreen(
         val playerPreferencesState = rememberDataStoreState(PlayerPreferences)
         val playerPreferences by playerPreferencesState.value.collectAsState()
         return listOf(
-            getTimelineGroup(prefState = playerPreferencesState, prefs = playerPreferences)
+            getTimelineGroup(prefState = playerPreferencesState, prefs = playerPreferences),
+            getSubtitlesGroup(prefState = playerPreferencesState, prefs = playerPreferences)
         )
     }
 
@@ -85,6 +86,63 @@ class PlayerPreferencesScreen(
                         true
                     }
                 )
+            )
+        )
+    }
+
+    @Composable
+    private fun getSubtitlesGroup(
+        prefState: DataStoreState<PlayerPreferences>,
+        prefs: PlayerPreferences
+    ) : Preference.PreferenceCategory{
+        return Preference.PreferenceCategory(
+            title = stringResource(id = R.string.label_subtitles),
+            preferenceItems = listOf(
+                Preference.PreferenceItem.TogglePreference(
+                    title = stringResource(id = R.string.enable_subtitles_label),
+                    value = prefs.subtitlesEnabled,
+                    subtitle = stringResource(id = R.string.enable_subtitles_description),
+                    onValueChanged = {
+                        prefState.setValue(prefs.copy(
+                            subtitlesEnabled = it
+                        ))
+                        true
+                    }
+                ),
+                Preference.PreferenceItem.ReorderStringPreference(
+                    enabled = prefs.subtitlesEnabled,
+                    value = prefs.subtitlePrefLanguages,
+                    items = PlayerPreferences.DefaultSubtitlesPrefLanguages.mapValues { (key,value) ->
+                        stringResource(value)
+                    },
+                    title = stringResource(id = R.string.subtitles_priority_label),
+                    subtitle = stringResource(id = R.string.subtitles_priority_description),
+                    onValueChanged = {
+                        prefState.setValue(prefs.copy(
+                            subtitlePrefLanguages = it
+                        ))
+                        true
+                    }
+                ),
+                /*Preference.PreferenceItem.CustomPreference(
+                    title = stringResource(id = R.string.label_theme)
+                ){
+                    Column {
+                        AppThemeModePreference(
+                            value = prefs.themeMode,
+                            onItemClick = {
+                                prefState.setValue(prefs.copy(themeMode = it))
+                                setAppCompatDelegateThemeMode(it)
+                            },
+                        )
+
+                        AppThemePreference(
+                            value = prefs.appTheme,
+                            amoled = prefs.themeDarkAmoled,
+                            onItemClick = { prefState.setValue(prefs.copy(appTheme = it)) },
+                        )
+                    }
+                },*/
             )
         )
     }

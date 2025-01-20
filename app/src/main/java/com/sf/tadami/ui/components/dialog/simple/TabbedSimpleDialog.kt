@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.components.dialog.simple
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
@@ -22,13 +21,15 @@ import com.sf.tadami.ui.components.screens.ScreenTabContent
 import com.sf.tadami.ui.components.screens.TabText
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TabbedSimpleDialog(
     modifier: Modifier = Modifier,
     tabs: List<ScreenTabContent>,
     onDismissRequest: () -> Unit,
     opened: Boolean,
+    confirmButton: @Composable (() -> Unit)? = null,
+    dismissButton: @Composable (() -> Unit)? = null,
 ) {
     val state = rememberPagerState { tabs.size }
     val scope = rememberCoroutineScope()
@@ -36,7 +37,9 @@ fun TabbedSimpleDialog(
     SimpleDialog(
         opened = opened,
         onDismissRequest = onDismissRequest,
-        dialogHorizontalPadding = false
+        dialogHorizontalPadding = false,
+        confirmButton = confirmButton,
+        dismissButton = dismissButton
     ) {
 
         Column(

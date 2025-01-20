@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
+import com.sf.tadami.preferences.model.SourcePreference.PreferenceItem
 
 sealed class Preference {
     abstract val title: String
@@ -106,6 +107,17 @@ sealed class Preference {
             override val icon: ImageVector? = null
             override val onValueChanged: (newValue: String) -> Boolean = { true }
         }
+
+        data class ReorderStringPreference(
+            var value : String,
+            var items : Map<String,String>,
+            override val title: String,
+            override val subtitle: String? = "%s",
+            override val icon: ImageVector? = null,
+            override val enabled: Boolean = true,
+            val overrideOkButton : Boolean = false,
+            override val onValueChanged: (newValue: String) -> Boolean = { true },
+        ) : PreferenceItem<String>()
     }
 
     data class PreferenceCategory(

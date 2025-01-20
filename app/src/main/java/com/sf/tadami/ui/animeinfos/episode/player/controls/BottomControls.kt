@@ -26,11 +26,13 @@ fun BottomControls(
     modifier: Modifier = Modifier,
     onSkipOp: () -> Unit = {},
     onStreamSettings: () -> Unit = {},
+    onTracksSettings: () -> Unit = {},
     onPlayerSettings: () -> Unit = {},
     onEpisodesClicked: () -> Unit = {},
     isSeekable: Boolean = true,
     videoSettingsEnabled: Boolean = false,
-    onPipClicked : (() -> Unit)? = null
+    tracksSettingsEnabled: Boolean = false,
+    onPipClicked: (() -> Unit)? = null
 ) {
     Box(
         modifier = modifier.fillMaxWidth(),
@@ -38,7 +40,9 @@ fun BottomControls(
     ) {
 
         Row(
-            modifier = Modifier.align(Alignment.CenterStart).fillMaxWidth(),
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -70,7 +74,23 @@ fun BottomControls(
                         contentDescription = "Video Settings"
                     )
                 }
+                IconButton(
+                    onClick = onTracksSettings,
+                    enabled = tracksSettingsEnabled,
+                    size = 36.dp,
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_chat),
+                        tint = if (tracksSettingsEnabled) MaterialTheme.colorScheme.onBackground
+                        else MaterialTheme.colorScheme.onBackground.copy(
+                            alpha = 0.5f
+                        ),
+                        contentDescription = "Tracks"
+                    )
+                }
+            }
 
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(
                     onClick = onEpisodesClicked,
                     enabled = true,
@@ -85,19 +105,6 @@ fun BottomControls(
                         contentDescription = "Episodes"
                     )
                 }
-
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // Ignore Opening Button
-                Button(onClick = onSkipOp, enabled = isSeekable) {
-                    Text(
-                        text = stringResource(id = R.string.player_screen_controls_forward_85),
-                        softWrap = false,
-                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    )
-                }
-
                 onPipClicked?.let {
                     IconButton(
                         onClick = onPipClicked,
@@ -110,6 +117,14 @@ fun BottomControls(
                             contentDescription = "Picture in picture"
                         )
                     }
+                }
+                // Ignore Opening Button
+                Button(onClick = onSkipOp, enabled = isSeekable) {
+                    Text(
+                        text = stringResource(id = R.string.player_screen_controls_forward_85),
+                        softWrap = false,
+                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    )
                 }
             }
         }

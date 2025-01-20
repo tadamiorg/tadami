@@ -57,8 +57,9 @@ import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.EpisodesDialog
-import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.QualityDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.SettingsDialog
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.TracksSelectionDialog
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.videoselection.VideoSelectionDialog
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.utils.UiToasts
 import kotlinx.coroutines.delay
@@ -74,9 +75,9 @@ fun VideoPlayer(
     dispatcher: OnBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current!!.onBackPressedDispatcher,
     playerViewModel: PlayerViewModel = viewModel(LocalContext.current as EpisodeActivity),
     setPlayer: (ExoPlayer) -> Unit,
-    onWebViewOpen : () -> Unit,
+    onWebViewOpen: () -> Unit,
     setPipMode: () -> Unit,
-    refreshPipUi : () -> Unit
+    refreshPipUi: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -132,7 +133,7 @@ fun VideoPlayer(
     val loadControl = remember {
         DefaultLoadControl.Builder().apply {
             setBufferDurationsMs(300000, 300000, 1500, 3500)
-            setBackBuffer(300000,false)
+            setBackBuffer(300000, false)
             setPrioritizeTimeOverSizeThresholds(true)
         }.build()
     }
@@ -144,6 +145,7 @@ fun VideoPlayer(
                 setSeekForwardIncrementMs(playerPreferences.doubleTapLength)
                 setMediaSourceFactory(dataSourceFactory)
                 setLoadControl(loadControl)
+
             }
             .build()
     }
@@ -152,7 +154,7 @@ fun VideoPlayer(
         setPlayer(exoPlayer)
     }
 
-    LaunchedEffect(exoPlayer.isPlaying){
+    LaunchedEffect(exoPlayer.isPlaying) {
         refreshPipUi()
     }
 
@@ -170,7 +172,9 @@ fun VideoPlayer(
 
     var playbackState by remember { mutableIntStateOf(exoPlayer.playbackState) }
 
-    var openStreamDialog by remember { mutableStateOf(false) }
+    var openVideoSelectionDialog by remember { mutableStateOf(false) }
+
+    var openTracksSelectionDialog by remember { mutableStateOf(false) }
 
     var openSettingsDialog by remember { mutableStateOf(false) }
 
@@ -204,10 +208,9 @@ fun VideoPlayer(
             playerViewModel.getDbEpisodeTime { timeSeen ->
                 exoPlayer.prepare()
                 exoPlayer.playWhenReady = true
+
                 val item = MediaItem.Builder().apply {
-                    setUri(
-                        it.url
-                    )
+                    setUri(it.url)
                 }.build()
 
                 exoPlayer.setMediaItem(
@@ -247,8 +250,8 @@ fun VideoPlayer(
         Box(modifier = modifier) {
 
             if (episodeUiState.availableSources.isNotEmpty()) {
-                QualityDialog(
-                    opened = openStreamDialog,
+                VideoSelectionDialog(
+                    opened = openVideoSelectionDialog,
                     sources = episodeUiState.availableSources,
                     onSelectSource = {
                         updateTime()
@@ -256,8 +259,22 @@ fun VideoPlayer(
                     },
                     selectedSource = episodeUiState.selectedSource,
                     onDismissRequest = {
-                        openStreamDialog = false
-                        if(!playerInitiatedPause){
+                        openVideoSelectionDialog = false
+                        if (!playerInitiatedPause) {
+                            exoPlayer.play()
+                        }
+                    }
+                )
+                TracksSelectionDialog(
+                    opened = openTracksSelectionDialog,
+                    subtitleTracks = episodeUiState.selectedSource?.subtitleTracks,
+                    selectedSubtitleTrack = episodeUiState.selectedSubtitleTrack,
+                    onSubtitleTrackSelected = {
+                        playerViewModel.selectedSubtitleTrack(it)
+                    },
+                    onDismissRequest = {
+                        openTracksSelectionDialog = false
+                        if (!playerInitiatedPause) {
                             exoPlayer.play()
                         }
                     }
@@ -268,7 +285,7 @@ fun VideoPlayer(
                 opened = openEpisodesDialog,
                 onDismissRequest = {
                     openEpisodesDialog = false
-                    if(!playerInitiatedPause){
+                    if (!playerInitiatedPause) {
                         exoPlayer.play()
                     }
                 },
@@ -285,7 +302,7 @@ fun VideoPlayer(
                 opened = openSettingsDialog,
                 onDismissRequest = {
                     openSettingsDialog = false
-                    if(!playerInitiatedPause){
+                    if (!playerInitiatedPause) {
                         exoPlayer.play()
                     }
                 },
@@ -315,7 +332,6 @@ fun VideoPlayer(
                         )
                         setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
                         resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                        keepScreenOn = true
                     }
                 }
             )
@@ -326,6 +342,7 @@ fun VideoPlayer(
                 Unit
             ) {
                 val listener = object : Player.Listener {
+
                     override fun onEvents(
                         player: Player, events: Player.Events
                     ) {
@@ -397,6 +414,7 @@ fun VideoPlayer(
                         .wrapContentSize(), strokeWidth = 3.dp
                 )
             }
+
             PlayerControls(
                 modifier = Modifier.fillMaxSize(),
                 isVisible = { shouldShowControls },
@@ -437,7 +455,11 @@ fun VideoPlayer(
                 },
                 onStreamSettings = {
                     exoPlayer.pause()
-                    openStreamDialog = openStreamDialog.not()
+                    openVideoSelectionDialog = openVideoSelectionDialog.not()
+                },
+                onTracksSettings = {
+                    exoPlayer.pause()
+                    openTracksSelectionDialog = openTracksSelectionDialog.not()
                 },
                 totalDuration = { totalDuration },
                 currentTime = { currentTime },
@@ -466,6 +488,7 @@ fun VideoPlayer(
                     hasPreviousIterator.hasNext()
                 },
                 videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty(),
+                tracksSettingsEnabled = false,
                 onEpisodesClicked = {
                     exoPlayer.pause()
                     openEpisodesDialog = true

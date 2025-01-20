@@ -2,6 +2,8 @@ package com.sf.tadami.preferences.model
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.datastore.preferences.core.Preferences
+import com.sf.tadami.App
+import com.sf.tadami.R
 
 sealed class SourcePreference {
     abstract val title: String
@@ -53,8 +55,10 @@ sealed class SourcePreference {
             override val enabled: Boolean = true,
             val overrideOkButton : Boolean = false,
             override val onValueChanged: (newValue: Set<String>) -> Boolean = { true },
-            val subtitleProvider : () -> String? = {
-               ""
+            val subtitleProvider : (currentValue: Set<String>) -> String? = { currentValue ->
+                val values = currentValue.map{items[it]}.takeIf { it.isNotEmpty() }?.joinToString{ it!!.first } ?: App.getAppContext()!!.getString(
+                    R.string.none)
+                subtitle?.format(values)
             },
         ) : PreferenceItem<Set<String>>()
 
