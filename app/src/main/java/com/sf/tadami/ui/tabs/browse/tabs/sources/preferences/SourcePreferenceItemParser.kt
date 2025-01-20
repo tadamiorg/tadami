@@ -51,7 +51,7 @@ fun SourcePreferenceItemParser(
                         title = item.title,
                         overrideOkButton = item.overrideOkButton,
                         subtitleProvider = {
-                            ""
+                            item.subtitleProvider(prefs[item.key] ?: item.defaultValue)
                         },
                         onValueChange = {
                             onPrefChanged(item.key, it)
