@@ -18,7 +18,7 @@ import org.http4k.filter.ServerFilters
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import org.http4k.server.Http4kServer
-import org.http4k.server.KtorCIO
+import org.http4k.server.Netty
 import org.http4k.server.asServer
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -44,6 +44,7 @@ class ProxyServer {
                     val url = request.query("url")
 
                     val sourceHeadersString = request.query("headers")
+
                     val sourceHeaders = okhttp3.Headers.Builder()
                     if (sourceHeadersString != null) {
                         val parsedHeaders =
@@ -98,7 +99,7 @@ class ProxyServer {
                 )
             )
             .then(app)
-            .asServer(KtorCIO(port))
+            .asServer(Netty(port))
             .start()
     }
 

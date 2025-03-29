@@ -12,6 +12,7 @@ import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.extension.model.LoadResult
 import com.sf.tadami.extension.util.ExtensionsInstaller
 import com.sf.tadami.extension.util.ExtensionsLoader
+import com.sf.tadami.extension.util.ExtensionsLoader.API_VERSION_MIN_OBSOLETE
 import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerNotifier
 import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerReceiver
 import com.sf.tadami.preferences.sources.SourcesPreferences
@@ -130,7 +131,9 @@ class ExtensionManager(
             val pkgName = installedExt.pkgName
             val availableExt = availableExtensions.find { it.pkgName == pkgName }
 
-            if (availableExt == null && !installedExt.isObsolete) {
+            val apiVersion = installedExt.apiVersion
+
+            if ((availableExt == null || apiVersion < API_VERSION_MIN_OBSOLETE) && !installedExt.isObsolete) {
                 mutInstalledExtensions[index] = installedExt.copy(isObsolete = true)
                 changed = true
             } else if (availableExt != null) {

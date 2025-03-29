@@ -4,9 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.sf.tadami.source.model.Track
-import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.tabs.audioTab
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.tabs.subtitleSettingsTab
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.tabs.subtitlesTab
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 import com.sf.tadami.ui.components.dialog.simple.TabbedSimpleDialog
 
@@ -35,12 +34,7 @@ fun TracksSelectionDialog(
             onOptionSelected = onSubtitleOptionSelected,
             subtitleTracks = subtitleTracks ?: emptyList()
         ),
-        audioTab(
-            selectedOption = selectedAudioOption,
-            selectedAudioTrack = selectedAudioTrack,
-            onOptionSelected = onAudioOptionSelected,
-            audioTracks = audioTracks ?: emptyList()
-        )
+        subtitleSettingsTab()
     )
 
     TabbedSimpleDialog(
@@ -55,8 +49,5 @@ fun TracksSelectionDialog(
                 onDismissRequest()
             }
         },
-        dismissButton = {
-            DefaultDialogCancelButton()
-        }
     )
 }

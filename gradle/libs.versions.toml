@@ -48,7 +48,7 @@ richtext-m3 = { module = "com.halilibo.compose-richtext:richtext-ui-material3", 
 # Http4k
 http4k-bom = { group = "org.http4k", name = "http4k-bom", version.ref = "http4k-bom-version" }
 http4k-core = { group = "org.http4k", name = "http4k-core"}
-http4k-server-ktorcio = { group = "org.http4k", name = "http4k-server-ktorcio"}
+http4k-server-netty = { group = "org.http4k", name = "http4k-server-netty"}
 
 # JSUnpacker
 jsunpacker = "dev.datlag.jsunpacker:jsunpacker:1.0.2"
@@ -62,5 +62,5 @@ coil = ["coil","coil-compose"]
 rxjava = ["rxjava3","rxjava3-rxandroid"]
 okhttp = ["okhttp","okhttp-logging-interceptor","okhttp-dnsoverhttps","okio","okhttp-brotli"]
 sqldelight = ["sqldelight-android-driver","sqldelight-coroutines-extensions","sqlite"]
-http4k = ["http4k-core","http4k-server-ktorcio"]
+http4k = ["http4k-core","http4k-server-netty"]
 richtext = ["richtext-commonmark", "richtext-m3"]

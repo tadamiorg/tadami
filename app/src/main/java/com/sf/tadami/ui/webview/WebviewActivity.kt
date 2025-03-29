@@ -110,7 +110,7 @@ class WebViewActivity : AppCompatActivity() {
 
     private fun clearCookies(url: String) {
         network.cookieManager.remove(url.toHttpUrl())
-        Log.e("Webview","Cleared cookies for: $url")
+        Log.i("Webview","Cleared cookies for: $url")
     }
 
     companion object {

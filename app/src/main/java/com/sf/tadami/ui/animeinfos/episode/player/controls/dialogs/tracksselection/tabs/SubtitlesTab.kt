@@ -14,6 +14,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -32,6 +33,21 @@ fun subtitlesTab(
 ) : ScreenTabContent {
 
     val listState = rememberLazyListState()
+
+    val trackDisplayNames = remember(subtitleTracks) {
+        subtitleTracks.groupBy { it.lang }
+            .flatMap { (lang, tracks) ->
+                if (tracks.size > 1) {
+                    // If there are multiple tracks with the same language, add numbers
+                    tracks.mapIndexed { index, track ->
+                        track to "$lang #${index + 1}"
+                    }
+                } else {
+                    // If there's only one track with this language, use the language name as is
+                    tracks.map { it to lang }
+                }
+            }.toMap()
+    }
 
     return ScreenTabContent(
         titleRes = R.string.label_subtitles,
@@ -96,7 +112,7 @@ fun subtitlesTab(
                         }
                     )
                     Text(
-                        text = track.lang,
+                        text = trackDisplayNames[track] ?: track.lang,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )

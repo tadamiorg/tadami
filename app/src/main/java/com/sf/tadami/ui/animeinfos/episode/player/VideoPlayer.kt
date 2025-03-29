@@ -1,5 +1,7 @@
 package com.sf.tadami.ui.animeinfos.episode.player
 
+import android.net.Uri
+import android.util.TypedValue
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedDispatcher
@@ -36,8 +38,11 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
+import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
@@ -54,14 +59,19 @@ import com.sf.tadami.network.player.PlayerNetworkHelper
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.player.PlayerPreferences
+import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.source.model.Track
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.EpisodesDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.SettingsDialog
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.tabs.toSubtitlesStyle
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.TracksSelectionDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.videoselection.VideoSelectionDialog
+import com.sf.tadami.ui.animeinfos.episode.player.subtitles.CustomSubtitleParserFactory
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.utils.UiToasts
+import com.sf.tadami.ui.utils.convertToIetfLanguageTag
 import kotlinx.coroutines.delay
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -127,6 +137,7 @@ fun VideoPlayer(
     val dataSourceFactory = remember {
         DefaultMediaSourceFactory(context).apply {
             setDataSourceFactory(resolvingDataSource)
+            setSubtitleParserFactory(CustomSubtitleParserFactory())
         }
     }
 
@@ -149,6 +160,8 @@ fun VideoPlayer(
             }
             .build()
     }
+
+    var playerView by remember { mutableStateOf<PlayerView?>(null) }
 
     LaunchedEffect(exoPlayer) {
         setPlayer(exoPlayer)
@@ -202,6 +215,21 @@ fun VideoPlayer(
             dispatcher.onBackPressed()
         }
     }
+    LaunchedEffect(
+        playerPreferences.subtitlesEnabled,
+        playerPreferences.subtitlePrefLanguages,
+        episodeUiState.selectedSubtitleTrack,
+        episodeUiState.selectedSource
+    ) {
+        val preferredLanguages = playerPreferences.subtitlePrefLanguages.split(",")
+        exoPlayer.trackSelectionParameters = buildTrackParameters(
+            player = exoPlayer,
+            subtitlesEnabled = playerPreferences.subtitlesEnabled,
+            preferredLanguages = preferredLanguages,
+            selectedTrack = episodeUiState.selectedSubtitleTrack,
+            selectedSource = episodeUiState.selectedSource
+        )
+    }
 
     LaunchedEffect(key1 = episodeUiState.selectedSource) {
         episodeUiState.selectedSource?.let {
@@ -211,6 +239,17 @@ fun VideoPlayer(
 
                 val item = MediaItem.Builder().apply {
                     setUri(it.url)
+                    if (it.subtitleTracks.isNotEmpty()) {
+                        val subtitlesConfigurations = it.subtitleTracks.filter {
+                            it.mimeType !== MimeTypes.TEXT_UNKNOWN
+                        }.mapIndexed { index,sub ->
+                            MediaItem.SubtitleConfiguration.Builder(Uri.parse(sub.url))
+                                .setMimeType(sub.mimeType)
+                                .setLanguage(sub.lang.convertToIetfLanguageTag() + index)
+                                .build()
+                        }
+                        setSubtitleConfigurations(subtitlesConfigurations)
+                    }
                 }.build()
 
                 exoPlayer.setMediaItem(
@@ -241,6 +280,14 @@ fun VideoPlayer(
                     exoPlayer.currentPosition.coerceAtLeast(0L).coerceAtMost(totalDuration)
                 delay(1.seconds / 30)
             }
+        }
+    }
+
+    LaunchedEffect(playerPreferences) {
+        playerView?.subtitleView?.apply {
+            setApplyEmbeddedStyles(false)
+            setStyle(playerPreferences.toSubtitlesStyle())
+            setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, playerPreferences.subtitleTextSize.toFloat())
         }
     }
 
@@ -332,6 +379,14 @@ fun VideoPlayer(
                         )
                         setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
                         resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+
+                        playerView = this
+
+                        subtitleView?.apply {
+                            setApplyEmbeddedStyles(false)
+                            setStyle(playerPreferences.toSubtitlesStyle())
+                            setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, playerPreferences.subtitleTextSize.toFloat())
+                        }
                     }
                 }
             )
@@ -342,6 +397,29 @@ fun VideoPlayer(
                 Unit
             ) {
                 val listener = object : Player.Listener {
+
+                    override fun onRenderedFirstFrame() {
+                        exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
+                            .buildUpon()
+                            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+                            .build()
+                    }
+
+                    override fun onTracksChanged(tracks: Tracks) {
+                        if (episodeUiState.selectedSubtitleTrack == null && playerPreferences.subtitlesEnabled) {
+                            tracks.groups
+                                .filter { it.type == C.TRACK_TYPE_TEXT }
+                                .forEachIndexed { index, trackGroup ->
+                                    if (trackGroup.isSelected && trackGroup.isTrackSelected(0)) {
+                                        episodeUiState.selectedSource?.subtitleTracks?.getOrNull(
+                                            (index - 1).coerceAtLeast(0)
+                                        )?.let { track ->
+                                            playerViewModel.selectedSubtitleTrack(track)
+                                        }
+                                    }
+                                }
+                        }
+                    }
 
                     override fun onEvents(
                         player: Player, events: Player.Events
@@ -395,6 +473,7 @@ fun VideoPlayer(
                     lifecycle.removeObserver(observer)
                     exoPlayer.removeListener(listener)
                     exoPlayer.release()
+                    playerView = null
                 }
             }
 
@@ -488,7 +567,7 @@ fun VideoPlayer(
                     hasPreviousIterator.hasNext()
                 },
                 videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty(),
-                tracksSettingsEnabled = false,
+                tracksSettingsEnabled = episodeUiState.selectedSource?.subtitleTracks?.isNotEmpty() ?: false,
                 onEpisodesClicked = {
                     exoPlayer.pause()
                     openEpisodesDialog = true
@@ -505,4 +584,34 @@ fun VideoPlayer(
         }
     }
 }
+
+private fun buildTrackParameters(
+    player: ExoPlayer,
+    subtitlesEnabled: Boolean,
+    preferredLanguages: List<String>,
+    selectedTrack: Track.SubtitleTrack?,
+    selectedSource: StreamSource?
+): TrackSelectionParameters {
+    return player.trackSelectionParameters
+        .buildUpon()
+        .apply {
+            // First, handle the basic subtitle preferences
+            setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !subtitlesEnabled)
+
+            if (subtitlesEnabled) {
+                if (selectedTrack != null && selectedSource != null) {
+                    // If we have a specific track selected, use that
+                    clearOverrides()
+                    val trackIndex = selectedSource.subtitleTracks.indexOf(selectedTrack)
+                    setPreferredTextLanguage(selectedTrack.lang.convertToIetfLanguageTag() + trackIndex)
+                } else {
+                    // Otherwise, use the preferred languages
+                    setPreferredTextLanguages(*preferredLanguages.toTypedArray())
+                }
+            }
+        }
+        .build()
+}
+
+
 

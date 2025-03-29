@@ -21,8 +21,9 @@ internal object ExtensionsLoader {
 
     private const val EXTENSION_FEATURE = "tadami.extension"
     private const val METADATA_SOURCE_CLASS = "tadami.extension.class"
+    const val API_VERSION_MIN_OBSOLETE = 1.2
     const val API_VERSION_MIN = 1.0
-    const val API_VERSION_MAX = 1.1
+    const val API_VERSION_MAX = 1.2
 
     @Suppress("DEPRECATION")
     private val PACKAGE_FLAGS = PackageManager.GET_CONFIGURATIONS or

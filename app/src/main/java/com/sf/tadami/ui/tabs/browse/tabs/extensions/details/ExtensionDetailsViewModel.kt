@@ -62,7 +62,7 @@ class ExtensionDetailsViewModel(
             }
         }
 
-        Log.e("ClearCookies","Cleared $cleared cookies for: ${urls.joinToString()}")
+        Log.i("ClearCookies","Cleared $cleared cookies for: ${urls.joinToString()}")
     }
 
     fun uninstallExtension() {
