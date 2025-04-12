@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.Log
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +28,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.util.UnstableApi
 import coil.compose.AsyncImage
 import com.google.android.gms.cast.MediaError
 import com.google.android.gms.cast.MediaSeekOptions
@@ -47,6 +49,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.isCastMediaFinished
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.EpisodesDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.SettingsDialog
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.TracksSelectionDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.videoselection.VideoSelectionDialog
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.utils.ImageDefaults
@@ -56,7 +59,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
-@SuppressLint("SourceLockedOrientationActivity")
+@OptIn(UnstableApi::class)
+@SuppressLint("SourceLockedOrientationActivity", "ContextCastToActivity")
 @Composable
 fun CastVideoPlayer(
     modifier: Modifier = Modifier,
@@ -100,6 +104,8 @@ fun CastVideoPlayer(
     var isIdle by remember { mutableStateOf(isCastMediaFinished(castSession.remoteMediaClient?.idleReason)) }
 
     var openStreamDialog by remember { mutableStateOf(false) }
+
+    var openTracksSelectionDialog by remember { mutableStateOf(false) }
 
     var openSettingsDialog by remember { mutableStateOf(false) }
 
@@ -175,6 +181,7 @@ fun CastVideoPlayer(
         castSession.setMessageReceivedCallbacks(ErrorChannel.NAMESPACE, messageReceiverCallback)
         castSession.remoteMediaClient?.registerCallback(mediaCallback)
         castSession.remoteMediaClient?.addProgressListener(progressListener, 1000L)
+
         onDispose {
             updateTime()
             castSession.removeMessageReceivedCallbacks(ErrorChannel.NAMESPACE)
@@ -222,6 +229,23 @@ fun CastVideoPlayer(
                     selectedSource = episodeUiState.selectedSource,
                     onDismissRequest = {
                         openStreamDialog = false
+                    }
+                )
+                TracksSelectionDialog(
+                    opened = openTracksSelectionDialog,
+                    subtitleTracks = episodeUiState.selectedSource?.subtitleTracks,
+                    selectedSubtitleTrack = episodeUiState.selectedSubtitleTrack,
+                    onSubtitleTrackSelected = {
+                        playerViewModel.selectedSubtitleTrack(it)
+                        if(!episodeUiState.selectedSource?.subtitleTracks.isNullOrEmpty()){
+                            val index = (episodeUiState.selectedSource?.subtitleTracks?.indexOf(it) ?: 1) + 1
+                            castSession.remoteMediaClient?.setActiveMediaTracks(longArrayOf())
+                            castSession.remoteMediaClient?.setActiveMediaTracks(longArrayOf(index.toLong()))
+                        }
+
+                    },
+                    onDismissRequest = {
+                        openTracksSelectionDialog = false
                     }
                 )
             }
@@ -352,7 +376,7 @@ fun CastVideoPlayer(
                     hasPreviousIterator.hasNext()
                 },
                 videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty(),
-                tracksSettingsEnabled = false,
+                tracksSettingsEnabled = episodeUiState.selectedSource?.subtitleTracks?.isNotEmpty() ?: false,
                 playerSeekValue = playerPreferences.doubleTapLength,
                 onTapYoutube = {},
                 onPlayerSettings = {
@@ -362,7 +386,7 @@ fun CastVideoPlayer(
                     openEpisodesDialog = true
                 },
                 onTracksSettings = {
-
+                    openTracksSelectionDialog = true
                 },
                 lockedControls = false,
                 onWebViewOpen = onWebViewOpen

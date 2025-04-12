@@ -32,7 +32,7 @@ fun TracksSelectionDialog(
             selectedOption = selectedSubtitleOption,
             selectedSubtitleTrack = selectedSubtitleTrack,
             onOptionSelected = onSubtitleOptionSelected,
-            subtitleTracks = subtitleTracks ?: emptyList()
+            subtitleTracks = subtitleTracks ?: emptyList(),
         ),
         subtitleSettingsTab()
     )

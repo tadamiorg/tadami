@@ -84,7 +84,6 @@ class ProxyServer {
                 }
             )
         )
-
     fun start(port: Int = 8000) {
         if (proxyServer != null) return
         proxyServer = ServerFilters.CatchAll()

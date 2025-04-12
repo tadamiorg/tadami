@@ -17,7 +17,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
 import com.sf.tadami.source.model.Track
@@ -62,34 +61,6 @@ fun subtitlesTab(
             thumbAlways = true,
             state = listState
         ) {
-            item {
-                Row(
-                    modifier = Modifier
-                        .defaultMinSize(1.dp, 1.dp)
-                        .fillMaxWidth()
-                        .selectable(
-                            selected = (selectedSubtitleTrack == selectedOption),
-                            onClick = {
-                                onOptionSelected(null)
-                            }
-                        ),
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    RadioButton(modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .defaultMinSize(1.dp, 1.dp),
-                        selected = (selectedOption == null),
-                        onClick = {
-                            onOptionSelected(null)
-                        }
-                    )
-                    Text(
-                        text = stringResource(R.string.none),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-                }
-            }
             items(subtitleTracks) { track ->
                 Row(
                     modifier = Modifier

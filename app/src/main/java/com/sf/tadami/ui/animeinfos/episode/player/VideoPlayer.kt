@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode.player
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import android.util.TypedValue
 import android.view.ViewGroup
@@ -83,7 +84,7 @@ fun VideoPlayer(
     modifier: Modifier = Modifier,
     playerNetworkHelper: PlayerNetworkHelper = Injekt.get(),
     dispatcher: OnBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current!!.onBackPressedDispatcher,
-    playerViewModel: PlayerViewModel = viewModel(LocalContext.current as EpisodeActivity),
+    @SuppressLint("ContextCastToActivity") playerViewModel: PlayerViewModel = viewModel(LocalContext.current as EpisodeActivity),
     setPlayer: (ExoPlayer) -> Unit,
     onWebViewOpen: () -> Unit,
     setPipMode: () -> Unit,
@@ -597,7 +598,6 @@ private fun buildTrackParameters(
         .apply {
             // First, handle the basic subtitle preferences
             setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !subtitlesEnabled)
-
             if (subtitlesEnabled) {
                 if (selectedTrack != null && selectedSource != null) {
                     // If we have a specific track selected, use that
