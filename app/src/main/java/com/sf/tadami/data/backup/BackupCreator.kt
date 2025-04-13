@@ -99,7 +99,7 @@ class BackupCreator(
 
             return fileUri.toString()
         } catch (e: Exception) {
-            Log.e("BackupCreator", e.stackTraceToString())
+            Log.d("BackupCreator", e.stackTraceToString())
             file?.delete()
             throw e
         }

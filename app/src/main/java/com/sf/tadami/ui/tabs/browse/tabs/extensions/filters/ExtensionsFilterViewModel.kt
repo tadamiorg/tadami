@@ -36,7 +36,7 @@ class ExtensionsFilterViewModel : ViewModel(){
                 dataStore.getPreferencesGroupAsFlow(SourcesPreferences),
             ) { a, b -> a to b.enabledLanguages }
                 .catch { throwable ->
-                    Log.e("ExtensionsFilterViewModelInit", throwable.stackTraceToString())
+                    Log.d("ExtensionsFilterViewModelInit", throwable.stackTraceToString())
                 }
                 .collectLatest { (extensionLanguages, enabledLanguages) ->
                     _uiState.update {

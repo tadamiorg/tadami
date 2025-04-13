@@ -59,7 +59,7 @@ internal class ExtensionsApi {
                     .toExtensions(repoBaseUrl)
             }
         } catch (e: Throwable) {
-            Log.e("GetExtensions","Failed to get extensions from $repoBaseUrl")
+            Log.d("GetExtensions","Failed to get extensions from $repoBaseUrl")
             emptyList()
         }
     }

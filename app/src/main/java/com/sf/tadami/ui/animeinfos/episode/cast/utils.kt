@@ -40,7 +40,7 @@ fun setCastCustomChannel(session : CastSession, channel : CustomCastChannel){
             channel.namespace,
             channel)
     } catch (e: IOException) {
-        Log.e("CustomChannel", "Exception while creating channel", e)
+        Log.d("CustomChannel", "Exception while creating channel", e)
     }
 }
 
@@ -49,10 +49,10 @@ fun sendCastMessage(castSession: CastSession,channelNamespace : String,message: 
         castSession.sendMessage(channelNamespace, message)
             .setResultCallback { status ->
                 if (!status.isSuccess) {
-                    Log.e("CustomMessageSendFailed", "Sending message failed")
+                    Log.d("CustomMessageSendFailed", "Sending message failed")
                 }
             }
     } catch (e: Exception) {
-        Log.e("CustomMessageSendFailed", "Exception while sending message", e)
+        Log.d("CustomMessageSendFailed", "Exception while sending message", e)
     }
 }

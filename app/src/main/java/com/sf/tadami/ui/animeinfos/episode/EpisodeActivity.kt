@@ -587,7 +587,6 @@ class EpisodeActivity : AppCompatActivity() {
                 isCasting.value = true
                 this@EpisodeActivity.castSession = session
                 setCastCustomChannel(session, errorChannel)
-
                 CastProxyService.startNow(this@EpisodeActivity)
                 loadRemoteMedia()
             }

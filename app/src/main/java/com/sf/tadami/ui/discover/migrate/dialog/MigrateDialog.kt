@@ -94,7 +94,7 @@ fun MigrateDialog(
                         TextButton(
                             onClick = {
                                 if(oldAnime == null || newAnime == null){
-                                    Log.e("OldOrNew",oldAnime.toString())
+                                    Log.d("OldOrNew",oldAnime.toString())
                                 }else{
                                     coroutineScope.launchIO {
                                         migrateDialogViewModel.migrateAnime(
@@ -116,7 +116,7 @@ fun MigrateDialog(
                         TextButton(
                             onClick = {
                                 if(oldAnime == null || newAnime == null){
-                                    Log.e("OldOrNew",oldAnime.toString())
+                                    Log.d("OldOrNew",oldAnime.toString())
                                 }else{
                                     coroutineScope.launchIO {
                                         migrateDialogViewModel.migrateAnime(

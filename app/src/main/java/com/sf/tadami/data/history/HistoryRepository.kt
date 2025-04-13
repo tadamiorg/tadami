@@ -48,7 +48,7 @@ class HistoryRepositoryImpl(
         try {
             handler.await { historyQueries.resetHistoryById(historyId) }
         } catch (e: Exception) {
-            Log.e("ResetHistory",e.stackTraceToString())
+            Log.d("ResetHistory",e.stackTraceToString())
         }
     }
 
@@ -56,7 +56,7 @@ class HistoryRepositoryImpl(
         try {
             handler.await { historyQueries.resetHistoryByAnimeId(animeId) }
         } catch (e: Exception) {
-            Log.e("ResetHistoryByAnimeId",e.stackTraceToString())
+            Log.d("ResetHistoryByAnimeId",e.stackTraceToString())
         }
     }
 
@@ -65,7 +65,7 @@ class HistoryRepositoryImpl(
             handler.await { historyQueries.removeAllHistory() }
             true
         } catch (e: Exception) {
-            Log.e("DeleteAllHistory",e.stackTraceToString())
+            Log.d("DeleteAllHistory",e.stackTraceToString())
             false
         }
     }
@@ -79,7 +79,7 @@ class HistoryRepositoryImpl(
                 )
             }
         } catch (e: Exception) {
-            Log.e("UpsertHistory",e.stackTraceToString())
+            Log.d("UpsertHistory",e.stackTraceToString())
         }
     }
 }

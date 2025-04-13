@@ -100,7 +100,7 @@ class ExtensionManager(
         val extensions: List<Extension.Available> = try {
             api.findExtensions()
         } catch (e: Exception) {
-            Log.e("FindAvailableExtensions", e.stackTraceToString())
+            Log.d("FindAvailableExtensions", e.stackTraceToString())
             withContext(Dispatchers.Main) {
                 UiToasts.showToast(R.string.extension_api_error)
             }

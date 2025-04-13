@@ -55,7 +55,7 @@ class WebViewActivity : AppCompatActivity() {
             try {
                 headers = source.headers.toMultimap().mapValues { it.value.getOrNull(0) ?: "" }
             } catch (e: Exception) {
-                Log.e("Failed to build headers",e.stackTraceToString())
+                Log.d("Failed to build headers",e.stackTraceToString())
             }
         }
 

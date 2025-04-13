@@ -57,7 +57,7 @@ class ExtensionDetailsViewModel(
             try {
                 network.cookieManager.remove(it.toHttpUrl())
             } catch (e: Exception) {
-                Log.e("ClearCookies","Failed to clear cookies for $it")
+                Log.d("ClearCookies","Failed to clear cookies for $it")
                 0
             }
         }

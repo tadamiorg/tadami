@@ -263,7 +263,7 @@ class DataPreferencesScreen(
                             UiToasts.showToast(R.string.cache_deleted)
 
                         } catch (e: Throwable) {
-                            Log.e("CacheDeletion", e.stackTraceToString())
+                            Log.d("CacheDeletion", e.stackTraceToString())
                             UiToasts.showToast(R.string.cache_delete_error)
                         } finally {
                             readableImagesCacheSize =
@@ -280,7 +280,7 @@ class DataPreferencesScreen(
                             UiToasts.showToast(R.string.cache_deleted)
 
                         } catch (e: Throwable) {
-                            Log.e("CacheDeletion", e.stackTraceToString())
+                            Log.d("CacheDeletion", e.stackTraceToString())
                             UiToasts.showToast(R.string.cache_delete_error)
                         } finally {
                             readableVideosCacheSize =
@@ -313,7 +313,7 @@ class DataPreferencesScreen(
                     try {
                         context.contentResolver.takePersistableUriPermission(uri, flags)
                     } catch (e: SecurityException) {
-                        Log.e("StorageLocationPicker", e.stackTraceToString())
+                        Log.d("StorageLocationPicker", e.stackTraceToString())
                         UiToasts.showToast(R.string.file_picker_uri_permission_unsupported)
                     }
 

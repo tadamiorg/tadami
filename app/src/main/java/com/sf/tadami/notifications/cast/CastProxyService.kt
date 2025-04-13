@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.media3.common.util.UnstableApi
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
@@ -23,15 +24,16 @@ import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
+@UnstableApi
 class CastProxyService : Service() {
 
     private val castProxyServer = ProxyServer()
-    private val castListener :  SessionManagerListener<CastSession> = getCastListener()
-    private lateinit var notifier : CastNotifier
-    private lateinit var castContext : CastContext
+    private val castListener: SessionManagerListener<CastSession> = getCastListener()
+    private lateinit var notifier: CastNotifier
+    private lateinit var castContext: CastContext
     private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
     private val dataStore: DataStore<Preferences> = Injekt.get()
-    private lateinit var playerPreferences : PlayerPreferences
+    private lateinit var playerPreferences: PlayerPreferences
 
     override fun onCreate() {
         super.onCreate()
@@ -53,7 +55,10 @@ class CastProxyService : Service() {
     }
 
     private fun setForegroundService() {
-        startForeground(Notifications.CAST_PROXY_STATUS_ID, notifier.castStatusNotificationBuilder.build())
+        startForeground(
+            Notifications.CAST_PROXY_STATUS_ID,
+            notifier.castStatusNotificationBuilder.build()
+        )
     }
 
     override fun onDestroy() {
@@ -78,7 +83,7 @@ class CastProxyService : Service() {
         return null
     }
 
-    fun updateTime(episode: Episode?, totalTime: Long, timeSeen: Long, threshold: Int) : Job? {
+    fun updateTime(episode: Episode?, totalTime: Long, timeSeen: Long, threshold: Int): Job? {
         episode?.let { ep ->
             if (ep.seen) return null
             return CoroutineScope(Dispatchers.IO).launch {
@@ -95,7 +100,7 @@ class CastProxyService : Service() {
         return null
     }
 
-    private fun getCastListener() : SessionManagerListener<CastSession>{
+    private fun getCastListener(): SessionManagerListener<CastSession> {
         return object : SessionManagerListener<CastSession> {
             override fun onSessionEnded(session: CastSession, error: Int) {
                 onApplicationDisconnected()
@@ -120,14 +125,20 @@ class CastProxyService : Service() {
             override fun onSessionStarting(session: CastSession) {}
             override fun onSessionEnding(session: CastSession) {
                 val mediaClient = session.remoteMediaClient
-                if(mediaClient != null && mediaClient.mediaInfo !=null && mediaClient.mediaInfo!!.customData != null){
+                if (mediaClient != null && mediaClient.mediaInfo != null && mediaClient.mediaInfo!!.customData != null) {
                     val episodeId = mediaClient.mediaInfo!!.customData!!.getLong("episodeId")
                     val episodeSeen = mediaClient.mediaInfo!!.customData!!.getBoolean("seen")
                     val totalTime = mediaClient.streamDuration
                     val timeSeen = mediaClient.approximateStreamPosition
-                    updateTime(episode = Episode.create().copy(id = episodeId, seen = episodeSeen),totalTime = totalTime, timeSeen = timeSeen, threshold = playerPreferences.seenThreshold)
+                    updateTime(
+                        episode = Episode.create().copy(id = episodeId, seen = episodeSeen),
+                        totalTime = totalTime,
+                        timeSeen = timeSeen,
+                        threshold = playerPreferences.seenThreshold
+                    )
                 }
             }
+
             override fun onSessionResuming(session: CastSession, sessionId: String) {}
             override fun onSessionSuspended(session: CastSession, reason: Int) {}
             private fun onApplicationDisconnected() {
@@ -136,12 +147,13 @@ class CastProxyService : Service() {
         }
     }
 
-    companion object{
-        fun startNow(context: Context){
+    companion object {
+        fun startNow(context: Context) {
             val intent = Intent(context, CastProxyService::class.java)
             context.startService(intent)
         }
-        fun stop(context: Context){
+
+        fun stop(context: Context) {
             val serviceIntent = Intent(context, CastProxyService::class.java)
             context.stopService(serviceIntent)
         }

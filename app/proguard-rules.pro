@@ -61,11 +61,6 @@
 
 ##---------------End: proguard configuration for kotlinx.serialization  ----------
 
-##---------------Begin: proguard configuration for io.netty  ----------
--keepattributes Signature, EnclosingMethod
--dontwarn io.netty.util.internal.logging.**
-##---------------End: proguard configuration for io.netty  ----------
-
 
 
 

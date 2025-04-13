@@ -63,7 +63,7 @@ suspend fun <T : Any> Observable<T>.awaitSingleOrNull(
                 }
 
                 is CancellationException -> {
-                    Log.e("AwaitSingleOrNull", "Cancellation : ${e.message}")
+                    Log.d("AwaitSingleOrNull", "Cancellation : ${e.message}")
                 }
 
                 else -> {

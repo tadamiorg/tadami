@@ -194,12 +194,15 @@ class MainActivity : AppCompatActivity() {
             override fun onSessionEnding(session: CastSession) {}
             override fun onSessionResuming(session: CastSession, sessionId: String) {}
             override fun onSessionSuspended(session: CastSession, reason: Int) {}
+
+            @OptIn(UnstableApi::class)
             private fun onApplicationConnected(session: CastSession) {
                 setCastCustomChannel(session,errorChannel)
                 CastProxyService.startNow(this@MainActivity)
                 this@MainActivity.castSession = session
             }
 
+            @OptIn(UnstableApi::class)
             private fun onApplicationDisconnected() {
                 CastProxyService.stop(this@MainActivity)
                 this@MainActivity.castSession = null

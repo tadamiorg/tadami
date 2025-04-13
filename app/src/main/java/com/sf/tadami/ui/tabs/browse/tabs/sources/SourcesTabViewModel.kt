@@ -27,7 +27,7 @@ class SourcesTabViewModel : ViewModel() {
         viewModelScope.launchIO {
             getEnabledSources.subscribe()
                 .catch {
-                    Log.e("SourcesTabViewModelInit", it.stackTraceToString())
+                    Log.d("SourcesTabViewModelInit", it.stackTraceToString())
                 }
                 .collectLatest(::collectLatestSources)
         }

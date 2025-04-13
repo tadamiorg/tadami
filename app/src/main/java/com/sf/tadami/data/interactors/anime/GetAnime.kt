@@ -13,7 +13,7 @@ class GetAnime(
         return try {
             animeRepository.getAnimeById(id)
         } catch (e: Exception) {
-            Log.e("GetAnime interactor", e.stackTraceToString())
+            Log.d("GetAnime interactor", e.stackTraceToString())
             null
         }
     }

@@ -148,7 +148,7 @@ fun CastVideoPlayer(
                 super.onMediaError(error)
                 when (error.reason) {
                     MediaError.ERROR_REASON_APP_ERROR -> {
-                        Log.e("Media Error", error.toJson().toString())
+                        Log.d("Media Error", error.toJson().toString())
                     }
 
                     else -> {
