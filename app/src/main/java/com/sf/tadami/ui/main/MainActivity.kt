@@ -32,6 +32,7 @@ import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.navigation.graphs.onboarding.OnboardingRoutes
 import com.sf.tadami.notifications.cast.CastProxyService
 import com.sf.tadami.preferences.app.BasePreferences
+import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
@@ -45,6 +46,7 @@ import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -62,9 +64,24 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val isLaunch = savedInstanceState == null
         val splashScreen = if (isLaunch) installSplashScreen() else null
-        if(!isLaunch){
-            setTheme(R.style.Theme_Tadami)
+
+        val prefTheme = runBlocking { dataStore.getPreferencesGroup(AppearancePreferences).appTheme }
+
+        val theme = when (prefTheme.name) {
+            "DEFAULT" -> R.style.Theme_Tadami
+            "GREEN_APPLE" -> R.style.Theme_Tadami_GreenApple
+            "LAVENDER" -> R.style.Theme_Tadami_Lavender
+            "MIDNIGHT_DUSK" -> R.style.Theme_Tadami_MidnightDusk
+            "STRAWBERRY_DAIQUIRI" -> R.style.Theme_Tadami_Strawberry
+            "TAKO" -> R.style.Theme_Tadami_Tako
+            "TEALTURQUOISE" -> R.style.Theme_Tadami_TealTurquoise
+            "TIDAL_WAVE" -> R.style.Theme_Tadami_TidalWave
+            "YINYANG" -> R.style.Theme_Tadami_YinYang
+            "YOTSUBA" -> R.style.Theme_Tadami_Yotsuba
+            "DOOM" -> R.style.Theme_Tadami_Doom
+            else -> R.style.Theme_Tadami
         }
+        setTheme(theme)
 
         super.onCreate(savedInstanceState)
 

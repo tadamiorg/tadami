@@ -33,6 +33,7 @@ class CastOptionsProvider : OptionsProvider {
         buttonActions.add(MediaIntentReceiver.ACTION_FORWARD)
         buttonActions.add(MediaIntentReceiver.ACTION_STOP_CASTING)
 
+
         // Builds a notification with the above actions. Each tap on the "rewind" and "forward" buttons skips 30 seconds.
 
         val notificationOptions = NotificationOptions.Builder()
