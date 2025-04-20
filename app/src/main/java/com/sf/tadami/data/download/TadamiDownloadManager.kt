@@ -24,13 +24,13 @@ class TadamiDownloadManager(
         if (capitalizationChanged) {
             val tempName = newName + TMP_DIR_SUFFIX
             if (oldFolder.renameTo(tempName).not()) {
-                Log.e("RenameSource", "Failed to rename source download folder: ${oldFolder.name}")
+                Log.d("RenameSource", "Failed to rename source download folder: ${oldFolder.name}")
                 return
             }
         }
 
         if (oldFolder.renameTo(newName).not()) {
-            Log.e("RenameSource", "Failed to rename source download folder: ${oldFolder.name}")
+            Log.d("RenameSource", "Failed to rename source download folder: ${oldFolder.name}")
         }
     }
 

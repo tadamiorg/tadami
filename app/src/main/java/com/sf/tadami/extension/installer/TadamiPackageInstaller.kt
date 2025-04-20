@@ -41,7 +41,7 @@ class TadamiPackageInstaller(private val service : Service) : Installer(service)
                                 .sanitizeByFiltering(this)
                         }
                     if (userAction == null) {
-                        Log.e("PackageInstallerInstaller","Fatal error for $intent")
+                        Log.d("PackageInstallerInstaller","Fatal error for $intent")
                         continueQueue(InstallStep.Error)
                         return
                     }
@@ -92,7 +92,7 @@ class TadamiPackageInstaller(private val service : Service) : Installer(service)
                 session.commit(intentSender)
             }
         } catch (e: Exception) {
-            Log.e("PackageInstallerInstaller","Failed to install extension ${entry.downloadId} ${entry.uri}")
+            Log.d("PackageInstallerInstaller","Failed to install extension ${entry.downloadId} ${entry.uri}")
             activeSession?.let { (_, sessionId) ->
                 packageInstaller.abandonSession(sessionId)
             }

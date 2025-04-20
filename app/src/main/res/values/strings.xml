@@ -266,6 +266,10 @@
     <!-- Appearance preferences -->
     <string name="pref_appearance_summary">Theme</string>
 
+    <!-- Subtitles preferences -->
+    <string name="pref_subtitles_appearance">Appearance</string>
+    <string name="size">Size</string>
+
     <!-- Extensions -->
     <string name="ext_install_service_notif">Installing extension…</string>
     <string name="notification_extensions_group">Extensions</string>

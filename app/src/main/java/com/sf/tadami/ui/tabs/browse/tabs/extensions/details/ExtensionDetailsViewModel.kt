@@ -57,12 +57,12 @@ class ExtensionDetailsViewModel(
             try {
                 network.cookieManager.remove(it.toHttpUrl())
             } catch (e: Exception) {
-                Log.e("ClearCookies","Failed to clear cookies for $it")
+                Log.d("ClearCookies","Failed to clear cookies for $it")
                 0
             }
         }
 
-        Log.e("ClearCookies","Cleared $cleared cookies for: ${urls.joinToString()}")
+        Log.i("ClearCookies","Cleared $cleared cookies for: ${urls.joinToString()}")
     }
 
     fun uninstallExtension() {

@@ -328,5 +328,9 @@
     <string name="subtitles_priority_label">Priorité des sous-titres</string>
     <string name="subtitles_priority_description">Adaptez la priorité des langues pour charger les sous-titres de votre choix</string>
 
+    <!-- Subtitles preferences -->
+    <string name="pref_subtitles_appearance">Apparance</string>
+    <string name="size">Taille</string>
+
 
 </resources>

@@ -97,7 +97,7 @@ class ExtensionInstallerReceiver(private val listener: Listener) : BroadcastRece
     private suspend fun getExtensionFromIntent(context: Context, intent: Intent?): LoadResult {
         val pkgName = getPackageNameFromIntent(intent)
         if (pkgName == null) {
-            Log.e("GetExtensionFromIntent","Package name not found")
+            Log.d("GetExtensionFromIntent","Package name not found")
             return LoadResult.Error
         }
         return GlobalScope.async(Dispatchers.Default, CoroutineStart.DEFAULT) {

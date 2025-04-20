@@ -269,7 +269,7 @@ internal class ExtensionsInstaller(private val context: Context) {
 
             // Set next installation step
             if (uri == null) {
-                Log.e("DownloadCompletionReceiver - onReceive","Couldn't locate downloaded APK")
+                Log.d("DownloadCompletionReceiver - onReceive","Couldn't locate downloaded APK")
                 updateInstallStep(id, InstallStep.Error)
                 return
             }

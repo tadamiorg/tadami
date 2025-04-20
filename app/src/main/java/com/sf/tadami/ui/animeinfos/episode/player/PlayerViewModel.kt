@@ -204,13 +204,16 @@ class PlayerViewModel(
     fun setResumeFromCastSession(
         rawUrl: String,
         selectedSource: StreamSource,
-        availableSources: List<StreamSource>
+        availableSources: List<StreamSource>,
+        selectedTrack: Long? = null
     ) {
         _uiState.update { currentState ->
             currentState.copy(
                 rawUrl = rawUrl,
                 selectedSource = selectedSource,
-                availableSources = availableSources
+                availableSources = availableSources,
+                selectedSubtitleTrack = selectedTrack?.toInt()
+                    ?.let { selectedSource.subtitleTracks.takeIf { tracks -> tracks.isNotEmpty() }?.get((it-1.coerceAtLeast(0))) }
             )
         }
     }

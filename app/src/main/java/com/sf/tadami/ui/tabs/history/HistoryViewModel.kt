@@ -46,7 +46,7 @@ class HistoryViewModel : ViewModel() {
                     getHistoryInteractor.subscribe(query ?: "")
                         .distinctUntilChanged()
                         .catch { error ->
-                            Log.e("HistoryError", error.stackTraceToString())
+                            Log.d("HistoryError", error.stackTraceToString())
                         }
                         .map { it.toHistoryUiModels() }
                         .flowOn(Dispatchers.IO)

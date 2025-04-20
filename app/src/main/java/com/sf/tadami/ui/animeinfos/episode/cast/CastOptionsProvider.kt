@@ -3,6 +3,7 @@ package com.sf.tadami.ui.animeinfos.episode.cast
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.media3.common.util.UnstableApi
 import com.google.android.gms.cast.LaunchOptions
 import com.google.android.gms.cast.framework.CastOptions
 import com.google.android.gms.cast.framework.OptionsProvider
@@ -18,6 +19,7 @@ import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
+@UnstableApi
 class CastOptionsProvider : OptionsProvider {
     private val dataStore: DataStore<Preferences> = Injekt.get()
     private var playerPreferences : PlayerPreferences = runBlocking {
@@ -30,6 +32,7 @@ class CastOptionsProvider : OptionsProvider {
         buttonActions.add(MediaIntentReceiver.ACTION_TOGGLE_PLAYBACK)
         buttonActions.add(MediaIntentReceiver.ACTION_FORWARD)
         buttonActions.add(MediaIntentReceiver.ACTION_STOP_CASTING)
+
 
         // Builds a notification with the above actions. Each tap on the "rewind" and "forward" buttons skips 30 seconds.
 

@@ -77,16 +77,16 @@ fun getNotificationsColor(context: Context) : Int{
     }
     val resource = when (appearancePreferences.appTheme) {
         AppTheme.LAVENDER -> R.color.lavender_primary
-        AppTheme.GREEN_APPLE -> R.color.greenapple_primary
+        AppTheme.GREEN_APPLE -> R.color.green_apple_primary
         AppTheme.TAKO -> R.color.tako_primary
-        AppTheme.TIDAL_WAVE -> R.color.tidalwave_primary
-        AppTheme.YINYANG -> R.color.yinyang_primary
+        AppTheme.TIDAL_WAVE -> R.color.tidal_wave_primary
+        AppTheme.YINYANG -> R.color.yin_yang_primary
         AppTheme.STRAWBERRY_DAIQUIRI -> R.color.strawberry_primary
         AppTheme.YOTSUBA -> R.color.yotsuba_primary
-        AppTheme.TEALTURQUOISE -> R.color.tealturquoise_primary
-        AppTheme.MIDNIGHT_DUSK -> R.color.midnightdusk_primary
+        AppTheme.TEALTURQUOISE -> R.color.teal_turquoise_primary
+        AppTheme.MIDNIGHT_DUSK -> R.color.midnight_primary
         AppTheme.DOOM -> R.color.doom_primary
-        AppTheme.DEFAULT -> R.color.base_primary
+        AppTheme.DEFAULT -> R.color.tadami_primary
 
     }
     return context.getColor(resource)

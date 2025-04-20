@@ -50,7 +50,7 @@ class AboutViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 e.message?.let { UiToasts.showToast(it) }
-                Log.e("Check version", e.stackTraceToString())
+                Log.d("Check version", e.stackTraceToString())
             } finally {
                 onFinish()
             }

@@ -1,16 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Themes notifications colors -->
-    <color name="lavender_primary">#A177FF</color>
-    <color name="greenapple_primary">#7ADB8F</color>
-    <color name="midnightdusk_primary">#F02475</color>
-    <color name="base_primary">#AEC6FF</color>
-    <color name="strawberry_primary">#FFB2B9</color>
+    <!-- Tako theme colors -->
     <color name="tako_primary">#F3B375</color>
-    <color name="tealturquoise_primary">#40E0D0</color>
-    <color name="tidalwave_primary">#5ed4fc</color>
-    <color name="yinyang_primary">#FFFFFF</color>
-    <color name="yotsuba_primary">#FFB59D</color>
+    <color name="tako_primary_dark">#84531E</color>
+    <color name="tako_accent">#66577E</color>
+    <color name="tako_text_primary">#E3E0F2</color>
+    <color name="tako_text_secondary">#F3B375</color>
+
+    <!-- Doom theme (dark) -->
     <color name="doom_primary">#FF0000</color>
+    <color name="doom_primary_dark">#6D0D0B</color>
+    <color name="doom_accent">#BFBFBF</color>
+    <color name="doom_text_primary">#FFFFFF</color>
+    <color name="doom_text_secondary">#FF0000</color>
+
+    <!-- Lavender theme (dark) -->
+    <color name="lavender_primary">#A177FF</color>
+    <color name="lavender_primary_dark">#3D0090</color>
+    <color name="lavender_accent">#CDBDFF</color>
+    <color name="lavender_text_primary">#E7E0EC</color>
+    <color name="lavender_text_secondary">#A177FF</color>
+
+    <!-- Midnight Dusk theme (dark) -->
+    <color name="midnight_primary">#F02475</color>
+    <color name="midnight_primary_dark">#BD1C5C</color>
+    <color name="midnight_accent">#55971C</color>
+    <color name="midnight_text_primary">#E5E1E5</color>
+    <color name="midnight_text_secondary">#F02475</color>
+
+    <!-- Green Apple theme (dark) -->
+    <color name="green_apple_primary">#7ADB8F</color>
+    <color name="green_apple_primary_dark">#006D32</color>
+    <color name="green_apple_accent">#FFB3AC</color>
+    <color name="green_apple_text_primary">#DFE4DB</color>
+    <color name="green_apple_text_secondary">#7ADB8F</color>
+
+    <!-- Strawberry theme (dark) -->
+    <color name="strawberry_primary">#FFB2B8</color>
+    <color name="strawberry_primary_dark">#B61F40</color>
+    <color name="strawberry_accent">#E8C08E</color>
+    <color name="strawberry_text_primary">#F7DCDD</color>
+    <color name="strawberry_text_secondary">#ED4A65</color>
+
+    <!-- Tadami (Default) theme - dark -->
+    <color name="tadami_primary">#B0C6FF</color>
+    <color name="tadami_primary_dark">#0058CA</color>
+    <color name="tadami_accent">#7ADC77</color>
+    <color name="tadami_text_primary">#E3E2E6</color>
+    <color name="tadami_text_secondary">#B0C6FF</color>
+
+    <!-- Teal Turquoise theme (dark) -->
+    <color name="teal_turquoise_primary">#40E0D0</color>
+    <color name="teal_turquoise_primary_dark">#008080</color>
+    <color name="teal_turquoise_accent">#BF1F2F</color>
+    <color name="teal_turquoise_text_primary">#DFDEDA</color>
+    <color name="teal_turquoise_text_secondary">#40E0D0</color>
+
+    <!-- Tidal Wave theme (dark) -->
+    <color name="tidal_wave_primary">#5ED4FC</color>
+    <color name="tidal_wave_primary_dark">#004d61</color>
+    <color name="tidal_wave_accent">#92f7bc</color>
+    <color name="tidal_wave_text_primary">#D5E3FF</color>
+    <color name="tidal_wave_text_secondary">#5ED4FC</color>
+
+    <!-- Yotsuba theme (dark) -->
+    <color name="yotsuba_primary">#FFB59D</color>
+    <color name="yotsuba_primary_dark">#AE3200</color>
+    <color name="yotsuba_accent">#D7C68D</color>
+    <color name="yotsuba_text_primary">#EDE0DD</color>
+    <color name="yotsuba_text_secondary">#FFB59D</color>
+
+    <!-- Yin & Yang theme (dark) -->
+    <color name="yin_yang_primary">#FFFFFF</color>
+    <color name="yin_yang_primary_dark">#CECECE</color>
+    <color name="yin_yang_accent">#000000</color>
+    <color name="yin_yang_text_primary">#E6E6E6</color>
+    <color name="yin_yang_text_secondary">#FFFFFF</color>
+
 </resources>

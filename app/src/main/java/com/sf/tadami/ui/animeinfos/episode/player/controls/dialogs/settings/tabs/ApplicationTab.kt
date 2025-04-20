@@ -1,13 +1,18 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.tabs
 
+import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.ui.CaptionStyleCompat
 import com.sf.tadami.R
 import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
@@ -16,6 +21,20 @@ import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.components.screens.ScreenTabContent
 import com.sf.tadami.ui.tabs.more.settings.components.PreferenceParser
 
+
+@OptIn(UnstableApi::class)
+fun PlayerPreferences.toSubtitlesStyle(): CaptionStyleCompat {
+    return CaptionStyleCompat(
+        this.subtitleTextColor,
+        this.subtitleBackgroundColor,
+        Color.Transparent.toArgb(), // Edge color handled separately
+        this.subtitleEdgeType,
+        this.subtitleEdgeColor,
+        null // We'll set the typeface through PlayerView
+    )
+}
+
+@OptIn(UnstableApi::class)
 @Composable()
 fun applicationTab(): ScreenTabContent {
     val playerPreferencesState = rememberDataStoreState(PlayerPreferences)
@@ -34,6 +53,7 @@ fun applicationTab(): ScreenTabContent {
     }
 }
 
+@OptIn(UnstableApi::class)
 @Composable
 private fun getTimelineGroup(
     prefState: DataStoreState<PlayerPreferences>,
@@ -102,6 +122,7 @@ private fun getTimelineGroup(
 }
 
 
+@OptIn(UnstableApi::class)
 @Composable
 private fun getSubtitlesGroup(
     prefState: DataStoreState<PlayerPreferences>,

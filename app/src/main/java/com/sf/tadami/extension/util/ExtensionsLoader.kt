@@ -21,8 +21,9 @@ internal object ExtensionsLoader {
 
     private const val EXTENSION_FEATURE = "tadami.extension"
     private const val METADATA_SOURCE_CLASS = "tadami.extension.class"
+    const val API_VERSION_MIN_OBSOLETE = 1.2
     const val API_VERSION_MIN = 1.0
-    const val API_VERSION_MAX = 1.1
+    const val API_VERSION_MAX = 1.2
 
     @Suppress("DEPRECATION")
     private val PACKAGE_FLAGS = PackageManager.GET_CONFIGURATIONS or
@@ -73,7 +74,7 @@ internal object ExtensionsLoader {
     fun loadExtensionFromPkgName(context: Context, pkgName: String): LoadResult {
         val extensionPackage = getExtensionInfoFromPkgName(context, pkgName)
         if (extensionPackage == null) {
-            Log.e("LoadExtensionFromPkgName","Extension package is not found ($pkgName)")
+            Log.d("LoadExtensionFromPkgName","Extension package is not found ($pkgName)")
             return LoadResult.Error
         }
         return loadExtension(context, extensionPackage)
@@ -117,14 +118,14 @@ internal object ExtensionsLoader {
         val versionCode = PackageInfoCompat.getLongVersionCode(pkgInfo)
 
         if (versionName.isNullOrEmpty()) {
-            Log.e("LoadExtension","Missing versionName for extension $extName")
+            Log.d("LoadExtension","Missing versionName for extension $extName")
             return LoadResult.Error
         }
 
         // Validate lib version
         val apiVersion = versionName.substringBeforeLast('.').toDoubleOrNull()
         if (apiVersion == null || apiVersion < API_VERSION_MIN || apiVersion > API_VERSION_MAX) {
-            Log.e("LoadExtension","Lib version is $apiVersion, while only versions " +
+            Log.d("LoadExtension","Lib version is $apiVersion, while only versions " +
                     "$API_VERSION_MIN to $API_VERSION_MAX are allowed")
             return LoadResult.Error
         }
@@ -132,8 +133,8 @@ internal object ExtensionsLoader {
         val classLoader = try {
             PathClassLoader(appInfo.sourceDir, null, context.classLoader)
         } catch (e: Exception) {
-            Log.e("ClassLoader","Extension load error: $extName ($pkgName)")
-            Log.e("ClassLoader",e.stackTraceToString())
+            Log.d("ClassLoader","Extension load error: $extName ($pkgName)")
+            Log.d("ClassLoader",e.stackTraceToString())
             return LoadResult.Error
         }
 
@@ -154,8 +155,8 @@ internal object ExtensionsLoader {
                         else -> throw Exception("Unknown source class type: ${obj.javaClass}")
                     }
                 } catch (e: Throwable) {
-                    Log.e("LoadExtension","Extension load error: $extName ($it)")
-                    Log.e("LoadExtension Error",e.stackTraceToString())
+                    Log.d("LoadExtension","Extension load error: $extName ($it)")
+                    Log.d("LoadExtension Error",e.stackTraceToString())
                     return LoadResult.Error
                 }
             }

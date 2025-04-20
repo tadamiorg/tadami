@@ -55,7 +55,7 @@ class WebViewActivity : AppCompatActivity() {
             try {
                 headers = source.headers.toMultimap().mapValues { it.value.getOrNull(0) ?: "" }
             } catch (e: Exception) {
-                Log.e("Failed to build headers",e.stackTraceToString())
+                Log.d("Failed to build headers",e.stackTraceToString())
             }
         }
 
@@ -110,7 +110,7 @@ class WebViewActivity : AppCompatActivity() {
 
     private fun clearCookies(url: String) {
         network.cookieManager.remove(url.toHttpUrl())
-        Log.e("Webview","Cleared cookies for: $url")
+        Log.i("Webview","Cleared cookies for: $url")
     }
 
     companion object {

@@ -55,7 +55,7 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
         try {
             setForeground(getForegroundInfo())
         } catch (e: IllegalStateException) {
-            Log.e("BackupCreateWorker","Not allowed to run on foreground service")
+            Log.d("BackupCreateWorker","Not allowed to run on foreground service")
         }
         return try {
             val location = BackupCreator(context,isAutoBackup).createBackup(uri, options)
@@ -64,7 +64,7 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
             }
             Result.success()
         } catch (e: Exception) {
-            Log.e("BackupCreateWorker",e.stackTraceToString())
+            Log.d("BackupCreateWorker",e.stackTraceToString())
             if (!isAutoBackup) notifier.showBackupError(e.message)
             Result.failure()
         }

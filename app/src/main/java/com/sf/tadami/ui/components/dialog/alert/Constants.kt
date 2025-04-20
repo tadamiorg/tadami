@@ -9,6 +9,7 @@ object AlertDialogConstants{
     val ButtonsMainAxisSpacing = MaterialTheme.padding.extraSmall
     val ButtonsCrossAxisSpacing = 12.dp
     val DialogHorizontalPadding = PaddingValues(horizontal = MaterialTheme.padding.medium)
+    val DialogVerticalPadding = PaddingValues(vertical = MaterialTheme.padding.medium)
     val DialogTitlePadding = PaddingValues(vertical = MaterialTheme.padding.medium)
     val DialogFooterPadding = PaddingValues(vertical = MaterialTheme.padding.tiny)
 }

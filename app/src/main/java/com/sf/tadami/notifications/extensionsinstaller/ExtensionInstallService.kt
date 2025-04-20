@@ -36,7 +36,7 @@ class ExtensionInstallService : Service() {
             installer = when (ExtensionInstallerEnum.nullableValueOf(installerUsed)) {
                 ExtensionInstallerEnum.PACKAGEINSTALLER -> TadamiPackageInstaller(this)
                 else -> {
-                    Log.e("ExtensionInstallService","Not implemented for installer $installerUsed")
+                    Log.d("ExtensionInstallService","Not implemented for installer $installerUsed")
                     stopSelf()
                     return START_NOT_STICKY
                 }

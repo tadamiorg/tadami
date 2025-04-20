@@ -26,8 +26,8 @@ android {
 
     defaultConfig {
         applicationId = "com.sf.tadami"
-        versionCode = 36
-        versionName = "1.6.2"
+        versionCode = 37
+        versionName = "1.7.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")
@@ -65,9 +65,12 @@ android {
         compose = true
         viewBinding = true
     }
+
     packaging {
         resources {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
+            excludes.add("META-INF/INDEX.LIST")
+            excludes.add("META-INF/io.netty.versions.properties")
         }
     }
     sourceSets {

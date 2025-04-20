@@ -1,17 +1,91 @@
 <resources>
     <style name="Theme.Tadami" parent="Theme.Material3.DayNight.NoActionBar">
-
+        <item name="colorPrimary">@color/tadami_primary</item>
+        <item name="colorPrimaryDark">@color/tadami_primary_dark</item>
+        <item name="colorAccent">@color/tadami_accent</item>
+        <item name="android:textColorPrimary">@color/tadami_text_primary</item>
+        <item name="android:textColorSecondary">@color/tadami_text_secondary</item>
     </style>
 
-
-    <!-- Cast button style -->
-    <!--<style name="BaseCastTheme" parent="Theme.MediaRouter">
-        <item name="mediaRouteButtonStyle">@style/BaseMediaRouteButtonStyle</item>
+    <style name="Theme.Tadami.Tako" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/tako_primary</item>
+        <item name="colorPrimaryDark">@color/tako_primary_dark</item>
+        <item name="colorAccent">@color/tako_accent</item>
+        <item name="android:textColorPrimary">@color/tako_text_primary</item>
+        <item name="android:textColorSecondary">@color/tako_text_secondary</item>
     </style>
 
-    <style name="BaseMediaRouteButtonStyle" parent="Widget.MediaRouter.Light.MediaRouteButton">
-        <item name="mediaRouteButtonTint">?attr/buttonTint</item>
-    </style>-->
+    <style name="Theme.Tadami.MidnightDusk" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/midnight_primary</item>
+        <item name="colorPrimaryDark">@color/midnight_primary_dark</item>
+        <item name="colorAccent">@color/midnight_accent</item>
+        <item name="android:textColorPrimary">@color/midnight_text_primary</item>
+        <item name="android:textColorSecondary">@color/midnight_text_secondary</item>
+    </style>
+
+    <style name="Theme.Tadami.Doom" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/doom_primary</item>
+        <item name="colorPrimaryDark">@color/doom_primary_dark</item>
+        <item name="colorAccent">@color/doom_accent</item>
+        <item name="android:textColorPrimary">@color/doom_text_primary</item>
+        <item name="android:textColorSecondary">@color/doom_text_secondary</item>
+    </style>
+
+    <style name="Theme.Tadami.Lavender" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/lavender_primary</item>
+        <item name="colorPrimaryDark">@color/lavender_primary_dark</item>
+        <item name="colorAccent">@color/lavender_accent</item>
+        <item name="android:textColorPrimary">@color/lavender_text_primary</item>
+        <item name="android:textColorSecondary">@color/lavender_text_secondary</item>
+    </style>
+
+    <style name="Theme.Tadami.GreenApple" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/green_apple_primary</item>
+        <item name="colorPrimaryDark">@color/green_apple_primary_dark</item>
+        <item name="colorAccent">@color/green_apple_accent</item>
+        <item name="android:textColorPrimary">@color/green_apple_text_primary</item>
+        <item name="android:textColorSecondary">@color/green_apple_text_secondary</item>
+    </style>
+
+    <style name="Theme.Tadami.Strawberry" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/strawberry_primary</item>
+        <item name="colorPrimaryDark">@color/strawberry_primary_dark</item>
+        <item name="colorAccent">@color/strawberry_accent</item>
+        <item name="android:textColorPrimary">@color/strawberry_text_primary</item>
+        <item name="android:textColorSecondary">@color/strawberry_text_secondary</item>
+    </style>
+
+    <style name="Theme.Tadami.TidalWave" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/tidal_wave_primary</item>
+        <item name="colorPrimaryDark">@color/tidal_wave_primary_dark</item>
+        <item name="colorAccent">@color/tidal_wave_accent</item>
+        <item name="android:textColorPrimary">@color/tidal_wave_text_primary</item>
+        <item name="android:textColorSecondary">@color/tidal_wave_text_secondary</item>
+    </style>
+
+    <style name="Theme.Tadami.Yotsuba" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/yotsuba_primary</item>
+        <item name="colorPrimaryDark">@color/yotsuba_primary_dark</item>
+        <item name="colorAccent">@color/yotsuba_accent</item>
+        <item name="android:textColorPrimary">@color/yotsuba_text_primary</item>
+        <item name="android:textColorSecondary">@color/yotsuba_text_secondary</item>
+    </style>
+
+    <style name="Theme.Tadami.YinYang" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/yin_yang_primary</item>
+        <item name="colorPrimaryDark">@color/yin_yang_primary_dark</item>
+        <item name="colorAccent">@color/yin_yang_accent</item>
+        <item name="android:textColorPrimary">@color/yin_yang_text_primary</item>
+        <item name="android:textColorSecondary">@color/yin_yang_text_secondary</item>
+    </style>
+
+    <style name="Theme.Tadami.TealTurquoise" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/teal_turquoise_primary</item>
+        <item name="colorPrimaryDark">@color/teal_turquoise_primary_dark</item>
+        <item name="colorAccent">@color/teal_turquoise_accent</item>
+        <item name="android:textColorPrimary">@color/teal_turquoise_text_primary</item>
+        <item name="android:textColorSecondary">@color/teal_turquoise_text_secondary</item>
+    </style>
 
     <!-- SplashScreen Theme -->
     <style name="Theme.Tadami.SplashScreen" parent="Theme.SplashScreen">

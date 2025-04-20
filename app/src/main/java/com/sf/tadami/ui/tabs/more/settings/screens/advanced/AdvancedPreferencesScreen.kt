@@ -100,7 +100,7 @@ class AdvancedPreferencesScreen(
                             context.applicationInfo?.dataDir?.let { File("$it/app_webview/").deleteRecursively() }
                             UiToasts.showToast(R.string.webview_data_deleted)
                         } catch (e: Throwable) {
-                            Log.e("AdvancedNetworkSettings", e.stackTraceToString())
+                            Log.d("AdvancedNetworkSettings", e.stackTraceToString())
                             UiToasts.showToast(R.string.cache_delete_error)
                         }
                     },

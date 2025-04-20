@@ -37,7 +37,7 @@ class BackupRestoreWorker(private val context: Context, workerParams: WorkerPara
         try {
             setForeground(getForegroundInfo())
         } catch (e: IllegalStateException) {
-            Log.e("BackupRestoreWorker","Not allowed to run on foreground service")
+            Log.d("BackupRestoreWorker","Not allowed to run on foreground service")
         }
 
         return try {
@@ -48,7 +48,7 @@ class BackupRestoreWorker(private val context: Context, workerParams: WorkerPara
                 notifier.showRestoreError(context.getString(R.string.restoring_backup_canceled))
                 Result.success()
             } else {
-                Log.e("BackupRestorer",e.stackTraceToString())
+                Log.d("BackupRestorer",e.stackTraceToString())
                 notifier.showRestoreError(e.message)
                 Result.failure()
             }

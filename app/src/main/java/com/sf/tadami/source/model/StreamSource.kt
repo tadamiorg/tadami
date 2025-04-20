@@ -31,7 +31,7 @@ sealed class Track {
     data class SubtitleTrack(
         override val url: String,
         override val lang: String,
-        val mimeType: String
+        val mimeType: String = "text/x-unknown"
     ) : Track()
 
     @Serializable

@@ -3,6 +3,7 @@ package com.sf.tadami.ui.main
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
+import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +18,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.cast.framework.CastContext
@@ -30,6 +32,7 @@ import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.navigation.graphs.onboarding.OnboardingRoutes
 import com.sf.tadami.notifications.cast.CastProxyService
 import com.sf.tadami.preferences.app.BasePreferences
+import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
@@ -43,6 +46,7 @@ import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -56,12 +60,28 @@ class MainActivity : AppCompatActivity() {
     private val dataStore : DataStore<Preferences> = Injekt.get()
     private val sourcesManager : SourceManager = Injekt.get()
 
+    @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         val isLaunch = savedInstanceState == null
         val splashScreen = if (isLaunch) installSplashScreen() else null
-        if(!isLaunch){
-            setTheme(R.style.Theme_Tadami)
+
+        val prefTheme = runBlocking { dataStore.getPreferencesGroup(AppearancePreferences).appTheme }
+
+        val theme = when (prefTheme.name) {
+            "DEFAULT" -> R.style.Theme_Tadami
+            "GREEN_APPLE" -> R.style.Theme_Tadami_GreenApple
+            "LAVENDER" -> R.style.Theme_Tadami_Lavender
+            "MIDNIGHT_DUSK" -> R.style.Theme_Tadami_MidnightDusk
+            "STRAWBERRY_DAIQUIRI" -> R.style.Theme_Tadami_Strawberry
+            "TAKO" -> R.style.Theme_Tadami_Tako
+            "TEALTURQUOISE" -> R.style.Theme_Tadami_TealTurquoise
+            "TIDAL_WAVE" -> R.style.Theme_Tadami_TidalWave
+            "YINYANG" -> R.style.Theme_Tadami_YinYang
+            "YOTSUBA" -> R.style.Theme_Tadami_Yotsuba
+            "DOOM" -> R.style.Theme_Tadami_Doom
+            else -> R.style.Theme_Tadami
         }
+        setTheme(theme)
 
         super.onCreate(savedInstanceState)
 
@@ -191,12 +211,15 @@ class MainActivity : AppCompatActivity() {
             override fun onSessionEnding(session: CastSession) {}
             override fun onSessionResuming(session: CastSession, sessionId: String) {}
             override fun onSessionSuspended(session: CastSession, reason: Int) {}
+
+            @OptIn(UnstableApi::class)
             private fun onApplicationConnected(session: CastSession) {
                 setCastCustomChannel(session,errorChannel)
                 CastProxyService.startNow(this@MainActivity)
                 this@MainActivity.castSession = session
             }
 
+            @OptIn(UnstableApi::class)
             private fun onApplicationDisconnected() {
                 CastProxyService.stop(this@MainActivity)
                 this@MainActivity.castSession = null

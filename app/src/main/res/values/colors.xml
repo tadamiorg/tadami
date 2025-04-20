@@ -3,19 +3,81 @@
 
     <color name="cover_placeholder">#1F888888</color>
 
-    <!-- ActionMode status bar color -->
-
-    <!-- Themes notifications colors -->
-    <color name="lavender_primary">#A177FF</color>
-    <color name="greenapple_primary">#006D2F</color>
-    <color name="midnightdusk_primary">#BB0054</color>
-    <color name="base_primary">#0057CE</color>
-    <color name="strawberry_primary">#B61E40</color>
+    <!-- Tako theme colors -->
     <color name="tako_primary">#66577E</color>
-    <color name="tealturquoise_primary">#008080</color>
-    <color name="tidalwave_primary">#006780</color>
-    <color name="yinyang_primary">#000000</color>
-    <color name="yotsuba_primary">#AE3200</color>
+    <color name="tako_primary_dark">#66577E</color>
+    <color name="tako_accent">#F3B375</color>
+    <color name="tako_text_primary">#1B1B22</color>
+    <color name="tako_text_secondary">#66577E</color>
+
+    <!-- Doom theme (light) -->
     <color name="doom_primary">#FF0000</color>
+    <color name="doom_primary_dark">#6D0D0B</color>
+    <color name="doom_accent">#BFBFBF</color>
+    <color name="doom_text_primary">#FFFFFF</color>
+    <color name="doom_text_secondary">#FF0000</color>
+
+    <!-- Lavender theme (light) -->
+    <color name="lavender_primary">#A177FF</color>
+    <color name="lavender_primary_dark">#130038</color>
+    <color name="lavender_accent">#EDE2FF</color>
+    <color name="lavender_text_primary">#1D1A22</color>
+    <color name="lavender_text_secondary">#7B46AF</color>
+
+    <!-- Midnight Dusk theme (light) -->
+    <color name="midnight_primary">#BB0054</color>
+    <color name="midnight_primary_dark">#3F0017</color>
+    <color name="midnight_accent">#006638</color>
+    <color name="midnight_text_primary">#1C1B1F</color>
+    <color name="midnight_text_secondary">#BB0054</color>
+
+    <!-- Green Apple theme (light) -->
+    <color name="green_apple_primary">#006D2F</color>
+    <color name="green_apple_primary_dark">#188140</color>
+    <color name="green_apple_accent">#9D0012</color>
+    <color name="green_apple_text_primary">#181D18</color>
+    <color name="green_apple_text_secondary">#005927</color>
+
+    <!-- Strawberry theme (light) -->
+    <color name="strawberry_primary">#A10833</color>
+    <color name="strawberry_primary_dark">#D53855</color>
+    <color name="strawberry_accent">#5F441D</color>
+    <color name="strawberry_text_primary">#261819</color>
+    <color name="strawberry_text_secondary">#A10833</color>
+
+    <!-- Tadami (Default) theme - light -->
+    <color name="tadami_primary">#0058CA</color>
+    <color name="tadami_primary_dark">#001945</color>
+    <color name="tadami_accent">#006E1B</color>
+    <color name="tadami_text_primary">#1B1B1F</color>
+    <color name="tadami_text_secondary">#0058CA</color>
+
+    <!-- Teal Turquoise theme (light) -->
+    <color name="teal_turquoise_primary">#008080</color>
+    <color name="teal_turquoise_primary_dark">#008080</color>
+    <color name="teal_turquoise_accent">#FF7F7F</color>
+    <color name="teal_turquoise_text_primary">#050505</color>
+    <color name="teal_turquoise_text_secondary">#008080</color>
+
+    <!-- Tidal Wave theme (light) -->
+    <color name="tidal_wave_primary">#006780</color>
+    <color name="tidal_wave_primary_dark">#001f28</color>
+    <color name="tidal_wave_accent">#92f7bc</color>
+    <color name="tidal_wave_text_primary">#001c3b</color>
+    <color name="tidal_wave_text_secondary">#006780</color>
+
+    <!-- Yotsuba theme (light) -->
+    <color name="yotsuba_primary">#AE3200</color>
+    <color name="yotsuba_primary_dark">#3B0A00</color>
+    <color name="yotsuba_accent">#6B5E2F</color>
+    <color name="yotsuba_text_primary">#211A18</color>
+    <color name="yotsuba_text_secondary">#AE3200</color>
+
+    <!-- Yin & Yang theme (light) -->
+    <color name="yin_yang_primary">#000000</color>
+    <color name="yin_yang_primary_dark">#000000</color>
+    <color name="yin_yang_accent">#FFFFFF</color>
+    <color name="yin_yang_text_primary">#222222</color>
+    <color name="yin_yang_text_secondary">#000000</color>
 
 </resources>
