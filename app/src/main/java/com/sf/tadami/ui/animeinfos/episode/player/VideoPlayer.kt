@@ -287,7 +287,7 @@ fun VideoPlayer(
     LaunchedEffect(playerPreferences) {
         playerView?.subtitleView?.apply {
             setApplyEmbeddedStyles(false)
-            setStyle(playerPreferences.toSubtitlesStyle())
+            setStyle(playerPreferences.toSubtitlesStyle(context))
             setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, playerPreferences.subtitleTextSize.toFloat())
         }
     }
@@ -385,7 +385,7 @@ fun VideoPlayer(
 
                         subtitleView?.apply {
                             setApplyEmbeddedStyles(false)
-                            setStyle(playerPreferences.toSubtitlesStyle())
+                            setStyle(playerPreferences.toSubtitlesStyle(it))
                             setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, playerPreferences.subtitleTextSize.toFloat())
                         }
                     }

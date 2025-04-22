@@ -1,5 +1,7 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.tabs
 
+import android.content.Context
+import android.graphics.Typeface
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -11,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.res.ResourcesCompat
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.CaptionStyleCompat
 import com.sf.tadami.R
@@ -23,15 +26,19 @@ import com.sf.tadami.ui.tabs.more.settings.components.PreferenceParser
 
 
 @OptIn(UnstableApi::class)
-fun PlayerPreferences.toSubtitlesStyle(): CaptionStyleCompat {
+fun PlayerPreferences.toSubtitlesStyle(context: Context): CaptionStyleCompat {
     return CaptionStyleCompat(
         this.subtitleTextColor,
         this.subtitleBackgroundColor,
         Color.Transparent.toArgb(), // Edge color handled separately
         this.subtitleEdgeType,
         this.subtitleEdgeColor,
-        null // We'll set the typeface through PlayerView
+        getCustomTypeface(context) // We'll set the typeface through PlayerView
     )
+}
+
+private fun getCustomTypeface(context: Context): Typeface {
+    return ResourcesCompat.getFont(context, R.font.roboto_extrabold) ?: Typeface.DEFAULT
 }
 
 @OptIn(UnstableApi::class)

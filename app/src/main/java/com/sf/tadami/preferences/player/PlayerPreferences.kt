@@ -60,7 +60,7 @@ data class PlayerPreferences(
         private const val DEFAULT_TEXT_SIZE = 22
         private val DEFAULT_TEXT_COLOR = Color.White.toArgb()
         private val DEFAULT_BACKGROUND_COLOR = Color.Transparent.toArgb()
-        private const val DEFAULT_EDGE_TYPE = CaptionStyleCompat.EDGE_TYPE_OUTLINE
+        private const val DEFAULT_EDGE_TYPE = CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW
         private val DEFAULT_EDGE_COLOR = Color.Black.toArgb()
 
 

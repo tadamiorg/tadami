@@ -10,8 +10,10 @@ import androidx.compose.ui.unit.sp
 import com.sf.tadami.R
 
 val Fonts = FontFamily(
+    Font(R.font.roboto, weight = FontWeight.Normal),
     Font(R.font.roboto_medium, weight = FontWeight.Medium),
-    Font(R.font.roboto, weight = FontWeight.Normal)
+    Font(R.font.roboto_bold, weight = FontWeight.Bold),
+    Font(R.font.roboto_extrabold, weight = FontWeight.ExtraBold),
 )
 
 val Typography = Typography(
