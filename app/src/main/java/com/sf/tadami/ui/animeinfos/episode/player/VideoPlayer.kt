@@ -380,6 +380,7 @@ fun VideoPlayer(
                         )
                         setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
                         resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                        keepScreenOn = true
 
                         playerView = this
 

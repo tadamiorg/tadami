@@ -1,4 +1,4 @@
-# Tadami (タダ見) v1.7.1
+# Tadami (タダ見) v1.7.2
 
 Tadami is a learning project heavily inspired by the free and open source manga reader Tachiyomi that adds anime capabilities for Android 9.0 and above.
 It is not a production ready app and mostly a protoype used to learn android development with kotlin, jetpack compose...

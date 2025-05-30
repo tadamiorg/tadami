@@ -35,6 +35,7 @@
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
+
     <application
         android:name=".App"
         android:allowBackup="false"
@@ -48,6 +49,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Tadami"
         android:usesCleartextTraffic="true">
+
+        <activity
+            android:name=".crash.CrashActivity"
+            android:exported="false"
+            android:process=":error_handler" />
+
         <activity
             android:name=".ui.main.MainActivity"
             android:theme="@style/Theme.Tadami.SplashScreen"

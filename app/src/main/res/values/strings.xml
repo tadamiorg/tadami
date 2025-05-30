@@ -324,4 +324,10 @@
     <string name="subtitles_priority_label">Subtitles priority</string>
     <string name="subtitles_priority_description">Adjust the priority of languages to load the subtitles of your preference</string>
 
+    <!-- Crash -->
+    <string name="crash_screen_title">Whoops!</string>
+    <string name="crash_screen_description">%s ran into an unexpected error.</string>
+    <string name="pref_dump_crash_logs">Share crash logs</string>
+    <string name="crash_screen_restart_application">Restart the application</string>
+
 </resources>

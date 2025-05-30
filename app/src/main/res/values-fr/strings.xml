@@ -332,5 +332,11 @@
     <string name="pref_subtitles_appearance">Apparance</string>
     <string name="size">Taille</string>
 
+    <!-- Crash -->
+    <string name="crash_screen_title">Oups!</string>
+    <string name="crash_screen_description">%s a rencontré une erreur inattendue.</string>
+    <string name="pref_dump_crash_logs">Partager les rapports de plantage</string>
+    <string name="crash_screen_restart_application">Redémarrer l\'application</string>
+
 
 </resources>

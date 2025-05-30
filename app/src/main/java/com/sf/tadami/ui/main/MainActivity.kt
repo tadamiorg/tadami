@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity() {
 
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+
         val isLaunch = savedInstanceState == null
         val splashScreen = if (isLaunch) installSplashScreen() else null
 

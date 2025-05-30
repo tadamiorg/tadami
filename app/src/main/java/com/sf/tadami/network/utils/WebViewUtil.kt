@@ -25,6 +25,14 @@ object WebViewUtil {
 
         return context.packageManager.hasSystemFeature(PackageManager.FEATURE_WEBVIEW)
     }
+
+    fun getVersion(context: Context): String {
+        val webView = WebView.getCurrentWebViewPackage() ?: return "how did you get here?"
+        val pm = context.packageManager
+        val label = webView.applicationInfo?.loadLabel(pm)
+        val version = webView.versionName
+        return "$label $version"
+    }
 }
 
 fun WebView.isOutdated(): Boolean {
@@ -56,6 +64,8 @@ private fun WebView.getWebViewMajorVersion(): Int {
         0
     }
 }
+
+
 
 // Based on https://stackoverflow.com/a/29218966
 private fun WebView.getDefaultUserAgentString(): String {

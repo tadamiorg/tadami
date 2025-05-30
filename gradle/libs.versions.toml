@@ -6,6 +6,7 @@ sqldelight-version = "2.0.2"
 http4k-bom-version = "6.5.6.1"
 dotenv_version = "4.0.0"
 richtext = "1.0.0-alpha01"
+logcat-version= "0.2.1"
 
 [libraries]
 
@@ -53,6 +54,9 @@ http4k-server-ktorcio = { group = "org.http4k", name = "http4k-server-ktorcio"}
 # JSUnpacker
 jsunpacker = "dev.datlag.jsunpacker:jsunpacker:1.0.2"
 unifile = "com.github.tachiyomiorg:unifile:e0def6b3dc"
+
+# Logcat
+logcat = { group = "com.squareup.logcat", name="logcat", version.ref="logcat-version"}
 
 [plugins]
 dotenv = { id="co.uzzu.dotenv.gradle", version.ref="dotenv_version" }

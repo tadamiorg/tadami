@@ -26,8 +26,8 @@ android {
 
     defaultConfig {
         applicationId = "com.sf.tadami"
-        versionCode = 38
-        versionName = "1.7.1"
+        versionCode = 39
+        versionName = "1.7.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")
@@ -170,6 +170,9 @@ dependencies {
     // JSUnpacker
     implementation(libs.jsunpacker)
     implementation(libs.unifile)
+
+    // Logcat
+    implementation(libs.logcat)
 
 }
 tasks {

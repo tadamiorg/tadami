@@ -12,6 +12,8 @@ import coil.ImageLoaderFactory
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import coil.request.CachePolicy
+import com.sf.tadami.crash.CrashActivity
+import com.sf.tadami.crash.GlobalExceptionHandler
 import com.sf.tadami.network.interceptors.ImageLoaderInterceptor
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.appearance.AppearancePreferences
@@ -29,6 +31,9 @@ open class App : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
+
+        GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
+
         Injekt.importModule(AppModule(this))
         Injekt.importModule(PreferencesModule(this))
         createNotificationChannels()
