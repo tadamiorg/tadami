@@ -36,21 +36,12 @@ android {
         }
     }
 
-    signingConfigs {
-        create("local"){
-            storeFile = file(env.SIGNING_KEY.value)
-            storePassword = env.KEY_STORE_PASSWORD.value
-            keyAlias = env.ALIAS.value
-            keyPassword = env.KEY_PASSWORD.value
-        }
-    }
-
     buildTypes {
         named("debug"){
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-DEBUG"
             isDebuggable = true
-            signingConfig = signingConfigs.getByName("local")
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
         named("release") {
