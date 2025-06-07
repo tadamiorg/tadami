@@ -36,18 +36,28 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release"){
+            storeFile = file(env.SIGNING_KEY.value)
+            storePassword = env.KEY_STORE_PASSWORD.value
+            keyAlias = env.ALIAS.value
+            keyPassword = env.KEY_STORE_PASSWORD.value
+        }
+    }
+
     buildTypes {
         named("debug"){
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-DEBUG"
             isDebuggable = true
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
         named("release") {
             isDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
     }
