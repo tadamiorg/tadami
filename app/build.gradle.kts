@@ -37,11 +37,11 @@ android {
     }
 
     signingConfigs {
-        create("release"){
-            storeFile = file(env.KEY_FILE.value)
+        create("local"){
+            storeFile = file(env.SIGNING_KEY.value)
             storePassword = env.KEY_STORE_PASSWORD.value
             keyAlias = env.ALIAS.value
-            keyPassword = env.KEY_STORE_PASSWORD.value
+            keyPassword = env.KEY_PASSWORD.value
         }
     }
 
@@ -50,14 +50,13 @@ android {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-DEBUG"
             isDebuggable = true
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("local")
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
         named("release") {
             isDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
     }
