@@ -45,7 +45,7 @@ import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
@@ -110,7 +110,7 @@ fun VideoPlayer(
     val hasNextIterator by playerViewModel.hasNextIterator.collectAsState()
     val hasPreviousIterator by playerViewModel.hasPreviousIterator.collectAsState()
 
-    val upstreamDataSource = DefaultHttpDataSource.Factory()
+    val upstreamDataSource = DefaultDataSource.Factory(context)
 
     val cacheDataSourceFactory = remember {
         CacheDataSource.Factory()

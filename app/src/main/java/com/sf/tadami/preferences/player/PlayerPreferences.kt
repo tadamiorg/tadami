@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -27,7 +28,8 @@ data class PlayerPreferences(
     val subtitleEdgeType: Int,
     val subtitleEdgeColor: Int,
     val subtitleBoldFormat: Boolean,
-    val subtitleItalicFormat: Boolean
+    val subtitleItalicFormat: Boolean,
+    val subtitleBottomPadding: Float,
 ) : CustomPreferencesIdentifier {
 
     object SeenThresholdItems {
@@ -62,6 +64,7 @@ data class PlayerPreferences(
         private val DEFAULT_BACKGROUND_COLOR = Color.Transparent.toArgb()
         private const val DEFAULT_EDGE_TYPE = CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW
         private val DEFAULT_EDGE_COLOR = Color.Black.toArgb()
+        private  val DEFAULT_BOTTOM_PADDING = 10f
 
 
         private val SEEN_THRESHOLD =  intPreferencesKey("player_seen_threshold")
@@ -76,6 +79,7 @@ data class PlayerPreferences(
         private val SUBTITLES_EDGE_COLOR = intPreferencesKey("player_subtitles_edge_color")
         private val SUBTITLE_BOLD_FORMAT = booleanPreferencesKey("player_subtitles_bold_format")
         private val SUBTITLE_ITALIC_FORMAT = booleanPreferencesKey("player_subtitles_italic_format")
+        private val SUBTITLE_BOTTOM_PADDING = floatPreferencesKey("player_subtitles_bottom_padding")
 
         override fun transform(preferences: Preferences): PlayerPreferences {
            return PlayerPreferences(
@@ -90,7 +94,8 @@ data class PlayerPreferences(
                subtitleEdgeType = preferences[SUBTITLES_EDGE_TYPE] ?: DEFAULT_EDGE_TYPE,
                subtitleEdgeColor = preferences[SUBTITLES_EDGE_COLOR] ?: DEFAULT_EDGE_COLOR,
                subtitleBoldFormat = preferences[SUBTITLE_BOLD_FORMAT] ?: false,
-               subtitleItalicFormat = preferences[SUBTITLE_ITALIC_FORMAT] ?: false
+               subtitleItalicFormat = preferences[SUBTITLE_ITALIC_FORMAT] ?: false,
+               subtitleBottomPadding = preferences[SUBTITLE_BOTTOM_PADDING] ?: DEFAULT_BOTTOM_PADDING
            )
         }
 
@@ -107,6 +112,7 @@ data class PlayerPreferences(
             preferences[SUBTITLES_EDGE_COLOR] = newValue.subtitleEdgeColor
             preferences[SUBTITLE_BOLD_FORMAT] = newValue.subtitleBoldFormat
             preferences[SUBTITLE_ITALIC_FORMAT] = newValue.subtitleItalicFormat
+            preferences[SUBTITLE_BOTTOM_PADDING] = newValue.subtitleBottomPadding
         }
     }
 }
