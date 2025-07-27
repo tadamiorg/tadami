@@ -249,7 +249,7 @@ class PlayerViewModel(
         _isFetchingSources.update { true }
         fetchEpisodeDisposable?.dispose()
 
-        fetchEpisodeDisposable = source.fetchEpisode(episode.url).subscribe(
+        fetchEpisodeDisposable = source.fetchEpisodeSources(episode.url).subscribe(
             { data ->
                 _uiState.updateAndGet { currentState ->
                     currentState.copy(
