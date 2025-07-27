@@ -42,7 +42,7 @@ class StubSource(
         return Observable.error(getSourceNotInstalledException())
     }
 
-    override fun fetchEpisode(url: String): Observable<List<StreamSource>> {
+    override fun fetchEpisodeSources(url: String): Observable<List<StreamSource>> {
         return Observable.error(getSourceNotInstalledException())
     }
 
