@@ -34,7 +34,8 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
         add("User-Agent", network.advancedPreferences.userAgent)
     }
 
-    // Search
+    // Search Animes
+
     protected abstract fun searchAnimeRequest(page: Int, query: String, filters : AnimeFilterList, noToasts : Boolean): Request
     protected abstract fun searchAnimeParse(response: Response): AnimesPage
 
@@ -47,7 +48,7 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
 
     }
 
-    // Latest
+    // Latest Animes
 
     protected abstract fun latestAnimesRequest(page: Int): Request
     protected abstract fun latestAnimeParse(response: Response): AnimesPage
@@ -60,7 +61,7 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
             }
     }
 
-    // Details
+    // Anime Details
 
     protected open fun animeDetailsRequest(anime: Anime): Request {
         return GET(baseUrl+anime.url,headers)
@@ -75,30 +76,56 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
             }
     }
 
-    // Episodes
+    // Episodes List
 
+    @Deprecated("Use episodesListRequest instead", ReplaceWith("episodesListRequest(anime)"))
     protected open fun episodesRequest(anime: Anime): Request = GET(baseUrl+anime.url,headers)
+
+    @Suppress("DEPRECATION")
+    protected open fun episodesListRequest(anime: Anime): Request {
+        return episodesRequest(anime)
+    }
+
+    @Deprecated("Use episodesListParse instead", ReplaceWith("episodesListParse(response)"))
     protected abstract fun episodesParse(response: Response): List<SEpisode>
 
+    @Suppress("DEPRECATION")
+    protected open fun episodesListParse(response: Response): List<SEpisode> {
+        return episodesParse(response)
+    }
+
     override fun fetchEpisodesList(anime: Anime): Observable<List<SEpisode>> {
-        return client.newCall(episodesRequest(anime))
+        return client.newCall(episodesListRequest(anime))
             .asCancelableObservable()
             .map { response ->
-                episodesParse(response)
+                episodesListParse(response)
             }
     }
 
-   // Episode streams
+   // Episode Sources
 
+    @Deprecated("Use episodeSourcesRequest instead", ReplaceWith("episodeSourcesRequest(url)"))
     protected open fun episodeRequest(url: String): Request = GET(baseUrl+url,headers)
+
+    @Suppress("DEPRECATION")
+    protected open fun episodeSourcesRequest(url: String): Request {
+        return episodeRequest(url)
+    }
+
     protected abstract fun episodeSourcesParse(response: Response): List<StreamSource>
 
+    @Deprecated("Use fetchEpisodeSources instead", ReplaceWith("fetchEpisodeSources(url)"))
     override fun fetchEpisode(url: String): Observable<List<StreamSource>> {
-        return client.newCall(episodeRequest(url))
+        return client.newCall(episodeSourcesRequest(url))
             .asCancelableObservable()
             .map {
-                episodeSourcesParse(it)
+                episodeSourcesParse(it).sort()
             }
+    }
+
+    @Suppress("DEPRECATION")
+    override fun fetchEpisodeSources(url: String): Observable<List<StreamSource>> {
+       return fetchEpisode(url)
     }
 
     protected open fun List<StreamSource>.sort(): List<StreamSource> {
@@ -142,7 +169,7 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
      * @return url of the episode
      */
     open fun getEpisodeUrl(episode: SEpisode): String {
-        return episodeRequest(episode.url).url.toString()
+        return episodeSourcesRequest(episode.url).url.toString()
     }
 
 }
