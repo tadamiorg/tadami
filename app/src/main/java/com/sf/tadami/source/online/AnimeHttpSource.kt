@@ -97,7 +97,7 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
         return client.newCall(episodeRequest(url))
             .asCancelableObservable()
             .map {
-                episodeSourcesParse(it)
+                episodeSourcesParse(it).sort()
             }
     }
 
