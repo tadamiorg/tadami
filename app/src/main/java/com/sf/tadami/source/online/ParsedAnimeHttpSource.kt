@@ -12,7 +12,9 @@ import org.jsoup.nodes.Element
 abstract class ParsedAnimeHttpSource(sourceId : Long) : AnimeHttpSource() {
 
     override val id: Long = sourceId
-    // Search
+
+    // Search Animes
+
     protected abstract fun searchSelector(): String
     protected abstract fun searchAnimeFromElement(element: Element): SAnime?
     protected abstract fun searchAnimeNextPageSelector(): String?
@@ -30,7 +32,8 @@ abstract class ParsedAnimeHttpSource(sourceId : Long) : AnimeHttpSource() {
         return AnimesPage(animes, hasNextPage)
     }
 
-    // Latest
+    // Latest Animes
+
     protected abstract fun latestSelector(): String
     protected abstract fun latestAnimeFromElement(element: Element): SAnime
     protected abstract fun latestAnimeNextPageSelector(): String?
@@ -49,7 +52,7 @@ abstract class ParsedAnimeHttpSource(sourceId : Long) : AnimeHttpSource() {
         return AnimesPage(animes, hasNextPage)
     }
 
-    // Details
+    // Anime Details
 
     override fun animeDetailsParse(response: Response): SAnime {
         return animeDetailsParse(response.asJsoup())
@@ -57,24 +60,50 @@ abstract class ParsedAnimeHttpSource(sourceId : Long) : AnimeHttpSource() {
 
     protected abstract fun animeDetailsParse(document: Document): SAnime
 
-    // Episodes
+    // Episodes List
 
+    @Deprecated("Use episodesListSelector instead", ReplaceWith("episodesListSelector()"))
     protected abstract fun episodesSelector(): String
-    protected abstract fun episodeFromElement(element: Element): SEpisode
 
-    override fun episodesParse(response: Response): List<SEpisode> {
-        val document = response.asJsoup()
-        return document.select(episodesSelector()).map { episodeFromElement(it) }
+    @Suppress("DEPRECATION")
+    protected open fun episodesListSelector() : String {
+        return episodesSelector()
     }
 
-    // VideoList
+    protected abstract fun episodeFromElement(element: Element): SEpisode
 
+    @Deprecated("Use episodesListParse instead", ReplaceWith("episodesListParse(response)"))
+    override fun episodesParse(response: Response): List<SEpisode> {
+        val document = response.asJsoup()
+        return document.select(episodesListSelector()).map { episodeFromElement(it) }
+    }
+
+    @Suppress("DEPRECATION")
+    override fun episodesListParse(response: Response): List<SEpisode> {
+        return episodesParse(response)
+    }
+
+    // Episodes Sources
+
+    @Deprecated("Use episodeSourcesSelector instead", ReplaceWith("episodeSourcesSelector()"))
     protected abstract fun streamSourcesSelector(): String
+
+    @Suppress("DEPRECATION")
+    protected open fun episodeSourcesSelector(): String {
+        return streamSourcesSelector()
+    }
+
+    @Deprecated("Use episodeSourcesFromElement instead", ReplaceWith("episodeSourcesFromElement()"))
     protected abstract fun streamSourcesFromElement(element: Element): List<StreamSource>
+
+    @Suppress("DEPRECATION")
+    protected open fun episodeSourcesFromElement(element: Element): List<StreamSource> {
+        return streamSourcesFromElement(element)
+    }
 
     override fun episodeSourcesParse(response: Response): List<StreamSource> {
         val document = response.asJsoup()
-        return document.select(streamSourcesSelector()).flatMap { streamSourcesFromElement(it) }
+        return document.select(episodeSourcesSelector()).flatMap { episodeSourcesFromElement(it) }
     }
 
 }

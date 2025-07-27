@@ -18,7 +18,10 @@ interface Source {
 
     fun fetchEpisodesList(anime: Anime): Observable<List<SEpisode>> = throw IllegalStateException("Not used")
 
+    @Deprecated("Use fetchEpisodeSources instead", ReplaceWith("fetchEpisodeSources(url)"))
     fun fetchEpisode(url: String): Observable<List<StreamSource>> = throw IllegalStateException("Not used")
+
+    fun fetchEpisodeSources(url: String): Observable<List<StreamSource>> = throw IllegalStateException("Not used")
 
     fun getIconRes() : Int? = null
 
