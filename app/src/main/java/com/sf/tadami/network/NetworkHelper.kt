@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.network.interceptors.CloudflareInterceptor
+import com.sf.tadami.network.interceptors.IgnoreGzipInterceptor
 import com.sf.tadami.network.interceptors.UncaughtExceptionInterceptor
 import com.sf.tadami.network.interceptors.UserAgentInterceptor
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
@@ -31,29 +32,30 @@ class NetworkHelper(private val context : Context) {
         dataStore.getPreferencesGroup(AdvancedPreferences)
     }
 
-    val client: OkHttpClient = run {
-        val builder = OkHttpClient.Builder()
-            .cookieJar(cookieManager)
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .callTimeout(2, TimeUnit.MINUTES)
-            .cache(
-                Cache(
-                    directory = cacheDir,
-                    maxSize = cacheSize, // 5 MiB
-                ),
-            )
-            .addInterceptor(BrotliInterceptor)
-            .addInterceptor(UncaughtExceptionInterceptor())
-            .addInterceptor(UserAgentInterceptor(advancedPreferences.userAgent))
-
-
-        builder.addInterceptor(
-            CloudflareInterceptor(context, cookieManager),
+    private val clientBuilder: OkHttpClient.Builder = OkHttpClient.Builder()
+        .cookieJar(cookieManager)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .callTimeout(2, TimeUnit.MINUTES)
+        .cache(
+            Cache(
+                directory = cacheDir,
+                maxSize = cacheSize, // 5 MiB
+            ),
         )
+        .addInterceptor(UncaughtExceptionInterceptor())
+        .addInterceptor(UserAgentInterceptor(advancedPreferences.userAgent.trim()))
+        .addNetworkInterceptor(IgnoreGzipInterceptor())
+        .addNetworkInterceptor(BrotliInterceptor)
 
-        builder.build()
-    }
+    val nonCloudflareClient = clientBuilder.build()
+
+    val client = clientBuilder
+        .addInterceptor(
+            CloudflareInterceptor(context, cookieManager, advancedPreferences.userAgent.trim()),
+        )
+        .build()
+
     /**
      * @deprecated Since Tadami 1.5.0
      */
@@ -62,6 +64,6 @@ class NetworkHelper(private val context : Context) {
     val cloudflareClient: OkHttpClient = client
 
     companion object{
-        const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36 Edg/88.0.705.63"
+        const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
     }
 }

@@ -6,7 +6,6 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.Toast
 import com.sf.tadami.R
-import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.network.utils.setDefaultSettings
 import com.sf.tadami.ui.utils.UiToasts
@@ -18,7 +17,8 @@ import java.util.Locale
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-abstract class WebViewInterceptor(private val context: Context) : Interceptor {
+abstract class WebViewInterceptor(private val context: Context, private val userAgent: String) :
+    Interceptor {
 
     /**
      * When this is called, it initializes the WebView if it wasn't already. We use this to avoid
@@ -80,7 +80,7 @@ abstract class WebViewInterceptor(private val context: Context) : Interceptor {
         return WebView(context).apply {
             setDefaultSettings()
             // Avoid sending empty User-Agent, Chromium WebView will reset to default if empty
-            settings.userAgentString = request.header("User-Agent") ?: NetworkHelper.DEFAULT_USER_AGENT
+            settings.userAgentString = request.header("User-Agent") ?: userAgent
         }
     }
 }
@@ -93,4 +93,15 @@ private fun isRequestHeaderSafe(_name: String, _value: String): Boolean {
     if (name == "connection" && value == "upgrade") return false
     return true
 }
-private val unsafeHeaderNames = listOf("content-length", "host", "trailer", "te", "upgrade", "cookie2", "keep-alive", "transfer-encoding", "set-cookie")
+
+private val unsafeHeaderNames = listOf(
+    "content-length",
+    "host",
+    "trailer",
+    "te",
+    "upgrade",
+    "cookie2",
+    "keep-alive",
+    "transfer-encoding",
+    "set-cookie"
+)
