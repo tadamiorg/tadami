@@ -1,14 +1,15 @@
 package com.sf.tadami.ui.animeinfos.details.infos.description
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
@@ -58,19 +59,21 @@ fun ExpandableAnimeDescription(
         if (!tags.isNullOrEmpty()) {
             Box(
                 modifier = Modifier
-                    .padding(top = MaterialTheme.padding.extraSmall)
-                    .padding(vertical = MaterialTheme.padding.small)
-                    .animateContentSize(),
+                    .padding(top = 8.dp)
+                    .padding(vertical = 12.dp)
+                    .animateContentSize(animationSpec = spring())
+                    .fillMaxWidth(),
             ) {
                 FlowRow(
-                    modifier = Modifier.padding(horizontal = MaterialTheme.padding.medium),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.extraSmall),
-
                 ) {
                     tags.forEach {
                         TagsChip(
+                            modifier = defaultTagChipModifier,
                             text = it,
-                            onClick = {  },
+                            onClick = {
+                            },
                         )
                     }
                 }
@@ -79,15 +82,15 @@ fun ExpandableAnimeDescription(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TagsChip(
     text: String,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
         SuggestionChip(
-            modifier = defaultTagChipModifier,
+            modifier = modifier,
             onClick = onClick,
             label = { Text(text = text, style = MaterialTheme.typography.bodySmall) },
         )

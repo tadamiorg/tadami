@@ -29,7 +29,7 @@ class AndroidCookieJar : CookieJar {
         }
     }
 
-    fun remove(url: HttpUrl, cookieNames: List<String>? = null, maxAge: Int = -1) : Int {
+    fun remove(url: HttpUrl, cookieNames: List<String>? = null, maxAge: Int = -1): Int {
         val urlString = url.toString()
         val cookies = manager.getCookie(urlString) ?: return 0
 
