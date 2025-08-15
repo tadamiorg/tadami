@@ -93,6 +93,7 @@ import org.json.JSONObject
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import androidx.compose.ui.graphics.Color as ComposeColor
 
 
@@ -230,8 +231,12 @@ class EpisodeActivity : AppCompatActivity() {
                                 }
                                 val title = playerViewModel.anime.value?.title
                                 if (httpSource != null && url != null && title != null) {
+                                    val encodedUrl = URLEncoder.encode(
+                                        url,
+                                        StandardCharsets.UTF_8.toString()
+                                    )
                                     openEpisodeInWebView(
-                                        url = url,
+                                        url = encodedUrl,
                                         sourceId = httpSource.id,
                                         animeTitle = title
                                     )
@@ -258,8 +263,12 @@ class EpisodeActivity : AppCompatActivity() {
                                 }
                                 val title = playerViewModel.anime.value?.title
                                 if (httpSource != null && url != null && title != null) {
+                                    val encodedUrl = URLEncoder.encode(
+                                        url,
+                                        StandardCharsets.UTF_8.toString()
+                                    )
                                     openEpisodeInWebView(
-                                        url = url,
+                                        url = encodedUrl,
                                         sourceId = httpSource.id,
                                         animeTitle = title
                                     )
