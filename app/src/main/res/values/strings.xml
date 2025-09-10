@@ -23,6 +23,7 @@
     </plurals>
     <string name="empty_screen">Well, this is awkward</string>
     <string name="information_no_recent_episodes">No new episodes</string>
+    <string name="player_epsiode_tooltip_show_again">Don\'t show again</string>
     <!-- Strings used for fragments for navigation -->
     <string name="unknown_author">Unknown Auhtor</string>
     <string name="unknown_status">Unknown Status</string>
@@ -262,6 +263,10 @@
     <string name="whats_new">What\&apos;s new</string>
     <string name="version">Version</string>
     <string name="check_for_updates">Check for updates</string>
+
+    <!-- Player screen -->
+    <string name="player_epsiode_tooltip_no_content">No informations available for this source</string>
+    <string name="player_epsiode_tooltip_title">Informations</string>
 
     <!-- Appearance preferences -->
     <string name="pref_appearance_summary">Theme</string>

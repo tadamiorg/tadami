@@ -48,6 +48,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.channels.tadamiCastMessageCallba
 import com.sf.tadami.ui.animeinfos.episode.cast.isCastMediaFinished
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.EpisodesDialog
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.episodetooltip.EpisodeTooltipDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.SettingsDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.TracksSelectionDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.videoselection.VideoSelectionDialog
@@ -110,6 +111,8 @@ fun CastVideoPlayer(
     var openSettingsDialog by remember { mutableStateOf(false) }
 
     var openEpisodesDialog by remember { mutableStateOf(false) }
+
+    var openEpisodeTooltipDialog by remember { mutableStateOf(false) }
 
     fun updateTime() {
         activityContext.setUpdateTimeJob(
@@ -272,6 +275,21 @@ fun CastVideoPlayer(
                 sourcePrefsitems = playerViewModel.sourceDataStoreScreen
             )
 
+            LaunchedEffect(Unit) {
+                if(playerViewModel.sourceTooltipAuto == true){
+                    openEpisodeTooltipDialog = true
+                }
+            }
+
+            EpisodeTooltipDialog(
+                opened = openEpisodeTooltipDialog,
+                onDismissRequest = {
+                    openEpisodeTooltipDialog = false
+                },
+                sourceDatastore = playerViewModel.sourceDataStore,
+                tooltipContent = playerViewModel.sourceTooltipContent ?: stringResource(R.string.player_epsiode_tooltip_no_content)
+            )
+
             AsyncImage(
                 model = anime?.thumbnailUrl,
                 placeholder = ColorPainter(ImageDefaults.CoverPlaceholderColor),
@@ -389,7 +407,11 @@ fun CastVideoPlayer(
                     openTracksSelectionDialog = true
                 },
                 lockedControls = false,
-                onWebViewOpen = onWebViewOpen
+                onWebViewOpen = onWebViewOpen,
+                onShowEpisodeTooltip = {
+                    openEpisodeTooltipDialog = true
+                },
+                episodeTooltipEnabled = playerViewModel.sourceSupportTooltip ?: false
 
             )
         }

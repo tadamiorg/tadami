@@ -90,7 +90,7 @@ fun ExtendedFloatingActionButton(
 private val EasingLinearCubicBezier = CubicBezierEasing(0.0f, 0.0f, 1.0f, 1.0f)
 private val EasingEmphasizedCubicBezier = CubicBezierEasing(0.2f, 0.0f, 0.0f, 1.0f)
 
-private val ExtendedFabMinimumWidth = 80.dp
+val ExtendedFabMinimumWidth = 80.dp
 private val ExtendedFabIconSize = 24.0.dp
 private val ExtendedFabIconPadding = 12.dp
 private val ExtendedFabTextPadding = 20.dp

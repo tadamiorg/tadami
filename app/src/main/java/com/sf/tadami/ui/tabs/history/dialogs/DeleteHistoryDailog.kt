@@ -1,6 +1,7 @@
 package com.sf.tadami.ui.tabs.history.dialogs
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
@@ -23,8 +24,8 @@ import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 
 @Composable
 fun DeleteHistoryDialog(
-    onDismissRequest : () -> Unit,
-    onConfirm : (Boolean) -> Unit
+    onDismissRequest: () -> Unit,
+    onConfirm: (Boolean) -> Unit
 ) {
     var removeEverything by rememberSaveable { mutableStateOf(false) }
 
@@ -45,26 +46,28 @@ fun DeleteHistoryDialog(
             DefaultDialogCancelButton()
         }
     ) {
-        Text(text = stringResource(R.string.dialog_with_checkbox_remove_description))
-        Row(
-            modifier = Modifier
-                .padding(top = 16.dp)
-                .toggleable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    value = removeEverything,
-                    onValueChange = { removeEverything = it },
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Checkbox(
-                checked = removeEverything,
-                onCheckedChange = null,
-            )
-            Text(
-                modifier = Modifier.padding(start = 4.dp),
-                text = stringResource(R.string.dialog_with_checkbox_reset),
-            )
+        Column {
+            Text(text = stringResource(R.string.dialog_with_checkbox_remove_description))
+            Row(
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .toggleable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        value = removeEverything,
+                        onValueChange = { removeEverything = it },
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(
+                    checked = removeEverything,
+                    onCheckedChange = null,
+                )
+                Text(
+                    modifier = Modifier.padding(start = 4.dp),
+                    text = stringResource(R.string.dialog_with_checkbox_reset),
+                )
+            }
         }
     }
 }

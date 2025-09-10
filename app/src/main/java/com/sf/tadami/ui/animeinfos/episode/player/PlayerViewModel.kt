@@ -14,6 +14,7 @@ import com.sf.tadami.data.interactors.history.UpdateHistoryInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.network.utils.TadaErrorConsumer
+import com.sf.tadami.preferences.CommonKeys
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.source.model.Track
@@ -31,11 +32,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -76,6 +79,22 @@ class PlayerViewModel(
     val sourceDataStoreScreen = if(source is ConfigurableParsedHttpAnimeSource<*>) {
         source.getPreferenceScreen().preferences
     } else emptyList()
+
+    // Handle tooltip infos to be shown during playback
+
+    val sourceTooltipAuto = if(source is ConfigurableParsedHttpAnimeSource<*> && sourceDataStore != null ) {
+        runBlocking {
+            source.dataStore.data.first()[CommonKeys.SHOULD_SHOW_EPISODE_TOOLTIP] ?: false
+        }
+    } else null
+
+    val sourceSupportTooltip = if(source is ConfigurableParsedHttpAnimeSource<*>) {
+        source.supportEpisodeTooltip
+    } else null
+
+    val sourceTooltipContent = if(source is ConfigurableParsedHttpAnimeSource<*> && sourceSupportTooltip == true) {
+        source.getEpisodeTooltip()
+    } else null
 
     private val _currentEpisode: MutableStateFlow<Episode?> = MutableStateFlow(null)
     val currentEpisode: StateFlow<Episode?> = _currentEpisode.asStateFlow()

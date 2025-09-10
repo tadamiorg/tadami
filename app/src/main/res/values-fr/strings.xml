@@ -179,6 +179,11 @@
     <string name="information_no_recent_anime">Rien de vu récemment</string>
     <string name="youtube_gestures_seconds">%1$s secondes</string>
 
+    <!-- Player screen -->
+    <string name="player_epsiode_tooltip_no_content">Aucune informations disponible pour cette source</string>
+    <string name="player_epsiode_tooltip_title">Informations</string>
+    <string name="player_epsiode_tooltip_show_again">Ne plus afficher</string>
+
     <!-- History Dialogs -->
     <string name="dialog_with_checkbox_remove_description">Cela supprimera la date de lecture de cet épisode. Êtes-vous sûr(e) \?</string>
     <string name="dialog_with_checkbox_reset">Réinitialiser tous les épisodes de cette entrée</string>

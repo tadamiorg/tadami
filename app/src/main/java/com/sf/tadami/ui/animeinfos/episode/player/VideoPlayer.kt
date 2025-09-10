@@ -65,6 +65,7 @@ import com.sf.tadami.source.model.Track
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.EpisodesDialog
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.episodetooltip.EpisodeTooltipDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.SettingsDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.tabs.toSubtitlesStyle
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.TracksSelectionDialog
@@ -194,6 +195,8 @@ fun VideoPlayer(
 
     var openEpisodesDialog by remember { mutableStateOf(false) }
 
+    var openEpisodeTooltipDialog by remember { mutableStateOf(false) }
+
     fun updateTime() {
         (context as EpisodeActivity).setUpdateTimeJob(
             playerViewModel.updateTime(
@@ -243,7 +246,7 @@ fun VideoPlayer(
                     if (it.subtitleTracks.isNotEmpty()) {
                         val subtitlesConfigurations = it.subtitleTracks.filter {
                             it.mimeType !== MimeTypes.TEXT_UNKNOWN
-                        }.mapIndexed { index,sub ->
+                        }.mapIndexed { index, sub ->
                             MediaItem.SubtitleConfiguration.Builder(Uri.parse(sub.url))
                                 .setMimeType(sub.mimeType)
                                 .setLanguage(sub.lang.convertToIetfLanguageTag() + index)
@@ -288,7 +291,10 @@ fun VideoPlayer(
         playerView?.subtitleView?.apply {
             setApplyEmbeddedStyles(false)
             setStyle(playerPreferences.toSubtitlesStyle(context))
-            setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, playerPreferences.subtitleTextSize.toFloat())
+            setFixedTextSize(
+                TypedValue.COMPLEX_UNIT_SP,
+                playerPreferences.subtitleTextSize.toFloat()
+            )
         }
     }
 
@@ -358,6 +364,24 @@ fun VideoPlayer(
                 sourcePrefsitems = playerViewModel.sourceDataStoreScreen
             )
 
+            LaunchedEffect(Unit) {
+                if(playerViewModel.sourceTooltipAuto == true){
+                    openEpisodeTooltipDialog = true
+                }
+            }
+
+            EpisodeTooltipDialog(
+                opened = openEpisodeTooltipDialog,
+                onDismissRequest = {
+                    openEpisodeTooltipDialog = false
+                    if (!playerInitiatedPause) {
+                        exoPlayer.play()
+                    }
+                },
+                sourceDatastore = playerViewModel.sourceDataStore,
+                tooltipContent = playerViewModel.sourceTooltipContent ?: stringResource(R.string.player_epsiode_tooltip_no_content)
+            )
+
             AndroidView(
                 modifier = Modifier
                     .pointerInput(Unit) {
@@ -387,7 +411,10 @@ fun VideoPlayer(
                         subtitleView?.apply {
                             setApplyEmbeddedStyles(false)
                             setStyle(playerPreferences.toSubtitlesStyle(it))
-                            setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, playerPreferences.subtitleTextSize.toFloat())
+                            setFixedTextSize(
+                                TypedValue.COMPLEX_UNIT_SP,
+                                playerPreferences.subtitleTextSize.toFloat()
+                            )
                         }
                     }
                 }
@@ -569,7 +596,8 @@ fun VideoPlayer(
                     hasPreviousIterator.hasNext()
                 },
                 videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty(),
-                tracksSettingsEnabled = episodeUiState.selectedSource?.subtitleTracks?.isNotEmpty() ?: false,
+                tracksSettingsEnabled = episodeUiState.selectedSource?.subtitleTracks?.isNotEmpty()
+                    ?: false,
                 onEpisodesClicked = {
                     exoPlayer.pause()
                     openEpisodesDialog = true
@@ -580,7 +608,13 @@ fun VideoPlayer(
                 },
                 onPipClicked = setPipMode,
                 lockedControls = lockedControls,
-                onWebViewOpen = onWebViewOpen
+                onWebViewOpen = onWebViewOpen,
+                episodeTooltipEnabled = playerViewModel.sourceSupportTooltip ?: false,
+                onShowEpisodeTooltip = {
+                    exoPlayer.pause()
+                    openEpisodeTooltipDialog = openEpisodeTooltipDialog.not()
+                }
+
             )
 
         }

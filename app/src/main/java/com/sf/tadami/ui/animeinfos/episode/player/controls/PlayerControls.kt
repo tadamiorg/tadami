@@ -40,6 +40,7 @@ fun PlayerControls(
     onStreamSettings: () -> Unit,
     onTracksSettings: () -> Unit,
     onPlayerSettings: () -> Unit,
+    onShowEpisodeTooltip: () -> Unit,
     onEpisodesClicked: () -> Unit,
     onWebViewOpen : () -> Unit,
     onBack: () -> Unit,
@@ -53,6 +54,7 @@ fun PlayerControls(
     onPipClicked : (() -> Unit)? = null,
     videoSettingsEnabled: Boolean = false,
     tracksSettingsEnabled: Boolean = false,
+    episodeTooltipEnabled: Boolean = false,
     lockedControls : Boolean
 ) {
     val visible = remember(isVisible()) { isVisible() }
@@ -87,7 +89,9 @@ fun PlayerControls(
                     title = title,
                     episode = episode,
                     onBackClicked = onBack,
-                    onWebViewOpen = onWebViewOpen
+                    onWebViewOpen = onWebViewOpen,
+                    isTooltipSupported = episodeTooltipEnabled,
+                    onTooltipOpen = onShowEpisodeTooltip
                 )
 
                 // center player controls

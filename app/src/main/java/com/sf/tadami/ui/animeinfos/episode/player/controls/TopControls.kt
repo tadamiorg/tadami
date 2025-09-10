@@ -1,12 +1,13 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls
 
+import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,9 +22,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.util.UnstableApi
 import androidx.mediarouter.app.MediaRouteButton
 import com.google.android.gms.cast.framework.CastButtonFactory
 import com.sf.tadami.R
@@ -31,13 +32,16 @@ import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.components.material.IconButton
 import com.sf.tadami.ui.utils.padding
 
+@OptIn(UnstableApi::class)
 @Composable
 fun TopControl(
     modifier: Modifier = Modifier,
     title: () -> String,
     episode: String,
     onBackClicked: () -> Unit,
-    onWebViewOpen : () -> Unit
+    onWebViewOpen : () -> Unit,
+    onTooltipOpen : () -> Unit,
+    isTooltipSupported: Boolean = false
 ) {
     val videoTitle = remember(title()) { title() }
     val episodeNumber = remember(episode) { episode }
@@ -78,6 +82,21 @@ fun TopControl(
         }
 
         IconButton(
+            onClick = onTooltipOpen,
+            enabled = isTooltipSupported,
+            size = 36.dp
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Info,
+                contentDescription = "Get informations about the source",
+                tint = if (isTooltipSupported) MaterialTheme.colorScheme.onSurface
+                else MaterialTheme.colorScheme.onSurface.copy(
+                    alpha = 0.5f
+                ),
+            )
+        }
+
+        IconButton(
             onClick = onWebViewOpen,
             size = 36.dp
         ) {
@@ -97,16 +116,4 @@ fun TopControl(
             }
         )
     }
-}
-
-@Preview
-@Composable
-fun PreviewTopControl() {
-    TopControl(
-        Modifier.fillMaxWidth(),
-        { "Ore ga ojô-sama gakkô ni 'shomin sample' toshite gettsu sareta ken" },
-        "episode 5",
-        {}
-    ) {}
-
 }
