@@ -128,7 +128,7 @@ fun Group(
                         index
                     }) { index, checkbox ->
                         CheckBox(
-                            modifier = Modifier.scale(0.8f),
+                            checkBoxModifier = Modifier.scale(0.8f),
                             title = checkbox.name,
                             state = checkbox.state,
                             onCheckedChange = {

@@ -18,18 +18,19 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun CheckBox(
     modifier: Modifier = Modifier,
+    checkBoxModifier: Modifier = Modifier,
+    textModifier: Modifier = Modifier,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    maxWidth: Boolean = true,
     textStyle: TextStyle = MaterialTheme.typography.labelLarge,
     title: String,
     state: Boolean,
     onCheckedChange: (checked: Boolean) -> Unit
 ) {
 
-    val interactionSource = remember {
-        MutableInteractionSource()
-    }
-    Row(modifier = Modifier
+    Row(modifier = modifier
         .padding(0.dp)
-        .fillMaxWidth()
+        .then(if (maxWidth) Modifier.fillMaxWidth() else Modifier)
         .clickable(
             interactionSource = interactionSource,
             indication = null
@@ -38,14 +39,16 @@ fun CheckBox(
         }, verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
-            modifier = modifier,
+            modifier = checkBoxModifier,
             checked = state,
             onCheckedChange = { onCheckedChange(it) },
             enabled = true,
             interactionSource = interactionSource
         )
         Text(
-            text = title, style = textStyle
+            modifier = textModifier,
+            text = title,
+            style = textStyle
         )
     }
 }

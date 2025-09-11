@@ -13,6 +13,10 @@ abstract class ParsedAnimeHttpSource(sourceId : Long) : AnimeHttpSource() {
 
     override val id: Long = sourceId
 
+    // Video Infos
+
+    open fun getEpisodeTooltip() : String = throw IllegalStateException("Not used")
+
     // Search Animes
 
     protected abstract fun searchSelector(): String
