@@ -5,9 +5,9 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
 import java.util.Date
-
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
-data class BackupHistory @OptIn(ExperimentalSerializationApi::class) constructor(
+data class BackupHistory(
     @ProtoNumber(1) var url: String,
     @ProtoNumber(2) var seenAt: Long,
 ) {

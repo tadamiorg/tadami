@@ -1,7 +1,13 @@
 package com.sf.tadami.ui.tabs.updates
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.RemoveDone
@@ -32,7 +38,6 @@ fun UpdatesScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     setNavDisplay: (display: Boolean) -> Unit,
-    bottomNavDisplay: Boolean,
     updatesViewModel: UpdatesViewModel = viewModel()
 ) {
     val uiState by updatesViewModel.uiState.collectAsState()
@@ -48,6 +53,8 @@ fun UpdatesScreen(
             setNavDisplay(false)
         }
     }
+
+    val scaffoldInsets =  WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
 
     Scaffold(
         modifier = modifier,
@@ -76,7 +83,8 @@ fun UpdatesScreen(
         },
         bottomBar = {
             ContextualBottomBar(
-                visible = uiState.selected.isNotEmpty() && !bottomNavDisplay,
+                modifier = Modifier.windowInsetsPadding(scaffoldInsets),
+                visible = uiState.selected.isNotEmpty(),
                 actions = listOf(
                     Action.Vector(
                         title = R.string.stub_text,
@@ -95,9 +103,10 @@ fun UpdatesScreen(
                 )
             )
         },
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
-    ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+        contentWindowInsets = scaffoldInsets
+    ) { contentPadding ->
+        Box(modifier = modifier.padding(contentPadding).consumeWindowInsets(contentPadding)) {
             UpdatesComponent(
                 uiState = uiState,
                 onUpdateLibrary = updatesViewModel::updateLibrary,

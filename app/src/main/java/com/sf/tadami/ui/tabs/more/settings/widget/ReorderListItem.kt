@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.sf.tadami.ui.utils.padding
 
+@Suppress("UNCHECKED_CAST")
 @Composable
 fun ReorderListItem(
     item: Pair<String, String?>,

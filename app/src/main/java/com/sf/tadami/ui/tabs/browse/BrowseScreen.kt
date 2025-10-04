@@ -1,10 +1,10 @@
 package com.sf.tadami.ui.tabs.browse
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
@@ -18,7 +18,7 @@ import com.sf.tadami.ui.tabs.browse.tabs.sources.sourcesTab
 fun BrowseScreen(
     modifier : Modifier = Modifier,
     navController : NavHostController,
-    extensionsViewModel : ExtensionsViewModel = viewModel(LocalContext.current as MainActivity)
+    extensionsViewModel : ExtensionsViewModel = viewModel(LocalActivity.current as MainActivity)
 ) {
     // Hoisted for extensions tab's search bar
     val extensionsState by extensionsViewModel.uiState.collectAsState()

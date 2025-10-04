@@ -11,17 +11,18 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
-import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +40,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaMetadata
@@ -80,8 +80,8 @@ import com.sf.tadami.ui.animeinfos.episode.player.PipState
 import com.sf.tadami.ui.animeinfos.episode.player.PlayerViewModel
 import com.sf.tadami.ui.animeinfos.episode.player.PlayerViewModelFactory
 import com.sf.tadami.ui.animeinfos.episode.player.VideoPlayer
-import com.sf.tadami.ui.themes.TadamiTheme
 import com.sf.tadami.ui.utils.convertToIetfLanguageTag
+import com.sf.tadami.ui.utils.setComposeContent
 import com.sf.tadami.ui.webview.WebViewActivity
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import com.sf.tadami.utils.powerManager
@@ -94,7 +94,6 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import androidx.compose.ui.graphics.Color as ComposeColor
 
 
 @UnstableApi
@@ -185,40 +184,33 @@ class EpisodeActivity : AppCompatActivity() {
 
         observeData()
 
-        setContent {
-            TadamiTheme(
-                isDark = true,
-                amoled = true
-            ) {
-                val systemUiController = rememberSystemUiController()
-                val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
-                val navbarScrimColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
-                val isSystemInDarkTheme = isSystemInDarkTheme()
+        setComposeContent(
+            isDark = true,
+            amoled = true
+        ) {
+            val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
+            val isSystemInDarkTheme = isSystemInDarkTheme()
 
-                LaunchedEffect(systemUiController, statusBarBackgroundColor) {
-                    systemUiController.setStatusBarColor(
-                        color = statusBarBackgroundColor,
-                        darkIcons = statusBarBackgroundColor.luminance() > 0.5,
-                        transformColorForLightContent = { ComposeColor.Black },
+            LaunchedEffect(isSystemInDarkTheme, statusBarBackgroundColor) {
+                // Draw edge-to-edge and set system bars color to transparent
+                val lightStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.BLACK)
+                val darkStyle = SystemBarStyle.dark(Color.TRANSPARENT)
+                enableEdgeToEdge(
+                    statusBarStyle = if (statusBarBackgroundColor.luminance() > 0.5) lightStyle else darkStyle,
+                    navigationBarStyle = if (isSystemInDarkTheme) darkStyle else lightStyle,
+                )
+            }
+
+            val snackbarHostState = remember { SnackbarHostState() }
+            Scaffold(
+                snackbarHost = {
+                    SnackbarHost(
+                        modifier = Modifier.padding(bottom = 100.dp),
+                        hostState = snackbarHostState
                     )
                 }
-                LaunchedEffect(systemUiController, isSystemInDarkTheme, navbarScrimColor) {
-                    systemUiController.setNavigationBarColor(
-                        color = navbarScrimColor,
-                        darkIcons = !isSystemInDarkTheme,
-                        navigationBarContrastEnforced = false,
-                        transformColorForLightContent = { ComposeColor.Black },
-                    )
-                }
-                val snackbarHostState = remember { SnackbarHostState() }
-                Scaffold(
-                    snackbarHost = {
-                        SnackbarHost(
-                            modifier = Modifier.padding(bottom = 100.dp),
-                            hostState = snackbarHostState
-                        )
-                    }
-                ) {
+            ) {
+                Box {
                     val casting by remember(isCasting.value) { mutableStateOf(isCasting.value) }
                     if (casting) {
                         CastVideoPlayer(

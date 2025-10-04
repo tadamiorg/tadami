@@ -45,8 +45,6 @@ class AboutViewModel : ViewModel() {
                     is AppUpdate.NoNewUpdate -> {
                         UiToasts.showToast(R.string.update_check_no_new_updates)
                     }
-
-                    else -> {}
                 }
             } catch (e: Exception) {
                 e.message?.let { UiToasts.showToast(it) }

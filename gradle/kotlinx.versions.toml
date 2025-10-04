@@ -1,12 +1,12 @@
 [versions]
-kotlin_version = "2.0.21"
-serialization_version = "1.8.0"
-xml_serialization_version = "0.90.2"
+kotlin_version = "2.2.20"
+serialization_version = "1.9.0"
+xml_serialization_version = "0.91.2"
 
 [libraries]
-immutables = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version = "0.3.8" }
+immutables = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version = "0.4.0" }
 
-coroutines-bom = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-bom", version =   "1.10.1" }
+coroutines-bom = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-bom", version =   "1.10.2" }
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core" }
 coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android" }
 coroutines-rx3 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-rx3" }
@@ -17,7 +17,7 @@ serialization-json-okio = { module = "org.jetbrains.kotlinx:kotlinx-serializatio
 serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "serialization_version" }
 
 serialization-xml-core = { module = "io.github.pdvrieze.xmlutil:core-android", version.ref = "xml_serialization_version" }
-serialization-xml = { module = "io.github.pdvrieze.xmlutil:serialization-android", version.ref = "xml_serialization_version" }
+serialization-xml = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xml_serialization_version" }
 
 [bundles]
 coroutines = ["coroutines-core", "coroutines-android", "coroutines-rx3","coroutines-guava"]

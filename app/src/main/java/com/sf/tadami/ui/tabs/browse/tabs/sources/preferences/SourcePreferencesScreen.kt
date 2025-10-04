@@ -20,6 +20,7 @@ import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.preferences.model.rememberUnknownDataStoreState
 
+@Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SourcePreferencesScreen(

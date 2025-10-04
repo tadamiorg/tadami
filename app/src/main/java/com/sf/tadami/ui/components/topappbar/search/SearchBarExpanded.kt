@@ -44,7 +44,7 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun SearchBarExpanded(
-    colors: TopAppBarColors = TopAppBarDefaults.mediumTopAppBarColors(),
+    colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(),
     onSearchCancel: () -> Unit,
     onSearch: (value: String) -> Unit,
     onSearchChange: (value: String) -> Unit,

@@ -75,7 +75,8 @@ suspend fun <T> DataStore<Preferences>.createPreference(
         prefs[key] = value
     }
 }
-
+@Suppress("UNCHECKED_CAST")
+// TODO: Remove the uncheked cast one day
 suspend fun DataStore<Preferences>.replacePreferences(
     filterPredicate: (Map.Entry<Preferences.Key<*>, Any?>) -> Boolean,
     newValue: (Any) -> Any = { it },
@@ -126,7 +127,6 @@ suspend fun DataStore<Preferences>.replacePreferences(
                     )
                     this.clearPreferences(setOf(key))
                 }
-
                 is Set<*> -> (value as? Set<String>)?.let {
                     this.createPreference(
                         stringSetPreferencesKey(newKey(key)),

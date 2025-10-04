@@ -3,7 +3,7 @@ package com.sf.tadami.ui.tabs.more.settings.components
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,7 +52,7 @@ interface PreferenceScreen {
                         if (backHandler != null) {
                             IconButton(onClick = backHandler!!) {
                                 Icon(
-                                    imageVector = Icons.Outlined.ArrowBack,
+                                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                                     contentDescription = stringResource(R.string.stub_text),
                                 )
                             }

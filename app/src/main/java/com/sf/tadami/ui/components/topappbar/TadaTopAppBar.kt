@@ -15,7 +15,7 @@ fun TadaTopAppBar(
     title: @Composable () -> Unit = {},
     navigationIcon: @Composable () -> Unit = {},
     actions: List<Action> = emptyList(),
-    colors: TopAppBarColors = TopAppBarDefaults.mediumTopAppBarColors(),
+    colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(),
 ) {
     TopAppBar(
         modifier = modifier,

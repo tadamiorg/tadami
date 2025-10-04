@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
-import com.sf.tadami.preferences.model.SourcePreference.PreferenceItem
 
 sealed class Preference {
     abstract val title: String

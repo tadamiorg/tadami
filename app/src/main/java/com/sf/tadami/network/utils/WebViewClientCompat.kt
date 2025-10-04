@@ -33,6 +33,7 @@ abstract class WebViewClientCompat : WebViewClient() {
         return shouldOverrideUrlCompat(view, request.url.toString())
     }
 
+    @Deprecated("Deprecated in Java")
     final override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
         return shouldOverrideUrlCompat(view, url)
     }
@@ -44,6 +45,7 @@ abstract class WebViewClientCompat : WebViewClient() {
         return shouldInterceptRequestCompat(view, request.url.toString())
     }
 
+    @Deprecated("Deprecated in Java")
     final override fun shouldInterceptRequest(
         view: WebView,
         url: String
@@ -65,6 +67,7 @@ abstract class WebViewClientCompat : WebViewClient() {
         )
     }
 
+    @Deprecated("Deprecated in Java")
     final override fun onReceivedError(
         view: WebView,
         errorCode: Int,

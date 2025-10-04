@@ -78,14 +78,14 @@ fun ExtensionContent(
                             }
                         ExtensionHeader(
                             textRes = header.textRes,
-                            modifier = Modifier.animateItemPlacement(),
+                            modifier = Modifier.animateItem(),
                             action = action,
                         )
                     }
                     is ExtensionUiModel.Header.Text -> {
                         ExtensionHeader(
                             textRes = header.textRes,
-                            modifier = Modifier.animateItemPlacement(),
+                            modifier = Modifier.animateItem(),
                         )
                     }
                 }
@@ -96,7 +96,7 @@ fun ExtensionContent(
                 key = { "extension-${it.hashCode()}" },
             ) { item ->
                 ExtensionItem(
-                    modifier = Modifier.animateItemPlacement(),
+                    modifier = Modifier.animateItem(),
                     item = item,
                     onClickItem = {
                         when (it) {
@@ -109,7 +109,6 @@ fun ExtensionContent(
                         when (it) {
                             is Extension.Available -> onOpenWebView(it)
                             is Extension.Installed -> onUninstallExtension(it)
-                            else -> {}
                         }
                     },
                     onClickItemCancel = onClickItemCancel,

@@ -17,9 +17,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
@@ -45,7 +45,6 @@ fun tooltipTab(
     val sourcePreferences by datastoreState.value.collectAsState()
     val listState = rememberLazyListState()
     val blockQuotescolor = MaterialTheme.colorScheme.primary
-    val uriHandler = LocalUriHandler.current
     var fabHeight by remember {
         mutableIntStateOf(0)
     }
@@ -98,33 +97,31 @@ fun tooltipTab(
             ) {
                 item {
                     RichText(
-                        modifier = Modifier
-                            .padding(
-                                MaterialTheme.padding.small
-                            ),
-                        style = RichTextStyle(
-                            blockQuoteGutter = BlockQuoteGutter.BarGutter(
-                                color = { blockQuotescolor.copy(alpha = .55f) }
-                            ),
-                            stringStyle = RichTextStringStyle(
+                            modifier = Modifier
+                                .padding(
+                                    MaterialTheme.padding.small
+                                ),
+                            style = RichTextStyle(
+                                blockQuoteGutter = BlockQuoteGutter.BarGutter(
+                                    color = { blockQuotescolor.copy(alpha = .55f) }
+                                ),
+                                stringStyle = RichTextStringStyle(
 
-                                linkStyle = SpanStyle(color = MaterialTheme.colorScheme.primary),
+                                    linkStyle = TextLinkStyles(style = SpanStyle(MaterialTheme.colorScheme.primary)),
+                                ),
                             ),
-                        ),
-                        linkClickHandler = {
-                            uriHandler.openUri(it)
+                        ) {
+                            val parser = remember { CommonmarkAstNodeParser() }
+                            val astNode = remember(parser) {
+                                parser.parse(
+                                    tooltipContent
+                                )
+                            }
+                            BasicMarkdown(astNode)
                         }
-                    ) {
-                        val parser = remember { CommonmarkAstNodeParser() }
-                        val astNode = remember(parser) {
-                            parser.parse(
-                                tooltipContent
-                            )
-                        }
-                        BasicMarkdown(astNode)
                     }
-                }
             }
         }
     }
 }
+

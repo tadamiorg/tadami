@@ -15,7 +15,7 @@ import com.sf.tadami.preferences.model.rememberUnknownDataStoreState
 import com.sf.tadami.ui.components.screens.ScreenTabContent
 import com.sf.tadami.ui.tabs.browse.tabs.sources.preferences.SourcePreferenceParser
 
-
+@Suppress("UNCHECKED_CAST")
 @Composable()
 fun sourceTab(
     sourceDatastore : DataStore<Preferences>,

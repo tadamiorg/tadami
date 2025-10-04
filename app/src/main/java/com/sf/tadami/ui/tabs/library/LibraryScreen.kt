@@ -1,7 +1,13 @@
 package com.sf.tadami.ui.tabs.library
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.DoneAll
@@ -53,7 +59,6 @@ fun LibraryScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     setNavDisplay: (display: Boolean) -> Unit,
-    bottomNavDisplay: Boolean,
     libraryViewModel: LibraryViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -104,12 +109,13 @@ fun LibraryScreen(
     }
 
     val isRefreshing by libraryViewModel.isRefreshing.collectAsState()
+    val scaffoldInsets =  WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
 
     TadaBottomSheetScaffold(
         modifier = modifier,
         sheetState = librarySheetState,
         showSheet = showBottomSheet,
-        onDismissSheet = {
+        onDismissRequest = {
             showBottomSheet = false
         },
         sheetContent = {
@@ -147,7 +153,8 @@ fun LibraryScreen(
         },
         bottomBar = {
             ContextualBottomBar(
-                visible = libraryList.fastAny { it.selected } && !bottomNavDisplay,
+                modifier = Modifier.windowInsetsPadding(scaffoldInsets),
+                visible = libraryList.fastAny { it.selected },
                 actions = listOf(
                     Action.Vector(
                         title = R.string.stub_text,
@@ -173,12 +180,13 @@ fun LibraryScreen(
                 )
             )
         },
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+        contentWindowInsets = scaffoldInsets
     ) { innerPadding ->
         LibraryComponent(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding).consumeWindowInsets(innerPadding),
             libraryList = libraryList.addFilters(libraryPreferences, searchFilter),
             librarySize = libraryList.size,
             initLoaded = initLoaded,

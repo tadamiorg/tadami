@@ -2,7 +2,6 @@ package com.sf.tadami.navigation.graphs.home
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -26,8 +25,6 @@ import com.sf.tadami.preferences.model.rememberDataStoreState
 @Composable
 fun HomeNavGraph(
     navController: NavHostController,
-    tabsNavPadding: PaddingValues,
-    bottomNavDisplay: Boolean,
     setNavDisplay: (display: Boolean) -> Unit
 ) {
     val basePreferencesState = rememberDataStoreState(BasePreferences)
@@ -59,31 +56,24 @@ fun HomeNavGraph(
         /* Home Tabs */
         libraryNavGraph(
             navController = navController,
-            tabsNavPadding = tabsNavPadding,
             setNavDisplay = setNavDisplay,
-            bottomNavDisplay = bottomNavDisplay
         )
 
         updatesNavGraph(
             navController = navController,
-            tabsNavPadding = tabsNavPadding,
             setNavDisplay = setNavDisplay,
-            bottomNavDisplay = bottomNavDisplay,
         )
 
         historyNavGraph(
             navController = navController,
-            tabsNavPadding = tabsNavPadding,
         )
 
         sourcesNavGraph(
             navController = navController,
-            tabsNavPadding = tabsNavPadding,
         )
 
         moreNavGraph(
             navController = navController,
-            tabsNavPadding = tabsNavPadding,
         )
 
         /* Nested navigation */

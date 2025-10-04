@@ -1,7 +1,7 @@
 [versions]
-compose-bom = "2025.03.01"
-accompanist = "0.34.0"
-activity = "1.10.1"
+compose-bom = "2025.09.01"
+accompanist = "0.36.0"
+activity = "1.11.0"
 
 [libraries]
 activity = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
@@ -25,7 +25,7 @@ material3-core = { module = "androidx.compose.material3:material3" }
 material-icons = { module = "androidx.compose.material:material-icons-extended" }
 compose-materialmotion = "io.github.fornewid:material-motion-compose-core:2.0.1"
 
-# Accompanist
+# Accompanist TODO: Migrate to io.github.kevinnzou:compose-webview
 accompanist-webview = { module = "com.google.accompanist:accompanist-webview", version.ref = "accompanist" }
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 accompanist-themeadapter = { module = "com.google.accompanist:accompanist-themeadapter-material3", version.ref = "accompanist" }

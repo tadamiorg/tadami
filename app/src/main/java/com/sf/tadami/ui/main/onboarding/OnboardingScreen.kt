@@ -1,6 +1,7 @@
 package com.sf.tadami.ui.main.onboarding
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -17,10 +18,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
-import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.ui.main.onboarding.steps.GuidesStep
 import com.sf.tadami.ui.main.onboarding.steps.PermissionStep
 import com.sf.tadami.ui.main.onboarding.steps.StorageStep
@@ -46,7 +45,7 @@ fun OnboardingScreen(
         )
     }
     val isLastStep = currentStep == steps.lastIndex
-    val activity = LocalContext.current as? MainActivity
+    val activity = LocalActivity.current
 
     BackHandler(enabled = currentStep != 0, onBack = { currentStep-- })
 

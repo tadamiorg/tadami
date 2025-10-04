@@ -1,12 +1,13 @@
 [versions]
-coil-version = "2.5.0"
-jsoup-version="1.18.1"
-okhttp-version = "5.0.0-alpha.14"
-sqldelight-version = "2.0.2"
-http4k-bom-version = "6.5.6.1"
+coil-version = "2.7.0"
+jsoup-version="1.21.2"
+okhttp-version = "5.1.0"
+sqldelight-version = "2.1.0"
+sqlite = "2.6.1"
+http4k-bom-version = "6.18.1.0"
 dotenv_version = "4.0.0"
-richtext = "1.0.0-alpha01"
-logcat-version= "0.2.1"
+richtext = "1.0.0-alpha03"
+logcat-version= "0.4"
 
 [libraries]
 
@@ -16,7 +17,7 @@ coil = { group = "io.coil-kt",name="coil"}
 coil-compose = { group = "io.coil-kt",name="coil-compose"}
 
 # RXJAVA3
-rxjava3 = { group = "io.reactivex.rxjava3",name="rxjava",version="3.1.8"}
+rxjava3 = { group = "io.reactivex.rxjava3",name="rxjava",version="3.1.12"}
 rxjava3-rxandroid = { group = "io.reactivex.rxjava3",name="rxandroid",version="3.0.2"}
 
 # JSoup
@@ -30,14 +31,19 @@ okhttp = {group="com.squareup.okhttp3",name="okhttp",version.ref="okhttp-version
 okhttp-logging-interceptor = {group="com.squareup.okhttp3",name="logging-interceptor",version.ref="okhttp-version"}
 okhttp-dnsoverhttps = {group="com.squareup.okhttp3",name="okhttp-dnsoverhttps",version.ref="okhttp-version"}
 okhttp-brotli = {group="com.squareup.okhttp3",name="okhttp-brotli",version.ref="okhttp-version"}
-okio = "com.squareup.okio:okio:3.9.1"
+okio = "com.squareup.okio:okio:3.16.0"
+
+# SQLITE
+sqlite-framework = { module = "androidx.sqlite:sqlite-framework", version.ref = "sqlite" }
+sqlite-ktx = { module = "androidx.sqlite:sqlite-ktx", version.ref = "sqlite" }
+sqlite-android = "com.github.requery:sqlite-android:3.49.0"
 
 # SQLDelight
 sqldelight-android-driver = {group="app.cash.sqldelight",name="android-driver",version.ref="sqldelight-version"}
-sqldelight-coroutines-extensions = {group="app.cash.sqldelight",name="coroutines-extensions",version.ref="sqldelight-version"}
-sqlite = "com.github.requery:sqlite-android:3.45.0"
-sqldelight-dialects-sql = { module = "app.cash.sqldelight:sqlite-3-38-dialect", version.ref = "sqldelight-version" }
+sqldelight-coroutines-extensions = {group="app.cash.sqldelight",name="coroutines-extensions-jvm",version.ref="sqldelight-version"}
+sqldelight-dialects-sql = { module = "app.cash.sqldelight:sqlite-3-38-dialect", version = "2.0.2" }
 sqldelight-gradle = { module = "app.cash.sqldelight:gradle-plugin", version.ref = "sqldelight-version" }
+sqldelight-android-paging = { module = "app.cash.sqldelight:androidx-paging3-extensions", version.ref = "sqldelight-version" }
 
 # Wheel Picker
 wheel-picker = "com.github.commandiron:WheelPickerCompose:1.1.10"
@@ -65,6 +71,7 @@ dotenv = { id="co.uzzu.dotenv.gradle", version.ref="dotenv_version" }
 coil = ["coil","coil-compose"]
 rxjava = ["rxjava3","rxjava3-rxandroid"]
 okhttp = ["okhttp","okhttp-logging-interceptor","okhttp-dnsoverhttps","okio","okhttp-brotli"]
-sqldelight = ["sqldelight-android-driver","sqldelight-coroutines-extensions","sqlite"]
+sqldelight = ["sqldelight-android-driver","sqldelight-coroutines-extensions","sqldelight-android-paging"]
+sqlite = ["sqlite-framework","sqlite-android","sqlite-ktx"]
 http4k = ["http4k-core","http4k-server-ktorcio"]
 richtext = ["richtext-commonmark", "richtext-m3"]

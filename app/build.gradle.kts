@@ -26,8 +26,8 @@ android {
 
     defaultConfig {
         applicationId = "com.sf.tadami"
-        versionCode = 43
-        versionName = "1.7.6"
+        versionCode = 44
+        versionName = "1.8.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")
@@ -78,6 +78,12 @@ android {
             res {
                 srcDirs("src\\main\\res", "src\\main\\res\\chromecast-res")
             }
+        }
+    }
+
+    kotlin {
+        compilerOptions {
+            freeCompilerArgs.addAll("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
         }
     }
 }
@@ -137,6 +143,9 @@ dependencies {
 
     // Network client okhttp
     implementation(libs.bundles.okhttp)
+
+    // SQLite
+    implementation(libs.bundles.sqlite)
 
     // SQLDelight
     implementation(libs.bundles.sqldelight)

@@ -11,15 +11,15 @@ import com.sf.tadami.ui.components.grid.InfiniteAnimeGrid
 @Composable
 fun SearchComponent(
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues,
     animeList: LazyPagingItems<Anime>,
     onAnimeClicked: (anime: Anime) -> Unit,
     onAnimeLongClicked: (anime: Anime) -> Unit = onAnimeClicked,
     snackbarHostState: SnackbarHostState,
-    fabPadding: PaddingValues
 ) {
     InfiniteAnimeGrid(
         modifier = modifier,
-        contentPadding = fabPadding,
+        contentPadding = contentPadding,
         animeList = animeList,
         snackbarHostState = snackbarHostState,
         onAnimeClicked = onAnimeClicked,

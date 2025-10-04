@@ -1,9 +1,10 @@
 package com.sf.tadami.ui.components.bottombar
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -16,7 +17,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.ui.components.data.Action
@@ -25,6 +25,7 @@ import com.sf.tadami.ui.utils.clickableNoIndication
 
 @Composable
 fun ContextualBottomBar(
+    modifier: Modifier = Modifier,
     visible: Boolean,
     actions: List<Action>
 ) {
@@ -39,12 +40,13 @@ fun ContextualBottomBar(
     }
 
     AnimatedVisibility(
+        modifier = Modifier.background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)),
         visibleState = visibleState,
-        enter = expandVertically(expandFrom = Alignment.Bottom),
-        exit = ExitTransition.None
+        enter = expandVertically(animationSpec = tween(delayMillis = 300)),
+        exit = shrinkVertically(animationSpec = tween()),
     ) {
         Row(
-            modifier = Modifier
+            modifier = modifier
                 .background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp))
                 .fillMaxWidth()
                 .clickableNoIndication {  },
