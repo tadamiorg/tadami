@@ -9,8 +9,14 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -32,18 +38,21 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.util.fastFirstOrNull
 import androidx.compose.ui.util.fastSumBy
 import com.sf.tadami.ui.components.widgets.Scroller.STICKY_HEADER_KEY_PREFIX
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.sample
 
 fun Modifier.verticalGradientBackground(from : Color,to : Color) = this.then(
-    drawBehind {
+    this.drawBehind {
         drawRect(
             // Create a vertical gradient between two colors
             brush = Brush.verticalGradient(
@@ -84,7 +93,7 @@ fun Modifier.selectedBackground(isSelected: Boolean): Modifier = if (isSelected)
 fun Modifier.selectedOutline(
     isSelected: Boolean,
     color: Color,
-) = this then drawBehind { if (isSelected) drawRect(color = color) }
+) = this then this.drawBehind { if (isSelected) drawRect(color = color) }
 
 
 @Composable
@@ -109,6 +118,7 @@ fun Modifier.drawVerticalScrollbar(
     positionOffsetPx: Float = 0f,
 ): Modifier = drawScrollbar(state, Orientation.Vertical, reverseScrolling, positionOffsetPx,alwaysOn)
 
+@OptIn(FlowPreview::class)
 private fun Modifier.drawScrollbar(
     orientation: Orientation,
     reverseScrolling: Boolean,
@@ -259,3 +269,40 @@ private val FadeOutAnimationSpec = tween<Float>(
     durationMillis = ViewConfiguration.getScrollBarFadeDuration(),
     delayMillis = ViewConfiguration.getScrollDefaultDelay(),
 )
+
+fun Modifier.equalEdgePadding(targetPadding: Dp) = composed {
+    val insets = WindowInsets.displayCutout
+    val density = LocalDensity.current
+    val layoutDirection = LocalLayoutDirection.current
+
+    val insetPadding = insets.asPaddingValues(density)
+
+    val startPadding = if (layoutDirection == LayoutDirection.Ltr) {
+        maxOf(insetPadding.calculateLeftPadding(layoutDirection), insetPadding.calculateRightPadding(layoutDirection)) + targetPadding
+    } else {
+        maxOf(insetPadding.calculateLeftPadding(layoutDirection), insetPadding.calculateRightPadding(layoutDirection)) + targetPadding
+    }
+
+    val topPadding = maxOf(insetPadding.calculateTopPadding(), insetPadding.calculateBottomPadding()) + targetPadding
+
+    val endPadding = startPadding
+    val bottomPadding = topPadding
+
+    this
+        .padding(
+            start = startPadding,
+            end = endPadding,
+            top = topPadding,
+            bottom = bottomPadding
+        )
+}
+
+fun Modifier.safeDrawing() = composed {
+    val insets = WindowInsets.safeDrawing
+
+
+    this
+        .windowInsetsPadding(
+            insets
+        )
+}

@@ -16,7 +16,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowForward
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -196,12 +196,6 @@ fun LibraryAnimeGrid(
         if (number == 0) GridCells.Adaptive(128.dp) else GridCells.Fixed(number)
     }
 
-    LaunchedEffect(key1 = animeList.firstOrNull()) {
-        if (animeList.firstOrNull() != null) {
-            lazyGridState.animateScrollToItem(0)
-        }
-    }
-
     Box(modifier = Modifier.fillMaxSize()) {
         LazyVerticalGrid(
             modifier = modifier,
@@ -213,7 +207,7 @@ fun LibraryAnimeGrid(
         ) {
             items(animeList, key = { it.anime.id }) { libraryItem ->
                 CompactAnimeGridItem(
-                    modifier = Modifier.animateItemPlacement(),
+                    modifier = Modifier.animateItem(),
                     isSelected = libraryItem.selected,
                     anime = libraryItem.anime.toAnime(),
                     onClick = {
@@ -240,7 +234,7 @@ fun LibraryAnimeGrid(
                 message = stringResource(id = R.string.empty_library_title), actions = listOf(
                     EmptyScreenAction(
                         stringResId = R.string.empty_library_action,
-                        icon = Icons.Outlined.ArrowForward,
+                        icon = Icons.AutoMirrored.Outlined.ArrowForward,
                         onClick = onEmptyRefreshClicked
                     )
                 )

@@ -25,7 +25,7 @@ class EpisodeRepositoryImpl(
         return try {
             handler.await {
                 episodes.map { episode ->
-                    episodeQueries.insert(
+                   episodeQueries.insert(
                         animeId = episode.animeId,
                         url = episode.url,
                         name = episode.name,

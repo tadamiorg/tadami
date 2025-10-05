@@ -52,3 +52,17 @@ fun CheckBox(
         )
     }
 }
+
+@Composable
+fun CheckboxItem(label: String, checked: Boolean, onClick: () -> Unit) {
+    BaseFilterItem(
+        label = label,
+        widget = {
+            Checkbox(
+                checked = checked,
+                onCheckedChange = null,
+            )
+        },
+        onClick = onClick,
+    )
+}

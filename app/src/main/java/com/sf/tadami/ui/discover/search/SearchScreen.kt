@@ -4,8 +4,6 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Public
@@ -21,15 +19,12 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -50,7 +45,7 @@ import com.sf.tadami.ui.components.topappbar.search.SearchTopAppBar
 import com.sf.tadami.ui.discover.migrate.dialog.MigrateDialog
 import com.sf.tadami.ui.discover.migrate.dialog.MigrationState
 import com.sf.tadami.ui.utils.UiToasts
-import com.sf.tadami.ui.utils.padding
+import com.sf.tadami.utils.launchIO
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -62,19 +57,16 @@ fun SearchScreen(
 ) {
     val animeListState by searchViewModel.animeList.collectAsState()
     val animeList = animeListState.collectAsLazyPagingItems()
-    val sourceFilters = searchViewModel.sourceFilters.collectAsState()
+    val sourceFilters by searchViewModel.sourceFilters.collectAsState()
     val queryState by searchViewModel.queryState.collectAsState()
     val migrateHelperState by searchViewModel.migrateHelperState.collectAsState()
     var searchEnabled by rememberSaveable { mutableStateOf(queryState.query.isNotEmpty()) }
 
-    val filtersSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val filtersSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+    )
+
     var showFiltersSheet by remember { mutableStateOf(false) }
-
-    var fabHeight by remember {
-        mutableIntStateOf(0)
-    }
-
-    val heightInDp = with(LocalDensity.current) { fabHeight.toDp() }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -82,17 +74,18 @@ fun SearchScreen(
         mutableStateOf(false)
     }
 
-
+    val scope = rememberCoroutineScope()
 
     Box {
         TadaBottomSheetScaffold(
-            onDismissSheet = {
+            sheetDragHandle = null,
+            onDismissRequest = {
                 showFiltersSheet = false
             },
             showSheet = showFiltersSheet,
             sheetContent = {
                 FiltersSheet(
-                    filters = sourceFilters.value,
+                    filters = sourceFilters,
                     onUpdateFilters = {
                         searchViewModel.updateFilters(it)
                     },
@@ -101,6 +94,10 @@ fun SearchScreen(
                     },
                     search = {
                         searchViewModel.resetData()
+                        scope.launchIO {
+                            filtersSheetState.hide()
+                            showFiltersSheet = false
+                        }
                     }
                 )
             },
@@ -179,11 +176,8 @@ fun SearchScreen(
                 )
             },
             floatingActionButton = {
-                if (sourceFilters.value.isNotEmpty()) {
+                if (sourceFilters.isNotEmpty()) {
                     FloatingActionButton(
-                        modifier = Modifier.onGloballyPositioned {
-                            fabHeight = it.size.height
-                        },
                         onClick = {
                             showFiltersSheet = true
                         }
@@ -198,8 +192,7 @@ fun SearchScreen(
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
         ) { innerPadding ->
             SearchComponent(
-                modifier = Modifier.padding(innerPadding),
-                fabPadding = PaddingValues(bottom = heightInDp + MaterialTheme.padding.medium),
+                contentPadding = innerPadding,
                 animeList = animeList,
                 snackbarHostState = snackbarHostState,
                 onAnimeLongClicked = {

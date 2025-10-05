@@ -1,6 +1,7 @@
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.BasePlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+import kotlin.collections.addAll
 
 buildscript {
     dependencies {
@@ -23,8 +24,8 @@ plugins {
 
 subprojects {
     tasks.withType<KotlinJvmCompile> {
-        kotlinOptions {
-            jvmTarget = JavaVersion.VERSION_17.toString()
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
 
@@ -39,11 +40,10 @@ subprojects {
 
     plugins.withType<BasePlugin> {
         configure<BaseExtension> {
-            compileSdkVersion(35)
+            compileSdkVersion(36)
             defaultConfig {
                 minSdk = 28
-                //noinspection ExpiredTargetSdkVersion
-                targetSdk = 35
+                targetSdk = 36
             }
 
             compileOptions {
@@ -55,7 +55,5 @@ subprojects {
 }
 
 tasks.register<Delete>("clean") {
-    delete(rootProject.buildDir)
+    delete(rootProject.layout.buildDirectory)
 }
-
-

@@ -7,9 +7,9 @@ import kotlinx.serialization.protobuf.ProtoNumber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
-data class Backup @OptIn(ExperimentalSerializationApi::class) constructor(
+data class Backup(
     @ProtoNumber(1) val backupAnime: List<BackupAnime>,
     @ProtoNumber(100) var backupPreferences: List<BackupPreference> = emptyList(),
     @ProtoNumber(101) var backupSources: List<BackupSource> = emptyList(),

@@ -7,9 +7,9 @@ import com.sf.tadami.domain.history.History
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
-
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
-data class BackupAnime @OptIn(ExperimentalSerializationApi::class) constructor(
+data class BackupAnime(
     @ProtoNumber(1) var source: Long,
     @ProtoNumber(2) var url: String,
     @ProtoNumber(3) var title: String = "",

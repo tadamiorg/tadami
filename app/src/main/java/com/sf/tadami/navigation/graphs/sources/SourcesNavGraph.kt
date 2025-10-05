@@ -1,7 +1,5 @@
 package com.sf.tadami.navigation.graphs.sources
 
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -15,14 +13,14 @@ import com.sf.tadami.ui.tabs.browse.tabs.sources.preferences.SourcePreferencesSc
 import com.sf.tadami.ui.webview.WebViewActivity
 
 fun NavGraphBuilder.sourcesNavGraph(
+    modifier: Modifier = Modifier,
     navController: NavHostController,
-    tabsNavPadding : PaddingValues
 ) {
     composable(
         route = HomeNavItems.Browse.route
     ) {
         BrowseScreen(
-            modifier = Modifier.padding(tabsNavPadding),
+            modifier = modifier,
             navController = navController
         )
     }

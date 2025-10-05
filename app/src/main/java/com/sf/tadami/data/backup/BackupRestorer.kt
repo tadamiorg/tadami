@@ -351,7 +351,6 @@ class BackupRestorer(
                 calculateInterval = 0L,
                 episodeFlags = anime.episodeFlags,
                 dateAdded = anime.dateAdded
-
             )
             animeQueries.selectLastInsertedRowId().executeAsOne()
         }

@@ -50,12 +50,12 @@ fun SourcesComponent(
                         when (model) {
                             is SourcesUiModel.Header -> {
                                 SourcesHeader(
-                                    modifier = Modifier.animateItemPlacement(),
+                                    modifier = Modifier.animateItem(),
                                     language = model.language,
                                 )
                             }
                             is SourcesUiModel.Item -> SourceItem(
-                                modifier = Modifier.animateItemPlacement(),
+                                modifier = Modifier.animateItem(),
                                 source = model.source,
                                 onClickItem = onClickItem,
                                 onLongClickItem = onLongClickItem,

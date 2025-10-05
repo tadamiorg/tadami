@@ -25,7 +25,7 @@ fun ExtensionsFilterComponent(
 
             items(successState.languages) { language ->
                 TogglePreference(
-                    modifier = Modifier.animateItemPlacement(),
+                    modifier = Modifier.animateItem(),
                     title = stringResource(id = language.getRes()) ,
                     checked = language.name in successState.enabledLanguages,
                     onCheckedChanged = { onClickToggle(language.name) },

@@ -20,6 +20,7 @@ data class PlayerPreferences(
     val seenThreshold: Int,
     val doubleTapLength: Long,
     val autoPlay: Boolean,
+    val ignoreCutout: Boolean,
     val subtitlesEnabled: Boolean,
     val subtitlePrefLanguages: String,
     val subtitleTextSize: Int,
@@ -70,6 +71,7 @@ data class PlayerPreferences(
         private val SEEN_THRESHOLD =  intPreferencesKey("player_seen_threshold")
         private val DOUBLE_TAP_LENGTH = longPreferencesKey("player_double_tap_length")
         private val AUTO_PLAY = booleanPreferencesKey("player_auto_play")
+        private val IGNORE_CUTOUT = booleanPreferencesKey("player_ignore_cutout")
         private val SUBTITLES_ENABLED = booleanPreferencesKey("player_subtitles_enabled")
         private val SUBTITLES_PREF_LANGUAGES = stringPreferencesKey("player_subtitles_pref_languages")
         private val SUBTITLES_TEXT_SIZE = intPreferencesKey("player_subtitles_text_size")
@@ -95,7 +97,8 @@ data class PlayerPreferences(
                subtitleEdgeColor = preferences[SUBTITLES_EDGE_COLOR] ?: DEFAULT_EDGE_COLOR,
                subtitleBoldFormat = preferences[SUBTITLE_BOLD_FORMAT] ?: false,
                subtitleItalicFormat = preferences[SUBTITLE_ITALIC_FORMAT] ?: false,
-               subtitleBottomPadding = preferences[SUBTITLE_BOTTOM_PADDING] ?: DEFAULT_BOTTOM_PADDING
+               subtitleBottomPadding = preferences[SUBTITLE_BOTTOM_PADDING] ?: DEFAULT_BOTTOM_PADDING,
+               ignoreCutout = preferences[IGNORE_CUTOUT] ?: true
            )
         }
 
@@ -113,6 +116,7 @@ data class PlayerPreferences(
             preferences[SUBTITLE_BOLD_FORMAT] = newValue.subtitleBoldFormat
             preferences[SUBTITLE_ITALIC_FORMAT] = newValue.subtitleItalicFormat
             preferences[SUBTITLE_BOTTOM_PADDING] = newValue.subtitleBottomPadding
+            preferences[IGNORE_CUTOUT] = newValue.ignoreCutout
         }
     }
 }

@@ -1,108 +1,77 @@
 package com.sf.tadami.ui.components.filters
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextOverflow
-import com.sf.tadami.R
-import com.sf.tadami.source.model.AnimeFilter
-import com.sf.tadami.ui.utils.capFirstLetter
+import androidx.compose.ui.unit.dp
 
+object SettingsItemsPaddings {
+    val Horizontal = 24.dp
+    val Vertical = 10.dp
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Select(
-    select: AnimeFilter.Select,
-    onSelectUpdate : (select : AnimeFilter.Select) -> Unit
+fun SelectItem(
+    label: String,
+    options: Array<out Any?>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
 ) {
-    var expanded by remember {
-        mutableStateOf(false)
-    }
+    var expanded by remember { mutableStateOf(false) }
 
-    val interactionSource = remember { MutableInteractionSource() }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
     ) {
-        Text(
+        OutlinedTextField(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            text = select.name.capFirstLetter(),
-            style = MaterialTheme.typography.labelLarge,
-        )
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxSize()
-                .clickable(
-                    onClick = { expanded = true },
-                    interactionSource = interactionSource,
-                    indication = null
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth()
+                .padding(
+                    horizontal = SettingsItemsPaddings.Horizontal,
+                    vertical = SettingsItemsPaddings.Vertical,
                 ),
-                contentAlignment = Alignment.CenterEnd
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End,
-            ) {
-                Text(
-                    text = select.values[select.state],
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.weight(weight = 1f, fill = false),
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1
-                )
-                IconButton(
-                    modifier = Modifier,
-                    onClick = { expanded = true },
-                    interactionSource = interactionSource
-                )
-                {
-                    Icon(
-                        painterResource(id = if(!expanded) R.drawable.ic_arrow_down else R.drawable.ic_arrow_up),
-                        contentDescription = null
-                    )
-                }
-                DropdownMenu(
+            label = { Text(text = label) },
+            value = options[selectedIndex].toString(),
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
                 )
-                {
-                    select.values.forEach {
-                        DropdownMenuItem(
-                            text = { Text(text = it, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            onClick = {
-                                select.state = select.values.indexOf(it)
-                                onSelectUpdate(select)
-                                expanded = false
-                            }
-                        )
-                    }
-                }
-            }
+            },
+            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+        )
 
+        ExposedDropdownMenu(
+            modifier = Modifier.exposedDropdownSize(),
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            options.forEachIndexed { index, text ->
+                DropdownMenuItem(
+                    text = { Text(text.toString()) },
+                    onClick = {
+                        onSelect(index)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
+            }
         }
     }
 }

@@ -1,7 +1,13 @@
 package com.sf.tadami.ui.tabs.library
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.DoneAll
@@ -53,7 +59,6 @@ fun LibraryScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     setNavDisplay: (display: Boolean) -> Unit,
-    bottomNavDisplay: Boolean,
     libraryViewModel: LibraryViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -104,12 +109,13 @@ fun LibraryScreen(
     }
 
     val isRefreshing by libraryViewModel.isRefreshing.collectAsState()
+    val scaffoldInsets =  WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
 
     TadaBottomSheetScaffold(
         modifier = modifier,
         sheetState = librarySheetState,
         showSheet = showBottomSheet,
-        onDismissSheet = {
+        onDismissRequest = {
             showBottomSheet = false
         },
         sheetContent = {
@@ -147,7 +153,8 @@ fun LibraryScreen(
         },
         bottomBar = {
             ContextualBottomBar(
-                visible = libraryList.fastAny { it.selected } && !bottomNavDisplay,
+                modifier = Modifier.windowInsetsPadding(scaffoldInsets),
+                visible = libraryList.fastAny { it.selected },
                 actions = listOf(
                     Action.Vector(
                         title = R.string.stub_text,
@@ -173,12 +180,12 @@ fun LibraryScreen(
                 )
             )
         },
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
-    ) { innerPadding ->
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+    ) { contentPadding ->
         LibraryComponent(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(contentPadding).consumeWindowInsets(contentPadding),
             libraryList = libraryList.addFilters(libraryPreferences, searchFilter),
             librarySize = libraryList.size,
             initLoaded = initLoaded,
@@ -202,7 +209,7 @@ fun LibraryScreen(
                 libraryViewModel.toggleSelected(libraryItem, true)
             },
             isRefreshing = isRefreshing,
-            indicatorPadding = innerPadding,
+            indicatorPadding = contentPadding,
             onRefresh = {
                 val started = libraryViewModel.refreshLibrary(context)
                 val msgRes = if (started) context.getString(R.string.update_starting) else context.getString(R.string.update_running)

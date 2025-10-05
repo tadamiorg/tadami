@@ -1,8 +1,10 @@
 package com.sf.tadami.ui.main
 
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -11,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -20,7 +21,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
@@ -41,7 +41,7 @@ import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
 import com.sf.tadami.ui.tabs.browse.SourceManager
-import com.sf.tadami.ui.themes.TadamiTheme
+import com.sf.tadami.ui.utils.setComposeContent
 import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
@@ -57,8 +57,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var castContext: CastContext
     private val errorChannel = ErrorChannel()
     private var ready = false
-    private val dataStore : DataStore<Preferences> = Injekt.get()
-    private val sourcesManager : SourceManager = Injekt.get()
+    private val dataStore: DataStore<Preferences> = Injekt.get()
+    private val sourcesManager: SourceManager = Injekt.get()
 
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,7 +66,8 @@ class MainActivity : AppCompatActivity() {
         val isLaunch = savedInstanceState == null
         val splashScreen = if (isLaunch) installSplashScreen() else null
 
-        val prefTheme = runBlocking { dataStore.getPreferencesGroup(AppearancePreferences).appTheme }
+        val prefTheme =
+            runBlocking { dataStore.getPreferencesGroup(AppearancePreferences).appTheme }
 
         val theme = when (prefTheme.name) {
             "DEFAULT" -> R.style.Theme_Tadami
@@ -106,47 +107,37 @@ class MainActivity : AppCompatActivity() {
 
         setupCastListener()
 
-        setContent {
+        setComposeContent {
+            val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
+            val isSystemInDarkTheme = isSystemInDarkTheme()
 
-            TadamiTheme {
-                val systemUiController = rememberSystemUiController()
-                val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
-                val navbarScrimColor = MaterialTheme.colorScheme.surfaceContainer
-                val isSystemInDarkTheme = isSystemInDarkTheme()
+            LaunchedEffect(isSystemInDarkTheme, statusBarBackgroundColor) {
+                // Draw edge-to-edge and set system bars color to transparent
+                val lightStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.BLACK)
+                val darkStyle = SystemBarStyle.dark(Color.TRANSPARENT)
+                enableEdgeToEdge(
+                    statusBarStyle = if (statusBarBackgroundColor.luminance() > 0.5) lightStyle else darkStyle,
+                    navigationBarStyle = if (isSystemInDarkTheme) darkStyle else lightStyle,
+                )
+            }
+            val navController = rememberNavController()
 
-                LaunchedEffect(systemUiController, statusBarBackgroundColor) {
-                    systemUiController.setStatusBarColor(
-                        color = statusBarBackgroundColor,
-                        darkIcons = statusBarBackgroundColor.luminance() > 0.5,
-                        transformColorForLightContent = { Color.Black },
-                    )
-                }
-                LaunchedEffect(systemUiController, isSystemInDarkTheme, navbarScrimColor) {
-                    systemUiController.setNavigationBarColor(
-                        color = navbarScrimColor,
-                        darkIcons = !isSystemInDarkTheme,
-                        navigationBarContrastEnforced = false,
-                        transformColorForLightContent = { Color.Black },
-                    )
-                }
-                val navController = rememberNavController()
+            val basePreferencesState = rememberDataStoreState(BasePreferences)
+            val basePreferences by basePreferencesState.value.collectAsState()
 
-                val basePreferencesState = rememberDataStoreState(BasePreferences)
-                val basePreferences by basePreferencesState.value.collectAsState()
-
-                AppUpdaterScreen()
-                ExtensionsCheckForUpdates()
-                HomeScreen(navController)
-                LaunchedEffect(navController) {
-                    if (isLaunch) {
-                        if (!basePreferences.onboardingComplete) {
-                            navController.navigate(OnboardingRoutes.ONBOARDING)
-                        }
-                        ready = true
+            AppUpdaterScreen()
+            ExtensionsCheckForUpdates()
+            HomeScreen(navController)
+            LaunchedEffect(navController) {
+                if (isLaunch) {
+                    if (!basePreferences.onboardingComplete) {
+                        navController.navigate(OnboardingRoutes.ONBOARDING)
                     }
+                    ready = true
                 }
             }
         }
+
         val startTime = System.currentTimeMillis()
         splashScreen?.setKeepOnScreenCondition {
             val elapsed = System.currentTimeMillis() - startTime
@@ -162,7 +153,10 @@ class MainActivity : AppCompatActivity() {
         LaunchedEffect(Unit) {
             try {
                 val extsUpdates = ExtensionsApi().checkForUpdates(context)
-                dataStore.editPreference(extsUpdates?.size ?: 0,SourcesPreferences.EXT_UPDATES_COUNT)
+                dataStore.editPreference(
+                    extsUpdates?.size ?: 0,
+                    SourcesPreferences.EXT_UPDATES_COUNT
+                )
             } catch (e: Exception) {
                 Log.e("ExtensionsCheckForUpdates", e.stackTraceToString())
             }
@@ -215,7 +209,7 @@ class MainActivity : AppCompatActivity() {
 
             @OptIn(UnstableApi::class)
             private fun onApplicationConnected(session: CastSession) {
-                setCastCustomChannel(session,errorChannel)
+                setCastCustomChannel(session, errorChannel)
                 CastProxyService.startNow(this@MainActivity)
                 this@MainActivity.castSession = session
             }

@@ -1,7 +1,5 @@
 package com.sf.tadami.navigation.graphs.updates
 
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -10,9 +8,8 @@ import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.ui.tabs.updates.UpdatesScreen
 
 fun NavGraphBuilder.updatesNavGraph(
+    modifier: Modifier = Modifier,
     navController: NavHostController,
-    tabsNavPadding : PaddingValues,
-    bottomNavDisplay: Boolean,
     setNavDisplay: (display: Boolean) -> Unit,
 ) {
 
@@ -20,10 +17,9 @@ fun NavGraphBuilder.updatesNavGraph(
         route = HomeNavItems.Updates.route,
     ) {
         UpdatesScreen(
-            modifier = Modifier.padding(tabsNavPadding),
+            modifier = modifier,
             navController = navController,
             setNavDisplay = setNavDisplay,
-            bottomNavDisplay = bottomNavDisplay,
         )
     }
 

@@ -63,6 +63,7 @@ import kotlin.math.roundToInt
  *
  * Set key with [STICKY_HEADER_KEY_PREFIX] prefix to any sticky header item in the list.
  */
+@OptIn(FlowPreview::class)
 @Composable
 fun VerticalFastScroller(
     listState: LazyListState,

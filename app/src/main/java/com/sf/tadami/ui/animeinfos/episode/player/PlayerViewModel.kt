@@ -43,7 +43,7 @@ import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-
+@Suppress("UNCHECKED_CAST")
 class PlayerViewModelFactory(
     private var isResumedFromCast: Boolean = false
 ) : ViewModelProvider.Factory {

@@ -3,14 +3,17 @@ package com.sf.tadami.data.backup.models
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
-data class BackupPreference @OptIn(ExperimentalSerializationApi::class) constructor(
+data class BackupPreference(
     @ProtoNumber(1) val key: String,
     @ProtoNumber(2) val value: PreferenceValue,
 )
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
-data class BackupSourcePreferences @OptIn(ExperimentalSerializationApi::class) constructor(
+data class BackupSourcePreferences(
     @ProtoNumber(1) val sourceKey: Long,
     @ProtoNumber(2) val prefs: List<BackupPreference>,
 )

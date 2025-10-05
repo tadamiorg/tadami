@@ -25,23 +25,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import com.google.accompanist.web.AccompanistWebViewClient
-import com.google.accompanist.web.LoadingState
-import com.google.accompanist.web.WebView
-import com.google.accompanist.web.rememberWebViewNavigator
-import com.google.accompanist.web.rememberWebViewState
+import com.kevinnzou.web.AccompanistWebViewClient
+import com.kevinnzou.web.LoadingState
+import com.kevinnzou.web.WebView
+import com.kevinnzou.web.rememberWebViewNavigator
+import com.kevinnzou.web.rememberWebViewState
 import com.sf.tadami.BuildConfig
 import com.sf.tadami.R
 import com.sf.tadami.network.utils.setDefaultSettings
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
+import com.sf.tadami.ui.utils.getHtml
+import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.IOException
@@ -60,12 +64,17 @@ fun WebviewScreen(
 ) {
     val state = rememberWebViewState(url = url, additionalHttpHeaders = headers)
     val navigator = rememberWebViewNavigator()
+    val uriHandler = LocalUriHandler.current
+    val scope = rememberCoroutineScope()
 
     var currentUrl by remember { mutableStateOf(url) }
+    var showCloudflareHelp by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     val webClient = remember {
         object : AccompanistWebViewClient() {
+
+            // Adds Handling
             private lateinit var adservers : StringBuilder
             init {
                 readAdServers()
@@ -92,13 +101,6 @@ fun WebviewScreen(
                     e.printStackTrace()
                 }
             }
-            override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
-                super.onPageStarted(view, url, favicon)
-                url?.let {
-                    currentUrl = it
-                    onUrlChange(it)
-                }
-            }
 
             override fun shouldInterceptRequest(
                 view: WebView?,
@@ -115,7 +117,29 @@ fun WebviewScreen(
                 return super.shouldInterceptRequest(view, request)
             }
 
-            override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
+            // Actual Webview Code
+
+            override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                url?.let {
+                    currentUrl = it
+                    onUrlChange(it)
+                }
+            }
+
+            override fun onPageFinished(view: WebView, url: String?) {
+                super.onPageFinished(view, url)
+                scope.launch {
+                    val html = view.getHtml()
+                    showCloudflareHelp = "window._cf_chl_opt" in html || "Ray ID is" in html
+                }
+            }
+
+            override fun doUpdateVisitedHistory(
+                view: WebView,
+                url: String?,
+                isReload: Boolean,
+            ) {
                 super.doUpdateVisitedHistory(view, url, isReload)
                 url?.let {
                     currentUrl = it
@@ -131,6 +155,11 @@ fun WebviewScreen(
                     // Don't attempt to open blobs as webpages
                     if (it.url.toString().startsWith("blob:http")) {
                         return false
+                    }
+
+                    // Ignore intents urls
+                    if (it.url.toString().startsWith("intent://")) {
+                        return true
                     }
 
                     // Continue with request, but with custom headers

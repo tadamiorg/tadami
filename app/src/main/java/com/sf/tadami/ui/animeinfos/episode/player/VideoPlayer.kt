@@ -12,8 +12,10 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -30,12 +32,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -74,6 +76,8 @@ import com.sf.tadami.ui.animeinfos.episode.player.subtitles.CustomSubtitleParser
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.convertToIetfLanguageTag
+import com.sf.tadami.ui.utils.padding
+import com.sf.tadami.ui.utils.safeDrawing
 import kotlinx.coroutines.delay
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -300,9 +304,12 @@ fun VideoPlayer(
 
     val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
 
-    ContentLoader(isLoading = playerScreenLoading, delay = 500) {
+    ContentLoader(
+        modifier = if (!playerPreferences.ignoreCutout) Modifier.safeDrawing() else Modifier,
+        isLoading = playerScreenLoading,
+        delay = 500
+    ) {
         Box(modifier = modifier) {
-
             if (episodeUiState.availableSources.isNotEmpty()) {
                 VideoSelectionDialog(
                     opened = openVideoSelectionDialog,
@@ -365,7 +372,7 @@ fun VideoPlayer(
             )
 
             LaunchedEffect(Unit) {
-                if(playerViewModel.sourceTooltipAuto == true){
+                if (playerViewModel.sourceTooltipAuto == true) {
                     openEpisodeTooltipDialog = true
                 }
             }
@@ -379,7 +386,8 @@ fun VideoPlayer(
                     }
                 },
                 sourceDatastore = playerViewModel.sourceDataStore,
-                tooltipContent = playerViewModel.sourceTooltipContent ?: stringResource(R.string.player_epsiode_tooltip_no_content)
+                tooltipContent = playerViewModel.sourceTooltipContent
+                    ?: stringResource(R.string.player_epsiode_tooltip_no_content)
             )
 
             AndroidView(
@@ -524,7 +532,9 @@ fun VideoPlayer(
             }
 
             PlayerControls(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = MaterialTheme.padding.large),
                 isVisible = { shouldShowControls },
                 isPlaying = isPlaying,
                 title = { anime?.title ?: "" },

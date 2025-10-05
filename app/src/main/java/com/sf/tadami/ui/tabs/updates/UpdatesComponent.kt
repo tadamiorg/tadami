@@ -65,7 +65,7 @@ fun UpdatesComponent(
                         item(key = "updates-lastUpdated") {
                             Box(
                                 modifier = Modifier
-                                    .animateItemPlacement()
+                                    .animateItem()
                                     .padding(
                                         horizontal = MaterialTheme.padding.medium,
                                         vertical = MaterialTheme.padding.small

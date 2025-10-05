@@ -8,9 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
 import com.halilibo.richtext.markdown.BasicMarkdown
 import com.halilibo.richtext.ui.BlockQuoteGutter
@@ -32,7 +32,6 @@ fun AppUpdateDialog(
     uiState : AppUpdaterUiState
 ) {
     val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
     CustomAlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
@@ -65,12 +64,9 @@ fun AppUpdateDialog(
                             color = { blockQuotescolor.copy(alpha = .55f) }
                         ),
                         stringStyle = RichTextStringStyle(
-                            linkStyle = SpanStyle(color = MaterialTheme.colorScheme.primary),
+                            linkStyle = TextLinkStyles(style=SpanStyle(color = MaterialTheme.colorScheme.primary)),
                         ),
                     ),
-                    linkClickHandler = {
-                        uriHandler.openUri(it)
-                    }
                 ) {
                     val parser = remember { CommonmarkAstNodeParser() }
                     val astNode = remember(parser) {

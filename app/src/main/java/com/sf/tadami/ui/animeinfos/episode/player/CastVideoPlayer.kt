@@ -54,6 +54,8 @@ import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselecti
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.videoselection.VideoSelectionDialog
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.utils.ImageDefaults
+import com.sf.tadami.ui.utils.equalEdgePadding
+import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.utils.rememberResourceBitmapPainter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -305,7 +307,7 @@ fun CastVideoPlayer(
             ContentLoader(isLoading = isFetchingSources) {}
 
             PlayerControls(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().equalEdgePadding(MaterialTheme.padding.small),
                 isVisible = { true },
                 isPlaying = isPlaying,
                 title = { anime?.title ?: "" },

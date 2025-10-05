@@ -4,9 +4,9 @@ import com.sf.tadami.domain.episode.Episode
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
-
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
-data class BackupEpisode @OptIn(ExperimentalSerializationApi::class) constructor(
+data class BackupEpisode(
     @ProtoNumber(1) var url: String,
     @ProtoNumber(2) var name: String,
     @ProtoNumber(3) var timeSeen: Long = 0,
