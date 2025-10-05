@@ -1,36 +1,37 @@
 [versions]
 coil-version = "2.7.0"
-jsoup-version="1.21.2"
+jsoup-version = "1.21.2"
 okhttp-version = "5.1.0"
 sqldelight-version = "2.1.0"
 sqlite = "2.6.1"
 http4k-bom-version = "6.18.1.0"
 dotenv_version = "4.0.0"
 richtext = "1.0.0-alpha03"
-logcat-version= "0.4"
+logcat-version = "0.4"
+custom-accompanist = "0.33.6"
 
 [libraries]
 
 # Coil
 coil-bom = { module = "io.coil-kt:coil-bom", version.ref = "coil-version" }
-coil = { group = "io.coil-kt",name="coil"}
-coil-compose = { group = "io.coil-kt",name="coil-compose"}
+coil = { group = "io.coil-kt", name = "coil" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose" }
 
 # RXJAVA3
-rxjava3 = { group = "io.reactivex.rxjava3",name="rxjava",version="3.1.12"}
-rxjava3-rxandroid = { group = "io.reactivex.rxjava3",name="rxandroid",version="3.0.2"}
+rxjava3 = { group = "io.reactivex.rxjava3", name = "rxjava", version = "3.1.12" }
+rxjava3-rxandroid = { group = "io.reactivex.rxjava3", name = "rxandroid", version = "3.0.2" }
 
 # JSoup
-jsoup = { group = "org.jsoup",name="jsoup",version.ref="jsoup-version"}
+jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup-version" }
 
 # Injekt
 injekt = "com.github.mihonapp:injekt:91edab2317"
 
 # OkHttp
-okhttp = {group="com.squareup.okhttp3",name="okhttp",version.ref="okhttp-version"}
-okhttp-logging-interceptor = {group="com.squareup.okhttp3",name="logging-interceptor",version.ref="okhttp-version"}
-okhttp-dnsoverhttps = {group="com.squareup.okhttp3",name="okhttp-dnsoverhttps",version.ref="okhttp-version"}
-okhttp-brotli = {group="com.squareup.okhttp3",name="okhttp-brotli",version.ref="okhttp-version"}
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp-version" }
+okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp-version" }
+okhttp-dnsoverhttps = { group = "com.squareup.okhttp3", name = "okhttp-dnsoverhttps", version.ref = "okhttp-version" }
+okhttp-brotli = { group = "com.squareup.okhttp3", name = "okhttp-brotli", version.ref = "okhttp-version" }
 okio = "com.squareup.okio:okio:3.16.0"
 
 # SQLITE
@@ -39,8 +40,8 @@ sqlite-ktx = { module = "androidx.sqlite:sqlite-ktx", version.ref = "sqlite" }
 sqlite-android = "com.github.requery:sqlite-android:3.49.0"
 
 # SQLDelight
-sqldelight-android-driver = {group="app.cash.sqldelight",name="android-driver",version.ref="sqldelight-version"}
-sqldelight-coroutines-extensions = {group="app.cash.sqldelight",name="coroutines-extensions-jvm",version.ref="sqldelight-version"}
+sqldelight-android-driver = { group = "app.cash.sqldelight", name = "android-driver", version.ref = "sqldelight-version" }
+sqldelight-coroutines-extensions = { group = "app.cash.sqldelight", name = "coroutines-extensions-jvm", version.ref = "sqldelight-version" }
 sqldelight-dialects-sql = { module = "app.cash.sqldelight:sqlite-3-38-dialect", version = "2.0.2" }
 sqldelight-gradle = { module = "app.cash.sqldelight:gradle-plugin", version.ref = "sqldelight-version" }
 sqldelight-android-paging = { module = "app.cash.sqldelight:androidx-paging3-extensions", version.ref = "sqldelight-version" }
@@ -54,24 +55,27 @@ richtext-m3 = { module = "com.halilibo.compose-richtext:richtext-ui-material3", 
 
 # Http4k
 http4k-bom = { group = "org.http4k", name = "http4k-bom", version.ref = "http4k-bom-version" }
-http4k-core = { group = "org.http4k", name = "http4k-core"}
-http4k-server-ktorcio = { group = "org.http4k", name = "http4k-server-ktorcio"}
+http4k-core = { group = "org.http4k", name = "http4k-core" }
+http4k-server-ktorcio = { group = "org.http4k", name = "http4k-server-ktorcio" }
 
 # JSUnpacker
 jsunpacker = "dev.datlag.jsunpacker:jsunpacker:1.0.2"
 unifile = "com.github.tachiyomiorg:unifile:e0def6b3dc"
 
 # Logcat
-logcat = { group = "com.squareup.logcat", name="logcat", version.ref="logcat-version"}
+logcat = { group = "com.squareup.logcat", name = "logcat", version.ref = "logcat-version" }
+
+# Custom accompanist
+compose-webview = { group = "io.github.kevinnzou", name = "compose-webview", version.ref = "custom-accompanist" }
 
 [plugins]
-dotenv = { id="co.uzzu.dotenv.gradle", version.ref="dotenv_version" }
+dotenv = { id = "co.uzzu.dotenv.gradle", version.ref = "dotenv_version" }
 
 [bundles]
-coil = ["coil","coil-compose"]
-rxjava = ["rxjava3","rxjava3-rxandroid"]
-okhttp = ["okhttp","okhttp-logging-interceptor","okhttp-dnsoverhttps","okio","okhttp-brotli"]
-sqldelight = ["sqldelight-android-driver","sqldelight-coroutines-extensions","sqldelight-android-paging"]
-sqlite = ["sqlite-framework","sqlite-android","sqlite-ktx"]
-http4k = ["http4k-core","http4k-server-ktorcio"]
+coil = ["coil", "coil-compose"]
+rxjava = ["rxjava3", "rxjava3-rxandroid"]
+okhttp = ["okhttp", "okhttp-logging-interceptor", "okhttp-dnsoverhttps", "okio", "okhttp-brotli"]
+sqldelight = ["sqldelight-android-driver", "sqldelight-coroutines-extensions", "sqldelight-android-paging"]
+sqlite = ["sqlite-framework", "sqlite-android", "sqlite-ktx"]
+http4k = ["http4k-core", "http4k-server-ktorcio"]
 richtext = ["richtext-commonmark", "richtext-m3"]

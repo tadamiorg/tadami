@@ -251,6 +251,9 @@
     <string name="settings_tab_library_backup_preferences_subtitle">Sauvegardes manuelles et automatiques</string>
     <string name="settings_tab_library_player_preferences_title">Lecteur vidéo</string>
     <string name="settings_tab_library_player_preferences_subtitle">Configuration de la timeline</string>
+    <string name="display_cutout_pref_title">Ignorer l’encoche de l’écran</string>
+    <string name="display_cutout_pref_subtitle">L’interface du lecteur s’affichera derrière l’encoche si nécessaire</string>
+
 
     <!-- Labels -->
     <string name="label_appearance">Apparence</string>

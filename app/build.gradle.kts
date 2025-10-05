@@ -122,7 +122,7 @@ dependencies {
     implementation(compose.bundles.ui)
     implementation(compose.bundles.runtime)
     implementation(compose.bundles.material)
-    implementation(compose.bundles.accompanist)
+    implementation(libs.compose.webview)
     implementation(androidx.bundles.navigation)
 
     // ViewModel Dependencies

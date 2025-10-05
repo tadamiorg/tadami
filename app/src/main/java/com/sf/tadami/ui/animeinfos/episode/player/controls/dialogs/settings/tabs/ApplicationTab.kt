@@ -54,7 +54,8 @@ fun applicationTab(): ScreenTabContent {
             modifier = Modifier.padding(contentPadding),
             items = listOf(
                 getTimelineGroup(prefState = playerPreferencesState, prefs = playerPreferences),
-                getSubtitlesGroup(prefState = playerPreferencesState, prefs = playerPreferences)
+                getSubtitlesGroup(prefState = playerPreferencesState, prefs = playerPreferences),
+                getDisplayGroup(prefState = playerPreferencesState, prefs = playerPreferences)
             )
         )
     }
@@ -163,6 +164,32 @@ private fun getSubtitlesGroup(
                     prefState.setValue(
                         prefs.copy(
                             subtitlePrefLanguages = it
+                        )
+                    )
+                    true
+                }
+            ),
+        )
+    )
+}
+
+@OptIn(UnstableApi::class)
+@Composable
+private fun getDisplayGroup(
+    prefState: DataStoreState<PlayerPreferences>,
+    prefs: PlayerPreferences
+): Preference.PreferenceCategory {
+    return Preference.PreferenceCategory(
+        title = stringResource(id = R.string.title_display),
+        preferenceItems = listOf(
+            Preference.PreferenceItem.TogglePreference(
+                title = stringResource(id = R.string.display_cutout_pref_title),
+                value = prefs.ignoreCutout,
+                subtitle = stringResource(id = R.string.display_cutout_pref_subtitle),
+                onValueChanged = {
+                    prefState.setValue(
+                        prefs.copy(
+                            ignoreCutout = it
                         )
                     )
                     true

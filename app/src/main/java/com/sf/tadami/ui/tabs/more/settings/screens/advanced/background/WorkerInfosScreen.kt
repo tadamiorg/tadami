@@ -2,6 +2,7 @@ package com.sf.tadami.ui.tabs.more.settings.screens.advanced.background
 
 import android.app.Application
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -66,7 +67,7 @@ class WorkerInfosScreen(navController : NavHostController) : PreferenceScreen {
     }
 
     @Composable
-    fun workerInfosString(
+    fun WorkerInfosString(
         contentPadding: PaddingValues,
         workerInfosViewModel: WorkerInfosViewModel = viewModel()
     ) {
@@ -75,6 +76,7 @@ class WorkerInfosScreen(navController : NavHostController) : PreferenceScreen {
         val enqueuedWorkers by workerInfosViewModel.enqueued.collectAsState("")
 
         LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
             contentPadding = contentPadding + PaddingValues(horizontal = 16.dp),
         ) {
             item { SectionTitle(title = "Enqueued") }
@@ -162,7 +164,7 @@ class WorkerInfosScreen(navController : NavHostController) : PreferenceScreen {
                 )
             },
             content = { contentPadding ->
-                workerInfosString(contentPadding)
+                WorkerInfosString(contentPadding)
             },
         )
     }

@@ -25,16 +25,8 @@ material3-core = { module = "androidx.compose.material3:material3" }
 material-icons = { module = "androidx.compose.material:material-icons-extended" }
 compose-materialmotion = "io.github.fornewid:material-motion-compose-core:2.0.1"
 
-# Accompanist TODO: Migrate to io.github.kevinnzou:compose-webview
-accompanist-webview = { module = "com.google.accompanist:accompanist-webview", version.ref = "accompanist" }
-accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
-accompanist-themeadapter = { module = "com.google.accompanist:accompanist-themeadapter-material3", version.ref = "accompanist" }
-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanist" }
-accompanist-flowlayout = { module = "com.google.accompanist:accompanist-flowlayout", version.ref = "accompanist" }
-
 [bundles]
 animation = ["foundation","animation","animation-graphics"]
 ui = ["ui","ui-tooling","ui-tooling-preview","ui-util"]
 runtime = ["runtime","runtime-saveable"]
 material = ["material-core","material3-core","material-icons","compose-materialmotion"]
-accompanist = ["accompanist-webview","accompanist-permissions","accompanist-themeadapter","accompanist-systemuicontroller","accompanist-flowlayout"]

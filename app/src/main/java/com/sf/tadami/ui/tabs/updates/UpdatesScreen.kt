@@ -104,7 +104,6 @@ fun UpdatesScreen(
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        contentWindowInsets = scaffoldInsets
     ) { contentPadding ->
         Box(modifier = modifier.padding(contentPadding).consumeWindowInsets(contentPadding)) {
             UpdatesComponent(

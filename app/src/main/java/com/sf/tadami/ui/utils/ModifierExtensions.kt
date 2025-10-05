@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -292,5 +294,15 @@ fun Modifier.equalEdgePadding(targetPadding: Dp) = composed {
             end = endPadding,
             top = topPadding,
             bottom = bottomPadding
+        )
+}
+
+fun Modifier.safeDrawing() = composed {
+    val insets = WindowInsets.safeDrawing
+
+
+    this
+        .windowInsetsPadding(
+            insets
         )
 }

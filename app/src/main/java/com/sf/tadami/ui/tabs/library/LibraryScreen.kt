@@ -181,12 +181,11 @@ fun LibraryScreen(
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        contentWindowInsets = scaffoldInsets
-    ) { innerPadding ->
+    ) { contentPadding ->
         LibraryComponent(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding).consumeWindowInsets(innerPadding),
+                .padding(contentPadding).consumeWindowInsets(contentPadding),
             libraryList = libraryList.addFilters(libraryPreferences, searchFilter),
             librarySize = libraryList.size,
             initLoaded = initLoaded,
@@ -210,7 +209,7 @@ fun LibraryScreen(
                 libraryViewModel.toggleSelected(libraryItem, true)
             },
             isRefreshing = isRefreshing,
-            indicatorPadding = innerPadding,
+            indicatorPadding = contentPadding,
             onRefresh = {
                 val started = libraryViewModel.refreshLibrary(context)
                 val msgRes = if (started) context.getString(R.string.update_starting) else context.getString(R.string.update_running)

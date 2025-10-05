@@ -65,6 +65,8 @@
     <string name="settings_tab_library_backup_preferences_subtitle">Manual and automatic backups</string>
     <string name="settings_tab_library_player_preferences_title">Player</string>
     <string name="settings_tab_library_player_preferences_subtitle">Timeline configuration</string>
+    <string name="display_cutout_pref_title">Ignore display cutout</string>
+    <string name="display_cutout_pref_subtitle">The players UI will draw behind the cutout if need be</string>
     <string name="notification_updating_library">Updating library… (%1$d/%2$d)</string>
     <string name="notification_library_updates_progress">Update progress</string>
     <string name="notification_library_group">Library</string>
