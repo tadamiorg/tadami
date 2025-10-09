@@ -3,7 +3,9 @@ package com.sf.tadami.notifications.extensionsinstaller
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.net.Uri
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import com.sf.tadami.extension.installer.Installer
@@ -20,7 +22,12 @@ class ExtensionInstallService : Service() {
 
     override fun onCreate() {
         notifier = ExtensionInstallerNotifier(applicationContext)
-        startForeground(Notifications.EXTENSIONS_INSTALLER_ID, notifier.updateNotification.build())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(Notifications.EXTENSIONS_INSTALLER_ID, notifier.updateNotification.build(),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
+        }else{
+            startForeground(Notifications.EXTENSIONS_INSTALLER_ID, notifier.updateNotification.build())
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

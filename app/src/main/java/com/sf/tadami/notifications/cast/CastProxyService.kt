@@ -3,6 +3,8 @@ package com.sf.tadami.notifications.cast
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.os.Build
 import android.os.IBinder
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -55,10 +57,18 @@ class CastProxyService : Service() {
     }
 
     private fun setForegroundService() {
-        startForeground(
-            Notifications.CAST_PROXY_STATUS_ID,
-            notifier.castStatusNotificationBuilder.build()
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(
+                Notifications.CAST_PROXY_STATUS_ID,
+                notifier.castStatusNotificationBuilder.build(),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+            )
+        }else{
+            startForeground(
+                Notifications.CAST_PROXY_STATUS_ID,
+                notifier.castStatusNotificationBuilder.build(),
+            )
+        }
     }
 
     override fun onDestroy() {
