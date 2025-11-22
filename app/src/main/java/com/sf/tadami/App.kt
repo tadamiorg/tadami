@@ -3,7 +3,6 @@ package com.sf.tadami
 
 import android.app.ActivityManager
 import android.app.Application
-import android.content.Context
 import androidx.core.content.getSystemService
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -37,7 +36,6 @@ open class App : Application(), ImageLoaderFactory {
         Injekt.importModule(AppModule(this))
         Injekt.importModule(PreferencesModule(this))
         createNotificationChannels()
-        appContext = applicationContext
 
         val dataStore: DataStore<Preferences> = Injekt.get()
         val appearancePreferences: AppearancePreferences = runBlocking {
@@ -45,14 +43,6 @@ open class App : Application(), ImageLoaderFactory {
         }
 
         setAppCompatDelegateThemeMode(appearancePreferences.themeMode)
-    }
-
-    companion object {
-        private var appContext: Context? = null
-        fun getAppContext(): Context? {
-
-            return appContext
-        }
     }
 
     private fun createNotificationChannels(){

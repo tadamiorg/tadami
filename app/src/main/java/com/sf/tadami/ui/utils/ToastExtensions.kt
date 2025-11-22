@@ -1,15 +1,17 @@
 package com.sf.tadami.ui.utils
 
+import android.app.Application
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
-import com.sf.tadami.App
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 object UiToasts {
     private var currentToast: Toast? = null
 
     fun showToast(msg : String,duration : Int = Toast.LENGTH_SHORT){
-        val context = App.getAppContext()
+        val context = Injekt.get<Application>()
         currentToast?.cancel()
         if (Looper.myLooper() == Looper.getMainLooper()) {
             currentToast = Toast.makeText(
@@ -31,7 +33,7 @@ object UiToasts {
 
     }
     fun showToast(stringRes : Int,duration : Int = Toast.LENGTH_SHORT,vararg args : Any) {
-        val context = App.getAppContext() ?: return
+        val context = Injekt.get<Application>()
         showToast(context.getString(stringRes,*args),duration)
     }
 }

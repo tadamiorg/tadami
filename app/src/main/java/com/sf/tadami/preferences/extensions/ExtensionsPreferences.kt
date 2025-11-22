@@ -1,13 +1,15 @@
 package com.sf.tadami.preferences.extensions
 
+import android.app.Application
 import android.content.Context
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.sf.tadami.App
 import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
 import com.sf.tadami.utils.hasMiuiPackageInstaller
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 data class ExtensionsPreferences(
     val extensionInstallerEnum : ExtensionInstallerEnum
@@ -34,7 +36,7 @@ data class ExtensionsPreferences(
         }
 
         override fun transform(preferences: Preferences): ExtensionsPreferences {
-            val context = App.getAppContext()!!
+            val context = Injekt.get<Application>()
             return ExtensionsPreferences(
                 extensionInstallerEnum = preferences[EXTENSION_INSTALLER]?.let{
                     ExtensionInstallerEnum.valueOf(it)

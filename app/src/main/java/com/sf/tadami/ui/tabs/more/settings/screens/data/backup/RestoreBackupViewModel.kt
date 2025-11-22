@@ -1,11 +1,11 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.data.backup
 
+import android.app.Application
 import android.net.Uri
 import androidx.compose.runtime.Immutable
 import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.sf.tadami.App
 import com.sf.tadami.data.backup.RestoreOptions
 import com.sf.tadami.notifications.backup.BackupFileValidator
 import com.sf.tadami.notifications.backup.BackupRestoreWorker
@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 class RestoreBackupViewModel(
     savedStateHandle: SavedStateHandle
@@ -37,7 +39,7 @@ class RestoreBackupViewModel(
     }
 
     fun startRestore() {
-        val context = App.getAppContext() ?: return;
+        val context = Injekt.get<Application>()
         BackupRestoreWorker.start(
             context = context,
             uri = uri.toUri(),
@@ -46,7 +48,7 @@ class RestoreBackupViewModel(
     }
 
     private fun validate(uri: Uri) {
-        val context = App.getAppContext() ?: return;
+        val context = Injekt.get<Application>()
         val results = try {
             BackupFileValidator().validate(context, uri)
         } catch (e: Exception) {
