@@ -88,7 +88,6 @@ fun RecentScreen(
                             }
                         }
                     ),
-                    Action.CastButton()
                 ),
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {

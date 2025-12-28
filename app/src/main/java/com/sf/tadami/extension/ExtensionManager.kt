@@ -249,16 +249,41 @@ class ExtensionManager(
     }
 
     /**
+     * Checks if an extension with the given package name and version is already loaded.
+     * Returns true if the extension exists and has the same or newer version.
+     */
+    private fun isExtensionAlreadyLoaded(pkgName: String, versionCode: Long): Boolean {
+        val existing = _installedExtensionsFlow.value.find { it.pkgName == pkgName }
+        return existing != null && existing.versionCode >= versionCode
+    }
+
+    /**
      * Listener which receives events of the extensions being installed, updated or removed.
      */
     private inner class InstallationListener : ExtensionInstallerReceiver.Listener {
 
         override fun onExtensionInstalled(extension: Extension.Installed) {
+            // Check if already loaded to prevent duplicate instantiation
+            if (isExtensionAlreadyLoaded(extension.pkgName, extension.versionCode)) {
+                Log.d("ExtensionManager", "Extension ${extension.pkgName} already loaded, skipping")
+                return
+            }
+            Log.d("ExtensionManager", "Registering new extension ${extension.pkgName}")
             registerNewExtension(extension.withUpdateCheck())
             updatePendingUpdatesCount()
         }
 
         override fun onExtensionUpdated(extension: Extension.Installed) {
+            Log.d("ExtensionManager", "onExtensionUpdated called for ${extension.pkgName} version ${extension.versionCode}")
+            val existing = _installedExtensionsFlow.value.find { it.pkgName == extension.pkgName }
+            Log.d("ExtensionManager", "Existing version: ${existing?.versionCode}")
+
+            // Only update if version is actually newer
+            if (existing != null && existing.versionCode >= extension.versionCode) {
+                Log.d("ExtensionManager", "Extension ${extension.pkgName} version ${extension.versionCode} not newer than ${existing.versionCode}, skipping")
+                return
+            }
+            Log.d("ExtensionManager", "Registering updated extension ${extension.pkgName}")
             registerUpdatedExtension(extension.withUpdateCheck())
             updatePendingUpdatesCount()
         }

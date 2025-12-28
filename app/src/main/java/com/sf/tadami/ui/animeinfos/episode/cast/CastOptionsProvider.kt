@@ -45,7 +45,7 @@ class CastOptionsProvider : OptionsProvider {
             .setNotificationOptions(notificationOptions)
             .build()
         val launchOptions = LaunchOptions.Builder()
-            .setAndroidReceiverCompatible(false)
+            .setAndroidReceiverCompatible(true)
             .build()
         return CastOptions.Builder()
             .setLaunchOptions(launchOptions)

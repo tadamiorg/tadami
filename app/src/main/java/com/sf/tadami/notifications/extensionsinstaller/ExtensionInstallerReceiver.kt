@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
 import androidx.core.content.ContextCompat
-import com.sf.tadami.BuildConfig
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.model.LoadResult
 import com.sf.tadami.extension.util.ExtensionsLoader
@@ -35,9 +34,6 @@ class ExtensionInstallerReceiver(private val listener: Listener) : BroadcastRece
             addAction(Intent.ACTION_PACKAGE_ADDED)
             addAction(Intent.ACTION_PACKAGE_REPLACED)
             addAction(Intent.ACTION_PACKAGE_REMOVED)
-            addAction(ACTION_EXTENSION_ADDED)
-            addAction(ACTION_EXTENSION_REPLACED)
-            addAction(ACTION_EXTENSION_REMOVED)
             addDataScheme("package")
         }
 
@@ -50,24 +46,28 @@ class ExtensionInstallerReceiver(private val listener: Listener) : BroadcastRece
         if (intent == null) return
 
         when (intent.action) {
-            Intent.ACTION_PACKAGE_ADDED, ACTION_EXTENSION_ADDED -> {
+            Intent.ACTION_PACKAGE_ADDED -> {
                 if (isReplacing(intent)) return
                 GlobalScope.launch(Dispatchers.Main, CoroutineStart.UNDISPATCHED){
                     when (val result = getExtensionFromIntent(context, intent)) {
-                        is LoadResult.Success -> listener.onExtensionInstalled(result.extension)
+                        is LoadResult.Success -> {
+                             listener.onExtensionInstalled(result.extension)
+                        }
                         else -> {}
                     }
                 }
             }
-            Intent.ACTION_PACKAGE_REPLACED, ACTION_EXTENSION_REPLACED -> {
+            Intent.ACTION_PACKAGE_REPLACED -> {
                 GlobalScope.launch(Dispatchers.Main, CoroutineStart.UNDISPATCHED){
                     when (val result = getExtensionFromIntent(context, intent)) {
-                        is LoadResult.Success -> listener.onExtensionUpdated(result.extension)
+                        is LoadResult.Success -> {
+                            listener.onExtensionUpdated(result.extension)
+                        }
                         else -> {}
                     }
                 }
             }
-            Intent.ACTION_PACKAGE_REMOVED, ACTION_EXTENSION_REMOVED -> {
+            Intent.ACTION_PACKAGE_REMOVED -> {
                 if (isReplacing(intent)) return
 
                 val pkgName = getPackageNameFromIntent(intent)
@@ -122,10 +122,6 @@ class ExtensionInstallerReceiver(private val listener: Listener) : BroadcastRece
     }
 
     companion object {
-        const val ACTION_EXTENSION_ADDED = "${BuildConfig.APPLICATION_ID}.ACTION_EXTENSION_ADDED"
-        const val ACTION_EXTENSION_REPLACED = "${BuildConfig.APPLICATION_ID}.ACTION_EXTENSION_REPLACED"
-        const val ACTION_EXTENSION_REMOVED = "${BuildConfig.APPLICATION_ID}.ACTION_EXTENSION_REMOVED"
-
         fun openExtensionsPendingActivity(context: Context): PendingIntent {
             val intent = Intent(context, MainActivity::class.java).apply {
                 action = "com.sf.tadami.EXTENSIONS"

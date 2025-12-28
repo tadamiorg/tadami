@@ -2,11 +2,13 @@ package com.sf.tadami
 
 import android.content.Context
 import android.util.Log
+import androidx.annotation.OptIn
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.media3.common.util.UnstableApi
 import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.backup.BackupPreferences
@@ -30,6 +32,7 @@ object Migrations {
      *
      * @return true if a migration is performed, false otherwise.
      */
+    @OptIn(UnstableApi::class)
     suspend fun upgrade(
         context: Context,
         dataStore: DataStore<Preferences>,

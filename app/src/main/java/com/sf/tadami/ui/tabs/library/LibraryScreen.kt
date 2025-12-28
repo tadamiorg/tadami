@@ -88,8 +88,7 @@ fun LibraryScreen(
                     keyboardController?.hide()
                     showBottomSheet = true
                 }
-            ),
-            Action.CastButton()
+            )
         )
     }
 
