@@ -1,6 +1,6 @@
 package com.sf.tadami.network.utils
 
-import com.sf.tadami.App
+import android.app.Application
 import com.sf.tadami.R
 import com.sf.tadami.data.anime.NoResultException
 import com.sf.tadami.network.HttpException
@@ -11,6 +11,8 @@ import io.reactivex.rxjava3.functions.Consumer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import java.net.UnknownHostException
 
 
@@ -23,7 +25,7 @@ class TadaErrorConsumer(
             withContext(Dispatchers.Main) {
                 when (e) {
                     is HttpException -> {
-                        App.getAppContext()?.let {
+                        Injekt.get<Application>().let {
                             UiToasts.showToast(
                                 stringRes = R.string.request_error_response,
                                 args = arrayOf("${e.code}")
@@ -32,7 +34,7 @@ class TadaErrorConsumer(
                         callback?.invoke(e,e.message, e.code)
                     }
                     is UnknownHostException -> {
-                        App.getAppContext()?.let {
+                        Injekt.get<Application>().let {
                             val actualError =  if (!it.isOnline()) {
                                 it.getString(R.string.exception_offline)
                             } else {
@@ -44,7 +46,7 @@ class TadaErrorConsumer(
                         }
                     }
                     is SourceNotInstalledException -> {
-                        App.getAppContext()?.let {
+                        Injekt.get<Application>().let {
                             UiToasts.showToast(
                                 stringRes = R.string.source_not_installed,
                                 args = arrayOf("${e.message}")
@@ -54,7 +56,7 @@ class TadaErrorConsumer(
                     }
 
                     is NoResultException -> {
-                        App.getAppContext()?.let {
+                        Injekt.get<Application>().let {
                             UiToasts.showToast(
                                 msg = it.getString(R.string.pager_no_results)
                             )
@@ -64,7 +66,7 @@ class TadaErrorConsumer(
 
                     else -> {
                         if (showUnknownError) {
-                            App.getAppContext()?.let {
+                            Injekt.get<Application>().let {
                                 val unknownError = when (val className = this::class.simpleName) {
                                     "Exception", "IOException" -> e.message ?: className
                                     else -> "$className: ${e.message}"

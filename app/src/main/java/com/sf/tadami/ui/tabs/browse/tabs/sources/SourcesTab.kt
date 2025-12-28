@@ -48,8 +48,7 @@ fun sourcesTab(
                 onClick = {
                     navController.navigate(DiscoverRoutes.SOURCES_FILTER)
                 },
-            ),
-            Action.CastButton()
+            )
         ),
         content = { contentPadding, snackbarHostState ->
             SourcesComponent(

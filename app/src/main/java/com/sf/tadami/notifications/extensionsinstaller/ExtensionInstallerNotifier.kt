@@ -1,8 +1,6 @@
 package com.sf.tadami.notifications.extensionsinstaller
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import androidx.core.app.NotificationCompat
 import com.sf.tadami.R
 import com.sf.tadami.notifications.Notifications
@@ -23,38 +21,6 @@ class ExtensionInstallerNotifier(private val context: Context) {
                 setProgress(100, 100, true)
                 color = getNotificationsColor(context)
             }
-
-    fun notify(context: Context, pkgName: String, action: String) {
-        Intent(action).apply {
-            data = Uri.parse("package:$pkgName")
-            `package` = context.packageName
-            context.sendBroadcast(this)
-        }
-    }
-
-    fun notifyAdded(context: Context, pkgName: String) {
-        notify(
-            context,
-            pkgName,
-            ExtensionInstallerReceiver.ACTION_EXTENSION_ADDED
-        )
-    }
-
-    fun notifyReplaced(context: Context, pkgName: String) {
-        notify(
-            context,
-            pkgName,
-            ExtensionInstallerReceiver.ACTION_EXTENSION_REPLACED
-        )
-    }
-
-    fun notifyRemoved(context: Context, pkgName: String) {
-        notify(
-            context,
-            pkgName,
-            ExtensionInstallerReceiver.ACTION_EXTENSION_REMOVED
-        )
-    }
 
     fun promptUpdates(names: List<String>) {
         context.notify(

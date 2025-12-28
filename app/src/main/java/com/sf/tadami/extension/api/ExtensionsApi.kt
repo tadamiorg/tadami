@@ -6,7 +6,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.ExtensionManager
-import com.sf.tadami.extension.model.LoadResult
 import com.sf.tadami.extension.util.ExtensionsLoader
 import com.sf.tadami.network.GET
 import com.sf.tadami.network.NetworkHelper
@@ -81,9 +80,7 @@ internal class ExtensionsApi {
             findExtensions().also { dataStore.editPreference(lastExtCheck, SourcesPreferences.LAST_EXT_CHECK) }
         }
 
-        val installedExtensions = ExtensionsLoader.loadExtensions(context)
-            .filterIsInstance<LoadResult.Success>()
-            .map { it.extension }
+        val installedExtensions = extensionManager.installedExtensionsFlow.value
 
         val extensionsWithUpdate = mutableListOf<Extension.Installed>()
         for (installedExt in installedExtensions) {

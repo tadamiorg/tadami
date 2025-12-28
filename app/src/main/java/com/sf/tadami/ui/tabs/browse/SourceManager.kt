@@ -1,7 +1,7 @@
 package com.sf.tadami.ui.tabs.browse
 
+import android.app.Application
 import android.content.Context
-import com.sf.tadami.App
 import com.sf.tadami.DataStoresHandler
 import com.sf.tadami.Migrations
 import com.sf.tadami.data.download.TadamiDownloadManager
@@ -72,15 +72,12 @@ class SourceManagerImplementation(
                             registerStubSource(StubSource.from(it))
                         }
                     }
-                    val context = App.getAppContext()
                     sourcesMapFlow.value.forEach { (id, source) ->
                         // Check if the key exists in the new map
                         if (!mutableMap.containsKey(id)) {
                             // If not, add it to the list
-                            if(context!=null){
-                                dataStoresHandler.removeDataStore(source.id)
-                                Migrations.deleteDataStore("anime_source_${source.id}", App.getAppContext()!!)
-                            }
+                            dataStoresHandler.removeDataStore(source.id)
+                            Migrations.deleteDataStore("anime_source_${source.id}", Injekt.get<Application>())
                         }
                     }
                     sourcesMapFlow.value = mutableMap

@@ -1,6 +1,5 @@
 package com.sf.tadami.source
 
-import com.sf.tadami.App
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.source.model.AnimeFilterList
 import com.sf.tadami.source.model.SAnime
@@ -51,11 +50,7 @@ class StubSource(
     }
 
     override fun toString(): String {
-        val appContext = App.getAppContext()
-        if (appContext != null) {
-            if (!isInvalid) "$name (${lang.getRes()})" else id.toString()
-        }
-        return if (!isInvalid) name else id.toString()
+        return if (!isInvalid) "$name (${lang.getRes()})" else id.toString()
     }
 
     companion object {

@@ -72,6 +72,7 @@ internal object ExtensionsLoader {
      * contains the required feature flag before trying to load it.
      */
     fun loadExtensionFromPkgName(context: Context, pkgName: String): LoadResult {
+        Log.d("ExtensionsLoader", "loadExtensionFromPkgName called for: $pkgName")
         val extensionPackage = getExtensionInfoFromPkgName(context, pkgName)
         if (extensionPackage == null) {
             Log.d("LoadExtensionFromPkgName","Extension package is not found ($pkgName)")

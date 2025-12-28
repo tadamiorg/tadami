@@ -1,9 +1,11 @@
 package com.sf.tadami.preferences.model
 
+import android.app.Application
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.datastore.preferences.core.Preferences
-import com.sf.tadami.App
 import com.sf.tadami.R
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 sealed class SourcePreference {
     abstract val title: String
@@ -56,7 +58,7 @@ sealed class SourcePreference {
             val overrideOkButton : Boolean = false,
             override val onValueChanged: (newValue: Set<String>) -> Boolean = { true },
             val subtitleProvider : (currentValue: Set<String>) -> String? = { currentValue ->
-                val values = currentValue.map{items[it]}.takeIf { it.isNotEmpty() }?.joinToString{ it!!.first } ?: App.getAppContext()!!.getString(
+                val values = currentValue.map{items[it]}.takeIf { it.isNotEmpty() }?.joinToString{ it!!.first } ?: Injekt.get<Application>().getString(
                     R.string.none)
                 subtitle?.format(values)
             },
