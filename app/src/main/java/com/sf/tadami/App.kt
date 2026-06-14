@@ -33,6 +33,11 @@ open class App : Application(), ImageLoaderFactory {
 
         GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
 
+        // Skip full initialization in the error handler process
+        if (isErrorHandlerProcess()) {
+            return
+        }
+
         Injekt.importModule(AppModule(this))
         Injekt.importModule(PreferencesModule(this))
         createNotificationChannels()
@@ -43,6 +48,15 @@ open class App : Application(), ImageLoaderFactory {
         }
 
         setAppCompatDelegateThemeMode(appearancePreferences.themeMode)
+    }
+
+    private fun isErrorHandlerProcess(): Boolean {
+        val processName = getCurrentProcessName()
+        return processName.endsWith(":error_handler")
+    }
+
+    private fun getCurrentProcessName(): String {
+        return getProcessName()
     }
 
     private fun createNotificationChannels(){
@@ -79,5 +93,3 @@ open class App : Application(), ImageLoaderFactory {
     }
 
 }
-
-

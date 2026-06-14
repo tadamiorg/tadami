@@ -151,15 +151,15 @@ suspend fun Call.awaitSuccess(): Response {
 
 class HttpException(val code: Int) : IllegalStateException("HTTP error $code")
 
-context(Json)
+context(json: Json)
 inline fun <reified T> Response.parseAs(): T {
-    return decodeFromString(serializer(), this.body.string())
+    return json.decodeFromString(serializer(), this.body.string())
 }
 
-context(Json)
+context(json: Json)
 inline fun <reified T> String.decodeOrNull(): T? {
     return try {
-        decodeFromString(serializer(), this)
+        json.decodeFromString(serializer(), this)
     } catch (e: Exception) {
         null
     }

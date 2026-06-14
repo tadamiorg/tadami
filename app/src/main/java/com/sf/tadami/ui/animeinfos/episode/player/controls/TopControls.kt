@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Public
@@ -23,12 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.util.UnstableApi
-import androidx.mediarouter.app.MediaRouteButton
-import com.google.android.gms.cast.framework.CastButtonFactory
 import com.sf.tadami.R
-import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.components.material.IconButton
 import com.sf.tadami.ui.utils.padding
 
@@ -106,7 +101,7 @@ fun TopControl(
                 tint = MaterialTheme.colorScheme.onSurface)
         }
 
-        AndroidView(
+        /*AndroidView(
             modifier = Modifier.size(36.dp + MaterialTheme.padding.medium),
             factory = {
                 MediaRouteButton(context)
@@ -114,6 +109,6 @@ fun TopControl(
             update = {mediaButton ->
                 CastButtonFactory.setUpMediaRouteButton((context as EpisodeActivity).applicationContext, mediaButton)
             }
-        )
+        )*/
     }
 }

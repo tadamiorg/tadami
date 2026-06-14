@@ -4,7 +4,6 @@ import java.util.TimeZone
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     kotlin("plugin.serialization")
     id("app.cash.sqldelight")
     alias(kotlinx.plugins.compose.compiler)
@@ -22,7 +21,7 @@ sqldelight {
 
 android {
     namespace = "com.sf.tadami"
-    android.buildFeatures.buildConfig=true
+    buildFeatures.buildConfig = true
 
     defaultConfig {
         applicationId = "com.sf.tadami"
@@ -81,11 +80,6 @@ android {
         }
     }
 
-    kotlin {
-        compilerOptions {
-            freeCompilerArgs.addAll("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
-        }
-    }
 }
 
 fun getBuildDate(): String {
@@ -110,17 +104,17 @@ dependencies {
 
     // Coil
     implementation(platform(libs.coil.bom))
-    implementation(libs.bundles.coil)
+    implementation(libs.bundles.coilGroup)
 
     // Exoplayer
-    implementation(androidx.bundles.exoplayer)
+    implementation(androidx.bundles.exoplayerGroup)
 
     // Compose
     implementation(platform(compose.bom))
     implementation(compose.activity)
-    implementation(compose.bundles.animation)
-    implementation(compose.bundles.ui)
-    implementation(compose.bundles.runtime)
+    implementation(compose.bundles.animationGroup)
+    implementation(compose.bundles.uiGroup)
+    implementation(compose.bundles.runtimeGroup)
     implementation(compose.bundles.material)
     implementation(libs.compose.webview)
     implementation(androidx.bundles.navigation)
@@ -142,7 +136,7 @@ dependencies {
     implementation(kotlinx.bundles.serialization)
 
     // Network client okhttp
-    implementation(libs.bundles.okhttp)
+    implementation(libs.bundles.okhttpGroup)
 
     // SQLite
     implementation(libs.bundles.sqlite)
@@ -187,8 +181,9 @@ dependencies {
 tasks {
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         compilerOptions {
-            freeCompilerArgs = listOf(
-                "-Xcontext-receivers"
+            freeCompilerArgs.addAll(
+                "-Xcontext-parameters",
+                "-XXLanguage:+PropertyParamAnnotationDefaultTargetMode"
             )
         }
     }

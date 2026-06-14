@@ -1,7 +1,4 @@
-import com.android.build.gradle.BaseExtension
-import com.android.build.gradle.BasePlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
-import kotlin.collections.addAll
 
 buildscript {
     dependencies {
@@ -29,23 +26,27 @@ subprojects {
         }
     }
 
-    tasks.withType<Test> {
-        useJUnitPlatform()
-        testLogging {
-            showCauses = true
-            showExceptions = true
-            showStackTraces = true
+    // Replace the previous "plugins.withType<BasePlugin>" block with this:
+    plugins.withId("com.android.application") {
+        extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
+            compileSdk = 37
+            defaultConfig {
+                minSdk = 28
+                targetSdk = 37
+            }
+            compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+            }
         }
     }
 
-    plugins.withType<BasePlugin> {
-        configure<BaseExtension> {
-            compileSdkVersion(36)
+    plugins.withId("com.android.library") {
+        extensions.configure<com.android.build.api.dsl.LibraryExtension> {
+            compileSdk = 37
             defaultConfig {
                 minSdk = 28
-                targetSdk = 36
             }
-
             compileOptions {
                 sourceCompatibility = JavaVersion.VERSION_17
                 targetCompatibility = JavaVersion.VERSION_17
