@@ -182,7 +182,7 @@ internal class ExtensionsInstaller(private val context: Context) {
     fun cancelInstall(pkgName: String) {
         val downloadId = activeDownloads.remove(pkgName) ?: return
         downloadManager.remove(downloadId)
-        Installer.cancelInstallQueue(context, downloadId)
+        Installer.cancelInstallQueue(downloadId)
     }
 
     /**
