@@ -256,7 +256,7 @@ fun WebviewScreen(
                     )
 
                     is LoadingState.Loading -> LinearProgressIndicator(
-                        progress = { (loadingState as? LoadingState.Loading)?.progress ?: 1f },
+                        progress = { loadingState.progress },
                         modifier = Modifier
                             .fillMaxWidth()
                             .align(Alignment.BottomCenter),

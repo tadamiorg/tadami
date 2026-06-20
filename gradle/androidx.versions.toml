@@ -1,21 +1,21 @@
 [versions]
-agp = "8.13.2"
-core-ktx = "1.17.0"
-lifecycle_version = "2.10.0"
-worker_version = "2.11.0"
-paging_version = "3.3.6"
+agp = "9.2.1"
+core-ktx = "1.19.0"
+lifecycle_version = "2.11.0"
+worker_version = "2.11.2"
+paging_version = "3.5.0"
 appcompat_version = "1.7.1"
 splashscreen_version = "1.2.0"
-webkit_version = "1.15.0"
-datastore_version = "1.2.0"
+webkit_version = "1.16.0"
+datastore_version = "1.2.1"
 cast_mediarouter_version = "1.8.1"
-cast_framework_version="22.2.0"
-navigation-version = "2.9.6"
-exoplayer_version = "1.9.0"
+cast_framework_version="22.3.1"
+navigation-version = "2.9.8"
+exoplayer_version = "1.10.1"
 
 # Test
-androidx-test-ext-junit = "1.3.0"
-espresso-core = "3.7.0"
+androidx-test-ext-junit-version = "1.3.0"
+espresso-core-version = "3.7.0"
 
 [libraries]
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
@@ -33,8 +33,8 @@ lifecycle-viewmodel-livedata = { group = "androidx.lifecycle", name="lifecycle-l
 lifecycle-viewmodel-savedstate = { group = "androidx.lifecycle", name="lifecycle-viewmodel-savedstate", version.ref = "lifecycle_version" }
 
 # Test
-androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit-version" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core-version" }
 
 # Worker process
 worker = { group = "androidx.work", name="work-runtime-ktx", version.ref = "worker_version" }
@@ -64,7 +64,7 @@ exoplayer-rtsp = {group = "androidx.media3", name="media3-exoplayer-rtsp", versi
 exoplayer-smoothstreaming = {group = "androidx.media3", name="media3-exoplayer-smoothstreaming", version.ref="exoplayer_version"}
 
 # Material
-material = "com.google.android.material:material:1.12.0"
+material = "com.google.android.material:material:1.14.0"
 
 [plugins]
 com-android-application = { id = "com.android.application", version.ref = "agp" }
@@ -75,4 +75,4 @@ lifecycle = ["lifecycle-runtime-ktx", "lifecycle-viewmodel", "lifecycle-viewmode
 cast = ["cast-mediarouter","cast-framework"]
 paging = ["paging-runtime","paging-compose","paging-rxjava3","paging-common"]
 navigation = ["navigation-runtime-ktx","navigation-compose","navigation-fragment-ktx","navigation-ui-ktx"]
-exoplayer = ["exoplayer","exoplayer-ui","exoplayer-dash","exoplayer-hls","exoplayer-rtsp","exoplayer-smoothstreaming"]
+exoplayerGroup = ["exoplayer","exoplayer-ui","exoplayer-dash","exoplayer-hls","exoplayer-rtsp","exoplayer-smoothstreaming"]

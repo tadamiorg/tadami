@@ -8,21 +8,21 @@ import com.sf.tadami.source.StubSource.SourceNotInstalledException
 import com.sf.tadami.utils.isOnline
 import java.net.UnknownHostException
 
-context(Context)
+context(context: Context)
 val Throwable.formattedMessage: String
     get() {
         when (this) {
-            is HttpException -> return getString(R.string.request_error_response, "$code")
+            is HttpException -> return context.getString(R.string.request_error_response, "$code")
             is UnknownHostException -> {
-                return if (!isOnline()) {
-                    getString(R.string.exception_offline)
+                return if (!context.isOnline()) {
+                    context.getString(R.string.exception_offline)
                 } else {
-                    getString(R.string.exception_unknown_host, message ?: "")
+                    context.getString(R.string.exception_unknown_host, message ?: "")
                 }
             }
 
-            is NoResultException -> return getString(R.string.pager_no_results)
-            is SourceNotInstalledException -> return getString(R.string.source_not_installed)
+            is NoResultException -> return context.getString(R.string.pager_no_results)
+            is SourceNotInstalledException -> return context.getString(R.string.source_not_installed)
         }
         return when (val className = this::class.simpleName) {
             "Exception", "IOException" -> message ?: className
