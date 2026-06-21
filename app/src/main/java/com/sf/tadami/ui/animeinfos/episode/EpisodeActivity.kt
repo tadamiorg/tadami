@@ -28,6 +28,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.collectAsState
+import com.sf.tadami.ui.animeinfos.episode.webrtc.WebRtcConnectDialog
+import com.sf.tadami.ui.animeinfos.episode.webrtc.WebRtcSender
+import com.sf.tadami.ui.animeinfos.episode.webrtc.WebRtcVideoPlayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -102,6 +111,8 @@ class EpisodeActivity : AppCompatActivity() {
     private val json: Json = Json
     private var castSession: CastSession? = null
     private val isCasting = mutableStateOf(false)
+    private val webRtcSender by lazy { WebRtcSender(this) }
+    private val showWebRtcConnectDialog = mutableStateOf(false)
     private lateinit var castContext: CastContext
     private var castSessionManagerListener: SessionManagerListener<CastSession>? = null
     private var castStateListener: CastStateListener? = null
@@ -212,7 +223,13 @@ class EpisodeActivity : AppCompatActivity() {
             ) {
                 Box {
                     val casting by remember(isCasting.value) { mutableStateOf(isCasting.value) }
-                    if (casting) {
+                    val webRtcSession by webRtcSender.session.collectAsState()
+                    if (webRtcSession != null) {
+                        WebRtcVideoPlayer(
+                            sender = webRtcSender,
+                            session = webRtcSession!!,
+                        )
+                    } else if (casting) {
                         CastVideoPlayer(
                             castSession = castSession!!,
                             snackbarHostState = snackbarHostState,
@@ -266,6 +283,25 @@ class EpisodeActivity : AppCompatActivity() {
                                     )
                                 }
                             }
+                        )
+                    }
+                    if (webRtcSession == null && !casting) {
+                        IconButton(
+                            onClick = { showWebRtcConnectDialog.value = true },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(16.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Tv,
+                                contentDescription = "Cast to Tadami TV",
+                            )
+                        }
+                    }
+                    if (showWebRtcConnectDialog.value) {
+                        WebRtcConnectDialog(
+                            sender = webRtcSender,
+                            onDismissRequest = { showWebRtcConnectDialog.value = false },
                         )
                     }
                 }
@@ -615,6 +651,7 @@ class EpisodeActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         exoPlayer = null
+        webRtcSender.stop()
         super.onDestroy()
     }
 

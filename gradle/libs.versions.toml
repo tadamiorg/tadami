@@ -68,6 +68,9 @@ logcat = { group = "com.squareup.logcat", name = "logcat", version.ref = "logcat
 # Custom accompanist
 compose-webview = { group = "io.github.kevinnzou", name = "compose-webview", version.ref = "custom-accompanist" }
 
+# WebRTC (Tadami TV cast over a data channel)
+webrtc = { module = "io.getstream:stream-webrtc-android", version = "1.3.10" }
+
 [plugins]
 dotenv = { id = "co.uzzu.dotenv.gradle", version.ref = "dotenv_version" }
 

@@ -1,5 +1,9 @@
 -dontobfuscate
 
+# WebRTC native bindings (Tadami TV) — must survive R8 or the data channel breaks in release
+-keep class org.webrtc.** { *; }
+-dontwarn org.webrtc.**
+
 -keep,allowoptimization class com.sf.tadami.**
 
 # Keep common dependencies used in extensions

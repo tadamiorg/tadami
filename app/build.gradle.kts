@@ -177,6 +177,9 @@ dependencies {
     // Logcat
     implementation(libs.logcat)
 
+    // WebRTC (Tadami TV cast over a data channel)
+    implementation(libs.webrtc)
+
 }
 tasks {
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
