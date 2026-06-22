@@ -4,7 +4,6 @@ jsoup-version = "1.22.2"
 okhttp-version = "5.4.0"
 sqldelight-version = "2.3.2"
 sqlite = "2.6.2"
-http4k-bom-version = "6.53.0.0"
 dotenv_version = "4.0.0"
 richtext = "1.0.0-alpha05"
 logcat-version = "0.4"
@@ -53,11 +52,6 @@ wheel-picker = "com.github.commandiron:WheelPickerCompose:1.1.10"
 richtext-commonmark = { module = "com.halilibo.compose-richtext:richtext-commonmark", version.ref = "richtext" }
 richtext-m3 = { module = "com.halilibo.compose-richtext:richtext-ui-material3", version.ref = "richtext" }
 
-# Http4k
-http4k-bom = { group = "org.http4k", name = "http4k-bom", version.ref = "http4k-bom-version" }
-http4k-core = { group = "org.http4k", name = "http4k-core" }
-http4k-server-ktorcio = { group = "org.http4k", name = "http4k-server-ktorcio" }
-
 # JSUnpacker
 jsunpacker = "dev.datlag.jsunpacker:jsunpacker:1.0.2"
 unifile = "com.github.tachiyomiorg:unifile:e0def6b3dc"
@@ -77,5 +71,4 @@ rxjava = ["rxjava3", "rxjava3-rxandroid"]
 okhttpGroup = ["okhttp", "okhttp-logging-interceptor", "okhttp-dnsoverhttps", "okio", "okhttp-brotli"]
 sqldelight = ["sqldelight-android-driver", "sqldelight-coroutines-extensions", "sqldelight-android-paging"]
 sqlite = ["sqlite-framework", "sqlite-android", "sqlite-ktx"]
-http4k = ["http4k-core", "http4k-server-ktorcio"]
 richtext = ["richtext-commonmark", "richtext-m3"]

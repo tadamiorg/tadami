@@ -63,7 +63,6 @@ import com.sf.tadami.R
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.toSEpisode
-import com.sf.tadami.notifications.cast.CastProxyService
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.source.model.OkhttpHeadersSerializer
 import com.sf.tadami.source.model.StreamSource
@@ -95,7 +94,10 @@ import com.sf.tadami.ui.utils.setComposeContent
 import com.sf.tadami.ui.utils.toShareIntent
 import com.sf.tadami.ui.webview.WebViewActivity
 import com.sf.tadami.utils.createFileInCacheDir
+import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
+import com.sf.tadami.preferences.advanced.AdvancedPreferences
+import kotlinx.coroutines.runBlocking
 import com.sf.tadami.utils.powerManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -503,7 +505,6 @@ class EpisodeActivity : AppCompatActivity() {
             return
         }
 
-        val ipv4 = getLocalIPAddress() ?: return
         val remoteMediaClient = castSession!!.remoteMediaClient ?: return
 
         val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
@@ -516,7 +517,7 @@ class EpisodeActivity : AppCompatActivity() {
         )
 
         val customData = JSONObject()
-            .put("proxyIp", ipv4)
+            .put("userAgent", runBlocking { dataStore.getPreferencesGroup(AdvancedPreferences) }.userAgent)
             .put("animeId", currentEpisode!!.animeId)
             .put("episodeId", currentEpisode!!.id)
             .put("seen", currentEpisode!!.seen)
@@ -564,27 +565,9 @@ class EpisodeActivity : AppCompatActivity() {
             )
         }
 
-        var contentUrl = selectedSource!!.url
-
-        if (selectedSource!!.url.substringAfterLast("/")
-                .contains(".mp4") && selectedSource!!.headers != null
-        ) {
-            val proxyUrl = "http://$ipv4:8000"
-
-            val headersString = selectedSource?.headers?.let {
-                "&headers=${
-                    URLEncoder.encode(
-                        json.encodeToString(
-                            serializer = OkhttpHeadersSerializer,
-                            it
-                        ), "UTF-8"
-                    )
-                }"
-            } ?: ""
-
-            contentUrl =
-                "$proxyUrl?url=${URLEncoder.encode(selectedSource!!.url, "UTF-8")}$headersString"
-        }
+        // No proxy: send the raw stream URL. The native Tadami-TV receiver injects the
+        // source headers itself (sent in selectedSource customData), like the phone player.
+        val contentUrl = selectedSource!!.url
 
         val mediaInfosBuilder = MediaInfo.Builder(contentUrl)
             .setContentUrl(contentUrl)
@@ -746,7 +729,6 @@ class EpisodeActivity : AppCompatActivity() {
                 setCastCustomChannel(session, errorChannel)
                 setCastCustomChannel(session, crashChannel)
                 setCastCustomChannel(session, controlChannel)
-                CastProxyService.startNow(this@EpisodeActivity)
                 loadRemoteMedia()
             }
 
