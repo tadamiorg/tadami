@@ -30,7 +30,6 @@ import com.sf.tadami.R
 import com.sf.tadami.extension.api.ExtensionsApi
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.navigation.graphs.onboarding.OnboardingRoutes
-import com.sf.tadami.notifications.cast.CastProxyService
 import com.sf.tadami.preferences.app.BasePreferences
 import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.preferences.backup.BackupPreferences
@@ -210,13 +209,11 @@ class MainActivity : AppCompatActivity() {
             @OptIn(UnstableApi::class)
             private fun onApplicationConnected(session: CastSession) {
                 setCastCustomChannel(session, errorChannel)
-                CastProxyService.startNow(this@MainActivity)
                 this@MainActivity.castSession = session
             }
 
             @OptIn(UnstableApi::class)
             private fun onApplicationDisconnected() {
-                CastProxyService.stop(this@MainActivity)
                 this@MainActivity.castSession = null
             }
         }
