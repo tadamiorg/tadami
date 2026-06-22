@@ -19,16 +19,21 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -64,7 +69,11 @@ import com.sf.tadami.source.model.OkhttpHeadersSerializer
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.source.model.Track
 import com.sf.tadami.source.online.AnimeHttpSource
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.ControlChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.CrashChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvControlMessage
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvCrashLog
 import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
 import com.sf.tadami.ui.animeinfos.episode.player.ACTION_MEDIA_CONTROL
@@ -81,14 +90,20 @@ import com.sf.tadami.ui.animeinfos.episode.player.PlayerViewModel
 import com.sf.tadami.ui.animeinfos.episode.player.PlayerViewModelFactory
 import com.sf.tadami.ui.animeinfos.episode.player.VideoPlayer
 import com.sf.tadami.ui.utils.convertToIetfLanguageTag
+import com.sf.tadami.ui.utils.getUriCompat
 import com.sf.tadami.ui.utils.setComposeContent
+import com.sf.tadami.ui.utils.toShareIntent
 import com.sf.tadami.ui.webview.WebViewActivity
+import com.sf.tadami.utils.createFileInCacheDir
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import com.sf.tadami.utils.powerManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import org.json.JSONArray
 import org.json.JSONObject
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -113,6 +128,10 @@ class EpisodeActivity : AppCompatActivity() {
     private var currentEpisode: Episode? = null
     private var updateTimeJob: Job? = null
     private val errorChannel = ErrorChannel()
+    private val crashChannel = CrashChannel { log -> onTvCrashReceived(log) }
+    private val controlChannel = ControlChannel { msg -> onTvControl(msg) }
+    private val tvCrashLog = mutableStateOf<String?>(null)
+    private var activeColorScheme: ColorScheme? = null
     private var pipReceiver: BroadcastReceiver? = null
     private var exoPlayer: ExoPlayer? = null
     private val dataStore: DataStore<Preferences> = Injekt.get()
@@ -191,6 +210,10 @@ class EpisodeActivity : AppCompatActivity() {
             val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
             val isSystemInDarkTheme = isSystemInDarkTheme()
 
+            // Capture the active app color scheme so it can be forwarded to the TV receiver.
+            val appColorScheme = MaterialTheme.colorScheme
+            LaunchedEffect(appColorScheme) { activeColorScheme = appColorScheme }
+
             LaunchedEffect(isSystemInDarkTheme, statusBarBackgroundColor) {
                 // Draw edge-to-edge and set system bars color to transparent
                 val lightStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.BLACK)
@@ -212,6 +235,24 @@ class EpisodeActivity : AppCompatActivity() {
             ) {
                 Box {
                     val casting by remember(isCasting.value) { mutableStateOf(isCasting.value) }
+
+                    tvCrashLog.value?.let { crashText ->
+                        AlertDialog(
+                            onDismissRequest = { tvCrashLog.value = null },
+                            title = { Text("Tadami TV crashed") },
+                            text = { Text("The TV reported a crash. Export the error log?") },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    shareCrashLog(crashText)
+                                    tvCrashLog.value = null
+                                }) { Text("Export") }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { tvCrashLog.value = null }) { Text("Dismiss") }
+                            },
+                        )
+                    }
+
                     if (casting) {
                         CastVideoPlayer(
                             castSession = castSession!!,
@@ -383,6 +424,79 @@ class EpisodeActivity : AppCompatActivity() {
         return castSession?.remoteMediaClient?.stop()
     }
 
+    /** A crash log pushed by the TV receiver: persist a copy and surface the export dialog. */
+    private fun onTvCrashReceived(log: TvCrashLog) {
+        val text = buildString {
+            appendLine("Tadami TV crash report")
+            appendLine("Package: ${log.packageName}")
+            appendLine("Version: ${log.versionName}")
+            appendLine("Time: ${java.util.Date(log.timestamp)}")
+            appendLine()
+            append(log.stacktrace)
+        }
+        runCatching {
+            val dir = java.io.File(getExternalFilesDir(null), "tv-crash").apply { mkdirs() }
+            java.io.File(dir, "tv_crash_${log.timestamp}.txt").writeText(text)
+        }
+        runOnUiThread { tvCrashLog.value = text }
+    }
+
+    private fun shareCrashLog(text: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            runCatching {
+                val file = createFileInCacheDir("tadami_tv_crash_logs.txt")
+                file.writeText(text)
+                val uri = file.getUriCompat(this@EpisodeActivity)
+                withContext(Dispatchers.Main) {
+                    startActivity(uri.toShareIntent(this@EpisodeActivity, "text/plain"))
+                }
+            }
+        }
+    }
+
+    /**
+     * Control messages from the TV receiver: persist watch time, or navigate episodes by
+     * re-resolving sources on the phone and re-loading them onto the TV (mirrors the phone's own
+     * cast episode switch). [TvControlMessage.position]/duration carry the TV's playback state.
+     */
+    private fun onTvControl(msg: TvControlMessage) {
+        if (!::playerViewModel.isInitialized) return
+        runOnUiThread {
+            val threshold = playerPreferences?.seenThreshold ?: 85
+            when (msg.type) {
+                "progress", "save" -> {
+                    setUpdateTimeJob(
+                        playerViewModel.updateTime(currentEpisode, msg.duration, msg.position, threshold)
+                    )
+                }
+
+                "next" -> {
+                    val iterator = playerViewModel.hasNextIterator.value
+                    if (iterator.hasPrevious()) castSwitchEpisode(iterator.previous(), msg, threshold)
+                }
+
+                "previous" -> {
+                    val iterator = playerViewModel.hasPreviousIterator.value
+                    if (iterator.hasNext()) castSwitchEpisode(iterator.next(), msg, threshold)
+                }
+
+                "selectEpisode" -> {
+                    playerViewModel.episodes.value.firstOrNull { it.id == msg.episodeId }
+                        ?.let { castSwitchEpisode(it, msg, threshold) }
+                }
+            }
+        }
+    }
+
+    private fun castSwitchEpisode(episode: Episode, msg: TvControlMessage, threshold: Int) {
+        // Save the outgoing episode's time before switching (currentEpisode is still the old one).
+        setUpdateTimeJob(
+            playerViewModel.updateTime(currentEpisode, msg.duration, msg.position, threshold)
+        )
+        stopCastEpisode()
+        playerViewModel.setCurrentEpisode(episode)
+    }
+
     @SuppressLint("VisibleForTests")
     private fun loadRemoteMedia() {
         if (castSession == null || selectedSource == null || currentEpisode == null) {
@@ -414,6 +528,42 @@ class EpisodeActivity : AppCompatActivity() {
         customData.put("episodeUrl", episodeUrl)
         customData.put("selectedSource", json.encodeToString(selectedSource))
 
+        // Episode list + display mode so the TV can offer episode navigation.
+        val episodesArray = JSONArray()
+        playerViewModel.episodes.value.forEach { ep ->
+            episodesArray.put(
+                JSONObject()
+                    .put("id", ep.id)
+                    .put("name", ep.name)
+                    .put("episodeNumber", ep.episodeNumber.toDouble())
+                    .put("seen", ep.seen)
+            )
+        }
+        customData.put("episodes", episodesArray.toString())
+        customData.put(
+            "displayMode",
+            if (anime?.displayMode is Anime.DisplayMode.NAME) "NAME" else "NUMBER"
+        )
+
+        // Forward the active app color scheme so the TV mirrors the phone's theme.
+        activeColorScheme?.let { cs ->
+            customData.put(
+                "theme",
+                JSONObject()
+                    .put("primary", cs.primary.toArgb())
+                    .put("onPrimary", cs.onPrimary.toArgb())
+                    .put("secondary", cs.secondary.toArgb())
+                    .put("onSecondary", cs.onSecondary.toArgb())
+                    .put("background", cs.background.toArgb())
+                    .put("onBackground", cs.onBackground.toArgb())
+                    .put("surface", cs.surface.toArgb())
+                    .put("onSurface", cs.onSurface.toArgb())
+                    .put("surfaceVariant", cs.surfaceVariant.toArgb())
+                    .put("onSurfaceVariant", cs.onSurfaceVariant.toArgb())
+                    .toString()
+            )
+        }
+
         var contentUrl = selectedSource!!.url
 
         if (selectedSource!!.url.substringAfterLast("/")
@@ -441,6 +591,12 @@ class EpisodeActivity : AppCompatActivity() {
             .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
             .setMetadata(movieMetadata)
             .setCustomData(customData)
+
+        // Known-duration fallback (re-watched episodes) so total time shows immediately; for
+        // first watches the receiver reports the real duration via its MediaStatus.
+        currentEpisode!!.totalTime.takeIf { it > 0L }?.let {
+            mediaInfosBuilder.setStreamDuration(it)
+        }
 
         var activeTrackIds: LongArray? = null
 
@@ -588,6 +744,8 @@ class EpisodeActivity : AppCompatActivity() {
                 isCasting.value = true
                 this@EpisodeActivity.castSession = session
                 setCastCustomChannel(session, errorChannel)
+                setCastCustomChannel(session, crashChannel)
+                setCastCustomChannel(session, controlChannel)
                 CastProxyService.startNow(this@EpisodeActivity)
                 loadRemoteMedia()
             }

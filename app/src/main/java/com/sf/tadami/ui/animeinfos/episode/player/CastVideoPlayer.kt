@@ -171,9 +171,18 @@ fun CastVideoPlayer(
         }
 
         val progressListener = ProgressListener { progress, duration ->
-            if (castSession.isConnected && !castSession.isConnecting && isPlaying) {
-                currentTime = progress.coerceAtLeast(0)
-                totalDuration = duration.coerceAtLeast(0)
+            if (castSession.isConnected && !castSession.isConnecting) {
+                // Always refresh total time (the receiver now reports the real stream duration
+                // via its MediaStatus). Fall back to the client's streamDuration if the
+                // callback hands us 0. Current time stays gated on playback so an in-progress
+                // scrub/pause isn't clobbered by the 1s tick.
+                val resolvedDuration = duration.takeIf { it > 0 }
+                    ?: castSession.remoteMediaClient?.streamDuration
+                    ?: 0L
+                totalDuration = resolvedDuration.coerceAtLeast(0)
+                if (isPlaying) {
+                    currentTime = progress.coerceAtLeast(0).coerceAtMost(totalDuration)
+                }
             }
         }
 
