@@ -99,12 +99,6 @@
             android:value="com.sf.tadami.ui.animeinfos.episode.cast.CastOptionsProvider" />
 
         <service
-            android:name=".notifications.cast.CastProxyService"
-            android:exported="false"
-            android:foregroundServiceType="mediaPlayback"
-            />
-
-        <service
             android:name=".notifications.extensionsinstaller.ExtensionInstallService"
             android:exported="false"
             android:foregroundServiceType="shortService" />

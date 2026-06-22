@@ -166,10 +166,6 @@ dependencies {
     implementation(androidx.appcompat)
     implementation(androidx.bundles.cast)
 
-    // Http4k proxy to cast streams
-    implementation(platform(libs.http4k.bom))
-    implementation(libs.bundles.http4k)
-
     // JSUnpacker
     implementation(libs.jsunpacker)
     implementation(libs.unifile)
