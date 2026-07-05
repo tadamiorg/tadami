@@ -39,6 +39,7 @@ import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.showCastConnectionError
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.setComposeContent
 import com.sf.tadami.utils.editPreference
@@ -190,6 +191,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onSessionResumeFailed(session: CastSession, error: Int) {
+                showCastConnectionError(error)
                 onApplicationDisconnected()
             }
 
@@ -198,6 +200,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onSessionStartFailed(session: CastSession, error: Int) {
+                showCastConnectionError(error)
                 onApplicationDisconnected()
             }
 

@@ -75,6 +75,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvControlMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvCrashLog
 import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.showCastConnectionError
 import com.sf.tadami.ui.animeinfos.episode.player.ACTION_MEDIA_CONTROL
 import com.sf.tadami.ui.animeinfos.episode.player.CastVideoPlayer
 import com.sf.tadami.ui.animeinfos.episode.player.EXTRA_CONTROL_TYPE
@@ -706,6 +707,7 @@ class EpisodeActivity : AppCompatActivity() {
             }
 
             override fun onSessionResumeFailed(session: CastSession, error: Int) {
+                showCastConnectionError(error)
                 onApplicationDisconnected()
             }
 
@@ -714,6 +716,7 @@ class EpisodeActivity : AppCompatActivity() {
             }
 
             override fun onSessionStartFailed(session: CastSession, error: Int) {
+                showCastConnectionError(error)
                 onApplicationDisconnected()
             }
 

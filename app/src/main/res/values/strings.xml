@@ -127,6 +127,8 @@
     <string name="cast_error_unsupported">Video source is not supported by the Chromecast device</string>
     <string name="cast_error_load_failed">The episode could not be played</string>
     <string name="cast_error_unknown">Unknown error : %1$d</string>
+    <string name="cast_error_app_not_installed">Tadami TV app is not installed on the cast device</string>
+    <string name="cast_error_connection_failed">Could not connect to the cast device : %1$s</string>
     <string name="details_screen_start_button">Start</string>
     <string name="details_screen_resume_button">Resume</string>
     <string name="unknown_error">Unknown error</string>

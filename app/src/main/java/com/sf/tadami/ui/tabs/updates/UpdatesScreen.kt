@@ -72,7 +72,8 @@ fun UpdatesScreen(
                         onClick = {
                             updatesViewModel.updateLibrary()
                         }
-                    )
+                    ),
+                    Action.CastButton()
                 ),
                 actionModeCounter = uiState.selected.size,
                 onCloseActionModeClicked = { updatesViewModel.toggleAllSelectedItems(false) },

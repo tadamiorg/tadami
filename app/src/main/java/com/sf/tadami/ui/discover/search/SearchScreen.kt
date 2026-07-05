@@ -168,7 +168,8 @@ fun SearchScreen(
                                     navController.navigate("${SourcesRoutes.EXTENSIONS_WEBVIEW}/${it.id}/${it.name}/${encodedUrl}")
                                 }
                             }
-                        )
+                        ),
+                        Action.CastButton()
                     ),
                     searchValue = queryState.query,
                     backHandlerEnabled = !queryState.fromGlobalSearch

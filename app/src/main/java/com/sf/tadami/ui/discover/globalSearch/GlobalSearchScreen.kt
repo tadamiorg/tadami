@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
+import com.sf.tadami.ui.components.data.Action
 
 @Composable
 fun GlobalSearchScreen(
@@ -30,7 +31,9 @@ fun GlobalSearchScreen(
                 onSearchCancel = {
                     navController.navigateUp()
                 },
-                actions = listOf(),
+                actions = listOf(
+                    Action.CastButton()
+                ),
                 searchValue = uiState.searchQuery,
                 progress = uiState.progress,
                 total = uiState.total

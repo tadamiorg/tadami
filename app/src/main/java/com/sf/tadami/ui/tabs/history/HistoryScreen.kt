@@ -48,7 +48,8 @@ fun HistoryScreen(
                 enabled = true,
                 onClick = {
                     historyDialogOpened = HistoryDialogs.DeleteAll
-                })
+                }),
+            Action.CastButton()
         )
     }
 

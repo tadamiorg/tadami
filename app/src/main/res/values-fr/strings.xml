@@ -101,6 +101,8 @@
     <string name="cast_error_unsupported">La source vidéo n\'est pas prise en charge par l\'appareil Chromecast</string>
     <string name="cast_error_load_failed">L\'épisode n\'a pas pu être joué</string>
     <string name="cast_error_unknown">Erreur inconnue : %1$d</string>
+    <string name="cast_error_app_not_installed">L\'application Tadami TV n\'est pas installée sur l\'appareil de cast</string>
+    <string name="cast_error_connection_failed">Impossible de se connecter à l\'appareil de cast : %1$s</string>
     <string name="details_screen_start_button">Commencer</string>
     <string name="details_screen_resume_button">Reprendre</string>
     <string name="unknown_error">Erreur inconnue</string>

@@ -66,6 +66,7 @@ fun DetailsToolbar(
             )
         },
         actions = listOf(
+            Action.CastButton(),
             Action.DropDownDrawable(
                 title = R.string.stub_text,
                 icon = R.drawable.ic_vertical_settings,

@@ -46,7 +46,8 @@ fun extensionsTab(
                 onClick = {
                     navController.navigate(DiscoverRoutes.EXTENSIONS_FILTER)
                 },
-            )
+            ),
+            Action.CastButton()
         )
     ) { contentPadding, _ ->
         ExtensionComponent(
