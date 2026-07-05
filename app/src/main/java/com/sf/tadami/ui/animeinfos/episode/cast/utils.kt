@@ -5,6 +5,8 @@ import android.util.Log
 import android.widget.Toast
 import com.google.android.gms.cast.CastStatusCodes
 import com.google.android.gms.cast.MediaStatus
+import com.google.android.gms.cast.framework.CastContext
+import com.google.android.gms.cast.framework.CastReasonCodes
 import com.google.android.gms.cast.framework.CastSession
 import com.sf.tadami.R
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.CustomCastChannel
@@ -38,10 +40,21 @@ fun getLocalIPAddress(): String? {
     return null
 }
 
-fun showCastConnectionError(error: Int) {
-    when (error) {
-        CastStatusCodes.APPLICATION_NOT_FOUND -> UiToasts.showToast(
+fun showCastConnectionError(castContext: CastContext, error: Int) {
+    when (castContext.getCastReasonCodeForCastStatusCode(error)) {
+        CastReasonCodes.CAST_CANCELLED -> {
+            // user cancelled the connection, nothing to report
+        }
+        CastReasonCodes.APPLICATION_LAUNCH_ERROR -> UiToasts.showToast(
             R.string.cast_error_app_not_installed,
+            Toast.LENGTH_LONG
+        )
+        CastReasonCodes.NETWORK_ERROR, CastReasonCodes.CAST_SOCKET_ERROR -> UiToasts.showToast(
+            R.string.cast_error_network,
+            Toast.LENGTH_LONG
+        )
+        CastReasonCodes.CAST_TIMEOUT -> UiToasts.showToast(
+            R.string.cast_error_timeout,
             Toast.LENGTH_LONG
         )
         else -> UiToasts.showToast(

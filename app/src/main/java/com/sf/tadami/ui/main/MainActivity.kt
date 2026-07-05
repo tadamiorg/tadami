@@ -191,7 +191,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onSessionResumeFailed(session: CastSession, error: Int) {
-                showCastConnectionError(error)
+                showCastConnectionError(castContext, error)
                 onApplicationDisconnected()
             }
 
@@ -200,7 +200,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onSessionStartFailed(session: CastSession, error: Int) {
-                showCastConnectionError(error)
+                showCastConnectionError(castContext, error)
                 onApplicationDisconnected()
             }
 

@@ -707,7 +707,7 @@ class EpisodeActivity : AppCompatActivity() {
             }
 
             override fun onSessionResumeFailed(session: CastSession, error: Int) {
-                showCastConnectionError(error)
+                showCastConnectionError(castContext, error)
                 onApplicationDisconnected()
             }
 
@@ -716,7 +716,7 @@ class EpisodeActivity : AppCompatActivity() {
             }
 
             override fun onSessionStartFailed(session: CastSession, error: Int) {
-                showCastConnectionError(error)
+                showCastConnectionError(castContext, error)
                 onApplicationDisconnected()
             }
 
