@@ -101,10 +101,11 @@
     <string name="cast_error_unsupported">La source vidéo n\'est pas prise en charge par l\'appareil Chromecast</string>
     <string name="cast_error_load_failed">L\'épisode n\'a pas pu être joué</string>
     <string name="cast_error_unknown">Erreur inconnue : %1$d</string>
-    <string name="cast_error_app_not_installed">L\'application Tadami TV n\'a pas pu être lancée sur l\'appareil de cast (non installée ou non enregistrée)</string>
-    <string name="cast_error_network">Erreur réseau lors de la connexion à l\'appareil de cast</string>
-    <string name="cast_error_timeout">La connexion à l\'appareil de cast a expiré</string>
-    <string name="cast_error_connection_failed">Impossible de se connecter à l\'appareil de cast : %1$s</string>
+    <string name="cast_error_dialog_title">Connexion à la TV impossible</string>
+    <string name="cast_error_dialog_message">Le cast n\'a pas pu démarrer. Causes les plus fréquentes :</string>
+    <string name="cast_error_dialog_cause_app">• L\'application Tadami TV n\'est pas installée sur le récepteur</string>
+    <string name="cast_error_dialog_cause_network">• Le téléphone et le récepteur ne sont pas sur le même réseau Wi-Fi</string>
+    <string name="cast_error_dialog_cause_reboot">• Le récepteur a besoin d\'un redémarrage — redémarrez-le et réessayez</string>
     <string name="details_screen_start_button">Commencer</string>
     <string name="details_screen_resume_button">Reprendre</string>
     <string name="unknown_error">Erreur inconnue</string>

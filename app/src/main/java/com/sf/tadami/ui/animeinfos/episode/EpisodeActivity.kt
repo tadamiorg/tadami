@@ -73,9 +73,10 @@ import com.sf.tadami.ui.animeinfos.episode.cast.channels.CrashChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvControlMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvCrashLog
+import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionErrorDialog
 import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
+import com.sf.tadami.ui.animeinfos.episode.cast.logCastConnectionError
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
-import com.sf.tadami.ui.animeinfos.episode.cast.showCastConnectionError
 import com.sf.tadami.ui.animeinfos.episode.player.ACTION_MEDIA_CONTROL
 import com.sf.tadami.ui.animeinfos.episode.player.CastVideoPlayer
 import com.sf.tadami.ui.animeinfos.episode.player.EXTRA_CONTROL_TYPE
@@ -134,6 +135,7 @@ class EpisodeActivity : AppCompatActivity() {
     private val crashChannel = CrashChannel { log -> onTvCrashReceived(log) }
     private val controlChannel = ControlChannel { msg -> onTvControl(msg) }
     private val tvCrashLog = mutableStateOf<String?>(null)
+    private val castConnectionError = mutableStateOf(false)
     private var activeColorScheme: ColorScheme? = null
     private var pipReceiver: BroadcastReceiver? = null
     private var exoPlayer: ExoPlayer? = null
@@ -238,6 +240,12 @@ class EpisodeActivity : AppCompatActivity() {
             ) {
                 Box {
                     val casting by remember(isCasting.value) { mutableStateOf(isCasting.value) }
+
+                    if (castConnectionError.value) {
+                        CastConnectionErrorDialog(
+                            onDismissRequest = { castConnectionError.value = false }
+                        )
+                    }
 
                     tvCrashLog.value?.let { crashText ->
                         AlertDialog(
@@ -707,7 +715,8 @@ class EpisodeActivity : AppCompatActivity() {
             }
 
             override fun onSessionResumeFailed(session: CastSession, error: Int) {
-                showCastConnectionError(castContext, error)
+                logCastConnectionError("Session resume", error)
+                castConnectionError.value = true
                 onApplicationDisconnected()
             }
 
@@ -716,7 +725,8 @@ class EpisodeActivity : AppCompatActivity() {
             }
 
             override fun onSessionStartFailed(session: CastSession, error: Int) {
-                showCastConnectionError(castContext, error)
+                logCastConnectionError("Session start", error)
+                castConnectionError.value = true
                 onApplicationDisconnected()
             }
 

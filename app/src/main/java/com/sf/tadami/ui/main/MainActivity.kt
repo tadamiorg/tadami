@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -37,9 +38,10 @@ import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
+import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionErrorDialog
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.logCastConnectionError
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
-import com.sf.tadami.ui.animeinfos.episode.cast.showCastConnectionError
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.setComposeContent
 import com.sf.tadami.utils.editPreference
@@ -56,6 +58,7 @@ class MainActivity : AppCompatActivity() {
     private var castSessionManagerListener: SessionManagerListener<CastSession>? = null
     private lateinit var castContext: CastContext
     private val errorChannel = ErrorChannel()
+    private val castConnectionError = mutableStateOf(false)
     private var ready = false
     private val dataStore: DataStore<Preferences> = Injekt.get()
     private val sourcesManager: SourceManager = Injekt.get()
@@ -127,6 +130,11 @@ class MainActivity : AppCompatActivity() {
 
             AppUpdaterScreen()
             ExtensionsCheckForUpdates()
+            if (castConnectionError.value) {
+                CastConnectionErrorDialog(
+                    onDismissRequest = { castConnectionError.value = false }
+                )
+            }
             HomeScreen(navController)
             LaunchedEffect(navController) {
                 if (isLaunch) {
@@ -191,7 +199,8 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onSessionResumeFailed(session: CastSession, error: Int) {
-                showCastConnectionError(castContext, error)
+                logCastConnectionError("Session resume", error)
+                castConnectionError.value = true
                 onApplicationDisconnected()
             }
 
@@ -200,7 +209,8 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onSessionStartFailed(session: CastSession, error: Int) {
-                showCastConnectionError(castContext, error)
+                logCastConnectionError("Session start", error)
+                castConnectionError.value = true
                 onApplicationDisconnected()
             }
 
