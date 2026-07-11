@@ -40,9 +40,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+    import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.google.android.gms.cast.MediaInfo
@@ -68,11 +66,10 @@ import com.sf.tadami.source.model.OkhttpHeadersSerializer
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.source.model.Track
 import com.sf.tadami.source.online.AnimeHttpSource
-import com.sf.tadami.ui.animeinfos.episode.cast.channels.ControlChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.CrashChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
-import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvControlMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvCrashLog
+import com.sf.tadami.notifications.cast.CastControlService
 import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionErrorDialog
 import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
 import com.sf.tadami.ui.animeinfos.episode.cast.logCastConnectionError
@@ -133,7 +130,6 @@ class EpisodeActivity : AppCompatActivity() {
     private var updateTimeJob: Job? = null
     private val errorChannel = ErrorChannel()
     private val crashChannel = CrashChannel { log -> onTvCrashReceived(log) }
-    private val controlChannel = ControlChannel { msg -> onTvControl(msg) }
     private val tvCrashLog = mutableStateOf<String?>(null)
     private val castConnectionError = mutableStateOf(false)
     private var activeColorScheme: ColorScheme? = null
@@ -174,7 +170,7 @@ class EpisodeActivity : AppCompatActivity() {
                 val rawUrl =
                     castSession?.remoteMediaClient?.mediaInfo?.customData!!.get("episodeUrl") as String
                 val episodeId =
-                    castSession?.remoteMediaClient?.mediaInfo?.customData!!.get("episodeId") as Int
+                    (castSession?.remoteMediaClient?.mediaInfo?.customData!!.get("episodeId") as? Number)?.toInt()
                 val intentEpisodeId = checkNotNull(intent.extras?.getLong("episode")).toInt()
                 val isResumedFromCast = episodeId == intentEpisodeId
                 val viewModel: PlayerViewModel by viewModels(factoryProducer = {
@@ -331,57 +327,62 @@ class EpisodeActivity : AppCompatActivity() {
     }
 
     private fun observeData() {
+        // NOTE: these collectors are intentionally NOT wrapped in repeatOnLifecycle(STARTED). Episode
+        // swapping is driven from the TV while the phone is backgrounded/screen-off (not STARTED); the
+        // uiState -> loadRemoteMedia() push and the currentEpisode mirror must keep running then, or the
+        // receiver never gets the new episode. They run until onDestroy (lifecycleScope). No UI work is
+        // done here (loadRemoteMedia only touches Cast + plain fields), so running while stopped is safe.
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    dataStore.getPreferencesGroupAsFlow(PlayerPreferences).collectLatest {
-                        playerPreferences = it
-                    }
-                }
-                launch {
-                    playerViewModel.uiState.collectLatest { uiState ->
-                        availableSources = uiState.availableSources
-                        selectedSource = uiState.selectedSource
-                        episodeUrl = uiState.rawUrl
-                        selectedTextTrack = uiState.selectedSubtitleTrack
+            dataStore.getPreferencesGroupAsFlow(PlayerPreferences).collectLatest {
+                playerPreferences = it
+            }
+        }
+        lifecycleScope.launch {
+            playerViewModel.uiState.collectLatest { uiState ->
+                availableSources = uiState.availableSources
+                selectedSource = uiState.selectedSource
+                episodeUrl = uiState.rawUrl
+                selectedTextTrack = uiState.selectedSubtitleTrack
 
-                        if (castSession != null && castSession!!.isConnected && castSession!!.remoteMediaClient != null) {
-                            if (castSession!!.remoteMediaClient!!.mediaInfo == null) {
-                                loadRemoteMedia()
-                            } else {
-                                val castMedia =
-                                    castSession!!.remoteMediaClient?.mediaInfo?.customData
-                                val episodeId = castMedia?.get("episodeId") as Int
-                                val source: StreamSource = json.decodeFromString(
-                                    castSession!!.remoteMediaClient!!.mediaInfo!!.customData!!.get("selectedSource") as String
-                                )
-                                if (episodeId != currentEpisode?.id?.toInt() || source.url != selectedSource?.url || source.fullName != selectedSource?.fullName) {
-                                    loadRemoteMedia()
-                                }
-                            }
+                val remoteMediaClient = castSession?.takeIf { it.isConnected }?.remoteMediaClient
+                if (remoteMediaClient != null) {
+                    // Capture mediaInfo once: stopCastEpisode() unloads media asynchronously, so it can
+                    // go null between a check and a re-read (TOCTOU) and NPE this collector.
+                    val mediaInfo = remoteMediaClient.mediaInfo
+                    val castMedia = mediaInfo?.customData
+                    if (castMedia == null) {
+                        loadRemoteMedia()
+                    } else {
+                        // episodeId round-trips as Integer (small ids) or Long (large) — read as Number
+                        // so a large id doesn't throw and kill this collector.
+                        val episodeId = (castMedia.get("episodeId") as? Number)?.toInt()
+                        val source: StreamSource = json.decodeFromString(
+                            castMedia.get("selectedSource") as String
+                        )
+                        if (episodeId != currentEpisode?.id?.toInt() || source.url != selectedSource?.url || source.fullName != selectedSource?.fullName) {
+                            loadRemoteMedia()
                         }
                     }
                 }
-                launch {
-                    playerViewModel.anime.collectLatest { anime ->
-                        this@EpisodeActivity.anime = anime
+            }
+        }
+        lifecycleScope.launch {
+            playerViewModel.anime.collectLatest { anime ->
+                this@EpisodeActivity.anime = anime
+            }
+        }
+        lifecycleScope.launch {
+            playerViewModel.currentEpisode.collectLatest { episode ->
+                val remoteMediaClient = castSession?.remoteMediaClient
+                val castMedia = remoteMediaClient?.mediaInfo?.customData
+                if (castMedia != null) {
+                    val episodeId = (castMedia.get("episodeId") as? Number)?.toInt()
+                    val currentEpisodeId = currentEpisode?.id?.toInt()
+                    if (currentEpisodeId != null && episodeId != null && episodeId != currentEpisodeId) {
+                        stopCastEpisode()
                     }
                 }
-                launch {
-                    playerViewModel.currentEpisode.collectLatest { episode ->
-                        if (castSession != null && castSession!!.remoteMediaClient != null) {
-                            val castMedia = castSession!!.remoteMediaClient!!.mediaInfo?.customData
-                            if (castMedia != null) {
-                                val episodeId = castMedia.get("episodeId") as Int
-                                val currentEpisodeId = currentEpisode?.id?.toInt()
-                                if (currentEpisodeId != null && episodeId != currentEpisodeId) {
-                                    stopCastEpisode()
-                                }
-                            }
-                        }
-                        currentEpisode = episode
-                    }
-                }
+                currentEpisode = episode
             }
         }
     }
@@ -392,6 +393,16 @@ class EpisodeActivity : AppCompatActivity() {
                 listener,
                 CastSession::class.java
             )
+        }
+        // addSessionManagerListener does NOT replay onSessionStarted/Resumed for a session that is
+        // already live, so when we open onto an existing cast session register the (activity-scoped)
+        // error/crash channels here and make sure the control service is running (it owns the control
+        // channel + episode switching, which must survive the activity being locked/exited).
+        castContext.sessionManager.currentCastSession?.takeIf { it.isConnected }?.let { session ->
+            castSession = session
+            setCastCustomChannel(session, errorChannel)
+            setCastCustomChannel(session, crashChannel)
+            CastControlService.startNow(this)
         }
         castStateListener?.let { castContext.addCastStateListener(it) }
         super.onResume()
@@ -465,52 +476,16 @@ class EpisodeActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Control messages from the TV receiver: persist watch time, or navigate episodes by
-     * re-resolving sources on the phone and re-loading them onto the TV (mirrors the phone's own
-     * cast episode switch). [TvControlMessage.position]/duration carry the TV's playback state.
-     */
-    private fun onTvControl(msg: TvControlMessage) {
-        if (!::playerViewModel.isInitialized) return
-        runOnUiThread {
-            val threshold = playerPreferences?.seenThreshold ?: 85
-            when (msg.type) {
-                "progress", "save" -> {
-                    setUpdateTimeJob(
-                        playerViewModel.updateTime(currentEpisode, msg.duration, msg.position, threshold)
-                    )
-                }
-
-                "next" -> {
-                    val iterator = playerViewModel.hasNextIterator.value
-                    if (iterator.hasPrevious()) castSwitchEpisode(iterator.previous(), msg, threshold)
-                }
-
-                "previous" -> {
-                    val iterator = playerViewModel.hasPreviousIterator.value
-                    if (iterator.hasNext()) castSwitchEpisode(iterator.next(), msg, threshold)
-                }
-
-                "selectEpisode" -> {
-                    playerViewModel.episodes.value.firstOrNull { it.id == msg.episodeId }
-                        ?.let { castSwitchEpisode(it, msg, threshold) }
-                }
-            }
-        }
-    }
-
-    private fun castSwitchEpisode(episode: Episode, msg: TvControlMessage, threshold: Int) {
-        // Save the outgoing episode's time before switching (currentEpisode is still the old one).
-        setUpdateTimeJob(
-            playerViewModel.updateTime(currentEpisode, msg.duration, msg.position, threshold)
-        )
-        stopCastEpisode()
-        playerViewModel.setCurrentEpisode(episode)
-    }
-
     @SuppressLint("VisibleForTests")
     private fun loadRemoteMedia() {
-        if (castSession == null || selectedSource == null || currentEpisode == null) {
+        // Use the ViewModel's current episode (the source of truth that drove the switch), not the
+        // Activity mirror field which can be stale on a swap — otherwise the receiver gets the new
+        // video with the previous episode's title/duration.
+        val episode = playerViewModel.currentEpisode.value ?: currentEpisode
+        // Same reasoning: use the ViewModel's anime, not the Activity field which can be null when the
+        // collectors haven't repopulated it yet on return (a null thumbnailUrl NPEs Uri.parse).
+        val anime = playerViewModel.anime.value ?: this.anime
+        if (castSession == null || selectedSource == null || episode == null) {
             return
         }
 
@@ -519,17 +494,17 @@ class EpisodeActivity : AppCompatActivity() {
         val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
 
         movieMetadata.putString(MediaMetadata.KEY_TITLE, anime?.title ?: "Anime Title")
-        movieMetadata.addImage(WebImage(Uri.parse(anime?.thumbnailUrl)))
+        anime?.thumbnailUrl?.let { movieMetadata.addImage(WebImage(Uri.parse(it))) }
         movieMetadata.putString(
             MediaMetadata.KEY_SUBTITLE,
-            currentEpisode!!.name
+            episode.name
         )
 
         val customData = JSONObject()
             .put("userAgent", runBlocking { dataStore.getPreferencesGroup(AdvancedPreferences) }.userAgent)
-            .put("animeId", currentEpisode!!.animeId)
-            .put("episodeId", currentEpisode!!.id)
-            .put("seen", currentEpisode!!.seen)
+            .put("animeId", episode.animeId)
+            .put("episodeId", episode.id)
+            .put("seen", episode.seen)
 
         if (availableSources != null) {
             customData.put("availableSources", json.encodeToString(availableSources))
@@ -586,7 +561,7 @@ class EpisodeActivity : AppCompatActivity() {
 
         // Known-duration fallback (re-watched episodes) so total time shows immediately; for
         // first watches the receiver reports the real duration via its MediaStatus.
-        currentEpisode!!.totalTime.takeIf { it > 0L }?.let {
+        episode.totalTime.takeIf { it > 0L }?.let {
             mediaInfosBuilder.setStreamDuration(it)
         }
 
@@ -741,11 +716,14 @@ class EpisodeActivity : AppCompatActivity() {
                 this@EpisodeActivity.castSession = session
                 setCastCustomChannel(session, errorChannel)
                 setCastCustomChannel(session, crashChannel)
-                setCastCustomChannel(session, controlChannel)
+                // The foreground service owns the control channel + episode switching so it survives
+                // the activity being locked/exited.
+                CastControlService.startNow(this@EpisodeActivity)
                 loadRemoteMedia()
             }
 
             private fun onApplicationDisconnected() {
+                // The CastControlService flushes the final watch time on session end and self-stops.
                 isCasting.value = false
                 this@EpisodeActivity.castSession = null
             }

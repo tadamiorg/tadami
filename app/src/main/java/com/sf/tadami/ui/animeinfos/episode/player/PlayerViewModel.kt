@@ -178,7 +178,8 @@ class PlayerViewModel(
             val selectedEpisode =
                 currentEpisode.value?.let { episodeRepository.getEpisodeById(it.id) }
             withContext(Dispatchers.Main) {
-                callback(selectedEpisode?.timeSeen ?: 0)
+                // A finished episode restarts from 0; otherwise resume at the saved time (0 if none).
+                callback(if (selectedEpisode?.seen == true) 0L else selectedEpisode?.timeSeen ?: 0L)
             }
         }
     }

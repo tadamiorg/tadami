@@ -42,6 +42,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionErrorDialog
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.logCastConnectionError
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
+import com.sf.tadami.notifications.cast.CastControlService
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.setComposeContent
 import com.sf.tadami.utils.editPreference
@@ -176,6 +177,11 @@ class MainActivity : AppCompatActivity() {
             castSessionManagerListener!!,
             CastSession::class.java
         )
+        // addSessionManagerListener doesn't replay for an already-live session, so cover the case of
+        // resuming onto an existing cast session.
+        if (castContext.sessionManager.currentCastSession?.isConnected == true) {
+            CastControlService.startNow(this)
+        }
         super.onResume()
     }
 
@@ -223,6 +229,9 @@ class MainActivity : AppCompatActivity() {
             private fun onApplicationConnected(session: CastSession) {
                 setCastCustomChannel(session, errorChannel)
                 this@MainActivity.castSession = session
+                // Start the control service as soon as any session connects (from any screen), not
+                // only when an episode is loaded. It owns TV episode switching and self-stops on end.
+                CastControlService.startNow(this@MainActivity)
             }
 
             @OptIn(UnstableApi::class)
