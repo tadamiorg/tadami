@@ -107,6 +107,9 @@
             tools:node="merge" />
 
         <receiver android:name=".notifications.cast.CastReceiver" />
+        <receiver
+            android:name=".ui.animeinfos.episode.cast.CastMediaIntentReceiver"
+            android:exported="false" />
         <receiver android:name=".notifications.libraryupdate.LibraryUpdateReceiver" />
         <receiver android:name=".notifications.appupdate.AppUpdateReceiver" />
         <receiver android:name=".notifications.backup.BackupReceiver" />

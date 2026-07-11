@@ -61,6 +61,9 @@ class CastControlService : Service() {
     private lateinit var notifier: CastNotifier
     private val controlChannel = ControlChannel { msg -> onControl(msg) }
     private var fetchDisposable: Disposable? = null
+    // Last seen media customData: at end of playback the media goes IDLE/FINISHED and mediaInfo
+    // becomes null, so we fall back to this to keep episode switching working past the end.
+    private var lastCustomData: JSONObject? = null
 
     private val sessionListener = object : SessionManagerListener<CastSession> {
         override fun onSessionStarted(session: CastSession, sessionId: String) = bind(session)
@@ -100,6 +103,11 @@ class CastControlService : Service() {
             Log.e("CastControlService", "startForeground failed", e)
             stopSelf()
         }
+        // Media-notification skip buttons (via CastMediaIntentReceiver) arrive here as actions.
+        when (intent?.action) {
+            ACTION_SKIP_NEXT -> skip(forward = true)
+            ACTION_SKIP_PREV -> skip(forward = false)
+        }
         return START_STICKY
     }
 
@@ -126,7 +134,9 @@ class CastControlService : Service() {
 
     /** Control messages from the TV: persist watch time, or switch episodes app-scoped. */
     private fun onControl(msg: TvControlMessage) {
-        val customData = remoteMediaClient?.mediaInfo?.customData ?: return
+        val liveCustomData = remoteMediaClient?.mediaInfo?.customData
+        if (liveCustomData != null) lastCustomData = liveCustomData
+        val customData = liveCustomData ?: lastCustomData ?: return
         when (msg.type) {
             "progress", "save" -> saveTime(episodeFromCustomData(customData), msg.duration, msg.position)
             "next" -> switchNeighbour(customData, forward = true)
@@ -138,6 +148,14 @@ class CastControlService : Service() {
                 }
             }
         }
+    }
+
+    /** Media-notification skip: resolve the live (or last-seen) customData and switch episode. */
+    private fun skip(forward: Boolean) {
+        val liveCustomData = remoteMediaClient?.mediaInfo?.customData
+        if (liveCustomData != null) lastCustomData = liveCustomData
+        val customData = liveCustomData ?: lastCustomData ?: return
+        switchNeighbour(customData, forward)
     }
 
     private fun switchNeighbour(customData: JSONObject, forward: Boolean) {
@@ -228,6 +246,20 @@ class CastControlService : Service() {
     }
 
     companion object {
+        private const val ACTION_SKIP_NEXT = "com.sf.tadami.cast.SKIP_NEXT"
+        private const val ACTION_SKIP_PREV = "com.sf.tadami.cast.SKIP_PREV"
+
+        /** Called from the media-notification skip buttons to switch episode forward/back. */
+        fun skipEpisode(context: Context, forward: Boolean) {
+            runCatching {
+                ContextCompat.startForegroundService(
+                    context,
+                    Intent(context, CastControlService::class.java)
+                        .setAction(if (forward) ACTION_SKIP_NEXT else ACTION_SKIP_PREV),
+                )
+            }.onFailure { Log.e("CastControlService", "skipEpisode failed", it) }
+        }
+
         fun startNow(context: Context) {
             // A disallowed foreground-service start (background restrictions on modern Android) must
             // degrade gracefully instead of crashing the app.

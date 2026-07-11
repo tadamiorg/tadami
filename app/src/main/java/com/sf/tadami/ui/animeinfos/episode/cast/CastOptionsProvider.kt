@@ -27,22 +27,24 @@ class CastOptionsProvider : OptionsProvider {
     }
 
     override fun getCastOptions(context: Context): CastOptions {
+        // Skip-prev/next switch EPISODES (routed through CastMediaIntentReceiver → CastControlService);
+        // rewind/forward keep the default ±skipStep seek. Compact view shows prev-episode / play-pause /
+        // next-episode, expanded adds the seek buttons.
         val buttonActions: MutableList<String> = ArrayList()
+        buttonActions.add(MediaIntentReceiver.ACTION_SKIP_PREV)
         buttonActions.add(MediaIntentReceiver.ACTION_REWIND)
         buttonActions.add(MediaIntentReceiver.ACTION_TOGGLE_PLAYBACK)
         buttonActions.add(MediaIntentReceiver.ACTION_FORWARD)
-        buttonActions.add(MediaIntentReceiver.ACTION_STOP_CASTING)
-
-
-        // Builds a notification with the above actions. Each tap on the "rewind" and "forward" buttons skips 30 seconds.
+        buttonActions.add(MediaIntentReceiver.ACTION_SKIP_NEXT)
 
         val notificationOptions = NotificationOptions.Builder()
             .setTargetActivityClassName(MainActivity::class.java.name)
-            .setActions(buttonActions, intArrayOf(0,1,2,3))
+            .setActions(buttonActions, intArrayOf(0, 2, 4))
             .setSkipStepMs(playerPreferences.doubleTapLength)
             .build()
         val mediaOptions = CastMediaOptions.Builder()
             .setNotificationOptions(notificationOptions)
+            .setMediaIntentReceiverClassName(CastMediaIntentReceiver::class.java.name)
             .build()
         val launchOptions = LaunchOptions.Builder()
             .setAndroidReceiverCompatible(true)
