@@ -168,7 +168,11 @@ class PlayerViewModel(
             animeWithEpisodesInteractor.subscribe(selectedEpisode.animeId)
                 .collectLatest { (anime, episodes) ->
                     _anime.update { anime }
-                    _episodesList.update { episodes.sortedBy { it.sourceOrder } }
+                    _episodesList.update {
+                        episodes.sortedWith(
+                            compareBy({ it.seasonNumber ?: 0f }, { it.sourceOrder })
+                        )
+                    }
                 }
         }
     }

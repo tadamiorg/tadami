@@ -8,6 +8,8 @@ import com.sf.tadami.data.interactors.anime.GetAnime
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.source.AnimeCatalogueSource
+import com.sf.tadami.source.model.SSeason
 import com.sf.tadami.ui.components.data.EpisodeItem
 import com.sf.tadami.ui.discover.migrate.MigrateHelperState
 import com.sf.tadami.ui.tabs.browse.SourceManager
@@ -40,7 +42,9 @@ class DetailsViewModel(
 
     val source = sourcesManager.getOrStub(sourceId)
 
-    private val _uiState = MutableStateFlow(DetailsUiState())
+    private val hasSeasons: Boolean = (source as? AnimeCatalogueSource)?.hasSeasons ?: false
+
+    private val _uiState = MutableStateFlow(DetailsUiState(hasSeasons = hasSeasons))
     val uiState: StateFlow<DetailsUiState> = _uiState.asStateFlow()
 
     private val selectedEpisodesIds: HashSet<Long> = HashSet()
@@ -80,9 +84,9 @@ class DetailsViewModel(
                 _uiState.update { currentState ->
                     currentState.copy(
                         details = anime,
-                        episodes = episodes.sortedBy {
-                            it.sourceOrder
-                        }.toEpisodeItems()
+                        episodes = episodes.sortedWith(
+                            compareBy({ it.seasonNumber ?: 0f }, { it.sourceOrder })
+                        ).toEpisodeItems()
                     )
                 }
             }
@@ -102,7 +106,10 @@ class DetailsViewModel(
                 fetchAnimeDetailsFromSource(anime)
             }
 
-            if (episodes.isEmpty()) {
+            if (hasSeasons) {
+                _episodesRefreshing.update { true }
+                fetchSeasonsFromSource(anime)
+            } else if (episodes.isEmpty()) {
                 _episodesRefreshing.update { true }
                 fetchEpisodesFromSource(anime)
             }
@@ -129,13 +136,77 @@ class DetailsViewModel(
         }
     }
 
+    // Seasons (compatible sources only)
+
+    private suspend fun fetchSeasonsFromSource(anime: Anime, manualFetch: Boolean = false) {
+        val seasons = source.fetchSeasonsList(anime)
+            .awaitSingleOrNull { _episodesRefreshing.update { false } }
+        if (seasons == null) {
+            _episodesRefreshing.update { false }
+            return
+        }
+        val current = uiState.value.selectedSeason
+        val selected = when {
+            current != null && seasons.any { it.name == current.name } ->
+                seasons.first { it.name == current.name }
+            else -> pickDefaultSeason(seasons, uiState.value.episodes)
+        }
+        _uiState.update { it.copy(seasons = seasons, selectedSeason = selected) }
+        if (selected != null) {
+            loadSeasonEpisodes(anime, selected, manualFetch)
+        } else {
+            _episodesRefreshing.update { false }
+        }
+    }
+
+    private fun pickDefaultSeason(seasons: List<SSeason>, episodes: List<EpisodeItem>): SSeason? {
+        val firstUnseenSeasonName = episodes
+            .sortedWith(compareBy({ it.episode.seasonNumber ?: 0f }, { it.episode.sourceOrder }))
+            .firstOrNull { !it.episode.seen }?.episode?.seasonName
+        return seasons.firstOrNull { it.name == firstUnseenSeasonName } ?: seasons.firstOrNull()
+    }
+
+    private suspend fun loadSeasonEpisodes(anime: Anime, season: SSeason, manualFetch: Boolean = false) {
+        val alreadyLoaded = uiState.value.episodes.any { it.episode.seasonName == season.name }
+        if (alreadyLoaded && !manualFetch) {
+            _episodesRefreshing.update { false }
+            return
+        }
+        _episodesRefreshing.update { true }
+        val networkEpisodes = source.fetchEpisodesList(anime.copy(url = season.url))
+            .awaitSingleOrNull { _episodesRefreshing.update { false } }
+        if (networkEpisodes != null) {
+            updateAnimeInteractor.awaitEpisodesSyncFromSource(
+                anime = anime,
+                remoteEpisodes = networkEpisodes,
+                source = source,
+                manualFetch = manualFetch,
+                season = season
+            )
+        }
+        _episodesRefreshing.update { false }
+    }
+
+    fun onSeasonSelected(season: SSeason) {
+        if (season.name == uiState.value.selectedSeason?.name) return
+        _uiState.update { it.copy(selectedSeason = season) }
+        viewModelScope.launch(Dispatchers.IO) {
+            val anime = animeWithEpisodesInteractor.awaitAnime(animeId)
+            loadSeasonEpisodes(anime, season)
+        }
+    }
+
     fun onRefresh() {
         viewModelScope.launch(Dispatchers.IO) {
             _episodesRefreshing.update { true }
             _detailsRefreshing.update { true }
             val anime = animeWithEpisodesInteractor.awaitAnime(animeId)
             fetchAnimeDetailsFromSource(anime)
-            fetchEpisodesFromSource(anime,true)
+            if (hasSeasons) {
+                fetchSeasonsFromSource(anime, manualFetch = true)
+            } else {
+                fetchEpisodesFromSource(anime,true)
+            }
         }
     }
 

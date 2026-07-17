@@ -17,6 +17,8 @@ data class BackupEpisode(
     @ProtoNumber(9) var seen: Boolean = false,
     @ProtoNumber(10) var sourceOrder: Long = 0,
     @ProtoNumber(11) var languages: String? = null,
+    @ProtoNumber(12) var seasonName: String? = null,
+    @ProtoNumber(13) var seasonNumber: Float? = null,
 
 ) {
     fun toEpisodeImpl(): Episode {
@@ -30,7 +32,9 @@ data class BackupEpisode(
             episodeNumber = this@BackupEpisode.episodeNumber,
             seen = this@BackupEpisode.seen,
             sourceOrder = this@BackupEpisode.sourceOrder,
-            languages = this@BackupEpisode.languages
+            languages = this@BackupEpisode.languages,
+            seasonName = this@BackupEpisode.seasonName,
+            seasonNumber = this@BackupEpisode.seasonNumber
         )
     }
 }

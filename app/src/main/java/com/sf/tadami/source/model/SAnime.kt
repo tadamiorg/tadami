@@ -9,6 +9,8 @@ interface SAnime{
     var description : String?
     var genres : List<String>?
     var initialized: Boolean
+    var seasonName : String?
+    var seasonNumber : Float?
 
     companion object{
         fun create() : SAnime {

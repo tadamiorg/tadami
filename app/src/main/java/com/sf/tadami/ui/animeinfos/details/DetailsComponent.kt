@@ -13,8 +13,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import com.sf.tadami.domain.anime.Anime
+import com.sf.tadami.source.model.SSeason
 import com.sf.tadami.ui.animeinfos.details.actions.AnimeActionRow
 import com.sf.tadami.ui.animeinfos.details.episodes.EpisodesHeader
+import com.sf.tadami.ui.animeinfos.details.episodes.SeasonLabel
+import com.sf.tadami.ui.animeinfos.details.episodes.SeasonSelector
 import com.sf.tadami.ui.animeinfos.details.episodes.episodeItems
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeInfosBox
 import com.sf.tadami.ui.animeinfos.details.infos.description.ExpandableAnimeDescription
@@ -35,14 +38,26 @@ fun DetailsComponent(
     onWebViewClicked : () -> Unit,
     onEpisodeClicked : (Long) -> Unit,
     onEpisodeSelected : (EpisodeItem, Boolean) -> Unit,
-    onEpisodeFilterClicked : () -> Unit
+    onEpisodeFilterClicked : () -> Unit,
+    onSeasonSelected : (SSeason) -> Unit
 
 ) {
     val topPadding = contentPadding.calculateTopPadding()
 
-    val episodes by remember(uiState.episodes,uiState.details?.unseenFilterRaw) {
+    val seasonEpisodes by remember(uiState.episodes, uiState.selectedSeason, uiState.hasSeasons) {
+        derivedStateOf {
+            val selected = uiState.selectedSeason
+            if (uiState.hasSeasons && selected != null) {
+                uiState.episodes.filter { it.episode.seasonName == selected.name }
+            } else {
+                uiState.episodes
+            }
+        }
+    }
+
+    val episodes by remember(seasonEpisodes,uiState.details?.unseenFilterRaw) {
         derivedStateOf{
-            uiState.episodes.addFilters(uiState.details?.unseenFilterRaw)
+            seasonEpisodes.addFilters(uiState.details?.unseenFilterRaw)
         }
     }
 
@@ -105,12 +120,36 @@ fun DetailsComponent(
                     )
                 }
 
+                val animeSeasonName = uiState.details?.seasonName
+                when {
+                    uiState.hasSeasons && uiState.seasons.size > 1 -> {
+                        item(
+                            key = DetailsScreenItem.SEASON_SELECTOR,
+                            contentType = DetailsScreenItem.SEASON_SELECTOR,
+                        ) {
+                            SeasonSelector(
+                                seasons = uiState.seasons,
+                                selectedSeason = uiState.selectedSeason,
+                                onSeasonSelected = onSeasonSelected
+                            )
+                        }
+                    }
+                    !animeSeasonName.isNullOrEmpty() -> {
+                        item(
+                            key = DetailsScreenItem.SEASON_SELECTOR,
+                            contentType = DetailsScreenItem.SEASON_SELECTOR,
+                        ) {
+                            SeasonLabel(name = animeSeasonName)
+                        }
+                    }
+                }
+
                 item(
                     key = DetailsScreenItem.EPISODE_HEADER,
                     contentType = DetailsScreenItem.EPISODE_HEADER,
                 ) {
                     EpisodesHeader(
-                        totalEpisodes = uiState.episodes.size,
+                        totalEpisodes = seasonEpisodes.size,
                         isFiltered = uiState.details?.areEpisodesFiltered,
                         onFilterClicked = onEpisodeFilterClicked,
                         filteredEpisodes = episodes.size

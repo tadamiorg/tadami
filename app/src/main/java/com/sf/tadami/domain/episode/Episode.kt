@@ -14,7 +14,9 @@ data class Episode(
     val episodeNumber : Float,
     val seen : Boolean,
     val sourceOrder : Long,
-    val languages : String?
+    val languages : String?,
+    val seasonName : String? = null,
+    val seasonNumber : Float? = null
 ) {
 
     fun copyFrom(other: Episode): Episode {
@@ -22,7 +24,9 @@ data class Episode(
             name = other.name,
             url = other.url,
             dateUpload = other.dateUpload,
-            episodeNumber = other.episodeNumber
+            episodeNumber = other.episodeNumber,
+            seasonName = other.seasonName,
+            seasonNumber = other.seasonNumber
         )
     }
     companion object {
@@ -39,7 +43,9 @@ data class Episode(
                 dateUpload = -1,
                 seen = false,
                 sourceOrder = 0L,
-                languages = null
+                languages = null,
+                seasonName = null,
+                seasonNumber = null
             )
         }
     }
@@ -52,6 +58,8 @@ fun Episode.toSEpisode() : SEpisode{
         episodeNumber = this@toSEpisode.episodeNumber
         dateUpload = this@toSEpisode.dateUpload
         languages = this@toSEpisode.languages
+        seasonName = this@toSEpisode.seasonName
+        seasonNumber = this@toSEpisode.seasonNumber
     }
 }
 
@@ -61,6 +69,8 @@ fun Episode.copyFromSEpisode(other : SEpisode) : Episode{
         name = other.name,
         episodeNumber = other.episodeNumber,
         dateUpload = other.dateUpload,
-        languages = other.languages
+        languages = other.languages,
+        seasonName = other.seasonName,
+        seasonNumber = other.seasonNumber
     )
 }

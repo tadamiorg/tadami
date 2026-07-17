@@ -17,6 +17,9 @@ interface AnimeCatalogueSource : Source {
     val supportEpisodeTooltip : Boolean
         get() = false
 
+    val hasSeasons : Boolean
+        get() = false
+
     fun fetchSearch(page: Int, query : String, filters: AnimeFilterList, noToasts : Boolean = false): Observable<AnimesPage>
 
     fun fetchLatest(page: Int): Observable<AnimesPage>

@@ -16,7 +16,9 @@ object EpisodeMapper {
         dateUpload: Long,
         seen: Boolean,
         sourceOrder: Long,
-        languages : String?
+        languages : String?,
+        seasonName : String?,
+        seasonNumber : Double?
     ) : Episode = Episode(
         id = id,
         animeId = animeId,
@@ -29,7 +31,9 @@ object EpisodeMapper {
         dateUpload = dateUpload,
         seen = seen,
         sourceOrder = sourceOrder,
-        languages = languages
+        languages = languages,
+        seasonName = seasonName,
+        seasonNumber = seasonNumber?.toFloat()
     )
 
 
@@ -45,7 +49,9 @@ object EpisodeMapper {
         dateUpload: Long,
         seen: Boolean,
         sourceOrder: Long,
-        languages : String?
+        languages : String?,
+        seasonName : String?,
+        seasonNumber : Double?
     ) : BackupEpisode = BackupEpisode(
         url = url,
         name = name,
@@ -56,6 +62,8 @@ object EpisodeMapper {
         dateUpload = dateUpload,
         seen = seen,
         sourceOrder = sourceOrder,
-        languages = languages
+        languages = languages,
+        seasonName = seasonName,
+        seasonNumber = seasonNumber?.toFloat()
     )
 }

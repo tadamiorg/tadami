@@ -216,7 +216,9 @@ class BackupRestorer(
                 nextUpdate = null,
                 calculateInterval = null,
                 episodeFlags = anime.episodeFlags,
-                dateAdded = anime.dateAdded
+                dateAdded = anime.dateAdded,
+                seasonName = anime.seasonName,
+                seasonNumber = anime.seasonNumber?.toDouble()
             )
         }
         return anime.id
@@ -285,7 +287,9 @@ class BackupRestorer(
                     episode.dateUpload,
                     episode.seen,
                     episode.sourceOrder,
-                    episode.languages
+                    episode.languages,
+                    episode.seasonName,
+                    episode.seasonNumber?.toDouble()
                 )
             }
         }
@@ -309,7 +313,9 @@ class BackupRestorer(
                     dateFetch = null,
                     dateUpload = null,
                     episodeId = episode.id,
-                    languages = episode.languages
+                    languages = episode.languages,
+                    seasonName = null,
+                    seasonNumber = null
 
                 )
             }
@@ -350,7 +356,9 @@ class BackupRestorer(
                 nextUpdate = 0L,
                 calculateInterval = 0L,
                 episodeFlags = anime.episodeFlags,
-                dateAdded = anime.dateAdded
+                dateAdded = anime.dateAdded,
+                seasonName = anime.seasonName,
+                seasonNumber = anime.seasonNumber?.toDouble()
             )
             animeQueries.selectLastInsertedRowId().executeAsOne()
         }

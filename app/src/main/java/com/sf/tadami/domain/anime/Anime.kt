@@ -20,7 +20,9 @@ data class Anime(
     val fetchInterval: Int,
     val initialized: Boolean,
     val episodeFlags : Long,
-    var dateAdded: Long
+    var dateAdded: Long,
+    val seasonName: String? = null,
+    val seasonNumber: Float? = null
 ) {
     fun copyFrom(other: SAnime): Anime {
         return this.copy(
@@ -30,6 +32,8 @@ data class Anime(
             thumbnailUrl = other.thumbnailUrl,
             status = other.status,
             initialized = other.initialized && initialized,
+            seasonName = other.seasonName ?: seasonName,
+            seasonNumber = other.seasonNumber ?: seasonNumber,
         )
     }
 
@@ -40,6 +44,8 @@ data class Anime(
         other.genres?.let { anime = anime.copy(genres = it) }
         other.thumbnail_url?.let { anime = anime.copy(thumbnailUrl = it) }
         anime = anime.copy(status = other.status)
+        other.season_name?.let { anime = anime.copy(seasonName = it) }
+        other.season_number?.let { anime = anime.copy(seasonNumber = it.toFloat()) }
         if (!initialized) {
             anime = anime.copy(initialized = other.initialized)
         }
@@ -106,7 +112,9 @@ data class Anime(
             nextUpdate = 0L,
             fetchInterval = 0,
             episodeFlags = 0L,
-            dateAdded = 0L
+            dateAdded = 0L,
+            seasonName = null,
+            seasonNumber = null
         )
     }
 }
@@ -121,7 +129,9 @@ fun SAnime.toDomainAnime(source: Long): Anime {
         status = status,
         description = description,
         genres = genres,
-        initialized = initialized
+        initialized = initialized,
+        seasonName = seasonName,
+        seasonNumber = seasonNumber
     )
 }
 

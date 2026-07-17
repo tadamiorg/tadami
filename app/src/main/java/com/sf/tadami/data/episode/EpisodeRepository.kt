@@ -36,7 +36,9 @@ class EpisodeRepositoryImpl(
                         dateUpload = episode.dateUpload,
                         seen = episode.seen,
                         sourceOrder = episode.sourceOrder,
-                        languages = episode.languages
+                        languages = episode.languages,
+                        seasonName = episode.seasonName,
+                        seasonNumber = episode.seasonNumber?.toDouble()
                     )
                     val insertedEpId = episodeQueries.selectLastInsertedRowId().executeAsOne()
                     episode.copy(id = insertedEpId)
@@ -96,7 +98,9 @@ class EpisodeRepositoryImpl(
                     seen = episodeUpdate.seen,
                     sourceOrder = episodeUpdate.sourceOrder,
                     episodeId = episodeUpdate.id,
-                    languages = episodeUpdate.languages
+                    languages = episodeUpdate.languages,
+                    seasonName = episodeUpdate.seasonName,
+                    seasonNumber = episodeUpdate.seasonNumber?.toDouble()
                 )
             }
         }
@@ -116,7 +120,9 @@ class EpisodeRepositoryImpl(
                     dateUpload = it.second.dateUpload,
                     seen = it.second.seen,
                     sourceOrder = it.second.sourceOrder,
-                    languages =  it.second.languages
+                    languages =  it.second.languages,
+                    seasonName = it.second.seasonName,
+                    seasonNumber = it.second.seasonNumber?.toDouble()
                 )
             }
         }
@@ -136,7 +142,9 @@ class EpisodeRepositoryImpl(
                 seen = episodeUpdate.seen,
                 sourceOrder = episodeUpdate.sourceOrder,
                 episodeId = episodeUpdate.id,
-                languages = episodeUpdate.languages
+                languages = episodeUpdate.languages,
+                seasonName = episodeUpdate.seasonName,
+                seasonNumber = episodeUpdate.seasonNumber?.toDouble()
             )
         }
     }

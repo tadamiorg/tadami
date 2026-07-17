@@ -242,6 +242,9 @@ fun DetailsScreen(
                 },
                 onEpisodeFilterClicked = {
                     showFiltersSheet = true
+                },
+                onSeasonSelected = { season ->
+                    detailsViewModel.onSeasonSelected(season)
                 }
             )
         }

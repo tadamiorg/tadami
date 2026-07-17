@@ -11,6 +11,7 @@ import com.sf.tadami.domain.episode.toUpdateEpisode
 import com.sf.tadami.source.Source
 import com.sf.tadami.source.model.SAnime
 import com.sf.tadami.source.model.SEpisode
+import com.sf.tadami.source.model.SSeason
 import java.time.Instant
 import java.time.ZonedDateTime
 import java.util.TreeSet
@@ -69,6 +70,8 @@ class UpdateAnimeInteractor(
                 thumbnailUrl = thumbnailUrl,
                 status = remoteAnime.status,
                 initialized = true,
+                seasonName = remoteAnime.seasonName,
+                seasonNumber = remoteAnime.seasonNumber,
             )
         )
     }
@@ -89,6 +92,7 @@ class UpdateAnimeInteractor(
         source : Source,
         manualFetch: Boolean = false,
         fetchWindow: Pair<Long, Long> = Pair(0, 0),
+        season: SSeason? = null,
     ): List<Episode> {
         val now = ZonedDateTime.now()
         val nowMillis = now.toInstant().toEpochMilli()
@@ -99,10 +103,18 @@ class UpdateAnimeInteractor(
                 Episode.create()
                     .copyFromSEpisode(sEpisode)
                     .copy(name = sEpisode.name)
-                    .copy(animeId = anime.id, sourceOrder = i.toLong())
+                    .copy(
+                        animeId = anime.id,
+                        sourceOrder = i.toLong(),
+                        seasonName = sEpisode.seasonName ?: season?.name,
+                        seasonNumber = sEpisode.seasonNumber ?: season?.number
+                    )
             }
 
+        // When syncing a single season, only that season's episodes are candidates for
+        // update/removal — episodes of other (lazily-loaded) seasons must be left untouched.
         val dbEpisodes = episodeRepository.getEpisodesByAnimeId(anime.id)
+            .let { all -> if (season != null) all.filter { it.seasonName == season.name } else all }
 
         val newEpisodes = mutableListOf<Episode>()
         val updatedEpisodes = mutableListOf<Episode>()

@@ -20,7 +20,9 @@ object AnimeMapper {
         favorite: Boolean,
         initialized: Boolean,
         episodeFlags : Long,
-        dateAdded : Long
+        dateAdded : Long,
+        seasonName : String?,
+        seasonNumber : Double?
     ) : Anime = Anime(
         id = id,
         source = source,
@@ -37,7 +39,9 @@ object AnimeMapper {
         nextUpdate = nextUpdate ?: 0,
         fetchInterval = calculateInterval.toInt(),
         episodeFlags = episodeFlags,
-        dateAdded = dateAdded
+        dateAdded = dateAdded,
+        seasonName = seasonName,
+        seasonNumber = seasonNumber?.toFloat()
     )
 
     fun mapLibraryAnime(

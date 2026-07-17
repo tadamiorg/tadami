@@ -1,0 +1,4 @@
+-- Anime-level season: extensions that split seasons into separate anime entries,
+-- shown as a static label where the season selector sits. Nullable, so existing rows are unaffected.
+ALTER TABLE Anime ADD COLUMN season_name TEXT;
+ALTER TABLE Anime ADD COLUMN season_number REAL;

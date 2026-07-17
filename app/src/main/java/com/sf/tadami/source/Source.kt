@@ -3,6 +3,7 @@ package com.sf.tadami.source
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.source.model.SAnime
 import com.sf.tadami.source.model.SEpisode
+import com.sf.tadami.source.model.SSeason
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.utils.Lang
 import io.reactivex.rxjava3.core.Observable
@@ -17,6 +18,8 @@ interface Source {
     fun fetchAnimeDetails(anime: Anime): Observable<SAnime> = throw IllegalStateException("Not used")
 
     fun fetchEpisodesList(anime: Anime): Observable<List<SEpisode>> = throw IllegalStateException("Not used")
+
+    fun fetchSeasonsList(anime: Anime): Observable<List<SSeason>> = throw IllegalStateException("Not used")
 
     @Deprecated("Use fetchEpisodeSources instead", ReplaceWith("fetchEpisodeSources(url)"))
     fun fetchEpisode(url: String): Observable<List<StreamSource>> = throw IllegalStateException("Not used")

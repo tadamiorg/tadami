@@ -6,4 +6,6 @@ class SEpisodeImpl : SEpisode {
     override var episodeNumber: Float = -1f
     override var dateUpload: Long = 0
     override var languages: String? = null
+    override var seasonName: String? = null
+    override var seasonNumber: Float? = null
 }

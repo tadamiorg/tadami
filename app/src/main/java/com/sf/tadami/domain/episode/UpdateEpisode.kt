@@ -12,7 +12,9 @@ data class UpdateEpisode(
     val dateUpload: Long? = null,
     val seen: Boolean? = null,
     val sourceOrder : Long? = null,
-    val languages : String? = null
+    val languages : String? = null,
+    val seasonName : String? = null,
+    val seasonNumber : Float? = null
 )
 
 fun Episode.toUpdateEpisode() : UpdateEpisode{
@@ -28,6 +30,8 @@ fun Episode.toUpdateEpisode() : UpdateEpisode{
         dateUpload = dateUpload,
         seen = seen,
         sourceOrder = sourceOrder,
-        languages = languages
+        languages = languages,
+        seasonName = seasonName,
+        seasonNumber = seasonNumber
     )
 }

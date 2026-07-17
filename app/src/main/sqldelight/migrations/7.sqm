@@ -1,0 +1,4 @@
+-- Episode-level seasons: extensions with an in-app season selector (hasSeasons).
+-- Nullable, so existing episodes remain non-seasonal (flat list).
+ALTER TABLE Episode ADD COLUMN season_name TEXT;
+ALTER TABLE Episode ADD COLUMN season_number REAL;
