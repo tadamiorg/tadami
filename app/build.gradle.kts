@@ -82,6 +82,14 @@ android {
 
 }
 
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            output.outputFileName.set("tadami.apk")
+        }
+    }
+}
+
 fun getBuildDate(): String {
     val date = Date()
     val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
