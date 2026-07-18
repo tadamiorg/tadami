@@ -29,7 +29,7 @@ class MigrateViewModel(
             _uiState.update {
                 it.copy(
                     fromSourceId = anime.source,
-                    searchQuery = anime.title
+                    searchQuery = anime.rawTitle ?: anime.title
                 )
             }
             search()

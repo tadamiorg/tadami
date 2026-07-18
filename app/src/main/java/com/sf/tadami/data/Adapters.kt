@@ -1,7 +1,14 @@
 package com.sf.tadami.data
 
 import app.cash.sqldelight.ColumnAdapter
+import com.sf.tadami.source.model.SAnimeStatus
 import java.util.Date
+
+val animeStatusAdapter = object : ColumnAdapter<SAnimeStatus, String> {
+    override fun decode(databaseValue: String) =
+        SAnimeStatus.entries.find { it.name == databaseValue } ?: SAnimeStatus.UNKNOWN
+    override fun encode(value: SAnimeStatus) = value.name
+}
 
 private const val listOfStringsSeparator = ", "
 val listOfStringsAdapter = object : ColumnAdapter<List<String>, String> {

@@ -26,7 +26,16 @@
     <string name="player_epsiode_tooltip_show_again">Don\'t show again</string>
     <!-- Strings used for fragments for navigation -->
     <string name="unknown_author">Unknown Auhtor</string>
+    <string name="unknown_studio">Unknown Studio</string>
+    <string name="anime_info_studio">Studio</string>
+    <string name="anime_info_author">Author</string>
+    <string name="anime_info_release">Release date</string>
     <string name="unknown_status">Unknown Status</string>
+    <string name="status_unknown">Unknown</string>
+    <string name="status_ongoing">Ongoing</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_on_hiatus">On hiatus</string>
+    <string name="status_cancelled">Cancelled</string>
     <string name="unknown_description">No description found !</string>
     <string name="player_screen_episode_label">Episode</string>
     <string name="player_screen_qd_ok_btn" tools:ignore="ButtonCase,Typos">Ok</string>

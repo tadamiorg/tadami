@@ -25,7 +25,16 @@
     <string name="empty_screen">Eh bien, c\'est gênant</string>
     <!-- Strings used for fragments for navigation -->
     <string name="unknown_author">Auteur Inconnu</string>
+    <string name="unknown_studio">Studio Inconnu</string>
+    <string name="anime_info_studio">Studio</string>
+    <string name="anime_info_author">Auteur</string>
+    <string name="anime_info_release">Date de sortie</string>
     <string name="unknown_status">Status Inconnu</string>
+    <string name="status_unknown">Inconnu</string>
+    <string name="status_ongoing">En cours</string>
+    <string name="status_completed">Terminé</string>
+    <string name="status_on_hiatus">En pause</string>
+    <string name="status_cancelled">Annulé</string>
     <string name="unknown_description">Description introuvable !</string>
     <string name="player_screen_episode_label">Episode</string>
     <string name="player_screen_qd_ok_btn">Ok</string>

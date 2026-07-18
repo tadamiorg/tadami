@@ -2,6 +2,7 @@ package com.sf.tadami.data.anime
 
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.LibraryAnime
+import com.sf.tadami.source.model.SAnimeStatus
 
 object AnimeMapper {
     fun mapAnime(
@@ -11,7 +12,7 @@ object AnimeMapper {
         title: String,
         thumbnailUrl: String?,
         release: String?,
-        status: String?,
+        status: SAnimeStatus?,
         description: String?,
         genres: List<String>?,
         lastUpdate : Long?,
@@ -20,15 +21,21 @@ object AnimeMapper {
         favorite: Boolean,
         initialized: Boolean,
         episodeFlags : Long,
-        dateAdded : Long
+        dateAdded : Long,
+        studio: String?,
+        author: String?,
+        rawTitle: String?
     ) : Anime = Anime(
         id = id,
         source = source,
         url = url,
         title = title,
+        rawTitle = rawTitle,
         thumbnailUrl = thumbnailUrl,
         release = release,
-        status = status,
+        studio = studio,
+        author = author,
+        status = status ?: SAnimeStatus.UNKNOWN,
         description = description,
         genres = genres,
         favorite = favorite,
@@ -47,7 +54,7 @@ object AnimeMapper {
         title: String,
         thumbnailUrl: String?,
         release: String?,
-        status: String?,
+        status: SAnimeStatus?,
         description: String?,
         genres: List<String>?,
         lastUpdate : Long?,
@@ -57,6 +64,9 @@ object AnimeMapper {
         initialized: Boolean,
         episodeFlags : Long,
         dateAdded: Long,
+        studio: String?,
+        author: String?,
+        rawTitle: String?,
 
         episodes : Long,
         unseenEpisodes: Double
@@ -65,9 +75,12 @@ object AnimeMapper {
         source = source,
         url = url,
         title = title,
+        rawTitle = rawTitle,
         thumbnailUrl = thumbnailUrl,
         release = release,
-        status = status,
+        studio = studio,
+        author = author,
+        status = status ?: SAnimeStatus.UNKNOWN,
         description = description,
         genres = genres,
         favorite = favorite,

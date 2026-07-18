@@ -9,6 +9,7 @@ import com.sf.tadami.data.AndroidDatabaseHandler
 import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.data.anime.AnimeRepositoryImpl
+import com.sf.tadami.data.animeStatusAdapter
 import com.sf.tadami.data.dateColumnAdapter
 import com.sf.tadami.data.download.DownloadProvider
 import com.sf.tadami.data.download.TadamiDownloadManager
@@ -95,7 +96,8 @@ class AppModule(private val app: Application) : InjektModule {
             Database(
                 driver = get(),
                 AnimeAdapter = Anime.Adapter(
-                    genresAdapter = listOfStringsAdapter
+                    genresAdapter = listOfStringsAdapter,
+                    statusAdapter = animeStatusAdapter
                 ),
                 HistoryAdapter = History.Adapter(
                     seen_atAdapter = dateColumnAdapter

@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import com.sf.tadami.domain.anime.Anime
+import com.sf.tadami.source.model.SAnimeStatus
 import com.sf.tadami.ui.animeinfos.details.actions.AnimeActionRow
 import com.sf.tadami.ui.animeinfos.details.episodes.EpisodesHeader
 import com.sf.tadami.ui.animeinfos.details.episodes.episodeItems
@@ -35,7 +36,8 @@ fun DetailsComponent(
     onWebViewClicked : () -> Unit,
     onEpisodeClicked : (Long) -> Unit,
     onEpisodeSelected : (EpisodeItem, Boolean) -> Unit,
-    onEpisodeFilterClicked : () -> Unit
+    onEpisodeFilterClicked : () -> Unit,
+    onTitleSearch : (String) -> Unit = {}
 
 ) {
     val topPadding = contentPadding.calculateTopPadding()
@@ -73,12 +75,16 @@ fun DetailsComponent(
                     AnimeInfosBox(
                         appBarPadding = topPadding,
                         title =  uiState.details?.title ?: "",
-                        author = uiState.details?.release,
-                        artist = "",
-                        status = uiState.details?.status,
+                        studio = uiState.details?.studio,
+                        author = uiState.details?.author,
+                        release = uiState.details?.release,
+                        status = uiState.details?.status ?: SAnimeStatus.UNKNOWN,
                         cover = { uiState.details?.thumbnailUrl ?: "" },
                         sourceName = sourceName,
-                        isStubSource = isStubSource
+                        isStubSource = isStubSource,
+                        onTitleClicked = {
+                            uiState.details?.let { onTitleSearch(it.rawTitle ?: it.title) }
+                        }
                     )
                 }
 

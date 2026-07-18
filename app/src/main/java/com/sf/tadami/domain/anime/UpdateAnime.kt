@@ -1,13 +1,18 @@
 package com.sf.tadami.domain.anime
 
+import com.sf.tadami.source.model.SAnimeStatus
+
 data class UpdateAnime(
     val id : Long,
     val source: Long? = null,
     val url: String? = null,
     val title: String? = null,
+    val rawTitle: String? = null,
     val thumbnailUrl: String? = null,
     val release: String? = null,
-    val status: String? = null,
+    val studio: String? = null,
+    val author: String? = null,
+    val status: SAnimeStatus? = null,
     val description: String? = null,
     val genres: List<String>? = null,
     val favorite: Boolean? = null,
@@ -31,8 +36,11 @@ fun Anime.toUpdateAnime() : UpdateAnime {
         source = source,
         url = url,
         title = title,
+        rawTitle = rawTitle,
         thumbnailUrl = thumbnailUrl,
         release = release,
+        studio = studio,
+        author = author,
         status = status,
         description = description,
         genres = genres,
