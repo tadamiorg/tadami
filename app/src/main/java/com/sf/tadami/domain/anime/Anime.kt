@@ -2,6 +2,7 @@ package com.sf.tadami.domain.anime
 
 import androidx.compose.ui.state.ToggleableState
 import com.sf.tadami.source.model.SAnime
+import com.sf.tadami.source.model.SAnimeStatus
 import data.Anime as AnimeDb
 
 data class Anime(
@@ -9,9 +10,12 @@ data class Anime(
     val source: Long,
     val url: String,
     val title: String,
+    val rawTitle: String?,
     val thumbnailUrl: String?,
     val release: String?,
-    val status: String?,
+    val studio: String?,
+    val author: String?,
+    val status: SAnimeStatus,
     val description: String?,
     val genres: List<String>?,
     val favorite: Boolean,
@@ -23,8 +27,12 @@ data class Anime(
     var dateAdded: Long
 ) {
     fun copyFrom(other: SAnime): Anime {
+        val otherRawTitle = other.rawTitle
         return this.copy(
+            rawTitle = otherRawTitle ?: rawTitle,
             release = other.release,
+            studio = other.studio,
+            author = other.author,
             description = other.description,
             genres = other.genres,
             thumbnailUrl = other.thumbnailUrl,
@@ -35,11 +43,14 @@ data class Anime(
 
     fun copyFrom(other: AnimeDb): Anime {
         var anime = this
+        other.raw_title?.let { anime = anime.copy(rawTitle = it) }
         other.release?.let { anime = anime.copy(release = it) }
+        other.studio?.let { anime = anime.copy(studio = it) }
+        other.author?.let { anime = anime.copy(author = it) }
         other.description?.let { anime = anime.copy(description = it) }
         other.genres?.let { anime = anime.copy(genres = it) }
         other.thumbnail_url?.let { anime = anime.copy(thumbnailUrl = it) }
-        anime = anime.copy(status = other.status)
+        anime = anime.copy(status = other.status ?: SAnimeStatus.UNKNOWN)
         if (!initialized) {
             anime = anime.copy(initialized = other.initialized)
         }
@@ -95,9 +106,12 @@ data class Anime(
             source = -1L,
             url = "",
             title = "",
+            rawTitle = null,
             thumbnailUrl = null,
             release = null,
-            status = null,
+            studio = null,
+            author = null,
+            status = SAnimeStatus.UNKNOWN,
             description = null,
             genres = null,
             favorite = false,
@@ -116,8 +130,11 @@ fun SAnime.toDomainAnime(source: Long): Anime {
         source = source,
         url = url,
         title = title,
+        rawTitle = rawTitle,
         thumbnailUrl = thumbnailUrl,
         release = release,
+        studio = studio,
+        author = author,
         status = status,
         description = description,
         genres = genres,
@@ -131,8 +148,11 @@ fun LibraryAnime.toAnime(): Anime {
         source = source,
         url = url,
         title = title,
+        rawTitle = rawTitle,
         thumbnailUrl = thumbnailUrl,
         release = release,
+        studio = studio,
+        author = author,
         status = status,
         description = description,
         genres = genres,

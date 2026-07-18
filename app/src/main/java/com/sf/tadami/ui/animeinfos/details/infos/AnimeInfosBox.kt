@@ -13,18 +13,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import coil.compose.AsyncImage
+import com.sf.tadami.source.model.SAnimeStatus
 
 @Composable
 fun AnimeInfosBox(
     modifier: Modifier = Modifier,
     appBarPadding: Dp,
     title: String,
+    studio: String?,
     author: String?,
-    artist: String?,
+    release: String?,
     cover: () -> String,
     sourceName:String,
-    status: String?,
-    isStubSource : Boolean
+    status: SAnimeStatus,
+    isStubSource : Boolean,
+    onTitleClicked: () -> Unit = {}
 ) {
     Box(modifier = modifier) {
         // Backdrop
@@ -54,11 +57,13 @@ fun AnimeInfosBox(
                 appBarPadding = appBarPadding,
                 cover = cover,
                 title = title,
+                studio = studio,
                 author = author,
-                artist = artist,
+                release = release,
                 status = status,
                 sourceName = sourceName,
-                isStubSource = isStubSource
+                isStubSource = isStubSource,
+                onTitleClicked = onTitleClicked
             )
 
         }

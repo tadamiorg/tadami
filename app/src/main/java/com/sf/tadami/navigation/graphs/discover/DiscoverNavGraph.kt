@@ -41,7 +41,16 @@ fun NavGraphBuilder.discoverNavGraph(navController: NavHostController) {
             navController = navController
         )
     }
-    composable(route = DiscoverRoutes.GLOBAL_SEARCH)
+    composable(
+        route = "${DiscoverRoutes.GLOBAL_SEARCH}?initialQuery={initialQuery}",
+        arguments = listOf(
+            navArgument("initialQuery") {
+                nullable = true
+                defaultValue = null
+                type = NavType.StringType
+            }
+        )
+    )
     {
         GlobalSearchScreen(navController = navController)
     }

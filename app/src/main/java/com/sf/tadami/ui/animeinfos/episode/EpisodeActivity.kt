@@ -400,6 +400,7 @@ class EpisodeActivity : AppCompatActivity() {
         // already live, so when we open onto an existing cast session register the (activity-scoped)
         // error/crash channels here and make sure the control service is running (it owns the control
         // channel + episode switching, which must survive the activity being locked/exited).
+        isCasting.value =  castContext.sessionManager.currentCastSession?.isConnected ?: false
         castContext.sessionManager.currentCastSession?.takeIf { it.isConnected }?.let { session ->
             castSession = session
             setCastCustomChannel(session, errorChannel)

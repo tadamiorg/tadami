@@ -13,6 +13,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.sf.tadami.DataStoresHandler
 import com.sf.tadami.R
 import com.sf.tadami.data.DataBaseHandler
+import com.sf.tadami.data.animeStatusAdapter
 import com.sf.tadami.data.backup.models.BackupAnime
 import com.sf.tadami.data.backup.models.BackupHistory
 import com.sf.tadami.data.backup.models.BackupPreference
@@ -207,7 +208,7 @@ class BackupRestorer(
                 release = anime.release,
                 genres = anime.genres?.joinToString(separator = ", "),
                 title = anime.title,
-                status = anime.status,
+                status = animeStatusAdapter.encode(anime.status),
                 thumbnailUrl = anime.thumbnailUrl,
                 favorite = anime.favorite,
                 initialized = anime.initialized,
@@ -216,7 +217,10 @@ class BackupRestorer(
                 nextUpdate = null,
                 calculateInterval = null,
                 episodeFlags = anime.episodeFlags,
-                dateAdded = anime.dateAdded
+                dateAdded = anime.dateAdded,
+                studio = anime.studio,
+                author = anime.author,
+                rawTitle = anime.rawTitle
             )
         }
         return anime.id
@@ -350,7 +354,10 @@ class BackupRestorer(
                 nextUpdate = 0L,
                 calculateInterval = 0L,
                 episodeFlags = anime.episodeFlags,
-                dateAdded = anime.dateAdded
+                dateAdded = anime.dateAdded,
+                studio = anime.studio,
+                author = anime.author,
+                rawTitle = anime.rawTitle
             )
             animeQueries.selectLastInsertedRowId().executeAsOne()
         }

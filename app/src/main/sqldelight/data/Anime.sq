@@ -1,3 +1,4 @@
+import com.sf.tadami.source.model.SAnimeStatus;
 import kotlin.Boolean;
 import kotlin.String;
 import kotlin.collections.List;
@@ -9,7 +10,7 @@ CREATE TABLE Anime (
   title TEXT NOT NULL,
   thumbnail_url TEXT,
   release TEXT,
-  status TEXT,
+  status TEXT AS SAnimeStatus,
   description TEXT,
   genres TEXT AS List<String>,
   last_update INTEGER,
@@ -18,7 +19,10 @@ CREATE TABLE Anime (
   favorite INTEGER AS Boolean NOT NULL DEFAULT 0,
   initialized INTEGER AS Boolean NOT NULL DEFAULT 0,
   episode_flags INTEGER NOT NULL,
-  date_added INTEGER NOT NULL
+  date_added INTEGER NOT NULL,
+  studio TEXT,
+  author TEXT,
+  raw_title TEXT
 );
 
 CREATE INDEX animes_favorite_index ON Anime(favorite) WHERE favorite = 1;
@@ -41,7 +45,10 @@ SELECT
     favorite,
     initialized,
     episode_flags,
-    date_added
+    date_added,
+    studio,
+    author,
+    raw_title
 FROM Anime
 WHERE url = :url AND source = :source
 LIMIT 1;
@@ -63,7 +70,10 @@ SELECT
     favorite,
     initialized,
     episode_flags,
-    date_added
+    date_added,
+    studio,
+    author,
+    raw_title
 FROM Anime;
 
 getById:
@@ -83,7 +93,10 @@ SELECT
     favorite,
     initialized,
     episode_flags,
-    date_added
+    date_added,
+    studio,
+    author,
+    raw_title
 FROM Anime
 WHERE _id = :animeId;
 
@@ -92,8 +105,8 @@ DELETE FROM Anime
 WHERE _id IN :animeId;
 
 insert:
-INSERT INTO Anime(source, url, title, thumbnail_url, release, status, description, genres, last_update,next_update,calculate_interval,favorite, initialized,episode_flags,date_added)
-VALUES (:source,:url,:title,:thumbnailUrl,:release,:status,:description,:genres,:lastUpdate,:nextUpdate,:calculateInterval,:favorite,:initiliazed,:episodeFlags,:dateAdded);
+INSERT INTO Anime(source, url, title, thumbnail_url, release, status, description, genres, last_update,next_update,calculate_interval,favorite, initialized,episode_flags,date_added,studio,author,raw_title)
+VALUES (:source,:url,:title,:thumbnailUrl,:release,:status,:description,:genres,:lastUpdate,:nextUpdate,:calculateInterval,:favorite,:initiliazed,:episodeFlags,:dateAdded,:studio,:author,:rawTitle);
 
 update:
 UPDATE Anime
@@ -111,7 +124,10 @@ SET source = coalesce(:source, source),
     favorite = coalesce(:favorite, favorite),
     initialized = coalesce(:initialized, initialized),
     episode_flags = coalesce(:episodeFlags, episode_flags),
-    date_added = coalesce(:dateAdded, date_added)
+    date_added = coalesce(:dateAdded, date_added),
+    studio = coalesce(:studio, studio),
+    author = coalesce(:author, author),
+    raw_title = coalesce(:rawTitle, raw_title)
 WHERE _id = :animeId;
 
 getFavorites:
@@ -131,7 +147,10 @@ SELECT
     favorite,
     initialized,
     episode_flags,
-    date_added
+    date_added,
+    studio,
+    author,
+    raw_title
 FROM Anime
 WHERE favorite = 1;
 

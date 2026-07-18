@@ -3,6 +3,7 @@ package com.sf.tadami.ui.discover.globalSearch
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -18,6 +19,13 @@ fun GlobalSearchScreen(
     globalSearchViewModel: GlobalSearchViewModel = viewModel()
 ) {
     val uiState by globalSearchViewModel.uiState.collectAsState()
+
+    // Auto-run the search when the screen is opened with a seeded query (e.g. from a title click).
+    LaunchedEffect(Unit) {
+        if (uiState.searchQuery.isNotEmpty()) {
+            globalSearchViewModel.search()
+        }
+    }
 
     Scaffold(
         topBar = {

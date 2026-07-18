@@ -1,3 +1,11 @@
+-- Add studio / author metadata columns and a raw (canonical) title used for search & migration.
+ALTER TABLE Anime ADD COLUMN studio TEXT;
+ALTER TABLE Anime ADD COLUMN author TEXT;
+ALTER TABLE Anime ADD COLUMN raw_title TEXT;
+
+-- LibraryView explicitly lists Anime columns, so recreate it to expose the new columns.
+DROP VIEW IF EXISTS LibraryView;
+
 CREATE VIEW LibraryView AS
 SELECT
 Anime._id,
@@ -25,6 +33,3 @@ FROM Anime
 LEFT JOIN Episode ON Anime._id = Episode.anime_id
 WHERE Anime.favorite = 1
 GROUP BY Anime._id;
-
-getLibrary:
-SELECT * FROM LibraryView;

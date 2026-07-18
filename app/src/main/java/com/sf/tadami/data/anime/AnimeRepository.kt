@@ -4,6 +4,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.sf.tadami.data.DataBaseHandler
+import com.sf.tadami.data.animeStatusAdapter
 import com.sf.tadami.data.listOfStringsAdapter
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.LibraryAnime
@@ -71,7 +72,10 @@ class AnimeRepositoryImpl(
                 nextUpdate = anime.nextUpdate,
                 calculateInterval = anime.fetchInterval.toLong(),
                 episodeFlags = anime.episodeFlags,
-                dateAdded = anime.dateAdded
+                dateAdded = anime.dateAdded,
+                studio = anime.studio,
+                author = anime.author,
+                rawTitle = anime.rawTitle
             )
             animeQueries.selectLastInsertedRowId()
         }
@@ -134,7 +138,7 @@ class AnimeRepositoryImpl(
                     title = anime.title,
                     thumbnailUrl = anime.thumbnailUrl,
                     release = anime.release,
-                    status = anime.status,
+                    status = anime.status?.let(animeStatusAdapter::encode),
                     description = anime.description,
                     genres = anime.genres?.let(listOfStringsAdapter::encode),
                     favorite = anime.favorite,
@@ -144,7 +148,10 @@ class AnimeRepositoryImpl(
                     nextUpdate = anime.nextUpdate,
                     lastUpdate = anime.lastUpdate,
                     episodeFlags = anime.episodeFlags,
-                    dateAdded = anime.dateAdded
+                    dateAdded = anime.dateAdded,
+                    studio = anime.studio,
+                    author = anime.author,
+                    rawTitle = anime.rawTitle
                 )
             }
             true
@@ -162,7 +169,7 @@ class AnimeRepositoryImpl(
                     title = anime.title,
                     thumbnailUrl = anime.thumbnailUrl,
                     release = anime.release,
-                    status = anime.status,
+                    status = anime.status?.let(animeStatusAdapter::encode),
                     description = anime.description,
                     genres = anime.genres?.let(listOfStringsAdapter::encode),
                     favorite = anime.favorite,
@@ -172,7 +179,10 @@ class AnimeRepositoryImpl(
                     nextUpdate = anime.nextUpdate,
                     lastUpdate = anime.lastUpdate,
                     episodeFlags = anime.episodeFlags,
-                    dateAdded = anime.dateAdded
+                    dateAdded = anime.dateAdded,
+                    studio = anime.studio,
+                    author = anime.author,
+                    rawTitle = anime.rawTitle
                 )
             }
         }
