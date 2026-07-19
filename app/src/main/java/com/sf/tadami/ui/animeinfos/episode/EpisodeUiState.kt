@@ -7,6 +7,7 @@ data class EpisodeUiState (
     val rawUrl : String? = null,
     val selectedSource : StreamSource? = null,
     val selectedSubtitleTrack: Track.SubtitleTrack? = null,
+    val selectedAudioTrack: Track.AudioTrack? = null,
     val availableSources : List<StreamSource> = listOf(),
     val loadError : Boolean = false
 )

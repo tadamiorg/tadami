@@ -2,7 +2,7 @@ package com.sf.tadami.ui.animeinfos.episode.player
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.util.TypedValue
+import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedDispatcher
@@ -30,6 +30,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -44,6 +45,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
+import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
@@ -53,6 +55,7 @@ import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.sf.tadami.R
@@ -69,8 +72,10 @@ import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.EpisodesDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.episodetooltip.EpisodeTooltipDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.SettingsDialog
-import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.tabs.toSubtitlesStyle
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.audioselection.AudioSelectionDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.TracksSelectionDialog
+import com.sf.tadami.ui.animeinfos.episode.player.subtitles.PlayerSubtitleView
+import com.sf.tadami.ui.animeinfos.episode.player.subtitles.SubtitleStyle
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.videoselection.VideoSelectionDialog
 import com.sf.tadami.ui.animeinfos.episode.player.subtitles.CustomSubtitleParserFactory
 import com.sf.tadami.ui.components.widgets.ContentLoader
@@ -82,6 +87,9 @@ import kotlinx.coroutines.delay
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import kotlin.time.Duration.Companion.seconds
+
+/** Prefix used to tag each side-loaded subtitle so it can be selected by an explicit override. */
+private const val SUBTITLE_ID_PREFIX = "tadami_sub_"
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -149,9 +157,13 @@ fun VideoPlayer(
 
     val loadControl = remember {
         DefaultLoadControl.Builder().apply {
-            setBufferDurationsMs(300000, 300000, 1500, 3500)
-            setBackBuffer(300000, false)
-            setPrioritizeTimeOverSizeThresholds(true)
+            // Keep a generous forward time target for flaky scraper streams, but cap the heap by bytes so
+            // high-bitrate HLS can't fill ~10 min of samples and OOM (crash: DefaultAllocator.allocate ->
+            // SampleDataQueue.preAppend). prioritizeTimeOverSizeThresholds=false makes the byte cap authoritative.
+            setBufferDurationsMs(30_000, 180_000, 1_500, 3_500)
+            setBackBuffer(30_000, true)
+            setTargetBufferBytes(64 * 1024 * 1024)
+            setPrioritizeTimeOverSizeThresholds(false)
         }.build()
     }
 
@@ -194,6 +206,7 @@ fun VideoPlayer(
     var openVideoSelectionDialog by remember { mutableStateOf(false) }
 
     var openTracksSelectionDialog by remember { mutableStateOf(false) }
+    var openAudioSelectionDialog by remember { mutableStateOf(false) }
 
     var openSettingsDialog by remember { mutableStateOf(false) }
 
@@ -223,46 +236,147 @@ fun VideoPlayer(
             dispatcher.onBackPressed()
         }
     }
+    // Selects the subtitle track by an explicit override keyed on the config id (like the cast path
+    // selects by track id), instead of ExoPlayer language-preference matching which is unreliable for
+    // side-loaded subtitles. Kept fresh via rememberUpdatedState so the player listener sees current state.
+    val selectSubtitle by rememberUpdatedState<(Tracks) -> Unit>(fun(tracks: Tracks) {
+        val source = episodeUiState.selectedSource ?: return
+        val subs = source.subtitleTracks.filter { it.mimeType != MimeTypes.TEXT_UNKNOWN }
+        val enabled = playerPreferences.subtitlesEnabled
+        if (!enabled || subs.isEmpty()) {
+            exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
+                .clearOverridesOfType(C.TRACK_TYPE_TEXT)
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !enabled)
+                .build()
+            return
+        }
+        val manual = episodeUiState.selectedSubtitleTrack
+        val prefs = playerPreferences.subtitlePrefLanguages.split(",")
+        // Which subtitle we want: the manually chosen one, else the first that matches the
+        // ordered subtitle-language preference.
+        val desiredIndex = when {
+            manual != null -> subs.indexOf(manual).takeIf { it >= 0 }
+            else -> prefs.firstNotNullOfOrNull { pref ->
+                subs.indexOfFirst { it.lang.convertToIetfLanguageTag().equals(pref, ignoreCase = true) }
+                    .takeIf { it >= 0 }
+            }
+        } ?: return
+
+        // Find the text track group whose format id is the one we tagged in the SubtitleConfiguration.
+        // media3 prefixes ids with a "<period>:<group>:" tag when sources are merged (the audio
+        // MergingMediaSource wrapping the subtitle-merged video), so match by suffix as well as exact.
+        val targetId = "$SUBTITLE_ID_PREFIX$desiredIndex"
+        fun matchesId(id: String?) = id == targetId || id?.endsWith(":$targetId") == true
+        var group: Tracks.Group? = null
+        var trackInGroup = 0
+        for (g in tracks.groups.filter { it.type == C.TRACK_TYPE_TEXT }) {
+            for (i in 0 until g.length) {
+                if (matchesId(g.getTrackFormat(i).id)) {
+                    group = g
+                    trackInGroup = i
+                    break
+                }
+            }
+            if (group != null) break
+        }
+
+        val target = group
+        if (target == null) {
+            // Fallback (id not resolvable yet): use language preference so subtitles still show.
+            exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+                .apply {
+                    if (manual != null) setPreferredTextLanguage(manual.lang.convertToIetfLanguageTag())
+                    else setPreferredTextLanguages(*prefs.toTypedArray())
+                }
+                .build()
+            return
+        }
+
+        if (target.isSelected && target.isTrackSelected(trackInGroup)) return
+        exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+            .setOverrideForType(TrackSelectionOverride(target.mediaTrackGroup, trackInGroup))
+            .build()
+    })
+
+    // Selects the audio track by overriding the merged audio track-group at the index of the chosen
+    // audioTrack (default 0 = the preferred/Japanese track the extension puts first). Seamless — no rebuild.
+    val selectAudio by rememberUpdatedState<(Tracks) -> Unit>(fun(tracks: Tracks) {
+        val source = episodeUiState.selectedSource ?: return
+        if (source.audioTracks.isEmpty()) return
+        val desiredIndex = episodeUiState.selectedAudioTrack
+            ?.let { sel -> source.audioTracks.indexOfFirst { it.lang == sel.lang } }
+            ?.takeIf { it >= 0 } ?: 0
+        val group = tracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }.getOrNull(desiredIndex) ?: return
+        if (group.isSelected && group.isTrackSelected(0)) return
+        exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
+            .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, 0))
+            .build()
+    })
+
     LaunchedEffect(
         playerPreferences.subtitlesEnabled,
         playerPreferences.subtitlePrefLanguages,
         episodeUiState.selectedSubtitleTrack,
         episodeUiState.selectedSource
     ) {
-        val preferredLanguages = playerPreferences.subtitlePrefLanguages.split(",")
-        exoPlayer.trackSelectionParameters = buildTrackParameters(
-            player = exoPlayer,
-            subtitlesEnabled = playerPreferences.subtitlesEnabled,
-            preferredLanguages = preferredLanguages,
-            selectedTrack = episodeUiState.selectedSubtitleTrack,
-            selectedSource = episodeUiState.selectedSource
-        )
+        selectSubtitle(exoPlayer.currentTracks)
+    }
+
+    LaunchedEffect(episodeUiState.selectedAudioTrack, episodeUiState.selectedSource) {
+        selectAudio(exoPlayer.currentTracks)
     }
 
     LaunchedEffect(key1 = episodeUiState.selectedSource) {
-        episodeUiState.selectedSource?.let {
+        episodeUiState.selectedSource?.let { source ->
+            // Drop stale text/audio overrides from the previous source; a lingering override pointing at the
+            // old source's track group blocks the new source's subtitle from auto-selecting (onTracksChanged
+            // re-applies the right one once the new tracks load).
+            exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
+                .clearOverridesOfType(C.TRACK_TYPE_TEXT)
+                .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
+                .build()
             playerViewModel.getDbEpisodeTime { timeSeen ->
-                exoPlayer.prepare()
                 exoPlayer.playWhenReady = true
+                val startPos = timeSeen.takeIf { it > 0 } ?: currentTime
 
-                val item = MediaItem.Builder().apply {
-                    setUri(it.url)
-                    if (it.subtitleTracks.isNotEmpty()) {
-                        val subtitlesConfigurations = it.subtitleTracks.filter {
+                val videoItem = MediaItem.Builder().apply {
+                    setUri(source.url)
+                    if (source.subtitleTracks.isNotEmpty()) {
+                        val subtitlesConfigurations = source.subtitleTracks.filter {
                             it.mimeType !== MimeTypes.TEXT_UNKNOWN
                         }.mapIndexed { index, sub ->
                             MediaItem.SubtitleConfiguration.Builder(Uri.parse(sub.url))
                                 .setMimeType(sub.mimeType)
-                                .setLanguage(sub.lang.convertToIetfLanguageTag() + index)
+                                .setLanguage(sub.lang.convertToIetfLanguageTag())
+                                // Stable id so we can select this exact track via an override.
+                                .setId("$SUBTITLE_ID_PREFIX$index")
                                 .build()
                         }
                         setSubtitleConfigurations(subtitlesConfigurations)
                     }
                 }.build()
 
-                exoPlayer.setMediaItem(
-                    item,
-                    timeSeen.takeIf { it > 0 } ?: currentTime)
+                if (source.audioTracks.isNotEmpty()) {
+                    // Demuxed HLS: the variant URL is video-only, so merge the separate audio group(s). Each
+                    // audio source becomes one audio track group (the video variant contributes none), so
+                    // selectAudio can override by index. createMediaSource keeps the side-loaded subtitles.
+                    val videoSource = dataSourceFactory.createMediaSource(videoItem)
+                    val audioSources = source.audioTracks.map { audio ->
+                        dataSourceFactory.createMediaSource(MediaItem.fromUri(audio.url))
+                    }
+                    val merged = MergingMediaSource(
+                        /* adjustPeriodTimeOffsets = */ true,
+                        /* clipDurations = */ true,
+                        videoSource,
+                        *audioSources.toTypedArray(),
+                    )
+                    exoPlayer.setMediaSource(merged, startPos)
+                } else {
+                    exoPlayer.setMediaItem(videoItem, startPos)
+                }
+                exoPlayer.prepare()
                 refreshPipUi()
             }
         }
@@ -291,15 +405,9 @@ fun VideoPlayer(
         }
     }
 
-    LaunchedEffect(playerPreferences) {
-        playerView?.subtitleView?.apply {
-            setApplyEmbeddedStyles(false)
-            setStyle(playerPreferences.toSubtitlesStyle(context))
-            setFixedTextSize(
-                TypedValue.COMPLEX_UNIT_SP,
-                playerPreferences.subtitleTextSize.toFloat()
-            )
-        }
+    // Subtitles are drawn by the custom PlayerSubtitleView overlay; hide the built-in SubtitleView.
+    LaunchedEffect(playerView) {
+        playerView?.subtitleView?.visibility = View.GONE
     }
 
     val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
@@ -326,15 +434,50 @@ fun VideoPlayer(
                         }
                     }
                 )
+                // The track that is actually playing: the manual choice, else the preference-matched one
+                // (auto). Used only for highlighting so it never fights the player selection.
+                val effectiveSubtitle = remember(
+                    episodeUiState.selectedSubtitleTrack,
+                    episodeUiState.selectedSource,
+                    playerPreferences.subtitlePrefLanguages,
+                    playerPreferences.subtitlesEnabled,
+                ) {
+                    if (!playerPreferences.subtitlesEnabled) null
+                    else episodeUiState.selectedSubtitleTrack ?: run {
+                        val subs = episodeUiState.selectedSource?.subtitleTracks
+                            ?.filter { it.mimeType != MimeTypes.TEXT_UNKNOWN }.orEmpty()
+                        playerPreferences.subtitlePrefLanguages.split(",").firstNotNullOfOrNull { pref ->
+                            subs.firstOrNull { it.lang.convertToIetfLanguageTag().equals(pref, ignoreCase = true) }
+                        }
+                    }
+                }
                 TracksSelectionDialog(
                     opened = openTracksSelectionDialog,
                     subtitleTracks = episodeUiState.selectedSource?.subtitleTracks,
-                    selectedSubtitleTrack = episodeUiState.selectedSubtitleTrack,
+                    selectedSubtitleTrack = effectiveSubtitle,
                     onSubtitleTrackSelected = {
                         playerViewModel.selectedSubtitleTrack(it)
                     },
                     onDismissRequest = {
                         openTracksSelectionDialog = false
+                        if (!playerInitiatedPause) {
+                            exoPlayer.play()
+                        }
+                    }
+                )
+                // The audio that is actually playing: the manual choice, else the first track (the extension
+                // puts the preferred/Japanese one first). Used for the dialog highlight.
+                val effectiveAudio = episodeUiState.selectedAudioTrack
+                    ?: episodeUiState.selectedSource?.audioTracks?.firstOrNull()
+                AudioSelectionDialog(
+                    opened = openAudioSelectionDialog,
+                    audioTracks = episodeUiState.selectedSource?.audioTracks.orEmpty(),
+                    selectedAudioTrack = effectiveAudio,
+                    onAudioTrackSelected = {
+                        playerViewModel.selectedAudioTrack(it)
+                    },
+                    onDismissRequest = {
+                        openAudioSelectionDialog = false
                         if (!playerInitiatedPause) {
                             exoPlayer.play()
                         }
@@ -416,16 +559,24 @@ fun VideoPlayer(
 
                         playerView = this
 
-                        subtitleView?.apply {
-                            setApplyEmbeddedStyles(false)
-                            setStyle(playerPreferences.toSubtitlesStyle(it))
-                            setFixedTextSize(
-                                TypedValue.COMPLEX_UNIT_SP,
-                                playerPreferences.subtitleTextSize.toFloat()
-                            )
-                        }
+                        // Hidden — subtitles are drawn by the custom Compose overlay below.
+                        subtitleView?.visibility = View.GONE
                     }
                 }
+            )
+
+            PlayerSubtitleView(
+                player = exoPlayer,
+                style = SubtitleStyle(
+                    textSize = playerPreferences.subtitleTextSize.toFloat(),
+                    textColor = Color(playerPreferences.subtitleTextColor),
+                    outlineColor = Color(playerPreferences.subtitleEdgeColor),
+                    fontWeight = playerPreferences.subtitleFontWeight,
+                    outlineFraction = playerPreferences.subtitleOutlineWidth / 100f,
+                    letterSpacing = playerPreferences.subtitleLetterSpacing / 100f,
+                    italic = playerPreferences.subtitleItalicFormat,
+                ),
+                modifier = Modifier.fillMaxSize(),
             )
 
 
@@ -443,19 +594,9 @@ fun VideoPlayer(
                     }
 
                     override fun onTracksChanged(tracks: Tracks) {
-                        if (episodeUiState.selectedSubtitleTrack == null && playerPreferences.subtitlesEnabled) {
-                            tracks.groups
-                                .filter { it.type == C.TRACK_TYPE_TEXT }
-                                .forEachIndexed { index, trackGroup ->
-                                    if (trackGroup.isSelected && trackGroup.isTrackSelected(0)) {
-                                        episodeUiState.selectedSource?.subtitleTracks?.getOrNull(
-                                            (index - 1).coerceAtLeast(0)
-                                        )?.let { track ->
-                                            playerViewModel.selectedSubtitleTrack(track)
-                                        }
-                                    }
-                                }
-                        }
+                        // Apply the preferred/selected subtitle + audio once the tracks exist.
+                        selectSubtitle(tracks)
+                        selectAudio(tracks)
                     }
 
                     override fun onEvents(
@@ -579,6 +720,11 @@ fun VideoPlayer(
                     exoPlayer.pause()
                     openTracksSelectionDialog = openTracksSelectionDialog.not()
                 },
+                onAudioSettings = {
+                    exoPlayer.pause()
+                    openAudioSelectionDialog = true
+                },
+                audioSettingsEnabled = episodeUiState.selectedSource?.audioTracks?.isNotEmpty() == true,
                 totalDuration = { totalDuration },
                 currentTime = { currentTime },
                 bufferedPercentage = { bufferedPercentage },
@@ -606,8 +752,8 @@ fun VideoPlayer(
                     hasPreviousIterator.hasNext()
                 },
                 videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty(),
-                tracksSettingsEnabled = episodeUiState.selectedSource?.subtitleTracks?.isNotEmpty()
-                    ?: false,
+                tracksSettingsEnabled = (episodeUiState.selectedSource?.subtitleTracks?.isNotEmpty() == true) ||
+                    (episodeUiState.selectedSource?.audioTracks?.isNotEmpty() == true),
                 onEpisodesClicked = {
                     exoPlayer.pause()
                     openEpisodesDialog = true
@@ -631,32 +777,6 @@ fun VideoPlayer(
     }
 }
 
-private fun buildTrackParameters(
-    player: ExoPlayer,
-    subtitlesEnabled: Boolean,
-    preferredLanguages: List<String>,
-    selectedTrack: Track.SubtitleTrack?,
-    selectedSource: StreamSource?
-): TrackSelectionParameters {
-    return player.trackSelectionParameters
-        .buildUpon()
-        .apply {
-            // First, handle the basic subtitle preferences
-            setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !subtitlesEnabled)
-            if (subtitlesEnabled) {
-                if (selectedTrack != null && selectedSource != null) {
-                    // If we have a specific track selected, use that
-                    clearOverrides()
-                    val trackIndex = selectedSource.subtitleTracks.indexOf(selectedTrack)
-                    setPreferredTextLanguage(selectedTrack.lang.convertToIetfLanguageTag() + trackIndex)
-                } else {
-                    // Otherwise, use the preferred languages
-                    setPreferredTextLanguages(*preferredLanguages.toTypedArray())
-                }
-            }
-        }
-        .build()
-}
 
 
 

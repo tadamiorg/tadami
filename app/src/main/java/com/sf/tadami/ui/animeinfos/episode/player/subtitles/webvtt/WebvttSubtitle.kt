@@ -80,51 +80,63 @@ internal class WebvttSubtitle(cueInfos: List<WebvttCueInfo>) : Subtitle {
         return text.split("\n").size
     }
 
+    /**
+     * Sticky line assignment, keyed by cue start time. Once a cue is placed it keeps its line for its whole
+     * lifetime, so a neighbour appearing or ending never shifts it (previously every interval recomputed all
+     * lines from the active set, which made a surviving cue jump to the bottom when the cue below it ended).
+     * [getCues] is only called as a single forward pass at parse time, so keeping state here is safe.
+     */
+    private val assignedLines = HashMap<Long, Float>()
+
     private fun positionCuesWithoutOverlap(cues: List<ActiveCue>): List<Cue> {
-        if (cues.isEmpty()) return emptyList()
+        if (cues.isEmpty()) {
+            // Subtitle gap: reset the baseline so the next cue starts at the bottom again.
+            assignedLines.clear()
+            return emptyList()
+        }
 
-        val result = mutableListOf<Cue>()
-        val occupiedLines = mutableMapOf<Float, Int>() // Line number -> number of lines occupied
+        // Free the lines of cues that have ended.
+        val activeIds = cues.mapTo(HashSet()) { it.startTimeUs }
+        assignedLines.keys.retainAll(activeIds)
 
-        // Start positioning from bottom of screen
-        var currentLine = -2f
+        val occupiedLines = HashMap<Float, Boolean>()
 
+        // Reserve the lines already held by cues with a sticky assignment.
         for (activeCue in cues) {
-            // Find first available position that has enough space for this cue
-            var linePosition = currentLine
+            val line = assignedLines[activeCue.startTimeUs] ?: continue
+            for (i in 0 until activeCue.lineCount) {
+                occupiedLines[line - i] = true
+            }
+        }
 
+        // Assign a line to each new cue: lowest free block starting at the bottom (-2) moving up.
+        for (activeCue in cues) {
+            if (assignedLines.containsKey(activeCue.startTimeUs)) continue
+
+            var linePosition = -2f
             while (true) {
                 var hasSpace = true
-                // Check if there's enough space for all lines of this cue
                 for (i in 0 until activeCue.lineCount) {
                     if (occupiedLines.containsKey(linePosition - i)) {
                         hasSpace = false
                         break
                     }
                 }
-
-                if (hasSpace) {
-                    break
-                }
+                if (hasSpace) break
                 linePosition -= 1
             }
 
-            // Mark all lines used by this cue as occupied
             for (i in 0 until activeCue.lineCount) {
-                occupiedLines[linePosition - i] = 1
+                occupiedLines[linePosition - i] = true
             }
-
-            // Create new cue with found position
-            val adjustedCue = activeCue.cue.buildUpon()
-                .setLine(linePosition, Cue.LINE_TYPE_NUMBER)
-                .build()
-
-            result.add(adjustedCue)
-
-            // Update current line position for next cue
-            currentLine = linePosition - activeCue.lineCount
+            assignedLines[activeCue.startTimeUs] = linePosition
         }
 
-        return result
+        // Emit every active cue at its (now stable) line.
+        return cues.map { activeCue ->
+            activeCue.cue.buildUpon()
+                .setLine(assignedLines.getValue(activeCue.startTimeUs), Cue.LINE_TYPE_NUMBER)
+                .build()
+        }
     }
 }

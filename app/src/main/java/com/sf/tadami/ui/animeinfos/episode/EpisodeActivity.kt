@@ -125,6 +125,8 @@ class EpisodeActivity : AppCompatActivity() {
     private var castStateListener: CastStateListener? = null
     private var availableSources: List<StreamSource>? = null
     private var selectedSource: StreamSource? = null
+    // "episodeId:sourceFullName" of the media we last requested a cast load for — used to skip redundant loads.
+    private var pendingCastLoadKey: String? = null
     private var selectedTextTrack: Track.SubtitleTrack? = null
     private var episodeUrl: String? = null
     private var anime: Anime? = null
@@ -361,7 +363,10 @@ class EpisodeActivity : AppCompatActivity() {
                         val source: StreamSource = json.decodeFromString(
                             castMedia.get("selectedSource") as String
                         )
-                        if (episodeId != currentEpisode?.id?.toInt() || source.url != selectedSource?.url || source.fullName != selectedSource?.fullName) {
+                        // Reload only on an episode or a real source (quality/server) change — NOT when the same
+                        // source merely re-resolved to a fresh (re-signed) url, which would needlessly restart a
+                        // stream that is already casting the same episode.
+                        if (episodeId != currentEpisode?.id?.toInt() || source.fullName != selectedSource?.fullName) {
                             loadRemoteMedia()
                         }
                     }
@@ -493,6 +498,29 @@ class EpisodeActivity : AppCompatActivity() {
         }
 
         val remoteMediaClient = castSession!!.remoteMediaClient ?: return
+
+        // Don't reload if the receiver is ALREADY playing this exact episode+source — e.g. re-opening the
+        // currently-casting episode from the phone, or a redundant connect callback. (Compares the live cast
+        // media, so it holds even after the Activity was recreated and pendingCastLoadKey was lost.)
+        val liveCustomData = remoteMediaClient.mediaInfo?.customData
+        if (liveCustomData != null) {
+            val loadedEpisodeId = (liveCustomData.get("episodeId") as? Number)?.toInt()
+            val loadedSource = runCatching {
+                json.decodeFromString<StreamSource>(liveCustomData.get("selectedSource") as String)
+            }.getOrNull()
+            if (loadedEpisodeId == episode.id.toInt() && loadedSource?.fullName == selectedSource?.fullName) {
+                return
+            }
+        }
+
+        // In-flight guard for the fresh-connect storm: onApplicationConnected + the uiState collector both call
+        // this while the receiver hasn't broadcast its mediaInfo yet, so each would stopCastEpisode()+load() and
+        // the trailing STOPs kill the just-started media. Skip a load we already requested for the same media.
+        val loadKey = "${episode.id}:${selectedSource?.fullName}"
+        if (loadKey == pendingCastLoadKey) {
+            return
+        }
+        pendingCastLoadKey = loadKey
 
         val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
 
@@ -661,7 +689,11 @@ class EpisodeActivity : AppCompatActivity() {
 
         mediaLoadRequestBuilder.setMediaInfo(mediaInfos)
 
-        stopCastEpisode()
+        // No pre-load stop(): remoteMediaClient.load() replaces the current media on its own. A stop() here races
+        // the load and resets the receiver player — it killed the first cold cast, and it also kills a TV-direct
+        // source switch (the TV switches locally, mirrors the selection back to the phone, and the phone's
+        // reflected load() would otherwise stop the just-switched source). The receiver's LOAD-dedupe
+        // (loadedContentUrl) absorbs the redundant reflected load, and setDataFromLoad converges the mediaInfo.
 
         checkUpdateTimeJobEnded {
             playerViewModel.getDbEpisodeTime { time ->
@@ -729,6 +761,8 @@ class EpisodeActivity : AppCompatActivity() {
                 // The CastControlService flushes the final watch time on session end and self-stops.
                 isCasting.value = false
                 this@EpisodeActivity.castSession = null
+                // Allow a reconnect to load the same episode again.
+                pendingCastLoadKey = null
             }
         }
     }

@@ -45,8 +45,13 @@ import com.sf.tadami.ui.animeinfos.episode.cast.channels.CastErrorCode
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TadamiCastError
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.tadamiCastMessageCallback
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.CastSubtitleStyle
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.ControlChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvControlMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.isCastMediaFinished
+import com.sf.tadami.ui.animeinfos.episode.cast.sendCastMessage
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.audioselection.AudioSelectionDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.EpisodesDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.episodetooltip.EpisodeTooltipDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.SettingsDialog
@@ -60,7 +65,10 @@ import com.sf.tadami.utils.rememberResourceBitmapPainter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import kotlin.time.Duration.Companion.milliseconds
+
+private val castControlJson = Json { encodeDefaults = true }
 
 @OptIn(UnstableApi::class)
 @SuppressLint("SourceLockedOrientationActivity", "ContextCastToActivity")
@@ -112,6 +120,38 @@ fun CastVideoPlayer(
     var openStreamDialog by remember { mutableStateOf(false) }
 
     var openTracksSelectionDialog by remember { mutableStateOf(false) }
+    var openAudioSelectionDialog by remember { mutableStateOf(false) }
+
+    // Mirror the phone's subtitle style onto the TV overlay — on cast start and whenever a style pref changes.
+    LaunchedEffect(
+        playerPreferences.subtitleTextSize,
+        playerPreferences.subtitleFontWeight,
+        playerPreferences.subtitleOutlineWidth,
+        playerPreferences.subtitleLetterSpacing,
+        playerPreferences.subtitleTextColor,
+        playerPreferences.subtitleEdgeColor,
+        playerPreferences.subtitleItalicFormat,
+    ) {
+        sendCastMessage(
+            castSession,
+            ControlChannel.NAMESPACE,
+            castControlJson.encodeToString(
+                TvControlMessage.serializer(),
+                TvControlMessage(
+                    "subtitleStyle",
+                    subtitleStyle = CastSubtitleStyle(
+                        textSize = playerPreferences.subtitleTextSize,
+                        fontWeight = playerPreferences.subtitleFontWeight,
+                        outlineWidth = playerPreferences.subtitleOutlineWidth,
+                        letterSpacing = playerPreferences.subtitleLetterSpacing,
+                        textColor = playerPreferences.subtitleTextColor,
+                        edgeColor = playerPreferences.subtitleEdgeColor,
+                        italic = playerPreferences.subtitleItalicFormat,
+                    ),
+                ),
+            ),
+        )
+    }
 
     var openSettingsDialog by remember { mutableStateOf(false) }
 
@@ -263,6 +303,31 @@ fun CastVideoPlayer(
                     },
                     onDismissRequest = {
                         openTracksSelectionDialog = false
+                    }
+                )
+                val effectiveAudio = episodeUiState.selectedAudioTrack
+                    ?: episodeUiState.selectedSource?.audioTracks?.firstOrNull()
+                AudioSelectionDialog(
+                    opened = openAudioSelectionDialog,
+                    audioTracks = episodeUiState.selectedSource?.audioTracks.orEmpty(),
+                    selectedAudioTrack = effectiveAudio,
+                    onAudioTrackSelected = { track ->
+                        playerViewModel.selectedAudioTrack(track)
+                        // Tell the receiver to switch audio (it merges the audio group; select by index).
+                        val index = episodeUiState.selectedSource?.audioTracks?.indexOf(track) ?: -1
+                        if (index >= 0) {
+                            sendCastMessage(
+                                castSession,
+                                ControlChannel.NAMESPACE,
+                                castControlJson.encodeToString(
+                                    TvControlMessage.serializer(),
+                                    TvControlMessage("selectAudio", audioIndex = index),
+                                ),
+                            )
+                        }
+                    },
+                    onDismissRequest = {
+                        openAudioSelectionDialog = false
                     }
                 )
             }
@@ -417,6 +482,7 @@ fun CastVideoPlayer(
                 },
                 videoSettingsEnabled = episodeUiState.availableSources.isNotEmpty(),
                 tracksSettingsEnabled = episodeUiState.selectedSource?.subtitleTracks?.isNotEmpty() ?: false,
+                audioSettingsEnabled = episodeUiState.selectedSource?.audioTracks?.isNotEmpty() == true,
                 playerSeekValue = playerPreferences.doubleTapLength,
                 onTapYoutube = {},
                 onPlayerSettings = {
@@ -427,6 +493,9 @@ fun CastVideoPlayer(
                 },
                 onTracksSettings = {
                     openTracksSelectionDialog = true
+                },
+                onAudioSettings = {
+                    openAudioSelectionDialog = true
                 },
                 lockedControls = false,
                 onWebViewOpen = onWebViewOpen,

@@ -24,6 +24,9 @@ data class PlayerPreferences(
     val subtitlesEnabled: Boolean,
     val subtitlePrefLanguages: String,
     val subtitleTextSize: Int,
+    val subtitleFontWeight: Int,
+    val subtitleOutlineWidth: Int,
+    val subtitleLetterSpacing: Int,
     val subtitleTextColor: Int,
     val subtitleBackgroundColor: Int,
     val subtitleEdgeType: Int,
@@ -60,10 +63,13 @@ data class PlayerPreferences(
         )
 
         // Subtitles default style
-        private const val DEFAULT_TEXT_SIZE = 22
+        private const val DEFAULT_TEXT_SIZE = 24
+        private const val DEFAULT_FONT_WEIGHT = 700
+        private const val DEFAULT_OUTLINE_WIDTH = 35
+        private const val DEFAULT_LETTER_SPACING = 2
         private val DEFAULT_TEXT_COLOR = Color.White.toArgb()
         private val DEFAULT_BACKGROUND_COLOR = Color.Transparent.toArgb()
-        private const val DEFAULT_EDGE_TYPE = CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW
+        private const val DEFAULT_EDGE_TYPE = CaptionStyleCompat.EDGE_TYPE_OUTLINE
         private val DEFAULT_EDGE_COLOR = Color.Black.toArgb()
         private  val DEFAULT_BOTTOM_PADDING = 10f
 
@@ -75,6 +81,9 @@ data class PlayerPreferences(
         private val SUBTITLES_ENABLED = booleanPreferencesKey("player_subtitles_enabled")
         private val SUBTITLES_PREF_LANGUAGES = stringPreferencesKey("player_subtitles_pref_languages")
         private val SUBTITLES_TEXT_SIZE = intPreferencesKey("player_subtitles_text_size")
+        private val SUBTITLES_FONT_WEIGHT = intPreferencesKey("player_subtitles_font_weight")
+        private val SUBTITLES_OUTLINE_WIDTH = intPreferencesKey("player_subtitles_outline_width")
+        private val SUBTITLES_LETTER_SPACING = intPreferencesKey("player_subtitles_letter_spacing")
         private val SUBTITLES_TEXT_COLOR = intPreferencesKey("player_subtitles_text_color")
         private val SUBTITLES_BACKGROUND_COLOR = intPreferencesKey("player_subtitles_background_color")
         private val SUBTITLES_EDGE_TYPE = intPreferencesKey("player_subtitles_edge_type")
@@ -91,6 +100,9 @@ data class PlayerPreferences(
                subtitlesEnabled = preferences[SUBTITLES_ENABLED] ?: true,
                subtitlePrefLanguages = preferences[SUBTITLES_PREF_LANGUAGES] ?: DefaultSubtitlesPrefLanguages.keys.joinToString(separator = ","),
                subtitleTextSize = preferences[SUBTITLES_TEXT_SIZE] ?: DEFAULT_TEXT_SIZE,
+               subtitleFontWeight = preferences[SUBTITLES_FONT_WEIGHT] ?: DEFAULT_FONT_WEIGHT,
+               subtitleOutlineWidth = preferences[SUBTITLES_OUTLINE_WIDTH] ?: DEFAULT_OUTLINE_WIDTH,
+               subtitleLetterSpacing = preferences[SUBTITLES_LETTER_SPACING] ?: DEFAULT_LETTER_SPACING,
                subtitleTextColor = preferences[SUBTITLES_TEXT_COLOR] ?: DEFAULT_TEXT_COLOR,
                subtitleBackgroundColor = preferences[SUBTITLES_BACKGROUND_COLOR] ?: DEFAULT_BACKGROUND_COLOR,
                subtitleEdgeType = preferences[SUBTITLES_EDGE_TYPE] ?: DEFAULT_EDGE_TYPE,
@@ -109,6 +121,9 @@ data class PlayerPreferences(
             preferences[SUBTITLES_ENABLED] = newValue.subtitlesEnabled
             preferences[SUBTITLES_PREF_LANGUAGES] = newValue.subtitlePrefLanguages
             preferences[SUBTITLES_TEXT_SIZE] = newValue.subtitleTextSize
+            preferences[SUBTITLES_FONT_WEIGHT] = newValue.subtitleFontWeight
+            preferences[SUBTITLES_OUTLINE_WIDTH] = newValue.subtitleOutlineWidth
+            preferences[SUBTITLES_LETTER_SPACING] = newValue.subtitleLetterSpacing
             preferences[SUBTITLES_TEXT_COLOR] = newValue.subtitleTextColor
             preferences[SUBTITLES_BACKGROUND_COLOR] = newValue.subtitleBackgroundColor
             preferences[SUBTITLES_EDGE_TYPE] = newValue.subtitleEdgeType

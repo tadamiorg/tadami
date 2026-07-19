@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -35,6 +36,7 @@ import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.media3.common.util.UnstableApi
@@ -188,6 +190,7 @@ fun OutlinedNumericChooser(
     value: Int,
     step: Int,
     min: Int? = null,
+    fieldWidth: Dp? = null,
     onValueChanged: (Int) -> Unit,
 ) {
     var currentValue = value
@@ -209,7 +212,7 @@ fun OutlinedNumericChooser(
 
         OutlinedTextField(
             value = "%d".format(currentValue),
-            modifier = Modifier.widthIn(min = 140.dp),
+            modifier = if (fieldWidth != null) Modifier.width(fieldWidth) else Modifier.widthIn(min = 140.dp),
 
             onValueChange = {
                 val calculatedValue = it.trim().replace(Regex("[^-\\d.]"), "").toIntOrNull() ?: currentValue

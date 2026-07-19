@@ -297,6 +297,9 @@
     <!-- Subtitles preferences -->
     <string name="pref_subtitles_appearance">Appearance</string>
     <string name="size">Size</string>
+    <string name="pref_subtitle_weight">Weight</string>
+    <string name="pref_subtitle_outline">Outline</string>
+    <string name="pref_subtitle_letter_spacing">Spacing</string>
 
     <!-- Extensions -->
     <string name="ext_install_service_notif">Installing extension…</string>

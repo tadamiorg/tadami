@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import com.sf.tadami.R
 import com.sf.tadami.preferences.model.DataStoreState
@@ -59,9 +60,10 @@ fun getSubtitlesGroup(
             Preference.PreferenceItem.CustomPreference(
                 title = stringResource(id = R.string.pref_subtitles_appearance)
             ) {
-                var textSize by remember {
-                    mutableStateOf(prefs.subtitleTextSize)
-                }
+                var textSize by remember { mutableStateOf(prefs.subtitleTextSize) }
+                var fontWeight by remember { mutableStateOf(prefs.subtitleFontWeight) }
+                var outlineWidth by remember { mutableStateOf(prefs.subtitleOutlineWidth) }
+                var letterSpacing by remember { mutableStateOf(prefs.subtitleLetterSpacing) }
 
                 Column {
 
@@ -80,13 +82,79 @@ fun getSubtitlesGroup(
                             value = textSize,
                             step = 1,
                             min = 1,
+                            fieldWidth = 150.dp,
                             onValueChanged = {
                                 textSize = it
-                                prefState.setValue(
-                                    prefs.copy(
-                                        subtitleTextSize = it
-                                    )
-                                )
+                                prefState.setValue(prefs.copy(subtitleTextSize = it))
+                            },
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = PrefsHorizontalPadding)
+                    ) {
+
+                        OutlinedNumericChooser(
+                            label = stringResource(R.string.pref_subtitle_weight),
+                            placeholder = "700",
+                            suffix = "",
+                            value = fontWeight,
+                            step = 100,
+                            min = 100,
+                            fieldWidth = 150.dp,
+                            onValueChanged = {
+                                fontWeight = it
+                                prefState.setValue(prefs.copy(subtitleFontWeight = it))
+                            },
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = PrefsHorizontalPadding)
+                    ) {
+
+                        OutlinedNumericChooser(
+                            label = stringResource(R.string.pref_subtitle_outline),
+                            placeholder = "22",
+                            suffix = "%",
+                            value = outlineWidth,
+                            step = 1,
+                            min = 0,
+                            fieldWidth = 150.dp,
+                            onValueChanged = {
+                                outlineWidth = it
+                                prefState.setValue(prefs.copy(subtitleOutlineWidth = it))
+                            },
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = PrefsHorizontalPadding)
+                    ) {
+
+                        OutlinedNumericChooser(
+                            label = stringResource(R.string.pref_subtitle_letter_spacing),
+                            placeholder = "0",
+                            suffix = "",
+                            value = letterSpacing,
+                            step = 1,
+                            min = 0,
+                            fieldWidth = 150.dp,
+                            onValueChanged = {
+                                letterSpacing = it
+                                prefState.setValue(prefs.copy(subtitleLetterSpacing = it))
                             },
                         )
                     }

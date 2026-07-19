@@ -39,6 +39,7 @@ fun PlayerControls(
     onSeekEnd: () -> Unit = {},
     onStreamSettings: () -> Unit,
     onTracksSettings: () -> Unit,
+    onAudioSettings: () -> Unit = {},
     onPlayerSettings: () -> Unit,
     onShowEpisodeTooltip: () -> Unit,
     onEpisodesClicked: () -> Unit,
@@ -54,6 +55,7 @@ fun PlayerControls(
     onPipClicked : (() -> Unit)? = null,
     videoSettingsEnabled: Boolean = false,
     tracksSettingsEnabled: Boolean = false,
+    audioSettingsEnabled: Boolean = false,
     episodeTooltipEnabled: Boolean = false,
     lockedControls : Boolean
 ) {
@@ -131,10 +133,12 @@ fun PlayerControls(
                         isSeekable = !isIdle,
                         videoSettingsEnabled = videoSettingsEnabled,
                         tracksSettingsEnabled = tracksSettingsEnabled,
+                        audioSettingsEnabled = audioSettingsEnabled,
                         onPlayerSettings = onPlayerSettings,
                         onEpisodesClicked = onEpisodesClicked,
                         onPipClicked = onPipClicked,
-                        onTracksSettings = onTracksSettings
+                        onTracksSettings = onTracksSettings,
+                        onAudioSettings = onAudioSettings,
                     )
                 }
                 AnimatedVisibility(

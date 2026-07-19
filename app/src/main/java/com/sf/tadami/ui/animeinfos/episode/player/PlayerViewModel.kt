@@ -17,6 +17,7 @@ import com.sf.tadami.network.utils.TadaErrorConsumer
 import com.sf.tadami.preferences.CommonKeys
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.ui.animeinfos.episode.cast.CastRemoteState
 import com.sf.tadami.source.model.Track
 import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.ui.animeinfos.episode.EpisodeUiState
@@ -171,6 +172,27 @@ class PlayerViewModel(
                     _episodesList.update { episodes.sortedBy { it.sourceOrder } }
                 }
         }
+
+        // Mirror TV-local track/source changes (received over the cast control channel) into the UI state so
+        // the phone's cast dialogs reflect what the receiver is actually playing.
+        viewModelScope.launch {
+            CastRemoteState.selection.collect { sel ->
+                sel ?: return@collect
+                _uiState.update { st ->
+                    val src = sel.sourceIndex?.let { st.availableSources.getOrNull(it) } ?: st.selectedSource
+                    st.copy(
+                        selectedSource = src,
+                        selectedSubtitleTrack = when (sel.subtitleIndex) {
+                            null -> st.selectedSubtitleTrack
+                            -1 -> null
+                            else -> src?.subtitleTracks?.getOrNull(sel.subtitleIndex)
+                        },
+                        selectedAudioTrack = sel.audioIndex?.let { src?.audioTracks?.getOrNull(it) }
+                            ?: st.selectedAudioTrack,
+                    )
+                }
+            }
+        }
     }
 
     fun getDbEpisodeTime(callback: (time: Long) -> Unit) {
@@ -191,12 +213,20 @@ class PlayerViewModel(
     fun selectSource(source: StreamSource?) {
         setIdleLock(true)
         _uiState.update { currentState ->
-            currentState.copy(selectedSource = source)
+            // Reset the chosen subtitle so the new source auto-selects by language preference
+            // (the old source's track object won't exist in the new source's list).
+            currentState.copy(selectedSource = source, selectedSubtitleTrack = null)
         }
     }
     fun selectedSubtitleTrack(subtitleTrack: Track.SubtitleTrack?){
         _uiState.update { currentState ->
             currentState.copy(selectedSubtitleTrack = subtitleTrack)
+        }
+    }
+
+    fun selectedAudioTrack(audioTrack: Track.AudioTrack?){
+        _uiState.update { currentState ->
+            currentState.copy(selectedAudioTrack = audioTrack)
         }
     }
 
@@ -263,6 +293,7 @@ class PlayerViewModel(
                 rawUrl = null,
                 selectedSource = null,
                 selectedSubtitleTrack = null,
+                selectedAudioTrack = null,
                 availableSources = emptyList()
             )
         }

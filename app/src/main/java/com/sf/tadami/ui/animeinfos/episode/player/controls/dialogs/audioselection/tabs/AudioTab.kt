@@ -1,4 +1,4 @@
-package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.tabs
+package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.audioselection.tabs
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,44 +24,40 @@ import com.sf.tadami.ui.components.screens.ScreenTabContent
 import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
 
 @Composable()
-fun subtitlesTab(
-    subtitleTracks: List<Track.SubtitleTrack>,
-    selectedOption: Track.SubtitleTrack?,
-    selectedSubtitleTrack: Track.SubtitleTrack? = null,
-    onOptionSelected: (Track.SubtitleTrack?) -> Unit
+fun audioTab(
+    audioTracks: List<Track.AudioTrack>,
+    selectedAudioTrack: Track.AudioTrack? = null,
+    selectedOption: Track.AudioTrack?,
+    onOptionSelected: (Track.AudioTrack?) -> Unit
 ) : ScreenTabContent {
 
     val listState = rememberLazyListState()
 
-    val trackDisplayNames = remember(subtitleTracks) {
-        subtitleTracks.groupBy { it.lang }
+    val trackDisplayNames = remember(audioTracks) {
+        audioTracks.groupBy { it.lang }
             .flatMap { (lang, tracks) ->
                 if (tracks.size > 1) {
-                    // If there are multiple tracks with the same language, add numbers
-                    tracks.mapIndexed { index, track ->
-                        track to "$lang #${index + 1}"
-                    }
+                    tracks.mapIndexed { index, track -> track to "$lang #${index + 1}" }
                 } else {
-                    // If there's only one track with this language, use the language name as is
                     tracks.map { it to lang }
                 }
             }.toMap()
     }
 
     return ScreenTabContent(
-        titleRes = R.string.label_subtitles,
+        titleRes = R.string.label_audio,
     ){ contentPadding: PaddingValues, _ ->
-        LaunchedEffect(selectedSubtitleTrack, subtitleTracks){
-            onOptionSelected(selectedSubtitleTrack)
-            listState.animateScrollToItem(selectedSubtitleTrack?.let { subtitleTracks.indexOf(it) }.takeIf { it !=-1 } ?: 0)
+        LaunchedEffect(Unit){
+            val real = selectedAudioTrack ?: audioTracks.firstOrNull()
+            onOptionSelected(real)
+            listState.animateScrollToItem(real?.let { audioTracks.indexOf(it) }.takeIf { it != -1 } ?: 0)
         }
-
         FastScrollLazyColumn(
             modifier = Modifier.padding(contentPadding),
             thumbAlways = true,
             state = listState
         ) {
-            items(subtitleTracks) { track ->
+            items(audioTracks) { track ->
                 Row(
                     modifier = Modifier
                         .defaultMinSize(1.dp, 1.dp)
