@@ -358,6 +358,9 @@
     <!-- Subtitles preferences -->
     <string name="pref_subtitles_appearance">Apparance</string>
     <string name="size">Taille</string>
+    <string name="pref_subtitle_weight">Épaisseur</string>
+    <string name="pref_subtitle_outline">Contour</string>
+    <string name="pref_subtitle_letter_spacing">Espacement</string>
 
     <!-- Crash -->
     <string name="crash_screen_title">Oups!</string>

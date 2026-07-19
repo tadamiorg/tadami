@@ -13,18 +13,14 @@ import com.sf.tadami.ui.components.dialog.simple.TabbedSimpleDialog
 fun TracksSelectionDialog(
     opened: Boolean,
     subtitleTracks: List<Track.SubtitleTrack>? = null,
-    audioTracks: List<Track.AudioTrack>? = null,
     selectedSubtitleTrack: Track.SubtitleTrack? = null,
-    selectedAudioTrack: Track.AudioTrack? = null,
     onSubtitleTrackSelected: (Track.SubtitleTrack?) -> Unit,
     onDismissRequest: () -> Unit
 ) {
-    val (selectedSubtitleOption, onSubtitleOptionSelected) = remember {
+    // Key on the current selection so the dialog reflects the auto-/actually-selected track
+    // (it may become non-null after the dialog is first composed).
+    val (selectedSubtitleOption, onSubtitleOptionSelected) = remember(selectedSubtitleTrack) {
         mutableStateOf(selectedSubtitleTrack)
-    }
-
-    val (selectedAudioOption, onAudioOptionSelected) = remember {
-        mutableStateOf(audioTracks?.firstOrNull())
     }
 
     val tabs = mutableListOf(
@@ -34,7 +30,7 @@ fun TracksSelectionDialog(
             onOptionSelected = onSubtitleOptionSelected,
             subtitleTracks = subtitleTracks ?: emptyList(),
         ),
-        subtitleSettingsTab()
+        subtitleSettingsTab(),
     )
 
     TabbedSimpleDialog(

@@ -31,10 +31,30 @@ class ControlChannel(
 
 @Serializable
 data class TvControlMessage(
-    /** "progress" | "save" | "next" | "previous" | "selectEpisode" */
+    /**
+     * TV→phone: "progress" | "save" | "next" | "previous" | "selectEpisode" | "state".
+     * phone→TV: "selectSource" | "selectSubtitle" | "selectAudio" | "subtitleStyle".
+     */
     val type: String,
     val position: Long = 0L,
     val duration: Long = 0L,
     val playing: Boolean = false,
     val episodeId: Long? = null,
+    /** Index into the current source's list. subtitleIndex == -1 means subtitles off. */
+    val sourceIndex: Int? = null,
+    val subtitleIndex: Int? = null,
+    val audioIndex: Int? = null,
+    val subtitleStyle: CastSubtitleStyle? = null,
+)
+
+/** Subtitle style forwarded phone→TV so the receiver's overlay mirrors the phone's preferences. */
+@Serializable
+data class CastSubtitleStyle(
+    val textSize: Int = 22,
+    val fontWeight: Int = 700,
+    val outlineWidth: Int = 22,
+    val letterSpacing: Int = 0,
+    val textColor: Int = 0,
+    val edgeColor: Int = 0,
+    val italic: Boolean = false,
 )

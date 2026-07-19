@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,11 +29,13 @@ fun BottomControls(
     onSkipOp: () -> Unit = {},
     onStreamSettings: () -> Unit = {},
     onTracksSettings: () -> Unit = {},
+    onAudioSettings: () -> Unit = {},
     onPlayerSettings: () -> Unit = {},
     onEpisodesClicked: () -> Unit = {},
     isSeekable: Boolean = true,
     videoSettingsEnabled: Boolean = false,
     tracksSettingsEnabled: Boolean = false,
+    audioSettingsEnabled: Boolean = false,
     onPipClicked: (() -> Unit)? = null
 ) {
     Box(
@@ -86,6 +90,21 @@ fun BottomControls(
                             alpha = 0.5f
                         ),
                         contentDescription = "Tracks"
+                    )
+                }
+                // Audio track selection
+                IconButton(
+                    onClick = onAudioSettings,
+                    enabled = audioSettingsEnabled,
+                    size = 36.dp,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.MusicNote,
+                        tint = if (audioSettingsEnabled) MaterialTheme.colorScheme.onBackground
+                        else MaterialTheme.colorScheme.onBackground.copy(
+                            alpha = 0.5f
+                        ),
+                        contentDescription = "Audio"
                     )
                 }
             }

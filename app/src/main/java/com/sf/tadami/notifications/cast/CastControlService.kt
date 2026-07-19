@@ -7,10 +7,12 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import androidx.annotation.OptIn
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.media3.common.util.UnstableApi
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
@@ -25,6 +27,7 @@ import com.sf.tadami.preferences.advanced.AdvancedPreferences
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.ui.animeinfos.episode.cast.CastProtocol
+import com.sf.tadami.ui.animeinfos.episode.cast.CastRemoteState
 import com.sf.tadami.ui.animeinfos.episode.cast.buildCastLoadRequest
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ControlChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.HandshakeChannel
@@ -154,8 +157,17 @@ class CastControlService : Service() {
     private val remoteMediaClient: RemoteMediaClient?
         get() = castContext.sessionManager.currentCastSession?.remoteMediaClient
 
-    /** Control messages from the TV: persist watch time, or switch episodes app-scoped. */
+    /** Control messages from the TV: persist watch time, switch episodes, or mirror TV-local track selection. */
     private fun onControl(msg: TvControlMessage) {
+        if (msg.type == "state") {
+            // TV-local source/subtitle/audio selection — publish for the phone UI (PlayerViewModel) to mirror.
+            CastRemoteState.selection.value = CastRemoteState.Selection(
+                sourceIndex = msg.sourceIndex,
+                subtitleIndex = msg.subtitleIndex,
+                audioIndex = msg.audioIndex,
+            )
+            return
+        }
         val liveCustomData = remoteMediaClient?.mediaInfo?.customData
         if (liveCustomData != null) lastCustomData = liveCustomData
         val customData = liveCustomData ?: lastCustomData ?: return
@@ -195,6 +207,7 @@ class CastControlService : Service() {
     }
 
     /** Re-resolve [target]'s sources app-scoped and load it onto the receiver at its saved time. */
+    @OptIn(UnstableApi::class)
     private suspend fun switchEpisode(customData: JSONObject, target: Episode) {
         // Persist the outgoing episode's time first.
         saveTime(
@@ -245,6 +258,7 @@ class CastControlService : Service() {
         return Episode.create().copy(id = id, seen = seen)
     }
 
+    @OptIn(UnstableApi::class)
     private fun saveTime(episode: Episode, totalTime: Long, timeSeen: Long) {
         scope.launch {
             val threshold = dataStore.getPreferencesGroup(PlayerPreferences).seenThreshold

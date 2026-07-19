@@ -14,5 +14,5 @@ object CastProtocol {
     const val SENDER_VERSION = 1
 
     /** Oldest receiver protocol this sender can drive correctly. Receivers below this must update. */
-    const val MIN_RECEIVER_VERSION = 1
+    const val MIN_RECEIVER_VERSION = 2
 }

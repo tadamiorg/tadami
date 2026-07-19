@@ -81,6 +81,18 @@ object Migrations {
                 deletePreference(dataStore, stringPreferencesKey("auto_backup_folder"))
                 deletePreference(dataStore, stringPreferencesKey("auto_backup_max_files"))
             }
+
+            if (oldVersion < 51) {
+                // Custom subtitle renderer: apply the new bold + thick-outline defaults for existing
+                // installs (new keys, so seed them explicitly).
+                dataStore.editPreference(700, intPreferencesKey("player_subtitles_font_weight"))
+                dataStore.editPreference(22, intPreferencesKey("player_subtitles_outline_width"))
+            }
+
+            if (oldVersion < 52) {
+                // Seed the new subtitle letter-spacing pref (default 0 = no change) for existing installs.
+                dataStore.editPreference(0, intPreferencesKey("player_subtitles_letter_spacing"))
+            }
         }
     }
 
