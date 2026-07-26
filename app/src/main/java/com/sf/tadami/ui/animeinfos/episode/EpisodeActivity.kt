@@ -43,11 +43,6 @@ import androidx.datastore.preferences.core.Preferences
     import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import com.google.android.gms.cast.MediaInfo
-import com.google.android.gms.cast.MediaLoadRequestData
-import com.google.android.gms.cast.MediaMetadata
-import com.google.android.gms.cast.MediaTrack
-import com.google.android.gms.cast.TextTrackStyle
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.CastState
@@ -56,25 +51,28 @@ import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.gms.cast.framework.media.RemoteMediaClient
 import com.google.android.gms.common.api.PendingResult
 import com.google.android.gms.common.api.Status
-import com.google.android.gms.common.images.WebImage
 import com.sf.tadami.R
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.toSEpisode
 import com.sf.tadami.preferences.player.PlayerPreferences
-import com.sf.tadami.source.model.OkhttpHeadersSerializer
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.source.model.Track
 import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.CrashChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.toCastSubtitleStyle
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvCrashLog
 import com.sf.tadami.notifications.cast.CastControlService
 import androidx.compose.runtime.collectAsState
+import com.sf.tadami.preferences.cast.CastPreferences
 import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionErrorDialog
 import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionState
-import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
+import com.sf.tadami.ui.animeinfos.episode.cast.CastSessionState
+import com.sf.tadami.ui.animeinfos.episode.cast.CastWebReceiverNoticeDialog
+import com.sf.tadami.ui.animeinfos.episode.cast.buildCastLoadRequest
 import com.sf.tadami.ui.animeinfos.episode.cast.logCastConnectionError
+import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyHolder
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
 import com.sf.tadami.ui.animeinfos.episode.player.ACTION_MEDIA_CONTROL
 import com.sf.tadami.ui.animeinfos.episode.player.CastVideoPlayer
@@ -89,12 +87,12 @@ import com.sf.tadami.ui.animeinfos.episode.player.PipState
 import com.sf.tadami.ui.animeinfos.episode.player.PlayerViewModel
 import com.sf.tadami.ui.animeinfos.episode.player.PlayerViewModelFactory
 import com.sf.tadami.ui.animeinfos.episode.player.VideoPlayer
-import com.sf.tadami.ui.utils.convertToIetfLanguageTag
 import com.sf.tadami.ui.utils.getUriCompat
 import com.sf.tadami.ui.utils.setComposeContent
 import com.sf.tadami.ui.utils.toShareIntent
 import com.sf.tadami.ui.webview.WebViewActivity
 import com.sf.tadami.utils.createFileInCacheDir
+import com.sf.tadami.utils.editPreferences
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
@@ -106,7 +104,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import org.json.JSONArray
 import org.json.JSONObject
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -116,6 +113,10 @@ import java.nio.charset.StandardCharsets
 
 @UnstableApi
 class EpisodeActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TAG = "EpisodeActivity"
+    }
 
     private val json: Json = Json
     private var castSession: CastSession? = null
@@ -193,7 +194,7 @@ class EpisodeActivity : AppCompatActivity() {
                     )
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.w(TAG, "Failed to resume playback state from the cast session", e)
             }
 
         } else {
@@ -244,6 +245,23 @@ class EpisodeActivity : AppCompatActivity() {
                     if (castConnectionError) {
                         CastConnectionErrorDialog(
                             onDismissRequest = { CastConnectionState.clear() }
+                        )
+                    }
+
+                    val showWebReceiverNotice by CastSessionState.showWebReceiverNotice.collectAsState()
+                    if (showWebReceiverNotice) {
+                        CastWebReceiverNoticeDialog(
+                            onDismissRequest = { dontShowAgain ->
+                                CastSessionState.showWebReceiverNotice.value = false
+                                if (dontShowAgain) {
+                                    lifecycleScope.launch {
+                                        dataStore.editPreferences(
+                                            CastPreferences(showWebReceiverNotice = false),
+                                            CastPreferences,
+                                        )
+                                    }
+                                }
+                            }
                         )
                     }
 
@@ -440,7 +458,7 @@ class EpisodeActivity : AppCompatActivity() {
                 callback()
                 this@EpisodeActivity.updateTimeJob = null
             } else {
-                Log.e("Error while updating time : ", cancellation.message.toString())
+                Log.w(TAG, "Error while updating episode time", cancellation)
             }
         }
     }
@@ -522,172 +540,30 @@ class EpisodeActivity : AppCompatActivity() {
         }
         pendingCastLoadKey = loadKey
 
-        val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
+        val userAgent = runBlocking { dataStore.getPreferencesGroup(AdvancedPreferences) }.userAgent
+        val sources = availableSources ?: listOfNotNull(selectedSource)
 
-        movieMetadata.putString(MediaMetadata.KEY_TITLE, anime?.title ?: "Anime Title")
-        anime?.thumbnailUrl?.let { movieMetadata.addImage(WebImage(Uri.parse(it))) }
-        movieMetadata.putString(
-            MediaMetadata.KEY_SUBTITLE,
-            episode.name
-        )
-
-        val customData = JSONObject()
-            .put("userAgent", runBlocking { dataStore.getPreferencesGroup(AdvancedPreferences) }.userAgent)
-            .put("animeId", episode.animeId)
-            .put("episodeId", episode.id)
-            .put("seen", episode.seen)
-
-        if (availableSources != null) {
-            customData.put("availableSources", json.encodeToString(availableSources))
-        }
-
-        customData.put("episodeUrl", episodeUrl)
-        customData.put("selectedSource", json.encodeToString(selectedSource))
-
-        // Episode list + display mode so the TV can offer episode navigation.
-        val episodesArray = JSONArray()
-        playerViewModel.episodes.value.forEach { ep ->
-            episodesArray.put(
-                JSONObject()
-                    .put("id", ep.id)
-                    .put("name", ep.name)
-                    .put("episodeNumber", ep.episodeNumber.toDouble())
-                    .put("seen", ep.seen)
-            )
-        }
-        customData.put("episodes", episodesArray.toString())
-        customData.put(
-            "displayMode",
-            if (anime?.displayMode is Anime.DisplayMode.NAME) "NAME" else "NUMBER"
-        )
+        // The proxy is stateless (the receiver carries each source's headers with its requests);
+        // it is only needed here for its base url. It can be briefly absent on a cold start
+        // (async service spin-up): the load then goes out without proxyBaseUrl — harmless for the
+        // native receiver, and the web receiver learns the url from the handshake re-send.
+        val proxy = CastProxyHolder.server
 
         // Forward the active app color scheme so the TV mirrors the phone's theme.
-        activeColorScheme?.let { cs ->
-            customData.put(
-                "theme",
-                JSONObject()
-                    .put("primary", cs.primary.toArgb())
-                    .put("onPrimary", cs.onPrimary.toArgb())
-                    .put("secondary", cs.secondary.toArgb())
-                    .put("onSecondary", cs.onSecondary.toArgb())
-                    .put("background", cs.background.toArgb())
-                    .put("onBackground", cs.onBackground.toArgb())
-                    .put("surface", cs.surface.toArgb())
-                    .put("onSurface", cs.onSurface.toArgb())
-                    .put("surfaceVariant", cs.surfaceVariant.toArgb())
-                    .put("onSurfaceVariant", cs.onSurfaceVariant.toArgb())
-                    .toString()
-            )
+        val themeJson = activeColorScheme?.let { cs ->
+            JSONObject()
+                .put("primary", cs.primary.toArgb())
+                .put("onPrimary", cs.onPrimary.toArgb())
+                .put("secondary", cs.secondary.toArgb())
+                .put("onSecondary", cs.onSecondary.toArgb())
+                .put("background", cs.background.toArgb())
+                .put("onBackground", cs.onBackground.toArgb())
+                .put("surface", cs.surface.toArgb())
+                .put("onSurface", cs.onSurface.toArgb())
+                .put("surfaceVariant", cs.surfaceVariant.toArgb())
+                .put("onSurfaceVariant", cs.onSurfaceVariant.toArgb())
+                .toString()
         }
-
-        // No proxy: send the raw stream URL. The native Tadami-TV receiver injects the
-        // source headers itself (sent in selectedSource customData), like the phone player.
-        val contentUrl = selectedSource!!.url
-
-        val mediaInfosBuilder = MediaInfo.Builder(contentUrl)
-            .setContentUrl(contentUrl)
-            .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
-            .setMetadata(movieMetadata)
-            .setCustomData(customData)
-
-        // Known-duration fallback (re-watched episodes) so total time shows immediately; for
-        // first watches the receiver reports the real duration via its MediaStatus.
-        episode.totalTime.takeIf { it > 0L }?.let {
-            mediaInfosBuilder.setStreamDuration(it)
-        }
-
-        var activeTrackIds: LongArray? = null
-
-        // Add captions/subtitles if available
-        selectedSource?.subtitleTracks?.let { subtitleTracks ->
-            if (subtitleTracks.isNotEmpty()) {
-                val mediaTracks = ArrayList<MediaTrack>()
-
-                val trackNameMap = subtitleTracks.groupBy { it.lang }
-                    .flatMap { (lang, tracks) ->
-                        if (tracks.size > 1) {
-                            // If there are multiple tracks with the same language, add numbers
-                            tracks.mapIndexed { index, track ->
-                                track to "$lang #${index + 1}"
-                            }
-                        } else {
-                            // If there's only one track with this language, use the language name as is
-                            tracks.map { it to lang }
-                        }
-                    }.toMap()
-
-                // Add each subtitle track with a unique ID
-                subtitleTracks.forEachIndexed { index, track ->
-                    val trackId = (index + 1).toLong() // Track IDs should start from 1
-                    val trackName = trackNameMap[track] ?: "Subtitle ${index + 1}"
-
-                    val subtitle = MediaTrack.Builder(trackId, MediaTrack.TYPE_TEXT)
-                        .setName(trackName)
-                        .setSubtype(MediaTrack.SUBTYPE_SUBTITLES)
-                        .setContentId(track.url)
-                        .setLanguage(track.lang.convertToIetfLanguageTag())
-                        .setContentType(track.mimeType)
-                        .build()
-
-                    mediaTracks.add(subtitle)
-                }
-
-                if (mediaTracks.isNotEmpty()) {
-                    var selectedTrackId: Long? = null
-                    val userPreferredLanguages =
-                        playerPreferences?.subtitlePrefLanguages?.split(",")
-
-                    if (!userPreferredLanguages.isNullOrEmpty()) {
-                        // Try each preferred language in order until we find a match
-                        for (lang in userPreferredLanguages) {
-                            val matchIndex =
-                                subtitleTracks.indexOfFirst { it.lang.convertToIetfLanguageTag() == lang }
-                            if (matchIndex >= 0) {
-                                selectedTrackId = matchIndex + 1L
-                                break
-                            }
-                        }
-                    }
-
-                    // If no preferred language match was found, fall back to the first track
-                    activeTrackIds = if (selectedTrackId != null) {
-                        longArrayOf(selectedTrackId)
-                    } else {
-                        longArrayOf(1) // Default to first track if no preferred language match
-                    }
-
-                    mediaInfosBuilder.setMediaTracks(mediaTracks)
-                }
-            }
-        }
-
-        val textTrackStyle = TextTrackStyle.fromSystemSettings(this).apply {
-            foregroundColor = Color.argb(255, 255, 255, 255)        // 0xFFFFFFFF
-            backgroundColor = Color.argb(0, 0, 0, 1)
-            edgeType = TextTrackStyle.EDGE_TYPE_OUTLINE
-            edgeColor = Color.argb(240, 0, 0, 0)
-            fontStyle = TextTrackStyle.FONT_STYLE_BOLD
-
-        }
-
-        mediaInfosBuilder.setTextTrackStyle(textTrackStyle)
-
-        val mediaInfos = mediaInfosBuilder.build()
-
-        val mediaLoadRequestBuilder = MediaLoadRequestData.Builder()
-            .setAutoplay(true)
-
-        activeTrackIds?.let { trackIds ->
-            mediaLoadRequestBuilder.setActiveTrackIds(trackIds)
-            playerViewModel.selectedSubtitleTrack(
-                playerViewModel.uiState.value.selectedSource?.subtitleTracks?.takeIf { it.isNotEmpty() }
-                    ?.get(
-                        (trackIds[0] - 1L).toInt()
-                    )
-            )
-        }
-
-        mediaLoadRequestBuilder.setMediaInfo(mediaInfos)
 
         // No pre-load stop(): remoteMediaClient.load() replaces the current media on its own. A stop() here races
         // the load and resets the receiver player — it killed the first cold cast, and it also kills a TV-direct
@@ -697,9 +573,29 @@ class EpisodeActivity : AppCompatActivity() {
 
         checkUpdateTimeJobEnded {
             playerViewModel.getDbEpisodeTime { time ->
-                remoteMediaClient.load(
-                    mediaLoadRequestBuilder.setCurrentTime(time).build()
-                ).setResultCallback { result ->
+                val request = buildCastLoadRequest(
+                    episode = episode,
+                    anime = anime,
+                    availableSources = sources,
+                    selectedSource = selectedSource!!,
+                    episodeUrl = episodeUrl,
+                    episodes = playerViewModel.episodes.value,
+                    displayMode = if (anime?.displayMode is Anime.DisplayMode.NAME) "NAME" else "NUMBER",
+                    themeJson = themeJson,
+                    userAgent = userAgent,
+                    subtitlePrefLanguages = playerPreferences?.subtitlePrefLanguages
+                        ?.split(",")?.filter { it.isNotBlank() } ?: emptyList(),
+                    resumeTimeMs = time,
+                    proxyBaseUrl = proxy?.baseUrl(),
+                    subtitleStyle = playerPreferences?.toCastSubtitleStyle(),
+                )
+                // Mirror the auto-selected subtitle into the phone player state.
+                request.activeTrackIds?.takeIf { it.isNotEmpty() }?.let { trackIds ->
+                    playerViewModel.selectedSubtitleTrack(
+                        selectedSource?.subtitleTracks?.getOrNull((trackIds[0] - 1L).toInt())
+                    )
+                }
+                remoteMediaClient.load(request).setResultCallback { result ->
                     if (result.status == Status.RESULT_SUCCESS) {
                         playerViewModel.setIdleLock(false)
                     }

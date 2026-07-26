@@ -2,6 +2,7 @@ package com.sf.tadami.ui.animeinfos.episode.cast.channels
 
 import android.util.Log
 import com.google.android.gms.cast.CastDevice
+import com.sf.tadami.preferences.player.PlayerPreferences
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -47,14 +48,31 @@ data class TvControlMessage(
     val subtitleStyle: CastSubtitleStyle? = null,
 )
 
-/** Subtitle style forwarded phone→TV so the receiver's overlay mirrors the phone's preferences. */
+/**
+ * Subtitle style forwarded phone→TV so the receiver's overlay mirrors the phone's preferences.
+ *
+ * Values are the raw preferences, with the SAME meaning the phone's own renderer gives them
+ * (PlayerSubtitleView): [textSize] in sp, [outlineWidth] and [letterSpacing] in hundredths
+ * (percent of text size / em). Defaults mirror PlayerPreferences so an unstyled load still matches.
+ */
 @Serializable
 data class CastSubtitleStyle(
-    val textSize: Int = 22,
-    val fontWeight: Int = 700,
-    val outlineWidth: Int = 22,
-    val letterSpacing: Int = 0,
+    val textSize: Int = PlayerPreferences.DEFAULT_TEXT_SIZE,
+    val fontWeight: Int = PlayerPreferences.DEFAULT_FONT_WEIGHT,
+    val outlineWidth: Int = PlayerPreferences.DEFAULT_OUTLINE_WIDTH,
+    val letterSpacing: Int = PlayerPreferences.DEFAULT_LETTER_SPACING,
     val textColor: Int = 0,
     val edgeColor: Int = 0,
     val italic: Boolean = false,
+)
+
+/** The subtitle look the phone is rendering locally, as the cast payload. */
+fun PlayerPreferences.toCastSubtitleStyle(): CastSubtitleStyle = CastSubtitleStyle(
+    textSize = subtitleTextSize,
+    fontWeight = subtitleFontWeight,
+    outlineWidth = subtitleOutlineWidth,
+    letterSpacing = subtitleLetterSpacing,
+    textColor = subtitleTextColor,
+    edgeColor = subtitleEdgeColor,
+    italic = subtitleItalicFormat,
 )

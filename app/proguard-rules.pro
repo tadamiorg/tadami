@@ -1,5 +1,14 @@
 -dontobfuscate
 
+# Strip debug-level logging from release (minify runs only there): removes every Log.v/d/i body,
+# including the cast proxy's per-segment REQ/RESP/HDR/UP traces and the media URLs they carry.
+# Log.w/Log.e stay — real errors (receiver-reported cast errors, service failures) remain visible.
+-assumenosideeffects class android.util.Log {
+    public static int v(...);
+    public static int d(...);
+    public static int i(...);
+}
+
 -keep,allowoptimization class com.sf.tadami.**
 
 # Keep common dependencies used in extensions

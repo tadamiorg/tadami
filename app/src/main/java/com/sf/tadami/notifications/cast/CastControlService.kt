@@ -24,14 +24,21 @@ import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
+import com.sf.tadami.preferences.cast.CastPreferences
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.ui.animeinfos.episode.cast.CastProtocol
 import com.sf.tadami.ui.animeinfos.episode.cast.CastRemoteState
+import com.sf.tadami.ui.animeinfos.episode.cast.CastSessionState
 import com.sf.tadami.ui.animeinfos.episode.cast.buildCastLoadRequest
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ControlChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.HandshakeChannel
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.ReceiverHandshakeMessage
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.toCastSubtitleStyle
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvControlMessage
+import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyHolder
+import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyServer
 import com.sf.tadami.ui.animeinfos.episode.cast.sendCastMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
 import com.sf.tadami.ui.tabs.browse.SourceManager
@@ -44,6 +51,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
 import org.json.JSONObject
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -67,7 +75,12 @@ class CastControlService : Service() {
     private lateinit var castContext: CastContext
     private lateinit var notifier: CastNotifier
     private val controlChannel = ControlChannel { msg -> onControl(msg) }
-    private val handshakeChannel = HandshakeChannel()
+    private val handshakeChannel = HandshakeChannel { reply -> onHandshakeReply(reply) }
+    // Logs receiver-reported errors for the whole session (CastVideoPlayer replaces this callback
+    // with its snackbar variant while that screen is open — both paths write to logcat).
+    private val errorChannel = ErrorChannel()
+    private lateinit var proxyServer: CastProxyServer
+    private var webNoticeShownThisSession = false
     private var fetchDisposable: Disposable? = null
     // Last seen media customData: at end of playback the media goes IDLE/FINISHED and mediaInfo
     // becomes null, so we fall back to this to keep episode switching working past the end.
@@ -89,6 +102,19 @@ class CastControlService : Service() {
         super.onCreate()
         castContext = CastContext.getSharedInstance(applicationContext)
         notifier = CastNotifier(applicationContext)
+        // The proxy lives and dies with this service (which spans the whole cast session). Started
+        // for every session: it idles for free, and having proxyBaseUrl known before the first load
+        // keeps the load path independent of (racy) receiver-type detection.
+        proxyServer = CastProxyServer(applicationContext, OkHttpClient.Builder().build())
+        CastProxyHolder.server = proxyServer
+        scope.launch(Dispatchers.IO) {
+            // The proxy is stateless; the UA preference is its only phone-side input (applied when
+            // neither the request nor its carried source headers set a User-Agent).
+            proxyServer.fallbackUserAgent = dataStore.getPreferencesGroup(AdvancedPreferences).userAgent
+            if (proxyServer.startSafely()) {
+                CastSessionState.proxyBaseUrl.value = proxyServer.baseUrl()
+            }
+        }
         castContext.sessionManager.addSessionManagerListener(sessionListener, CastSession::class.java)
         castContext.sessionManager.currentCastSession?.let { bind(it) }
     }
@@ -122,6 +148,9 @@ class CastControlService : Service() {
     override fun onDestroy() {
         fetchDisposable?.dispose()
         castContext.sessionManager.removeSessionManagerListener(sessionListener, CastSession::class.java)
+        CastProxyHolder.server = null
+        proxyServer.stop()
+        CastSessionState.clear()
         scope.cancel()
         super.onDestroy()
     }
@@ -131,6 +160,7 @@ class CastControlService : Service() {
     private fun bind(session: CastSession) {
         setCastCustomChannel(session, controlChannel)
         setCastCustomChannel(session, handshakeChannel)
+        setCastCustomChannel(session, errorChannel)
         // Advertise our protocol versions at connect time (before any media load) so the receiver can
         // force an update immediately if it's too old. Re-send shortly after in case the receiver was
         // still starting up and missed the first message.
@@ -146,7 +176,26 @@ class CastControlService : Service() {
             .put("senderProtocol", CastProtocol.SENDER_VERSION)
             .put("minReceiverProtocol", CastProtocol.MIN_RECEIVER_VERSION)
             .toString()
-        sendCastMessage(session, HandshakeChannel.NAMESPACE, message)
+        // proxyBaseUrl lets the web receiver build proxied urls pre-load and re-learn the base after
+        // a service restart (fresh port). It may still be null on the very first send (async proxy
+        // start) — the 1.5s re-send covers that. Native reads only the protocol fields.
+        val withProxy = proxyServer.baseUrl()?.let {
+            JSONObject(message).put("proxyBaseUrl", it).toString()
+        } ?: message
+        sendCastMessage(session, HandshakeChannel.NAMESPACE, withProxy)
+    }
+
+    /** Only the web receiver replies to the handshake — this is how we detect it. */
+    private fun onHandshakeReply(reply: ReceiverHandshakeMessage) {
+        if (reply.receiverType != "web") return
+        CastSessionState.receiverType.value = CastSessionState.ReceiverType.WEB
+        if (webNoticeShownThisSession) return
+        webNoticeShownThisSession = true
+        scope.launch {
+            if (dataStore.getPreferencesGroup(CastPreferences).showWebReceiverNotice) {
+                CastSessionState.showWebReceiverNotice.value = true
+            }
+        }
     }
 
     private fun stopNow() {
@@ -221,8 +270,9 @@ class CastControlService : Service() {
         val episodes = runCatching { episodeRepository.getEpisodesByAnimeId(target.animeId) }
             .getOrNull()?.sortedBy { it.sourceOrder } ?: listOf(fresh)
         val playerPrefs = dataStore.getPreferencesGroup(PlayerPreferences)
-        val userAgent = customData.optString("userAgent")
-            .ifBlank { dataStore.getPreferencesGroup(AdvancedPreferences).userAgent }
+        // Read the UA preference directly (not the customData echo of it) — fresher if the user
+        // edited it mid-session, and it keeps both load paths identical.
+        val userAgent = dataStore.getPreferencesGroup(AdvancedPreferences).userAgent
         val themeJson = if (customData.has("theme")) customData.optString("theme").ifBlank { null } else null
         val displayMode = if (anime.displayMode is Anime.DisplayMode.NAME) "NAME" else "NUMBER"
         val resume = if (fresh.seen) 0L else fresh.timeSeen
@@ -245,6 +295,8 @@ class CastControlService : Service() {
                     userAgent = userAgent,
                     subtitlePrefLanguages = subtitlePrefs,
                     resumeTimeMs = resume,
+                    proxyBaseUrl = proxyServer.baseUrl(),
+                    subtitleStyle = playerPrefs.toCastSubtitleStyle(),
                 )
                 scope.launch { remoteMediaClient?.load(request) }
             },

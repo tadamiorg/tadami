@@ -11,6 +11,8 @@ import com.google.android.gms.common.images.WebImage
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.ui.animeinfos.episode.cast.channels.CastSubtitleStyle
+import com.sf.tadami.ui.animeinfos.episode.cast.proxy.proxiedImageUrl
 import com.sf.tadami.ui.utils.convertToIetfLanguageTag
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -23,7 +25,11 @@ private val castJson = Json
  * Builds the Cast load request for [episode]. Pure / app-context (no Activity or Compose), so it can
  * run both from EpisodeActivity (foreground) and from CastControlService (background). [themeJson] is
  * the pre-serialized theme object string reused as-is (or null); [resumeTimeMs] is the start position.
- * Mirrors what EpisodeActivity.loadRemoteMedia used to build inline.
+ *
+ * All urls in the payload are RAW. The web receiver learns [proxyBaseUrl] from customData (and the
+ * handshake) and routes its media requests through the phone proxy itself, at the network layer —
+ * the payload stays format-agnostic and identical for both receivers (the native Terebi receiver
+ * plays the raw `selectedSource` with its own header injection and ignores `proxyBaseUrl`).
  */
 fun buildCastLoadRequest(
     episode: Episode,
@@ -37,10 +43,16 @@ fun buildCastLoadRequest(
     userAgent: String,
     subtitlePrefLanguages: List<String>,
     resumeTimeMs: Long,
+    proxyBaseUrl: String? = null,
+    subtitleStyle: CastSubtitleStyle? = null,
 ): MediaLoadRequestData {
     val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
     movieMetadata.putString(MediaMetadata.KEY_TITLE, anime?.title ?: "Anime Title")
-    anime?.thumbnailUrl?.let { movieMetadata.addImage(WebImage(Uri.parse(it))) }
+    // Proxied so hotlink-protecting hosts serve it: neither the Cast SDK's image fetcher (sender
+    // widget / media notification) nor the receiver's <img> sends a Referer. Falls back to raw.
+    anime?.thumbnailUrl?.let { cover ->
+        movieMetadata.addImage(WebImage(Uri.parse(proxiedImageUrl(proxyBaseUrl, cover) ?: cover)))
+    }
     movieMetadata.putString(MediaMetadata.KEY_SUBTITLE, episode.name)
 
     val customData = JSONObject()
@@ -68,6 +80,11 @@ fun buildCastLoadRequest(
     customData.put("episodes", episodesArray.toString())
     customData.put("displayMode", displayMode)
     themeJson?.let { customData.put("theme", it) }
+    proxyBaseUrl?.let { customData.put("proxyBaseUrl", it) }
+    // Carry the subtitle style with the load: the control-channel message only fires while the cast
+    // player screen is composed, so without this a fresh load (or a notification-driven episode
+    // switch) would render with the receiver's defaults instead of the user's preferences.
+    subtitleStyle?.let { customData.put("subtitleStyle", castJson.encodeToString(it)) }
 
     val contentUrl = selectedSource.url
     val mediaInfosBuilder = MediaInfo.Builder(contentUrl)

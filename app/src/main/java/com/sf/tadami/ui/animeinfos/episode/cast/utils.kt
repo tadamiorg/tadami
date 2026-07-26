@@ -1,6 +1,9 @@
 package com.sf.tadami.ui.animeinfos.episode.cast
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.Log
 import com.google.android.gms.cast.CastStatusCodes
 import com.google.android.gms.cast.MediaStatus
@@ -15,24 +18,40 @@ fun isCastMediaFinished(playerState : Int?): Boolean {
     return playerState == MediaStatus.IDLE_REASON_FINISHED || playerState == MediaStatus.IDLE_REASON_ERROR
 }
 
-fun getLocalIPAddress(): String? {
-    try {
-        val en = NetworkInterface.getNetworkInterfaces()
-        while (en.hasMoreElements()) {
-            val networkInterface = en.nextElement()
-            val enu = networkInterface.inetAddresses
-            while (enu.hasMoreElements()) {
-                val inetAddress = enu.nextElement()
-                if (!inetAddress.isLoopbackAddress && inetAddress is Inet4Address) {
-                    return inetAddress.getHostAddress()
-                }
+/**
+ * The phone's LAN IPv4 for the cast proxy base url. The cast receiver must be able to reach it, so
+ * prefer the Wi-Fi (then Ethernet) network over whatever interface enumeration returns first —
+ * a VPN's tun0 or the cellular rmnet address would be unreachable from the TV.
+ */
+fun getLocalIPAddress(context: Context): String? {
+    // 1) The OS-declared Wi-Fi / Ethernet networks.
+    runCatching {
+        val connectivity = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        for (transport in intArrayOf(NetworkCapabilities.TRANSPORT_WIFI, NetworkCapabilities.TRANSPORT_ETHERNET)) {
+            @Suppress("DEPRECATION")
+            for (network in connectivity.allNetworks) {
+                val capabilities = connectivity.getNetworkCapabilities(network) ?: continue
+                if (!capabilities.hasTransport(transport)) continue
+                connectivity.getLinkProperties(network)?.linkAddresses
+                    ?.map { it.address }
+                    ?.firstOrNull { it is Inet4Address && !it.isLoopbackAddress }
+                    ?.let { return it.hostAddress }
             }
         }
-    } catch (ex: Exception) {
-        ex.printStackTrace()
-    }
+    }.onFailure { Log.w("getLocalIPAddress", "ConnectivityManager lookup failed", it) }
 
-    return null
+    // 2) Interface scan fallback (covers hotspot ap0/swlan0), skipping VPN/cellular interfaces.
+    return runCatching {
+        NetworkInterface.getNetworkInterfaces().asSequence()
+            .filter { nic ->
+                val name = nic.name.lowercase()
+                !name.startsWith("tun") && !name.startsWith("ppp") && !name.startsWith("rmnet")
+            }
+            .sortedByDescending { it.name.lowercase().let { n -> n.startsWith("wlan") || n.startsWith("ap") || n.startsWith("swlan") } }
+            .flatMap { it.inetAddresses.asSequence() }
+            .firstOrNull { it is Inet4Address && !it.isLoopbackAddress && it.isSiteLocalAddress }
+            ?.hostAddress
+    }.getOrNull()
 }
 
 fun logCastConnectionError(source: String, error: Int) {

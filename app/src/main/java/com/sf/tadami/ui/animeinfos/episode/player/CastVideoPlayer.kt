@@ -230,8 +230,17 @@ fun CastVideoPlayer(
         }
 
         val messageReceiverCallback = tadamiCastMessageCallback { _, _, message: TadamiCastError ->
-            coroutineScope.launch {
-                snackbarHostState.showSnackbar(getErrorMessage(activityContext, message.errorCode))
+            // Same logcat line as the service-owned ErrorChannel — this callback replaces it
+            // while the cast player screen is open.
+            Log.e(
+                ErrorChannel.TAG,
+                "receiver errorCode=${message.errorCode}" + (message.detail?.let { " detail=$it" } ?: ""),
+            )
+            // errorCode 0 = diagnostic heartbeat, log-only — not a user-facing error.
+            if (message.errorCode != 0) {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(getErrorMessage(activityContext, message.errorCode))
+                }
             }
         }
 
@@ -292,14 +301,25 @@ fun CastVideoPlayer(
                     opened = openTracksSelectionDialog,
                     subtitleTracks = episodeUiState.selectedSource?.subtitleTracks,
                     selectedSubtitleTrack = episodeUiState.selectedSubtitleTrack,
-                    onSubtitleTrackSelected = {
-                        playerViewModel.selectedSubtitleTrack(it)
-                        if(!episodeUiState.selectedSource?.subtitleTracks.isNullOrEmpty()){
-                            val index = (episodeUiState.selectedSource?.subtitleTracks?.indexOf(it) ?: 1) + 1
-                            castSession.remoteMediaClient?.setActiveMediaTracks(longArrayOf())
-                            castSession.remoteMediaClient?.setActiveMediaTracks(longArrayOf(index.toLong()))
-                        }
-
+                    onSubtitleTrackSelected = { track ->
+                        playerViewModel.selectedSubtitleTrack(track)
+                        // One control message instead of EDIT_TRACKS_INFO: the old clear-then-set pair
+                        // (empty ids, then the id) made the receiver disable subtitles first and raced
+                        // on RemoteMediaClient, so a pick often stayed off. Match by URL — the tracked
+                        // object can be a stale copy after a source switch, and indexOf would then
+                        // return -1. -1 means "off" here.
+                        val index = track?.let { selected ->
+                            episodeUiState.selectedSource?.subtitleTracks
+                                ?.indexOfFirst { it.url == selected.url } ?: -1
+                        } ?: -1
+                        sendCastMessage(
+                            castSession,
+                            ControlChannel.NAMESPACE,
+                            castControlJson.encodeToString(
+                                TvControlMessage.serializer(),
+                                TvControlMessage("selectSubtitle", subtitleIndex = index),
+                            ),
+                        )
                     },
                     onDismissRequest = {
                         openTracksSelectionDialog = false
