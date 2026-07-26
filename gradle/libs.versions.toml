@@ -33,6 +33,12 @@ okhttp-dnsoverhttps = { group = "com.squareup.okhttp3", name = "okhttp-dnsoverht
 okhttp-brotli = { group = "com.squareup.okhttp3", name = "okhttp-brotli", version.ref = "okhttp-version" }
 okio = "com.squareup.okio:okio:3.17.0"
 
+# Local HTTP proxy for the web cast receiver
+nanohttpd = "org.nanohttpd:nanohttpd:2.3.1"
+
+# Unit tests
+junit = "junit:junit:4.13.2"
+
 # SQLITE
 sqlite-framework = { module = "androidx.sqlite:sqlite-framework", version.ref = "sqlite" }
 sqlite-ktx = { module = "androidx.sqlite:sqlite-ktx", version.ref = "sqlite" }

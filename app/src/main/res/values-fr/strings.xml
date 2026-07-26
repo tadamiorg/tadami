@@ -120,6 +120,10 @@
     <string name="cast_howto_step_code">2. Dans Downloader, saisissez ce code pour télécharger l\'application Tadami Terebi :</string>
     <string name="cast_howto_step_install">3. Une fois le téléchargement terminé, installez l\'application Tadami Terebi, puis réessayez de diffuser.</string>
     <string name="cast_howto_open_guide">Ouvrir le guide dans le navigateur</string>
+    <string name="cast_web_receiver_notice_title">Diffusion vers le lecteur web intégré</string>
+    <string name="cast_web_receiver_notice_message">Votre TV utilise le récepteur web de Tadami. Certaines vidéos peuvent ne pas se lire, ou l\'audio/les sous-titres peuvent manquer.</string>
+    <string name="cast_web_receiver_notice_recommend">Sur Google TV / Android TV, installez l\'application Tadami Terebi pour une meilleure expérience :</string>
+    <string name="cast_web_receiver_notice_dont_show_again">Ne plus afficher</string>
     <string name="details_screen_start_button">Commencer</string>
     <string name="details_screen_resume_button">Reprendre</string>
     <string name="unknown_error">Erreur inconnue</string>

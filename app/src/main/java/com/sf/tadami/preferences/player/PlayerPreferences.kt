@@ -62,11 +62,12 @@ data class PlayerPreferences(
             "en" to R.string.language_en
         )
 
-        // Subtitles default style
-        private const val DEFAULT_TEXT_SIZE = 24
-        private const val DEFAULT_FONT_WEIGHT = 700
-        private const val DEFAULT_OUTLINE_WIDTH = 35
-        private const val DEFAULT_LETTER_SPACING = 2
+        // Subtitles default style. Not private: the cast payload (CastSubtitleStyle) defaults to the
+        // same values so a receiver that hasn't been told the style yet renders like the phone.
+        const val DEFAULT_TEXT_SIZE = 24
+        const val DEFAULT_FONT_WEIGHT = 700
+        const val DEFAULT_OUTLINE_WIDTH = 35
+        const val DEFAULT_LETTER_SPACING = 2
         private val DEFAULT_TEXT_COLOR = Color.White.toArgb()
         private val DEFAULT_BACKGROUND_COLOR = Color.Transparent.toArgb()
         private const val DEFAULT_EDGE_TYPE = CaptionStyleCompat.EDGE_TYPE_OUTLINE

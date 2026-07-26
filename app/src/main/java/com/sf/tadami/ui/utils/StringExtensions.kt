@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.utils
 
-import android.util.Log
 import java.util.Locale
 
 fun String.capFirstLetter() : String{

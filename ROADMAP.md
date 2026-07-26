@@ -10,7 +10,6 @@
 * ~~Add cast to chromecast enabled devices~~
 * ~~Add in app updates~~
 * ~~Anime migration between sources~~
-* Refactor file structure to respect clean architectural guidelines
 
 ### Optional
 

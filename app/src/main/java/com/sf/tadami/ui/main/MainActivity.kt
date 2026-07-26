@@ -30,22 +30,26 @@ import com.sf.tadami.R
 import com.sf.tadami.extension.api.ExtensionsApi
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.navigation.graphs.onboarding.OnboardingRoutes
+import com.sf.tadami.notifications.cast.CastControlService
 import com.sf.tadami.preferences.app.BasePreferences
 import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.preferences.backup.BackupPreferences
+import com.sf.tadami.preferences.cast.CastPreferences
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionErrorDialog
 import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionState
+import com.sf.tadami.ui.animeinfos.episode.cast.CastSessionState
+import com.sf.tadami.ui.animeinfos.episode.cast.CastWebReceiverNoticeDialog
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.logCastConnectionError
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
-import com.sf.tadami.notifications.cast.CastControlService
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.setComposeContent
 import com.sf.tadami.utils.editPreference
+import com.sf.tadami.utils.editPreferences
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -134,6 +138,22 @@ class MainActivity : AppCompatActivity() {
             if (castConnectionError) {
                 CastConnectionErrorDialog(
                     onDismissRequest = { CastConnectionState.clear() }
+                )
+            }
+            val showWebReceiverNotice by CastSessionState.showWebReceiverNotice.collectAsState()
+            if (showWebReceiverNotice) {
+                CastWebReceiverNoticeDialog(
+                    onDismissRequest = { dontShowAgain ->
+                        CastSessionState.showWebReceiverNotice.value = false
+                        if (dontShowAgain) {
+                            lifecycleScope.launch {
+                                dataStore.editPreferences(
+                                    CastPreferences(showWebReceiverNotice = false),
+                                    CastPreferences,
+                                )
+                            }
+                        }
+                    }
                 )
             }
             HomeScreen(navController)

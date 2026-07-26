@@ -25,8 +25,8 @@ android {
 
     defaultConfig {
         applicationId = "com.sf.tadami"
-        versionCode = 51
-        versionName = "1.9.2"
+        versionCode = 52
+        versionName = "1.9.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")
@@ -145,6 +145,11 @@ dependencies {
 
     // Network client okhttp
     implementation(libs.bundles.okhttpGroup)
+
+    // Local HTTP proxy for the web cast receiver
+    implementation(libs.nanohttpd)
+
+    testImplementation(libs.junit)
 
     // SQLite
     implementation(libs.bundles.sqlite)

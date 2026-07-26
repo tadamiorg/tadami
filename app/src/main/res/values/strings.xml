@@ -148,6 +148,10 @@
     <string name="cast_howto_step_install">3. When it finishes downloading, install the Tadami Terebi app, then cast again.</string>
     <string name="cast_howto_open_guide">Open guide in browser</string>
     <string name="cast_howto_guide_url" translatable="false">https://github.com/tadamiorg/tadami/blob/main/docs/install-tv-app.md</string>
+    <string name="cast_web_receiver_notice_title">Casting to the built-in web player</string>
+    <string name="cast_web_receiver_notice_message">Your TV is using Tadami\'s web receiver. Some videos may not play, or audio/subtitles may be missing.</string>
+    <string name="cast_web_receiver_notice_recommend">On Google TV / Android TV devices, install the Tadami Terebi app for the best experience:</string>
+    <string name="cast_web_receiver_notice_dont_show_again">Don\'t show again</string>
     <string name="details_screen_start_button">Start</string>
     <string name="details_screen_resume_button">Resume</string>
     <string name="unknown_error">Unknown error</string>
