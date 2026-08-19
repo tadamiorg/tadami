@@ -24,8 +24,14 @@ import java.util.concurrent.CountDownLatch
 class CloudflareInterceptor(
     private val context: Context,
     private val cookieManager: AndroidCookieJar,
-    userAgent: String
+    userAgent: () -> String
 ) : WebViewInterceptor(context, userAgent) {
+
+    constructor(
+        context: Context,
+        cookieManager: AndroidCookieJar,
+        userAgent: String,
+    ) : this(context, cookieManager, { userAgent })
 
     private val executor = ContextCompat.getMainExecutor(context)
 

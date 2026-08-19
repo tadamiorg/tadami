@@ -1,19 +1,15 @@
 package com.sf.tadami.network.utils
 
 import android.app.Application
-import com.sf.tadami.R
-import com.sf.tadami.data.anime.NoResultException
 import com.sf.tadami.network.HttpException
-import com.sf.tadami.source.StubSource.SourceNotInstalledException
 import com.sf.tadami.ui.utils.UiToasts
-import com.sf.tadami.utils.isOnline
+import com.sf.tadami.ui.utils.formattedMessage
+import com.sf.tadami.ui.utils.isKnownError
+import com.sf.tadami.utils.logcat
 import io.reactivex.rxjava3.functions.Consumer
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import logcat.LogPriority
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import java.net.UnknownHostException
 
 
 class TadaErrorConsumer(
@@ -21,68 +17,16 @@ class TadaErrorConsumer(
     private val callback: ((error : Throwable,message: String?, errorCode: Int?) -> Unit)? = null
 ) : Consumer<Throwable> {
     override fun accept(e: Throwable) {
-        runBlocking {
-            withContext(Dispatchers.Main) {
-                when (e) {
-                    is HttpException -> {
-                        Injekt.get<Application>().let {
-                            UiToasts.showToast(
-                                stringRes = R.string.request_error_response,
-                                args = arrayOf("${e.code}")
-                            )
-                        }
-                        callback?.invoke(e,e.message, e.code)
-                    }
-                    is UnknownHostException -> {
-                        Injekt.get<Application>().let {
-                            val actualError =  if (!it.isOnline()) {
-                                it.getString(R.string.exception_offline)
-                            } else {
-                                it.getString(R.string.exception_unknown_host, e.message ?: "")
-                            }
-                            UiToasts.showToast(
-                                msg = actualError
-                            )
-                        }
-                    }
-                    is SourceNotInstalledException -> {
-                        Injekt.get<Application>().let {
-                            UiToasts.showToast(
-                                stringRes = R.string.source_not_installed,
-                                args = arrayOf("${e.message}")
-                            )
-                        }
-                        callback?.invoke(e,e.message, null)
-                    }
+        logcat(LogPriority.ERROR, e) { "Request failed" }
 
-                    is NoResultException -> {
-                        Injekt.get<Application>().let {
-                            UiToasts.showToast(
-                                msg = it.getString(R.string.pager_no_results)
-                            )
-                        }
-                        callback?.invoke(e,e.message, null)
-                    }
-
-                    else -> {
-                        if (showUnknownError) {
-                            Injekt.get<Application>().let {
-                                val unknownError = when (val className = this::class.simpleName) {
-                                    "Exception", "IOException" -> e.message ?: className
-                                    else -> "$className: ${e.message}"
-                                }
-                                UiToasts.showToast(
-                                    msg = unknownError
-                                )
-                            }
-                        }
-                        callback?.invoke(e,e.message, null)
-                        e.printStackTrace()
-                    }
-                }
-            }
+        // The message mapping lives in ThrowableExtensions; this class used to carry its own copy,
+        // including an `else` branch that reported the consumer's class name instead of the error's.
+        val isKnown = e.isKnownError()
+        if (showUnknownError || isKnown) {
+            UiToasts.showToast(msg = with(Injekt.get<Application>()) { e.formattedMessage })
         }
+
+        // UiToasts already hops to the main thread, so this no longer needs to block on one.
+        callback?.invoke(e, e.message, (e as? HttpException)?.code)
     }
 }
-
-

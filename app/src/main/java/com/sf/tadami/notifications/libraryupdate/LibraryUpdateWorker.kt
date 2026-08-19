@@ -3,7 +3,8 @@ package com.sf.tadami.notifications.libraryupdate
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.os.Build
-import android.util.Log
+import com.sf.tadami.utils.logcat
+import logcat.LogPriority
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.work.BackoffPolicy
@@ -91,7 +92,7 @@ class LibraryUpdateWorker(
         try {
             setForeground(getForegroundInfo())
         } catch (e: IllegalStateException) {
-            Log.d("Worker error", "Job could not be set in foreground", e)
+            logcat(LogPriority.WARN, e) { "Job could not be set in foreground" }
         }
 
         dataStore.editPreferences(
@@ -110,7 +111,7 @@ class LibraryUpdateWorker(
                     // Assume success although cancelled
                     Result.success()
                 } else {
-                    Log.d("Worker error", "error", e)
+                    logcat(LogPriority.ERROR, e) { "Library update failed" }
                     Result.failure()
                 }
             } finally {

@@ -3,13 +3,16 @@ package com.sf.tadami.crash
 import android.content.Context
 import android.os.Build
 import com.sf.tadami.BuildConfig
+import com.sf.tadami.R
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.getUriCompat
 import com.sf.tadami.ui.utils.toShareIntent
 import com.sf.tadami.utils.createFileInCacheDir
+import com.sf.tadami.utils.logcat
 import com.sf.tadami.utils.withNonCancellableContext
+import logcat.LogPriority
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -22,15 +25,34 @@ class CrashLogUtil(
         try {
             val file = context.createFileInCacheDir("tadami_crash_logs.txt")
 
+            // The persisted crash report, when there is one, is the most useful part: it has the
+            // stack trace plus the log lines from just before the crash.
+            CrashReporter.readPending(context)?.let {
+                file.appendText(it.format() + "\n\n")
+            }
+
             file.appendText(getDebugInfo() + "\n\n")
             getExtensionsInfo()?.let { file.appendText("$it\n\n") }
 
-            Runtime.getRuntime().exec("logcat *:E -d -f ${file.absolutePath}").waitFor()
+            val recentLogs = CrashLogBuffer.snapshot()
+            if (recentLogs.isNotBlank()) {
+                file.appendText("--- Recent logs ---\n$recentLogs\n\n")
+            }
+
+            // System logcat as a last resort. Most of the app's own Log.d calls are stripped from
+            // release builds, which is why the in-memory buffer above exists.
+            runCatching {
+                Runtime.getRuntime().exec("logcat *:E -d").inputStream.use { stream ->
+                    file.appendText("--- System logcat ---\n")
+                    file.appendBytes(stream.readBytes())
+                }
+            }
 
             val uri = file.getUriCompat(context)
             context.startActivity(uri.toShareIntent(context, "text/plain"))
         } catch (e: Throwable) {
-            UiToasts.showToast("Failed to get logs")
+            logcat(LogPriority.ERROR, e) { "Failed to dump crash logs" }
+            UiToasts.showToast(R.string.crash_logs_dump_failed)
         }
     }
 
@@ -64,11 +86,19 @@ class CrashLogUtil(
                 """.trimIndent()
             }
 
-        return if (extensionInfoList.isNotEmpty()) {
-            (listOf("Problematic extensions:") + extensionInfoList)
-                .joinToString("\n")
-        } else {
-            null
+        val failedList = extensionManager.failedExtensionsFlow.value.map {
+            "- ${it.extName ?: it.pkgName} failed to load: ${it.reason}"
         }
+
+        val sections = buildList {
+            if (extensionInfoList.isNotEmpty()) {
+                add((listOf("Problematic extensions:") + extensionInfoList).joinToString("\n"))
+            }
+            if (failedList.isNotEmpty()) {
+                add((listOf("Extensions that failed to load:") + failedList).joinToString("\n"))
+            }
+        }
+
+        return sections.takeIf { it.isNotEmpty() }?.joinToString("\n\n")
     }
 }

@@ -5,12 +5,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.util.Log
 import androidx.core.content.ContextCompat
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.model.LoadResult
 import com.sf.tadami.extension.util.ExtensionsLoader
 import com.sf.tadami.ui.main.MainActivity
+import com.sf.tadami.utils.logcat
+import logcat.LogPriority
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -97,8 +98,8 @@ class ExtensionInstallerReceiver(private val listener: Listener) : BroadcastRece
     private suspend fun getExtensionFromIntent(context: Context, intent: Intent?): LoadResult {
         val pkgName = getPackageNameFromIntent(intent)
         if (pkgName == null) {
-            Log.d("GetExtensionFromIntent","Package name not found")
-            return LoadResult.Error
+            logcat(LogPriority.WARN) { "Package name not found in intent" }
+            return LoadResult.Error(pkgName = "", reason = LoadResult.Reason.NOT_FOUND)
         }
         return GlobalScope.async(Dispatchers.Default, CoroutineStart.DEFAULT) {
             ExtensionsLoader.loadExtensionFromPkgName(context, pkgName)

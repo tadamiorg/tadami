@@ -4,7 +4,8 @@ import android.content.Context
 import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
-import android.util.Log
+import com.sf.tadami.utils.logcat
+import logcat.LogPriority
 import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
@@ -37,7 +38,7 @@ class BackupRestoreWorker(private val context: Context, workerParams: WorkerPara
         try {
             setForeground(getForegroundInfo())
         } catch (e: IllegalStateException) {
-            Log.d("BackupRestoreWorker","Not allowed to run on foreground service")
+            logcat(LogPriority.WARN) { "Not allowed to run on foreground service" }
         }
 
         return try {
@@ -48,7 +49,7 @@ class BackupRestoreWorker(private val context: Context, workerParams: WorkerPara
                 notifier.showRestoreError(context.getString(R.string.restoring_backup_canceled))
                 Result.success()
             } else {
-                Log.d("BackupRestorer",e.stackTraceToString())
+                logcat(LogPriority.ERROR, e) { "Backup restore failed" }
                 notifier.showRestoreError(e.message)
                 Result.failure()
             }

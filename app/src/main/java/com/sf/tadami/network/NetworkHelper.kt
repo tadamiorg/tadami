@@ -8,8 +8,13 @@ import com.sf.tadami.network.interceptors.IgnoreGzipInterceptor
 import com.sf.tadami.network.interceptors.UncaughtExceptionInterceptor
 import com.sf.tadami.network.interceptors.UserAgentInterceptor
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
-import com.sf.tadami.utils.getPreferencesGroup
-import kotlinx.coroutines.runBlocking
+import com.sf.tadami.utils.getPreferencesGroupAsFlow
+import androidx.datastore.preferences.core.emptyPreferences
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.brotli.BrotliInterceptor
@@ -28,14 +33,33 @@ class NetworkHelper(private val context : Context) {
 
     private val dataStore : DataStore<Preferences> = Injekt.get()
 
-    val advancedPreferences = runBlocking {
-        dataStore.getPreferencesGroup(AdvancedPreferences)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * Starts at the built-in defaults and is replaced as soon as DataStore emits, so constructing
+     * this helper never blocks the thread that asks for it. Interceptors read it through a lambda
+     * rather than capturing a value, which also means a User-Agent change in Advanced settings now
+     * takes effect immediately instead of after a restart.
+     */
+    @Volatile
+    var advancedPreferences: AdvancedPreferences = AdvancedPreferences.transform(emptyPreferences())
+        private set
+
+    init {
+        scope.launch {
+            dataStore.getPreferencesGroupAsFlow(AdvancedPreferences).collectLatest {
+                advancedPreferences = it
+            }
+        }
     }
+
+    private fun userAgent() = advancedPreferences.userAgent.trim()
 
     private val clientBuilder: OkHttpClient.Builder = OkHttpClient.Builder()
         .cookieJar(cookieManager)
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
         .callTimeout(2, TimeUnit.MINUTES)
         .cache(
             Cache(
@@ -44,7 +68,7 @@ class NetworkHelper(private val context : Context) {
             ),
         )
         .addInterceptor(UncaughtExceptionInterceptor())
-        .addInterceptor(UserAgentInterceptor(advancedPreferences.userAgent.trim()))
+        .addInterceptor(UserAgentInterceptor(::userAgent))
         .addNetworkInterceptor(IgnoreGzipInterceptor())
         .addNetworkInterceptor(BrotliInterceptor)
 
@@ -52,7 +76,7 @@ class NetworkHelper(private val context : Context) {
 
     val client = clientBuilder
         .addInterceptor(
-            CloudflareInterceptor(context, cookieManager, advancedPreferences.userAgent.trim()),
+            CloudflareInterceptor(context, cookieManager, ::userAgent),
         )
         .build()
 

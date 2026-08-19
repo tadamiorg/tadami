@@ -1,7 +1,6 @@
 package com.sf.tadami.extension.api
 
 import android.content.Context
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.domain.extensions.Extension
@@ -16,9 +15,10 @@ import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.utils.Lang
 import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
+import com.sf.tadami.utils.logcat
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import logcat.LogPriority
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import uy.kohesive.injekt.injectLazy
@@ -32,17 +32,14 @@ internal class ExtensionsApi {
     private val extensionManager: ExtensionManager by injectLazy()
     private val json: Json by injectLazy()
 
-    private val sourcePreferences = runBlocking {
-        dataStore.getPreferencesGroup(SourcesPreferences)
-    }
-
-    private val lastExtCheck: Long by lazy {
-        sourcePreferences.lastExtCheck
-    }
+    // Read on demand from the calling coroutine. This used to be a `runBlocking` field
+    // initializer, which ran on whatever thread built ExtensionManager — the main thread at
+    // startup.
+    private suspend fun sourcePreferences() = dataStore.getPreferencesGroup(SourcesPreferences)
 
     suspend fun findExtensions(): List<Extension.Available> {
         return withContext(Dispatchers.IO) {
-            sourcePreferences.extensionsRepos.flatMap { getExtensions(it) }
+            sourcePreferences().extensionsRepos.flatMap { getExtensions(it) }
         }
     }
 
@@ -58,7 +55,7 @@ internal class ExtensionsApi {
                     .toExtensions(repoBaseUrl)
             }
         } catch (e: Throwable) {
-            Log.d("GetExtensions","Failed to get extensions from $repoBaseUrl")
+            logcat(LogPriority.ERROR, e) { "Failed to get extensions from $repoBaseUrl" }
             emptyList()
         }
     }
@@ -67,9 +64,12 @@ internal class ExtensionsApi {
         context: Context,
         fromAvailableExtensionList: Boolean = false,
     ): List<Extension.Installed>? {
+        val now = Instant.now().toEpochMilli()
+        val lastExtCheck = sourcePreferences().lastExtCheck
+
         // Limit checks to once a day at most
         if (!fromAvailableExtensionList &&
-            Instant.now().toEpochMilli() < lastExtCheck + 1.days.inWholeMilliseconds
+            now < lastExtCheck + 1.days.inWholeMilliseconds
         ) {
             return null
         }
@@ -77,7 +77,9 @@ internal class ExtensionsApi {
         val extensions = if (fromAvailableExtensionList) {
             extensionManager.availableExtensionsFlow.value
         } else {
-            findExtensions().also { dataStore.editPreference(lastExtCheck, SourcesPreferences.LAST_EXT_CHECK) }
+            // Stamp the check with "now"; writing lastExtCheck back left it at 0 forever, so the
+            // daily throttle above never actually engaged.
+            findExtensions().also { dataStore.editPreference(now, SourcesPreferences.LAST_EXT_CHECK) }
         }
 
         val installedExtensions = extensionManager.installedExtensionsFlow.value

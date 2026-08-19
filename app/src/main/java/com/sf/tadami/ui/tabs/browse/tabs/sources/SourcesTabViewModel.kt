@@ -1,12 +1,14 @@
 package com.sf.tadami.ui.tabs.browse.tabs.sources
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sf.tadami.data.interactors.sources.GetEnabledSources
 import com.sf.tadami.domain.source.Source
+import com.sf.tadami.ui.utils.UiErrors
 import com.sf.tadami.utils.Lang
 import com.sf.tadami.utils.launchIO
+import com.sf.tadami.utils.logcat
+import logcat.LogPriority
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,7 +29,10 @@ class SourcesTabViewModel : ViewModel() {
         viewModelScope.launchIO {
             getEnabledSources.subscribe()
                 .catch {
-                    Log.d("SourcesTabViewModelInit", it.stackTraceToString())
+                    logcat(LogPriority.ERROR, it, "SourcesTabViewModel") {
+                        "Failed to load enabled sources"
+                    }
+                    UiErrors.emit(it)
                 }
                 .collectLatest(::collectLatestSources)
         }

@@ -1,15 +1,17 @@
 package com.sf.tadami.extension
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.drawable.Drawable
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.api.ExtensionsApi
+import com.sf.tadami.extension.model.ExtensionsLoadState
 import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.extension.model.LoadResult
+import com.sf.tadami.extension.util.ExtensionLoadGuard
 import com.sf.tadami.extension.util.ExtensionsInstaller
 import com.sf.tadami.extension.util.ExtensionsLoader
 import com.sf.tadami.extension.util.ExtensionsLoader.API_VERSION_MIN_OBSOLETE
@@ -19,14 +21,17 @@ import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.utils.editPreference
-import com.sf.tadami.utils.getPreferencesGroup
+import com.sf.tadami.utils.logcat
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import logcat.LogPriority
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -34,15 +39,24 @@ class ExtensionManager(
     private val context: Context,
     private val dataStore: DataStore<Preferences> = Injekt.get()
 ) {
-    var isInitialized = false
-        private set
+    /**
+     * Extensions are third-party code loaded by reflection, so the whole load pass runs here
+     * instead of on whatever thread happens to construct this manager (which used to be the main
+     * thread, during `Application.onCreate`).
+     */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    private val _loadState = MutableStateFlow<ExtensionsLoadState>(ExtensionsLoadState.Loading)
+
+    /** `Loading` until the initial pass finishes; consumers should not treat an empty list as final. */
+    val loadState = _loadState.asStateFlow()
+
+    private val _failedExtensionsFlow = MutableStateFlow(emptyList<LoadResult.Error>())
+
+    /** Packages that looked like extensions but couldn't be loaded, with the reason why. */
+    val failedExtensionsFlow = _failedExtensionsFlow.asStateFlow()
 
     private val api = ExtensionsApi()
-
-    private val sourcesPreferences
-        get() = runBlocking {
-            dataStore.getPreferencesGroup(SourcesPreferences)
-        }
 
     /**
      * The installer which installs, updates and uninstalls the extensions.
@@ -61,10 +75,17 @@ class ExtensionManager(
             ?.pkgName
             ?: return null
 
-        return iconMap[pkgName] ?: iconMap.getOrPut(pkgName) {
-            ExtensionsLoader.getExtensionPackageInfoFromPkgName(context, pkgName)!!.applicationInfo!!
-                .loadIcon(context.packageManager)
-        }
+        iconMap[pkgName]?.let { return it }
+
+        // Called from a Compose property getter (domain/source/Source.kt), so a throw here would
+        // take down the composition for a missing or corrupt package.
+        val icon = runCatching {
+            ExtensionsLoader.getExtensionPackageInfoFromPkgName(context, pkgName)
+                ?.applicationInfo
+                ?.loadIcon(context.packageManager)
+        }.getOrNull() ?: return null
+
+        return icon.also { iconMap[pkgName] = it }
     }
 
     private val _availableExtensionsFlow = MutableStateFlow(emptyList<Extension.Available>())
@@ -82,25 +103,76 @@ class ExtensionManager(
     fun getSourceData(id: Long) = availableExtensionsSourcesData[id]
 
     init {
-        initExtensions()
+        instance = this
+        scope.launch { initExtensions() }
         ExtensionInstallerReceiver(InstallationListener()).register(context)
     }
 
-    private fun initExtensions() {
-        val extensions = ExtensionsLoader.loadExtensions(context)
+    companion object {
+        /**
+         * The manager, but only if something already built it.
+         *
+         * The crash reporter wants extension state, and going through Injekt would *create* the
+         * manager — kicking off a full extension load from inside the uncaught-exception handler,
+         * possibly in the crash-handler process. A plain reference means "report what we know, or
+         * report nothing".
+         */
+        // Not a leak: this is an Injekt application-scoped singleton constructed with the
+        // Application itself (AppModule), so it already outlives every Activity.
+        @SuppressLint("StaticFieldLeak")
+        @Volatile
+        var instance: ExtensionManager? = null
+            private set
+    }
+
+    private suspend fun initExtensions() {
+        val extensions = try {
+            ExtensionsLoader.loadExtensions(context)
+        } catch (e: Throwable) {
+            // Never let a loader failure escape: this used to run inside Application.onCreate and
+            // took the whole app down with it.
+            logcat(LogPriority.ERROR, e) { "Extension loading failed" }
+            emptyList()
+        }
+
+        _failedExtensionsFlow.value = extensions.filterIsInstance<LoadResult.Error>()
+
+        // Flip to Ready *before* publishing the sources: SourceManager only prunes stale per-source
+        // preferences once loading is done, and it does that while collecting this emission.
+        _loadState.value = ExtensionsLoadState.Ready
 
         _installedExtensionsFlow.value = extensions
             .filterIsInstance<LoadResult.Success>()
             .map { it.extension }
+    }
 
-        isInitialized = true
+    /**
+     * Clears the quarantine flag for a previously fatal extension and tries it again.
+     * Loading it in isolation means a second hang can't take the other extensions with it.
+     */
+    fun retryFailedExtension(pkgName: String) {
+        scope.launch {
+            ExtensionLoadGuard.clearQuarantine(context, pkgName)
+            when (val result = ExtensionsLoader.loadExtensionFromPkgName(context, pkgName)) {
+                is LoadResult.Success -> {
+                    registerUpdatedExtension(result.extension.withUpdateCheck())
+                    _failedExtensionsFlow.value =
+                        _failedExtensionsFlow.value.filterNot { it.pkgName == pkgName }
+                }
+
+                is LoadResult.Error -> {
+                    _failedExtensionsFlow.value =
+                        _failedExtensionsFlow.value.filterNot { it.pkgName == pkgName } + result
+                }
+            }
+        }
     }
 
     suspend fun findAvailableExtensions() {
         val extensions: List<Extension.Available> = try {
             api.findExtensions()
         } catch (e: Exception) {
-            Log.d("FindAvailableExtensions", e.stackTraceToString())
+            logcat(LogPriority.ERROR, e) { "Failed to fetch available extensions" }
             withContext(Dispatchers.Main) {
                 UiToasts.showToast(R.string.extension_api_error)
             }
@@ -118,8 +190,8 @@ class ExtensionManager(
      */
     private fun updatedInstalledExtensionsStatuses(availableExtensions: List<Extension.Available>) {
         if (availableExtensions.isEmpty()) {
-            runBlocking {
-                dataStore.editPreference(0,SourcesPreferences.EXT_UPDATES_COUNT)
+            scope.launch {
+                dataStore.editPreference(0, SourcesPreferences.EXT_UPDATES_COUNT)
             }
             return
         }
@@ -206,7 +278,12 @@ class ExtensionManager(
      * @param extension The extension to uninstall.
      */
     fun uninstallExtension(extension: Extension) {
-        installer.uninstallApk(extension.pkgName)
+        uninstallExtension(extension.pkgName)
+    }
+
+    /** Uninstall by package, for extensions that failed to load and so have no [Extension]. */
+    fun uninstallExtension(pkgName: String) {
+        installer.uninstallApk(pkgName)
     }
 
     /**
@@ -265,31 +342,40 @@ class ExtensionManager(
         override fun onExtensionInstalled(extension: Extension.Installed) {
             // Check if already loaded to prevent duplicate instantiation
             if (isExtensionAlreadyLoaded(extension.pkgName, extension.versionCode)) {
-                Log.d("ExtensionManager", "Extension ${extension.pkgName} already loaded, skipping")
+                logcat { "Extension ${extension.pkgName} already loaded, skipping" }
                 return
             }
-            Log.d("ExtensionManager", "Registering new extension ${extension.pkgName}")
+            logcat { "Registering new extension ${extension.pkgName}" }
             registerNewExtension(extension.withUpdateCheck())
+            _failedExtensionsFlow.value =
+                _failedExtensionsFlow.value.filterNot { it.pkgName == extension.pkgName }
             updatePendingUpdatesCount()
         }
 
         override fun onExtensionUpdated(extension: Extension.Installed) {
-            Log.d("ExtensionManager", "onExtensionUpdated called for ${extension.pkgName} version ${extension.versionCode}")
             val existing = _installedExtensionsFlow.value.find { it.pkgName == extension.pkgName }
-            Log.d("ExtensionManager", "Existing version: ${existing?.versionCode}")
 
             // Only update if version is actually newer
             if (existing != null && existing.versionCode >= extension.versionCode) {
-                Log.d("ExtensionManager", "Extension ${extension.pkgName} version ${extension.versionCode} not newer than ${existing.versionCode}, skipping")
+                logcat {
+                    "Extension ${extension.pkgName} version ${extension.versionCode} " +
+                            "not newer than ${existing.versionCode}, skipping"
+                }
                 return
             }
-            Log.d("ExtensionManager", "Registering updated extension ${extension.pkgName}")
+            logcat { "Registering updated extension ${extension.pkgName}" }
             registerUpdatedExtension(extension.withUpdateCheck())
+            _failedExtensionsFlow.value =
+                _failedExtensionsFlow.value.filterNot { it.pkgName == extension.pkgName }
             updatePendingUpdatesCount()
         }
 
         override fun onPackageUninstalled(pkgName: String) {
             unregisterExtension(pkgName)
+            _failedExtensionsFlow.value =
+                _failedExtensionsFlow.value.filterNot { it.pkgName == pkgName }
+            // Don't keep quarantining a package that no longer exists.
+            ExtensionLoadGuard.clearQuarantine(context, pkgName)
             updatePendingUpdatesCount()
         }
     }
@@ -315,8 +401,9 @@ class ExtensionManager(
 
     private fun updatePendingUpdatesCount() {
         val pendingUpdateCount = _installedExtensionsFlow.value.count { it.hasUpdate }
-        runBlocking {
-            dataStore.editPreference(pendingUpdateCount,SourcesPreferences.EXT_UPDATES_COUNT)
+        // Reached from the install listener, which runs on Dispatchers.Main.
+        scope.launch {
+            dataStore.editPreference(pendingUpdateCount, SourcesPreferences.EXT_UPDATES_COUNT)
         }
         if (pendingUpdateCount == 0) {
             ExtensionInstallerNotifier(context).dismiss()

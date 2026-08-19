@@ -1,7 +1,6 @@
 package com.sf.tadami
 
 import android.app.Application
-import androidx.core.content.ContextCompat
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
@@ -48,9 +47,14 @@ import com.sf.tadami.ui.tabs.browse.SourceManagerImplementation
 import data.Anime
 import data.History
 import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
+import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.InjektModule
 import uy.kohesive.injekt.api.InjektRegistrar
 import uy.kohesive.injekt.api.addSingleton
@@ -256,12 +260,26 @@ class AppModule(private val app: Application) : InjektModule {
         addSingletonFactory { PlayerNetworkHelper(app) }
 
 
-        // Asynchronously init expensive components for a faster cold start
-        ContextCompat.getMainExecutor(app).execute {
-            get<NetworkHelper>()
-            get<SourceManager>()
-            get<Database>()
-            get<PlayerNetworkHelper>()
+    }
+
+    companion object {
+        /**
+         * Warms up the expensive singletons for a faster cold start.
+         *
+         * This used to live at the bottom of [registerInjectables] behind
+         * `ContextCompat.getMainExecutor(app).execute {}`, which despite the "asynchronously"
+         * comment only *defers* to the next main-loop message — opening the database and building
+         * the source manager still happened on the UI thread. It is also no longer a side effect of
+         * registering the module, so processes that just need DI (the crash handler) don't pay for
+         * it.
+         */
+        fun warmUp() {
+            CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+                Injekt.get<NetworkHelper>()
+                Injekt.get<SourceManager>()
+                Injekt.get<Database>()
+                Injekt.get<PlayerNetworkHelper>()
+            }
         }
     }
 }

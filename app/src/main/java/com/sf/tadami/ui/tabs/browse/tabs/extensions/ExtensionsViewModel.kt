@@ -131,6 +131,10 @@ class ExtensionsViewModel : ViewModel() {
 
         viewModelScope.launchIO { findAvailableExtensions() }
 
+        extensionManager.failedExtensionsFlow.onEach { failed ->
+            _uiState.update { state -> state.copy(failedExtensions = failed) }
+        }.launchIn(viewModelScope)
+
         dataStore.getPreferencesGroupAsFlow(SourcesPreferences).onEach {
             _uiState.update { state -> state.copy(updates = it.extensionUpdatesCount) }
         }.launchIn(viewModelScope)
@@ -189,6 +193,15 @@ class ExtensionsViewModel : ViewModel() {
 
     fun uninstallExtension(extension: Extension) {
         extensionManager.uninstallExtension(extension)
+    }
+
+    fun retryFailedExtension(pkgName: String) {
+        extensionManager.retryFailedExtension(pkgName)
+    }
+
+    /** Failed extensions never produced an [Extension], so they can only be addressed by package. */
+    fun uninstallExtension(pkgName: String) {
+        extensionManager.uninstallExtension(pkgName)
     }
 
     fun findAvailableExtensions() {

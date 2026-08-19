@@ -27,6 +27,7 @@ import com.google.android.gms.cast.framework.SessionManagerListener
 import com.sf.tadami.AppPreferences
 import com.sf.tadami.Migrations
 import com.sf.tadami.R
+import com.sf.tadami.crash.PendingCrashDialog
 import com.sf.tadami.extension.api.ExtensionsApi
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.navigation.graphs.onboarding.OnboardingRoutes
@@ -134,6 +135,7 @@ class MainActivity : AppCompatActivity() {
 
             AppUpdaterScreen()
             ExtensionsCheckForUpdates()
+            PendingCrashDialog()
             val castConnectionError by CastConnectionState.error.collectAsState()
             if (castConnectionError) {
                 CastConnectionErrorDialog(

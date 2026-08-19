@@ -8,6 +8,19 @@ import com.sf.tadami.source.StubSource.SourceNotInstalledException
 import com.sf.tadami.utils.isOnline
 import java.net.UnknownHostException
 
+/**
+ * Whether [formattedMessage] can say something more useful than "SomeException: null".
+ * Callers use it to decide whether an unrecognised failure is worth putting in front of the user.
+ */
+fun Throwable.isKnownError(): Boolean = when (this) {
+    is HttpException,
+    is UnknownHostException,
+    is NoResultException,
+    is SourceNotInstalledException -> true
+
+    else -> false
+}
+
 context(context: Context)
 val Throwable.formattedMessage: String
     get() {

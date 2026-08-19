@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -18,6 +19,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
+import com.sf.tadami.crash.CrashLogUtil
 import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.utils.setDefaultSettings
@@ -28,6 +30,7 @@ import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.more.settings.components.PreferenceScreen
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.utils.powerManager
+import kotlinx.coroutines.launch
 import okhttp3.Headers
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -54,6 +57,8 @@ class AdvancedPreferencesScreen(
     @androidx.annotation.OptIn(UnstableApi::class)
     @Composable
     private fun getDataGroup(): Preference.PreferenceCategory {
+        val context = LocalContext.current
+        val scope = rememberCoroutineScope()
         return Preference.PreferenceCategory(
             title = stringResource(id = R.string.preferences_advanced_data),
             preferenceItems = listOf(
@@ -62,6 +67,15 @@ class AdvancedPreferencesScreen(
                     subtitle = stringResource(R.string.pref_clear_database_summary),
                     onClick = {
                         navController.navigate(AdvancedSettingsRoutes.CLEAR_DATABASE)
+                    },
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(R.string.pref_dump_crash_logs),
+                    subtitle = stringResource(R.string.pref_dump_crash_logs_summary),
+                    onClick = {
+                        // Reachable without having to crash first: the crash screen was the only
+                        // way to get at these logs before.
+                        scope.launch { CrashLogUtil(context).dumpLogs() }
                     },
                 ),
             )

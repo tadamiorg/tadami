@@ -13,19 +13,27 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import java.util.concurrent.ConcurrentHashMap
 
+/**
+ * Per-source preference stores. Extensions are now loaded in parallel and each one touches its
+ * DataStore from its own thread, so every access here has to be safe against concurrent callers —
+ * creating two DataStores over the same file would silently diverge.
+ */
 class DataStoresHandler {
-    private val dataStores: MutableMap<Long, DataStore<Preferences>> = mutableMapOf()
-    private val dataStoresJobs : MutableMap<Long,CoroutineScope> = mutableMapOf()
+    private val dataStores: MutableMap<Long, DataStore<Preferences>> = ConcurrentHashMap()
+    private val dataStoresJobs : MutableMap<Long, CoroutineScope> = ConcurrentHashMap()
 
+    @Synchronized
     fun removeDataStore(id: Long){
-        dataStoresJobs[id]?.cancel()
+        dataStoresJobs.remove(id)?.cancel()
         dataStores.remove(id)
     }
 
+    @Synchronized
     fun getDataStore(id: Long, fileName: String): DataStore<Preferences> {
-        val dataStore = dataStores[id]
-        if(dataStore != null) return dataStore
+        dataStores[id]?.let { return it }
+
         val job = CoroutineScope(Dispatchers.IO + SupervisorJob())
         dataStoresJobs[id] = job
         return dataStores.getOrPut(id) {

@@ -17,8 +17,13 @@ import java.util.Locale
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-abstract class WebViewInterceptor(private val context: Context, private val userAgent: String) :
-    Interceptor {
+abstract class WebViewInterceptor(
+    private val context: Context,
+    private val userAgent: () -> String,
+) : Interceptor {
+
+    /** Fixed user agent, for callers that already have the string. */
+    constructor(context: Context, userAgent: String) : this(context, { userAgent })
 
     /**
      * When this is called, it initializes the WebView if it wasn't already. We use this to avoid
@@ -80,7 +85,7 @@ abstract class WebViewInterceptor(private val context: Context, private val user
         return WebView(context).apply {
             setDefaultSettings()
             // Avoid sending empty User-Agent, Chromium WebView will reset to default if empty
-            settings.userAgentString = request.header("User-Agent") ?: userAgent
+            settings.userAgentString = request.header("User-Agent") ?: userAgent()
         }
     }
 }

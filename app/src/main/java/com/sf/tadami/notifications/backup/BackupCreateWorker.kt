@@ -4,7 +4,8 @@ import android.content.Context
 import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
-import android.util.Log
+import com.sf.tadami.utils.logcat
+import logcat.LogPriority
 import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -55,7 +56,7 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
         try {
             setForeground(getForegroundInfo())
         } catch (e: IllegalStateException) {
-            Log.d("BackupCreateWorker","Not allowed to run on foreground service")
+            logcat(LogPriority.WARN, e) { "Not allowed to run on foreground service" }
         }
         return try {
             val location = BackupCreator(context,isAutoBackup).createBackup(uri, options)
@@ -64,8 +65,10 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
             }
             Result.success()
         } catch (e: Exception) {
-            Log.d("BackupCreateWorker",e.stackTraceToString())
-            if (!isAutoBackup) notifier.showBackupError(e.message)
+            logcat(LogPriority.ERROR, e) { "Backup creation failed" }
+            // Notify for scheduled backups too: a silent failure here means the user believes
+            // they have backups when they don't.
+            notifier.showBackupError(e.message)
             Result.failure()
         }
         finally {

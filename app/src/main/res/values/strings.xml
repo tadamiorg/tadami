@@ -112,6 +112,8 @@
     <string name="notification_app_group">Application</string>
     <string name="notification_app_update_progress">Update download progress</string>
     <string name="notification_app_update_success">Update install</string>
+    <string name="notification_app_update_error">Update download failed</string>
+    <string name="notification_unknown_error">An unknown error occurred</string>
     <string name="notification_downloading_app_update">Downloading update…</string>
     <string name="notification_app_update_tap_install">Tap to install</string>
     <string name="download">Download</string>
@@ -325,6 +327,14 @@
     <string name="ext_installing">Installing</string>
     <string name="ext_permission_install_apps_warning">Permissions are needed to install extensions. Tap here to grant.</string>
     <string name="ext_update_all">Update all</string>
+    <string name="ext_failed_header">Couldn\'t be loaded</string>
+    <string name="ext_failed_retry">Retry</string>
+    <string name="ext_failed_reason_not_found">Extension is no longer installed</string>
+    <string name="ext_failed_reason_malformed">Extension package is invalid</string>
+    <string name="ext_failed_reason_incompatible">Not compatible with this version of Tadami</string>
+    <string name="ext_failed_reason_classload">Extension crashed while starting up</string>
+    <string name="ext_failed_reason_timed_out">Extension took too long to start and was skipped</string>
+    <string name="ext_failed_reason_quarantined">Disabled because it froze the app on the previous launch</string>
     <string name="ext_info_version">Version</string>
     <string name="ext_info_language">Language</string>
     <string name="ext_app_info">App info</string>
@@ -363,6 +373,13 @@
     <string name="crash_screen_title">Whoops!</string>
     <string name="crash_screen_description">%s ran into an unexpected error.</string>
     <string name="pref_dump_crash_logs">Share crash logs</string>
+    <string name="pref_dump_crash_logs_summary">Save the last crash report and recent logs to a file you can share</string>
     <string name="crash_screen_restart_application">Restart the application</string>
+    <string name="crash_screen_no_details">No crash details are available.</string>
+    <string name="crash_logs_dump_failed">Failed to get logs</string>
+    <string name="crash_pending_title">%s crashed last time</string>
+    <string name="crash_pending_message">A crash report was saved. Sharing it helps get the problem fixed.</string>
+    <string name="crash_pending_share">Share report</string>
+    <string name="crash_pending_dismiss">Dismiss</string>
 
 </resources>

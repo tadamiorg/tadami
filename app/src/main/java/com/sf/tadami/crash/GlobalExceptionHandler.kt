@@ -31,6 +31,10 @@ class GlobalExceptionHandler private constructor(
     }
 
     override fun uncaughtException(thread: Thread, exception: Throwable) {
+        // Persist first: if starting the crash activity fails, or the user never opens it, the
+        // report is still on disk for the next launch.
+        CrashReporter.writeCrash(applicationContext, exception)
+
         try {
             logcat(priority = LogPriority.ERROR, throwable = exception)
             launchActivity(applicationContext, activityToBeLaunched, exception)

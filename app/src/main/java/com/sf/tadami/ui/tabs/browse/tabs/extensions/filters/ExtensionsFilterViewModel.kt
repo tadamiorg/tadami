@@ -1,15 +1,17 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions.filters
 
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sf.tadami.data.interactors.extension.GetExtensionLanguages
 import com.sf.tadami.preferences.sources.SourcesPreferences
+import com.sf.tadami.ui.utils.UiErrors
 import com.sf.tadami.utils.editPreferences
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
+import com.sf.tadami.utils.logcat
+import logcat.LogPriority
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -36,7 +38,10 @@ class ExtensionsFilterViewModel : ViewModel(){
                 dataStore.getPreferencesGroupAsFlow(SourcesPreferences),
             ) { a, b -> a to b.enabledLanguages }
                 .catch { throwable ->
-                    Log.d("ExtensionsFilterViewModelInit", throwable.stackTraceToString())
+                    logcat(LogPriority.ERROR, throwable, "ExtensionsFilterVM") {
+                        "Failed to load extension languages"
+                    }
+                    UiErrors.emit(throwable)
                 }
                 .collectLatest { (extensionLanguages, enabledLanguages) ->
                     _uiState.update {

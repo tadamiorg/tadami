@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.tabs.history
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sf.tadami.data.interactors.history.GetHistoryInteractor
@@ -8,8 +7,11 @@ import com.sf.tadami.data.interactors.history.GetNextEpisodeInteractor
 import com.sf.tadami.data.interactors.history.RemoveHistoryInteractor
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.history.HistoryWithRelations
+import com.sf.tadami.ui.utils.UiErrors
 import com.sf.tadami.ui.utils.insertSeparators
 import com.sf.tadami.ui.utils.toDateKey
+import com.sf.tadami.utils.logcat
+import logcat.LogPriority
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -46,7 +48,12 @@ class HistoryViewModel : ViewModel() {
                     getHistoryInteractor.subscribe(query ?: "")
                         .distinctUntilChanged()
                         .catch { error ->
-                            Log.d("HistoryError", error.stackTraceToString())
+                            // Was a bare Log.d, which ProGuard strips from release builds — the
+                            // history list just silently went empty with no trace of why.
+                            logcat(LogPriority.ERROR, error, "HistoryViewModel") {
+                                "Failed to load history"
+                            }
+                            UiErrors.emit(error)
                         }
                         .map { it.toHistoryUiModels() }
                         .flowOn(Dispatchers.IO)

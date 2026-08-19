@@ -86,6 +86,8 @@
     <string name="notification_app_group">Application</string>
     <string name="notification_app_update_progress">Progression du téléchargement de la MAJ</string>
     <string name="notification_app_update_success">Installation de la mise à jour</string>
+    <string name="notification_app_update_error">Échec du téléchargement de la mise à jour</string>
+    <string name="notification_unknown_error">Une erreur inconnue est survenue</string>
     <string name="notification_downloading_app_update">Téléchargement de la mise à jour…</string>
     <string name="notification_app_update_tap_install"> Appuyez pour installer</string>
     <string name="download">Télécharger</string>
@@ -326,6 +328,14 @@
     <string name="ext_installing">En cours d\'installation</string>
     <string name="ext_permission_install_apps_warning">Des permissions sont nécessaires pour installer des extensions. Appuyer ici pour les accorder.</string>
     <string name="ext_update_all">Tout mettre à jour</string>
+    <string name="ext_failed_header">N\'ont pas pu être chargées</string>
+    <string name="ext_failed_retry">Réessayer</string>
+    <string name="ext_failed_reason_not_found">L\'extension n\'est plus installée</string>
+    <string name="ext_failed_reason_malformed">Le paquet de l\'extension est invalide</string>
+    <string name="ext_failed_reason_incompatible">Incompatible avec cette version de Tadami</string>
+    <string name="ext_failed_reason_classload">L\'extension a planté au démarrage</string>
+    <string name="ext_failed_reason_timed_out">L\'extension a mis trop de temps à démarrer et a été ignorée</string>
+    <string name="ext_failed_reason_quarantined">Désactivée car elle a bloqué l\'application au lancement précédent</string>
     <string name="ext_info_version">Version</string>
     <string name="ext_info_language">Langue</string>
     <string name="ext_app_info">Infos sur l\'application</string>
@@ -370,7 +380,14 @@
     <string name="crash_screen_title">Oups!</string>
     <string name="crash_screen_description">%s a rencontré une erreur inattendue.</string>
     <string name="pref_dump_crash_logs">Partager les rapports de plantage</string>
+    <string name="pref_dump_crash_logs_summary">Enregistrer le dernier rapport de plantage et les journaux récents dans un fichier partageable</string>
     <string name="crash_screen_restart_application">Redémarrer l\'application</string>
+    <string name="crash_screen_no_details">Aucun détail de plantage disponible.</string>
+    <string name="crash_logs_dump_failed">Impossible de récupérer les journaux</string>
+    <string name="crash_pending_title">%s a planté la dernière fois</string>
+    <string name="crash_pending_message">Un rapport de plantage a été enregistré. Le partager aide à corriger le problème.</string>
+    <string name="crash_pending_share">Partager le rapport</string>
+    <string name="crash_pending_dismiss">Ignorer</string>
 
 
 </resources>

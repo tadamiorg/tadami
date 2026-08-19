@@ -78,6 +78,8 @@ fun extensionsTab(
             onUninstallExtension = { extensionsViewModel.uninstallExtension(it) },
             onUpdateExtension = extensionsViewModel::updateExtension,
             onRefresh = extensionsViewModel::findAvailableExtensions,
+            onRetryFailedExtension = extensionsViewModel::retryFailedExtension,
+            onUninstallFailedExtension = { extensionsViewModel.uninstallExtension(it) },
         )
     }
 }

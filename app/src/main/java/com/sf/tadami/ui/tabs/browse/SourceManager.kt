@@ -7,6 +7,7 @@ import com.sf.tadami.Migrations
 import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.sources.StubSourceRepository
 import com.sf.tadami.extension.ExtensionManager
+import com.sf.tadami.extension.model.ExtensionsLoadState
 import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.source.Source
 import com.sf.tadami.source.StubSource
@@ -72,12 +73,17 @@ class SourceManagerImplementation(
                             registerStubSource(StubSource.from(it))
                         }
                     }
-                    sourcesMapFlow.value.forEach { (id, source) ->
-                        // Check if the key exists in the new map
-                        if (!mutableMap.containsKey(id)) {
-                            // If not, add it to the list
-                            dataStoresHandler.removeDataStore(source.id)
-                            Migrations.deleteDataStore("anime_source_${source.id}", Injekt.get<Application>())
+                    // Only prune once the initial load has actually finished. Extensions are now
+                    // loaded asynchronously, so an early emission means "not loaded yet", not
+                    // "uninstalled" — acting on it would delete the user's source preferences.
+                    if (extensionManager.loadState.value is ExtensionsLoadState.Ready) {
+                        sourcesMapFlow.value.forEach { (id, source) ->
+                            // Check if the key exists in the new map
+                            if (!mutableMap.containsKey(id)) {
+                                // If not, add it to the list
+                                dataStoresHandler.removeDataStore(source.id)
+                                Migrations.deleteDataStore("anime_source_${source.id}", Injekt.get<Application>())
+                            }
                         }
                     }
                     sourcesMapFlow.value = mutableMap

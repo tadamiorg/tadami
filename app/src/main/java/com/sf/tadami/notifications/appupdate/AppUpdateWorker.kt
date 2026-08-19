@@ -3,7 +3,8 @@ package com.sf.tadami.notifications.appupdate
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.os.Build
-import android.util.Log
+import com.sf.tadami.utils.logcat
+import logcat.LogPriority
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
@@ -43,7 +44,7 @@ class AppUpdateWorker(
         try {
             setForegroundAsync(getForegroundInfo())
         } catch (e: IllegalStateException) {
-            Log.d("Worker error", "Job could not be set in foreground", e)
+            logcat(LogPriority.WARN, e) { "Job could not be set in foreground" }
         }
         return withContext(Dispatchers.IO) {
             try {
@@ -54,7 +55,8 @@ class AppUpdateWorker(
                     // Assume success although cancelled
                     Result.success()
                 } else {
-                    Log.d("Worker error performing task", "error", e)
+                    logcat(LogPriority.ERROR, e) { "App update download failed" }
+                    notifier.showUpdateError(e.message)
                     Result.failure()
                 }
             } finally {

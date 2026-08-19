@@ -31,7 +31,10 @@ inline fun ComponentActivity.setComposeContent(
 ) {
     setContent(parent) {
         TadamiTheme(appTheme = appTheme, amoled = amoled, isDark = isDark) {
-            content()
+            // Every activity gets the shared error snackbar without opting in.
+            UiErrorsHost {
+                content()
+            }
         }
     }
 }

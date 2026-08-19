@@ -13,6 +13,7 @@ import com.sf.tadami.ui.discover.migrate.MigrateHelperState
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.addOrRemove
 import com.sf.tadami.ui.utils.awaitSingleOrNull
+import com.sf.tadami.utils.launchCatching
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -65,8 +66,9 @@ class DetailsViewModel(
         val migrateIdString : String? = savedStateHandle["migrationId"]
         val migrateId : Long? = migrateIdString?.toLongOrNull()
         if(migrateId != null){
-            viewModelScope.launch {
-                val anime = getAnime.await(migrateId)!!
+            viewModelScope.launchCatching {
+                // A missing row here used to be a hard `!!` in a bare launch, i.e. an app crash.
+                val anime = getAnime.await(migrateId) ?: return@launchCatching
                 _migrateHelperState.update {
                     it.copy(
                         oldAnime = anime

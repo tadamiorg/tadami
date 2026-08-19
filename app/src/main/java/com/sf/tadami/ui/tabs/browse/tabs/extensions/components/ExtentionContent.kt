@@ -36,6 +36,8 @@ fun ExtensionContent(
     onUpdateExtension: (Extension.Installed) -> Unit,
     onOpenExtension: (Extension.Installed) -> Unit,
     onClickUpdateAll: () -> Unit,
+    onRetryFailedExtension: (String) -> Unit,
+    onUninstallFailedExtension: (String) -> Unit,
 ) {
     val context = LocalContext.current
     val installGranted = rememberRequestPackageInstallsPermissionState(initialValue = true)
@@ -50,6 +52,27 @@ fun ExtensionContent(
                     modifier = Modifier.clickable {
                         context.launchRequestPackageInstallsPermission()
                     },
+                )
+            }
+        }
+
+        if (state.failedExtensions.isNotEmpty()) {
+            item(contentType = "header", key = "extensionHeader-failed") {
+                ExtensionHeader(
+                    textRes = R.string.ext_failed_header,
+                    modifier = Modifier.animateItem(),
+                )
+            }
+            items(
+                items = state.failedExtensions,
+                contentType = { "failed-item" },
+                key = { "failed-extension-${it.pkgName}" },
+            ) { error ->
+                FailedExtensionItem(
+                    error = error,
+                    onRetry = onRetryFailedExtension,
+                    onUninstall = onUninstallFailedExtension,
+                    modifier = Modifier.animateItem(),
                 )
             }
         }

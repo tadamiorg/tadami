@@ -77,6 +77,29 @@ class AppUpdateNotifier(private val context: Context) {
         )
     }
 
+    /**
+     * A failed update download used to be completely silent — the progress notification just
+     * disappeared and the user was left assuming it had worked.
+     */
+    fun showUpdateError(error: String?) {
+        context.notificationManager.notify(
+            Notifications.APP_UPDATE_DOWNLOAD_ERROR_ID,
+            NotificationCompat.Builder(context, Notifications.APP_UPDATE_DOWNLOAD_ERROR_CHANNEL)
+                .apply {
+                    setContentTitle(context.getString(R.string.notification_app_update_error))
+                    setContentText(error ?: context.getString(R.string.notification_unknown_error))
+                    setStyle(
+                        NotificationCompat.BigTextStyle()
+                            .bigText(error ?: context.getString(R.string.notification_unknown_error)),
+                    )
+                    setSmallIcon(R.drawable.ic_tada)
+                    setLargeIcon(notificationBitmap)
+                    color = getNotificationsColor(context)
+                    setAutoCancel(true)
+                }.build()
+        )
+    }
+
     fun cancelProgressNotification() {
         context.notificationManager.cancel(Notifications.APP_UPDATE_DOWNLOAD_PROGRESS_ID)
     }
