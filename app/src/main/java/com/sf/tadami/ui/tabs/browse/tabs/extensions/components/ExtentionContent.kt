@@ -11,7 +11,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
@@ -20,8 +19,6 @@ import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.ExtensionUiModel
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.ExtensionsUiState
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.item.ExtensionItem
-import com.sf.tadami.utils.launchRequestPackageInstallsPermission
-import com.sf.tadami.utils.rememberRequestPackageInstallsPermissionState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -38,20 +35,18 @@ fun ExtensionContent(
     onClickUpdateAll: () -> Unit,
     onRetryFailedExtension: (String) -> Unit,
     onUninstallFailedExtension: (String) -> Unit,
+    onTrustFailedExtension: (String, String) -> Unit,
+    onCleanupLegacyPackages: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val installGranted = rememberRequestPackageInstallsPermissionState(initialValue = true)
-
     FastScrollLazyColumn(
         contentPadding = contentPadding,
     ) {
-        if (!installGranted && state.installer?.requiresSystemPermission == true) {
-            item(key = "extension-permissions-warning") {
+        // Only shown to users upgrading from a build that installed extensions as apps.
+        if (state.redundantPackages.isNotEmpty()) {
+            item(key = "extension-legacy-cleanup") {
                 WarningBanner(
-                    textRes = R.string.ext_permission_install_apps_warning,
-                    modifier = Modifier.clickable {
-                        context.launchRequestPackageInstallsPermission()
-                    },
+                    textRes = R.string.ext_legacy_cleanup_banner,
+                    modifier = Modifier.clickable { onCleanupLegacyPackages() },
                 )
             }
         }
@@ -72,6 +67,7 @@ fun ExtensionContent(
                     error = error,
                     onRetry = onRetryFailedExtension,
                     onUninstall = onUninstallFailedExtension,
+                    onTrust = onTrustFailedExtension,
                     modifier = Modifier.animateItem(),
                 )
             }

@@ -330,12 +330,26 @@
     <string name="ext_update_all">Tout mettre à jour</string>
     <string name="ext_failed_header">N\'ont pas pu être chargées</string>
     <string name="ext_failed_retry">Réessayer</string>
+    <string name="ext_failed_trust">Approuver</string>
+    <string name="ext_install_confirm_title">Installer l\'extension</string>
+    <string name="ext_install_confirm_text">Voulez-vous installer %1$s ?</string>
+    <string name="ext_install_confirm_action">Installer</string>
+    <string name="ext_uninstall_confirm_title">Désinstaller l\'extension</string>
+    <string name="ext_uninstall_confirm_text">Voulez-vous vraiment désinstaller %1$s ?</string>
+    <string name="ext_legacy_cleanup_title">Supprimer les anciennes applications</string>
+    <plurals name="ext_legacy_cleanup_text">
+        <item quantity="one">%1$d extension est encore installée comme application séparée et n\'est plus utilisée. La supprimer ?</item>
+        <item quantity="other">%1$d extensions sont encore installées comme applications séparées et ne sont plus utilisées. Les supprimer ?</item>
+    </plurals>
+    <string name="ext_legacy_cleanup_action">Supprimer</string>
+    <string name="ext_legacy_cleanup_banner">D\'anciennes applications d\'extension sont encore installées et inutilisées. Appuyez pour les supprimer.</string>
     <string name="ext_failed_reason_not_found">L\'extension n\'est plus installée</string>
     <string name="ext_failed_reason_malformed">Le paquet de l\'extension est invalide</string>
     <string name="ext_failed_reason_incompatible">Incompatible avec cette version de Tadami</string>
     <string name="ext_failed_reason_classload">L\'extension a planté au démarrage</string>
     <string name="ext_failed_reason_timed_out">L\'extension a mis trop de temps à démarrer et a été ignorée</string>
     <string name="ext_failed_reason_quarantined">Désactivée car elle a bloqué l\'application au lancement précédent</string>
+    <string name="ext_failed_reason_untrusted">Signée par un certificat inconnu. Ne l\'approuvez que si vous savez d\'où vient ce dépôt.</string>
     <string name="ext_info_version">Version</string>
     <string name="ext_info_language">Langue</string>
     <string name="ext_app_info">Infos sur l\'application</string>
@@ -354,7 +368,7 @@
     <string name="no_location_set">Aucun emplacement de stockage défini</string>
     <string name="onboarding_storage_info">Sélectionnez un dossier où %1$s stockera les épisodes téléchargés, les sauvegardes et plus encore. \n \nUn dossier dédié est recommandé. \n \nDossier sélectionné : %2$s</string>
     <string name="onboarding_permission_install_apps">Permission d\&apos;installer des applications</string>
-    <string name="onboarding_permission_install_apps_description">Pour installer des extensions de source.</string>
+    <string name="onboarding_permission_install_apps_description">Pour installer les mises à jour de Tadami. Les extensions n\'en ont pas besoin.</string>
     <string name="onboarding_permission_notifications">Permission de notifications</string>
     <string name="onboarding_permission_notifications_description">Soyez notifié des mises à jour de la bibliothèque et autre.</string>
     <string name="onboarding_permission_ignore_battery_opts">Utilisation de la batterie en arrière-plan</string>

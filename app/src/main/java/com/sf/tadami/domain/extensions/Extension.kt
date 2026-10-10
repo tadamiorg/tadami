@@ -14,6 +14,16 @@ sealed class Extension {
     abstract val apiVersion: Double
     abstract val lang: Lang?
 
+    /**
+     * Stable identity for list rendering.
+     *
+     * Equal to [pkgName] for everything except an available extension that ships several sources:
+     * the Extensions tab shows one row per source, so those rows need to be distinguishable while
+     * [pkgName] must keep naming the actual package — it is what the APK on disk is named after and
+     * what the loader matches against the archive.
+     */
+    open val uiKey: String get() = pkgName
+
     data class Installed(
         override val name: String,
         override val pkgName: String,
@@ -26,7 +36,6 @@ sealed class Extension {
         val icon: Drawable?,
         val hasUpdate: Boolean = false,
         val isObsolete: Boolean = false,
-        val isShared: Boolean,
         val repoUrl: String? = null,
     ) : Extension()
 
@@ -41,7 +50,11 @@ sealed class Extension {
         val apkName: String,
         val iconUrl: String,
         val repoUrl: String,
+        /** Set when this row represents one source of a multi-source extension. See [uiKey]. */
+        val sourceId: Long? = null,
     ) : Extension() {
+
+        override val uiKey: String get() = if (sourceId == null) pkgName else "$pkgName-$sourceId"
 
         data class Source(
             val id: Long,

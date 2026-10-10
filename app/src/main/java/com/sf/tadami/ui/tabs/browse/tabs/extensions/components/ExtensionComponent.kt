@@ -28,6 +28,8 @@ fun ExtensionComponent(
     onRefresh: () -> Unit,
     onRetryFailedExtension: (String) -> Unit,
     onUninstallFailedExtension: (String) -> Unit,
+    onTrustFailedExtension: (String, String) -> Unit,
+    onCleanupLegacyPackages: () -> Unit,
 ) {
 
     PullRefresh(
@@ -60,6 +62,8 @@ fun ExtensionComponent(
                     onClickUpdateAll = onClickUpdateAll,
                     onRetryFailedExtension = onRetryFailedExtension,
                     onUninstallFailedExtension = onUninstallFailedExtension,
+                    onTrustFailedExtension = onTrustFailedExtension,
+                    onCleanupLegacyPackages = onCleanupLegacyPackages,
                 )
             }
         }

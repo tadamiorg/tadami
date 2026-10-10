@@ -18,15 +18,17 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
-    <!-- For managing updates -->
+    <!-- For the app's own updater. Extensions no longer install anything: they are downloaded
+         into private storage and class-loaded from there. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
-    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
 
-    <!-- To view extension packages in API 30+ -->
+    <!-- Both only still here to clean up extensions that older builds installed as packages:
+         QUERY_ALL_PACKAGES to find them, REQUEST_DELETE_PACKAGES to offer removing them. Drop both
+         together with ExtensionsMigration, one release after that migration ships. -->
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission
@@ -90,11 +92,6 @@
         <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
             android:value="com.sf.tadami.ui.animeinfos.episode.cast.CastOptionsProvider" />
-
-        <service
-            android:name=".notifications.extensionsinstaller.ExtensionInstallService"
-            android:exported="false"
-            android:foregroundServiceType="shortService" />
 
         <service
             android:name=".notifications.cast.CastControlService"

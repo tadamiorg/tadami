@@ -151,9 +151,6 @@ fun Context.isPackageInstalled(packageName: String): Boolean {
     }
 }
 
-fun Context.hasMiuiPackageInstaller() : Boolean {
-    return isPackageInstalled("com.miui.packageinstaller")
-}
 
 fun Context.getUriSize(uri: Uri): Long? {
     return UniFile.fromUri(this, uri)?.length()?.takeIf { it >= 0 }

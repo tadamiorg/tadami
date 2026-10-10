@@ -26,7 +26,6 @@ import com.sf.tadami.ui.utils.padding
 fun ExtensionDetailsHeader(
     extension: Extension,
     onClickUninstall: () -> Unit,
-    onClickAppInfo: (() -> Unit)?,
 ) {
     Column {
         Column(
@@ -95,17 +94,6 @@ fun ExtensionDetailsHeader(
             ),
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.medium),
         ) {
-            if (onClickAppInfo != null) {
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onClickAppInfo,
-                ) {
-                    Text(
-                        text = stringResource(R.string.ext_app_info),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    )
-                }
-            }
             OutlinedButton(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = onClickUninstall,

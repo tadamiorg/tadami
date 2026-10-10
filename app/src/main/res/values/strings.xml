@@ -329,12 +329,26 @@
     <string name="ext_update_all">Update all</string>
     <string name="ext_failed_header">Couldn\'t be loaded</string>
     <string name="ext_failed_retry">Retry</string>
+    <string name="ext_failed_trust">Trust</string>
+    <string name="ext_install_confirm_title">Install extension</string>
+    <string name="ext_install_confirm_text">Do you want to install %1$s?</string>
+    <string name="ext_install_confirm_action">Install</string>
+    <string name="ext_uninstall_confirm_title">Uninstall extension</string>
+    <string name="ext_uninstall_confirm_text">Do you really want to uninstall %1$s?</string>
+    <string name="ext_legacy_cleanup_title">Remove old extension apps</string>
+    <plurals name="ext_legacy_cleanup_text">
+        <item quantity="one">%1$d extension is still installed as a separate app and is no longer used. Remove it?</item>
+        <item quantity="other">%1$d extensions are still installed as separate apps and are no longer used. Remove them?</item>
+    </plurals>
+    <string name="ext_legacy_cleanup_action">Remove</string>
+    <string name="ext_legacy_cleanup_banner">Old extension apps are still installed and no longer used. Tap to remove them.</string>
     <string name="ext_failed_reason_not_found">Extension is no longer installed</string>
     <string name="ext_failed_reason_malformed">Extension package is invalid</string>
     <string name="ext_failed_reason_incompatible">Not compatible with this version of Tadami</string>
     <string name="ext_failed_reason_classload">Extension crashed while starting up</string>
     <string name="ext_failed_reason_timed_out">Extension took too long to start and was skipped</string>
     <string name="ext_failed_reason_quarantined">Disabled because it froze the app on the previous launch</string>
+    <string name="ext_failed_reason_untrusted">Signed by an unrecognised certificate. Only trust it if you know where this repo comes from.</string>
     <string name="ext_info_version">Version</string>
     <string name="ext_info_language">Language</string>
     <string name="ext_app_info">App info</string>
@@ -354,7 +368,7 @@
     <string name="no_location_set">No storage location set</string>
     <string name="onboarding_storage_info">Select a folder where %1$s will store episodes downloads, backups, and more.\n\nA dedicated folder is recommended.\n\nSelected folder: %2$s</string>
     <string name="onboarding_permission_install_apps">Install apps permission</string>
-    <string name="onboarding_permission_install_apps_description">To install source extensions.</string>
+    <string name="onboarding_permission_install_apps_description">To install Tadami’s own updates. Extensions don’t need it.</string>
     <string name="onboarding_permission_notifications">Notification permission</string>
     <string name="onboarding_permission_notifications_description">Get notified for library updates and more.</string>
     <string name="onboarding_permission_ignore_battery_opts">Background battery usage</string>

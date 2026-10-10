@@ -15,7 +15,8 @@ data class SourcesPreferences(
     val enabledLanguages : Set<String>,
     val lastExtCheck : Long,
     val extensionUpdatesCount : Int,
-    val extensionsRepos : Set<String>
+    val extensionsRepos : Set<String>,
+    val trustedSignatures : Set<String>
 ) : CustomPreferencesIdentifier {
 
     companion object : CustomPreferences<SourcesPreferences> {
@@ -23,6 +24,14 @@ data class SourcesPreferences(
 
         private val HIDDEN_SOURCES =  stringSetPreferencesKey("hidden_sources")
         private val EXTENSIONS_REPOS = stringSetPreferencesKey("extensions_repos")
+
+        /**
+         * Signing certificates the user has accepted for extensions coming from outside the
+         * official repo. Nothing installs extensions any more, so this set plus
+         * [com.sf.tadami.extension.util.ExtensionSignatures.OFFICIAL_SIGNATURE] is the whole
+         * allowlist deciding whose code may run in this process.
+         */
+        val TRUSTED_SIGNATURES = stringSetPreferencesKey("trusted_signatures")
         val ENABLED_LANGUAGES =  stringSetPreferencesKey("enabled_languages")
         val LAST_EXT_CHECK = longPreferencesKey(CustomPreferences.appStateKey("last_ext_check"))
         val EXT_UPDATES_COUNT = intPreferencesKey("ext_updates_count")
@@ -33,7 +42,8 @@ data class SourcesPreferences(
                 enabledLanguages = preferences[ENABLED_LANGUAGES] ?: Lang.getAllLangs().toPref(),
                 lastExtCheck = preferences[LAST_EXT_CHECK] ?: 0,
                 extensionUpdatesCount = preferences[EXT_UPDATES_COUNT] ?: 0,
-                extensionsRepos = preferences[EXTENSIONS_REPOS] ?: setOf(DEFAULT_EXTENSIONS_REPO)
+                extensionsRepos = preferences[EXTENSIONS_REPOS] ?: setOf(DEFAULT_EXTENSIONS_REPO),
+                trustedSignatures = preferences[TRUSTED_SIGNATURES] ?: emptySet()
             )
         }
 
@@ -43,6 +53,7 @@ data class SourcesPreferences(
             preferences[LAST_EXT_CHECK] = newValue.lastExtCheck
             preferences[EXT_UPDATES_COUNT] = newValue.extensionUpdatesCount
             preferences[EXTENSIONS_REPOS] = newValue.extensionsRepos
+        preferences[TRUSTED_SIGNATURES] = newValue.trustedSignatures
         }
     }
 }

@@ -26,6 +26,7 @@ val LoadResult.Reason.textRes: Int
         LoadResult.Reason.NOT_FOUND -> R.string.ext_failed_reason_not_found
         LoadResult.Reason.MALFORMED -> R.string.ext_failed_reason_malformed
         LoadResult.Reason.INCOMPATIBLE_API -> R.string.ext_failed_reason_incompatible
+        LoadResult.Reason.UNTRUSTED -> R.string.ext_failed_reason_untrusted
         LoadResult.Reason.CLASSLOAD_FAILED -> R.string.ext_failed_reason_classload
         LoadResult.Reason.TIMED_OUT -> R.string.ext_failed_reason_timed_out
         LoadResult.Reason.QUARANTINED -> R.string.ext_failed_reason_quarantined
@@ -40,6 +41,7 @@ fun FailedExtensionItem(
     error: LoadResult.Error,
     onRetry: (String) -> Unit,
     onUninstall: (String) -> Unit,
+    onTrust: (String, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -66,11 +68,28 @@ fun FailedExtensionItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                // The fingerprint is the only thing distinguishing a legitimate third-party repo
+                // from an impostor, so show it rather than asking for blind consent.
+                if (error.reason == LoadResult.Reason.UNTRUSTED && error.fingerprint != null) {
+                    Text(
+                        text = error.fingerprint,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
         Row(modifier = Modifier.padding(top = 4.dp)) {
-            // Retrying a NOT_FOUND package can't succeed — there's nothing left to load.
-            if (error.reason != LoadResult.Reason.NOT_FOUND) {
+            if (error.reason == LoadResult.Reason.UNTRUSTED) {
+                // Retrying would just fail the same check; accepting the certificate is the only
+                // thing that changes the outcome.
+                error.fingerprint?.let { fingerprint ->
+                    TextButton(onClick = { onTrust(error.pkgName, fingerprint) }) {
+                        Text(text = stringResource(R.string.ext_failed_trust))
+                    }
+                }
+            } else if (error.reason != LoadResult.Reason.NOT_FOUND) {
+                // Retrying a NOT_FOUND extension can't succeed — there's nothing left to load.
                 TextButton(onClick = { onRetry(error.pkgName) }) {
                     Text(text = stringResource(R.string.ext_failed_retry))
                 }

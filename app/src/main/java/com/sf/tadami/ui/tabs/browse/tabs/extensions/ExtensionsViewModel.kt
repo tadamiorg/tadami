@@ -9,7 +9,6 @@ import com.sf.tadami.data.interactors.extension.GetExtensionsByType
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.extension.model.InstallStep
-import com.sf.tadami.preferences.extensions.ExtensionsPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
@@ -48,7 +47,7 @@ class ExtensionsViewModel : ViewModel() {
         val extensionMapper: (Map<String, InstallStep>) -> ((Extension) -> ExtensionUiModel.Item) =
             { map ->
                 {
-                    ExtensionUiModel.Item(it, map[it.pkgName] ?: InstallStep.Idle)
+                    ExtensionUiModel.Item(it, map[it.uiKey] ?: InstallStep.Idle)
                 }
             }
         val queryFilter: (String) -> ((Extension) -> Boolean) = { query ->
@@ -135,12 +134,12 @@ class ExtensionsViewModel : ViewModel() {
             _uiState.update { state -> state.copy(failedExtensions = failed) }
         }.launchIn(viewModelScope)
 
-        dataStore.getPreferencesGroupAsFlow(SourcesPreferences).onEach {
-            _uiState.update { state -> state.copy(updates = it.extensionUpdatesCount) }
+        extensionManager.redundantPackagesFlow.onEach { packages ->
+            _uiState.update { state -> state.copy(redundantPackages = packages) }
         }.launchIn(viewModelScope)
 
-        dataStore.getPreferencesGroupAsFlow(ExtensionsPreferences).onEach {
-            _uiState.update { state -> state.copy(installer = it.extensionInstallerEnum) }
+        dataStore.getPreferencesGroupAsFlow(SourcesPreferences).onEach {
+            _uiState.update { state -> state.copy(updates = it.extensionUpdatesCount) }
         }.launchIn(viewModelScope)
 
     }
@@ -178,11 +177,11 @@ class ExtensionsViewModel : ViewModel() {
     }
 
     private fun addDownloadState(extension: Extension, installStep: InstallStep) {
-        _currentDownloads.update { it + Pair(extension.pkgName, installStep) }
+        _currentDownloads.update { it + Pair(extension.uiKey, installStep) }
     }
 
     private fun removeDownloadState(extension: Extension) {
-        _currentDownloads.update { it - extension.pkgName }
+        _currentDownloads.update { it - extension.uiKey }
     }
 
     private suspend fun Flow<InstallStep>.collectToInstallUpdate(extension: Extension) =
@@ -197,6 +196,52 @@ class ExtensionsViewModel : ViewModel() {
 
     fun retryFailedExtension(pkgName: String) {
         extensionManager.retryFailedExtension(pkgName)
+    }
+
+    /** True while [removeAllLegacyPackages] is still working through the list. */
+    private var cleaningUpLegacy = false
+    private var lastRequestedLegacyUninstall: String? = null
+
+    /**
+     * Re-checks which old extension packages are still installed, and advances the cleanup if one
+     * is running. Called when the tab resumes — Android confirms each uninstall in its own screen
+     * and reports nothing back, so coming back to the foreground is the only signal available.
+     */
+    fun refreshRedundantPackages() {
+        viewModelScope.launchIO {
+            if (cleaningUpLegacy) continueLegacyCleanup() else extensionManager.refreshRedundantPackages()
+        }
+    }
+
+    /**
+     * Removes every leftover extension package, one system dialog at a time. They can't be batched
+     * — Android has no bulk uninstall — so this queues them behind a single confirmation instead of
+     * making the user find each one.
+     */
+    fun removeAllLegacyPackages() {
+        cleaningUpLegacy = true
+        lastRequestedLegacyUninstall = null
+        viewModelScope.launchIO { continueLegacyCleanup() }
+    }
+
+    private suspend fun continueLegacyCleanup() {
+        val next = extensionManager.refreshRedundantPackages().firstOrNull()
+        when (next) {
+            // Everything is gone.
+            null -> cleaningUpLegacy = false
+            // Still at the head of the list after we asked for it means the user declined; asking
+            // again would loop the same dialog forever.
+            lastRequestedLegacyUninstall -> cleaningUpLegacy = false
+            else -> {
+                lastRequestedLegacyUninstall = next
+                extensionManager.requestLegacyUninstall(next)
+            }
+        }
+    }
+
+    /** Accepts an unrecognised signing certificate, then loads the extension it belongs to. */
+    fun trustExtension(pkgName: String, fingerprint: String) {
+        extensionManager.trustExtension(pkgName, fingerprint)
     }
 
     /** Failed extensions never produced an [Extension], so they can only be addressed by package. */

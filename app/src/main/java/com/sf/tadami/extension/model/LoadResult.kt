@@ -15,17 +15,28 @@ sealed interface LoadResult {
         val reason: Reason,
         val extName: String? = null,
         val throwable: Throwable? = null,
+        /**
+         * Signing certificate of the rejected extension, present only for [Reason.UNTRUSTED] —
+         * it's what the "trust this signature" prompt needs to show and then persist.
+         */
+        val fingerprint: String? = null,
     ) : LoadResult
 
     enum class Reason {
-        /** Package isn't installed, or no longer declares the extension feature. */
+        /** No file for this package, or it no longer declares the extension feature. */
         NOT_FOUND,
 
-        /** Missing versionName, missing metadata, unreadable manifest. */
+        /** Missing versionName, missing metadata, unreadable manifest, package name mismatch. */
         MALFORMED,
 
         /** Extension lib version outside the range this app supports. */
         INCOMPATIBLE_API,
+
+        /**
+         * Signed by a certificate that is neither the official one nor one the user has accepted.
+         * Nothing from the extension has been loaded — the check happens before its code is touched.
+         */
+        UNTRUSTED,
 
         /** PathClassLoader failed, or the source class threw while being constructed. */
         CLASSLOAD_FAILED,

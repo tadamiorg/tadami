@@ -2,7 +2,6 @@ package com.sf.tadami.ui.tabs.browse.tabs.extensions
 
 import androidx.compose.runtime.Immutable
 import com.sf.tadami.extension.model.LoadResult
-import com.sf.tadami.preferences.extensions.ExtensionInstallerEnum
 
 typealias ItemGroups = MutableMap<ExtensionUiModel.Header, List<ExtensionUiModel.Item>>
 
@@ -13,7 +12,8 @@ data class ExtensionsUiState(
     val items: ItemGroups = mutableMapOf(),
     val failedExtensions: List<LoadResult.Error> = emptyList(),
     val updates: Int = 0,
-    val installer: ExtensionInstallerEnum? = null,
+    /** Installed extension packages left over from before extensions moved into private storage. */
+    val redundantPackages: List<String> = emptyList(),
     val searchQuery: String = "",
 ) {
     val isEmpty = items.isEmpty() && failedExtensions.isEmpty()
