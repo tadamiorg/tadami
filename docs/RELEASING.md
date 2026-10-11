@@ -38,7 +38,7 @@ CI never uses the signing secrets.
 `.github/workflows/release.yml` runs from Actions > Release > Run workflow, on `main` only. It:
 
 1. computes the version from the commits since the last `vX.Y.Z` tag (`.github/scripts/next_version.py`, see "Versions" below) and fails when there are none;
-2. decodes the keystore from the secrets, runs the release unit tests and builds the signed release APK with that version;
+2. decodes the keystore from the secrets, runs the unit tests and builds the signed release APK with that version;
 3. checks the APK's `versionName` is that version, verifies the signature with `apksigner` and, when `RELEASE_CERT_SHA256` is set, fails if the APK is signed with another certificate;
 4. pushes the tag `vX.Y.Z` on the released commit and creates the GitHub release `Tadami vX.Y.Z`, as a draft by default, with notes built from the commits, a SHA-256 checksum and `tadami-vX.Y.Z.apk` as its only asset;
 5. keeps the R8 mapping as the workflow artifact `mapping-vX.Y.Z` (not as a release asset).

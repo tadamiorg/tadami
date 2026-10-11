@@ -40,7 +40,7 @@ Secrets go in the repo's **Settings > Secrets and variables > Actions > Secrets*
 
 **Release**:
 1. computes the version from the commits since the last `vX.Y.Z` tag (RELEASING.md, "Versions");
-2. decodes the keystore, runs the release unit tests and builds the signed APK with that version;
+2. decodes the keystore, runs the unit tests and builds the signed APK with that version;
 3. checks the APK's version, verifies the signature, and compares the certificate with `RELEASE_CERT_SHA256` when it's set;
 4. pushes the tag `vX.Y.Z` and creates the GitHub release `Tadami vX.Y.Z`, **as a draft** unless `RELEASE_DRAFT` is `false`, with notes built from the commits, a SHA-256 checksum and `tadami-vX.Y.Z.apk` as its only asset;
 5. keeps the R8 mapping as the workflow artifact `mapping-vX.Y.Z`.

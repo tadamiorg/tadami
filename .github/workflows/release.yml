@@ -77,6 +77,7 @@ jobs:
           done
           printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > "$RUNNER_TEMP/release.jks"
 
+      # AGP 9 only creates unit tests for the debug build type, the one CI tests too
       - name: Test and build release
         env:
           TADAMI_KEYSTORE_PATH: ${{ runner.temp }}/release.jks
@@ -84,7 +85,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           ALIAS: ${{ secrets.ALIAS }}
           VERSION: ${{ steps.version.outputs.version }}
-        run: ./gradlew :app:testReleaseUnitTest :app:assembleRelease -PappVersionName="$VERSION"
+        run: ./gradlew :app:testDebugUnitTest :app:assembleRelease -PappVersionName="$VERSION"
 
       # The updater compares the release tag with the installed versionName: a mismatch would offer the
       # update forever
