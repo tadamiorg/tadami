@@ -124,7 +124,7 @@ jobs:
       # A draft unless the RELEASE_DRAFT variable is 'false': it reaches users through the in-app updater
       # only once published by hand (drafts and prereleases are invisible to it).
       - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.TAG }}
           name: Tadami ${{ env.TAG }}
