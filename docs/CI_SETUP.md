@@ -2,7 +2,7 @@
 
 What to configure for the two GitHub pipelines, and what each setting does:
 
-- **App** ([tadamiorg/tadami](https://github.com/tadamiorg/tadami)): builds and tests every push, and releases the app when a version tag is pushed.
+- **App** ([tadamiorg/tadami](https://github.com/tadamiorg/tadami)): builds and tests every push and pull request to `develop`, and releases the app when a version tag is pushed.
 - **Extensions** ([tadamiorg/tadami-extensions-source](https://github.com/tadamiorg/tadami-extensions-source)): builds the extensions you pick and publishes them to [tadamiorg/tadami-extensions](https://github.com/tadamiorg/tadami-extensions), the repo the app downloads extensions from.
 
 The release process itself (bumping versions, tagging) is in [RELEASING.md](RELEASING.md).
@@ -32,7 +32,7 @@ Secrets go in the repo's **Settings > Secrets and variables > Actions > Secrets*
 
 | Workflow | File | Runs on | Needs settings |
 | --- | --- | --- | --- |
-| CI | `.github/workflows/ci.yml` | Pushes and pull requests to `develop` and `main`, or Actions > CI > Run workflow | No |
+| CI | `.github/workflows/ci.yml` | Pushes and pull requests to `develop`, or Actions > CI > Run workflow | No |
 | Release | `.github/workflows/release.yml` | A pushed `v*` tag, or Actions > Release > Run workflow | Yes, see below |
 | Dependabot | `.github/dependabot.yml` | Monthly | No: it opens pull requests on `develop` updating the workflow actions |
 
