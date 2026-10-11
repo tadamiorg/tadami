@@ -115,7 +115,7 @@ jobs:
       # The mapping stays a workflow artifact: the release must only carry the APK, which is what
       # already installed versions of the updater download.
       - name: Upload R8 mapping
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mapping-${{ env.TAG }}
           path: app/build/outputs/mapping/release/
