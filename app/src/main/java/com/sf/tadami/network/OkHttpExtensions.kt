@@ -27,7 +27,7 @@ import kotlin.coroutines.resumeWithException
 
 fun Call.asObservable(): Observable<Response> {
     return Observable.fromCallable {
-        this.execute().handleErrors()
+        this.execute().also { if (!it.isSuccessful) it.close() }.handleErrors()
     }
 }
 
@@ -48,11 +48,17 @@ fun Call.asCancelableObservable(): Observable<Response> {
             }
 
             override fun onResponse(call: Call, response: Response) {
+                // Nobody will consume the response anymore
+                if (emitter.isDisposed) {
+                    response.close()
+                    return
+                }
                 try {
                     response.handleErrors()
                     emitter.onNext(response)
                     emitter.onComplete()
                 } catch (e: Exception) {
+                    response.close()
                     if (!call.isCanceled()) {
                         emitter.onError(e)
                     }
@@ -84,6 +90,8 @@ fun Response.handleErrors(): Response {
 fun OkHttpClient.newCachelessCallWithProgress(request: Request, listener: ProgressListener): Call {
     val progressClient = newBuilder()
         .cache(null)
+        // Large downloads can outlast the shared client's call timeout, rely on the read timeout
+        .callTimeout(0, TimeUnit.SECONDS)
         .addNetworkInterceptor { chain ->
             val originalResponse = chain.proceed(chain.request())
             originalResponse.newBuilder()

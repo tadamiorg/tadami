@@ -3,6 +3,7 @@ package com.sf.tadami
 
 import android.app.ActivityManager
 import android.app.Application
+import android.webkit.WebView
 import androidx.core.content.getSystemService
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -13,7 +14,9 @@ import coil.memory.MemoryCache
 import coil.request.CachePolicy
 import com.sf.tadami.crash.CrashActivity
 import com.sf.tadami.crash.GlobalExceptionHandler
+import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.interceptors.ImageLoaderInterceptor
+import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.preferences.appearance.setAppCompatDelegateThemeMode
@@ -22,7 +25,6 @@ import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
-import okhttp3.OkHttpClient
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -31,9 +33,19 @@ open class App : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
 
-        GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
+        // The crash screen runs in its own process, which runs this too
+        val isMainProcess = getProcessName() == packageName
+        if (isMainProcess) {
+            GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
+            // Before the network layer builds the default user agent from it
+            WebViewUtil.detectVersion(this)
+        } else {
+            // A crash in the crash screen process must not relaunch the crash screen forever,
+            // and WebView refuses to share its data directory between processes
+            WebView.setDataDirectorySuffix(getProcessName().substringAfterLast(':'))
+        }
 
-        Injekt.importModule(AppModule(this))
+        Injekt.importModule(AppModule(this, warmUp = isMainProcess))
         Injekt.importModule(PreferencesModule(this))
         createNotificationChannels()
 
@@ -52,7 +64,11 @@ open class App : Application(), ImageLoaderFactory {
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(this)
             .okHttpClient {
-                OkHttpClient.Builder()
+                // Shares the cookies (Cloudflare clearance) and user agent of the sources, without
+                // ever opening a WebView for an image
+                Injekt.get<NetworkHelper>().nonCloudflareClient.newBuilder()
+                    // Coil has its own disk cache
+                    .cache(null)
                     // This header will be added to every image request.
                     .addInterceptor(ImageLoaderInterceptor())
                     .build()

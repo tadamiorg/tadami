@@ -12,7 +12,6 @@ import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.extension.model.LoadResult
 import com.sf.tadami.extension.util.ExtensionsInstaller
 import com.sf.tadami.extension.util.ExtensionsLoader
-import com.sf.tadami.extension.util.ExtensionsLoader.API_VERSION_MIN_OBSOLETE
 import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerNotifier
 import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerReceiver
 import com.sf.tadami.preferences.sources.SourcesPreferences
@@ -20,15 +19,18 @@ import com.sf.tadami.source.StubSource
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import java.util.concurrent.ConcurrentHashMap
 
 class ExtensionManager(
     private val context: Context,
@@ -48,23 +50,30 @@ class ExtensionManager(
      * The installer which installs, updates and uninstalls the extensions.
      */
     private val installer by lazy { ExtensionsInstaller(context) }
-    private val iconMap = mutableMapOf<String, Drawable>()
+    private val iconMap = ConcurrentHashMap<String, Drawable>()
 
     private val _installedExtensionsFlow = MutableStateFlow(emptyList<Extension.Installed>())
     val installedExtensionsFlow = _installedExtensionsFlow.asStateFlow()
 
     fun getAppIconForSource(sourceId: Long): Drawable? {
-        val pkgName = _installedExtensionsFlow.value
+        val extension = _installedExtensionsFlow.value
             .find { ext ->
                 ext.sources.any { it.id == sourceId }
             }
-            ?.pkgName
             ?: return null
 
-        return iconMap[pkgName] ?: iconMap.getOrPut(pkgName) {
-            ExtensionsLoader.getExtensionPackageInfoFromPkgName(context, pkgName)!!.applicationInfo!!
-                .loadIcon(context.packageManager)
-        }
+        // Prefer the icon already loaded with the extension
+        extension.icon?.let { return it }
+
+        val pkgName = extension.pkgName
+        iconMap[pkgName]?.let { return it }
+        // The package may have just been uninstalled without PACKAGE_REMOVED being processed yet
+        val icon = ExtensionsLoader.getExtensionPackageInfoFromPkgName(context, pkgName)
+            ?.applicationInfo
+            ?.loadIcon(context.packageManager)
+            ?: return null
+        iconMap[pkgName] = icon
+        return icon
     }
 
     private val _availableExtensionsFlow = MutableStateFlow(emptyList<Extension.Available>())
@@ -99,12 +108,15 @@ class ExtensionManager(
     suspend fun findAvailableExtensions() {
         val extensions: List<Extension.Available> = try {
             api.findExtensions()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.d("FindAvailableExtensions", e.stackTraceToString())
             withContext(Dispatchers.Main) {
                 UiToasts.showToast(R.string.extension_api_error)
             }
-            emptyList()
+            // Keep the previous available extensions, statuses and updates count
+            return
         }
         _availableExtensionsFlow.value = extensions
         updatedInstalledExtensionsStatuses(extensions)
@@ -117,44 +129,39 @@ class ExtensionManager(
      * @param availableExtensions The list of extensions given by the [api].
      */
     private fun updatedInstalledExtensionsStatuses(availableExtensions: List<Extension.Available>) {
-        if (availableExtensions.isEmpty()) {
-            runBlocking {
-                dataStore.editPreference(0,SourcesPreferences.EXT_UPDATES_COUNT)
-            }
-            return
-        }
+        // Nothing to compare against, keep the current statuses and updates count
+        if (availableExtensions.isEmpty()) return
 
-        val mutInstalledExtensions = _installedExtensionsFlow.value.toMutableList()
-        var changed = false
+        _installedExtensionsFlow.update { installedExtensions ->
+            val mutInstalledExtensions = installedExtensions.toMutableList()
+            var changed = false
 
-        for ((index, installedExt) in mutInstalledExtensions.withIndex()) {
-            val pkgName = installedExt.pkgName
-            val availableExt = availableExtensions.find { it.pkgName == pkgName }
+            for ((index, installedExt) in mutInstalledExtensions.withIndex()) {
+                val pkgName = installedExt.pkgName
+                val availableExt = availableExtensions.find { it.pkgName == pkgName }
 
-            val apiVersion = installedExt.apiVersion
-
-            if ((availableExt == null || apiVersion < API_VERSION_MIN_OBSOLETE) && !installedExt.isObsolete) {
-                mutInstalledExtensions[index] = installedExt.copy(isObsolete = true)
-                changed = true
-            } else if (availableExt != null) {
-                val hasUpdate = installedExt.updateExists(availableExt)
-
-                if (installedExt.hasUpdate != hasUpdate) {
-                    mutInstalledExtensions[index] = installedExt.copy(
-                        hasUpdate = hasUpdate,
-                        repoUrl = availableExt.repoUrl,
-                    )
-                    changed = true
+                if (availableExt == null) {
+                    if (!installedExt.isObsolete) {
+                        mutInstalledExtensions[index] = installedExt.copy(isObsolete = true)
+                        changed = true
+                    }
                 } else {
-                    mutInstalledExtensions[index] = installedExt.copy(
-                        repoUrl = availableExt.repoUrl,
-                    )
-                    changed = true
+                    val hasUpdate = installedExt.updateExists(availableExt)
+
+                    if (installedExt.hasUpdate != hasUpdate ||
+                        installedExt.isObsolete ||
+                        installedExt.repoUrl != availableExt.repoUrl
+                    ) {
+                        mutInstalledExtensions[index] = installedExt.copy(
+                            hasUpdate = hasUpdate,
+                            isObsolete = false,
+                            repoUrl = availableExt.repoUrl,
+                        )
+                        changed = true
+                    }
                 }
             }
-        }
-        if (changed) {
-            _installedExtensionsFlow.value = mutInstalledExtensions
+            if (changed) mutInstalledExtensions else installedExtensions
         }
         updatePendingUpdatesCount()
     }
@@ -215,7 +222,7 @@ class ExtensionManager(
      * @param extension The extension to be registered.
      */
     private fun registerNewExtension(extension: Extension.Installed) {
-        _installedExtensionsFlow.value += extension
+        _installedExtensionsFlow.update { it + extension }
     }
 
     /**
@@ -225,13 +232,16 @@ class ExtensionManager(
      * @param extension The extension to be registered.
      */
     private fun registerUpdatedExtension(extension: Extension.Installed) {
-        val mutInstalledExtensions = _installedExtensionsFlow.value.toMutableList()
-        val oldExtension = mutInstalledExtensions.find { it.pkgName == extension.pkgName }
-        if (oldExtension != null) {
-            mutInstalledExtensions -= oldExtension
+        iconMap.remove(extension.pkgName)
+        _installedExtensionsFlow.update { installedExtensions ->
+            val mutInstalledExtensions = installedExtensions.toMutableList()
+            val oldExtension = mutInstalledExtensions.find { it.pkgName == extension.pkgName }
+            if (oldExtension != null) {
+                mutInstalledExtensions -= oldExtension
+            }
+            mutInstalledExtensions += extension
+            mutInstalledExtensions
         }
-        mutInstalledExtensions += extension
-        _installedExtensionsFlow.value = mutInstalledExtensions
     }
 
     /**
@@ -241,10 +251,10 @@ class ExtensionManager(
      * @param pkgName The package name of the uninstalled application.
      */
     private fun unregisterExtension(pkgName: String) {
-        val installedExtension = _installedExtensionsFlow.value.find { it.pkgName == pkgName }
-
-        if (installedExtension != null) {
-            _installedExtensionsFlow.value -= installedExtension
+        iconMap.remove(pkgName)
+        _installedExtensionsFlow.update { installedExtensions ->
+            val installedExtension = installedExtensions.find { it.pkgName == pkgName }
+            if (installedExtension != null) installedExtensions - installedExtension else installedExtensions
         }
     }
 

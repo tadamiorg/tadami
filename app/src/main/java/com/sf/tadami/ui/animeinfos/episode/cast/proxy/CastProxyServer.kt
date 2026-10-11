@@ -2,12 +2,14 @@ package com.sf.tadami.ui.animeinfos.episode.cast.proxy
 
 import android.content.Context
 import android.util.Log
+import com.sf.tadami.network.player.HlsSegmentIvs
 import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
 import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyServer.Companion.DEFAULT_PORT
 import fi.iki.elonen.NanoHTTPD
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.ByteArrayInputStream
 import java.util.Collections
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
@@ -18,8 +20,10 @@ import java.util.concurrent.TimeUnit
  * (Referer, User-Agent, ...) that browsers cannot set on media requests.
  *
  * Stateless forwarder: the headers travel WITH the request (the receiver builds them into the
- * `headers` query parameter from the stream source it holds), nothing is registered phone-side,
- * and nothing here parses or rewrites stream payloads. The upstream request is the incoming
+ * `headers` query parameter from the stream source it holds) and nothing is registered phone-side.
+ * Payloads stream through untouched, with one exception: HLS media playlists whose segments
+ * players would decrypt with the wrong IV get explicit IVs (ProxyPlaylists, HlsSegmentIvs),
+ * a fix that depends on the playlist alone. The upstream request is the incoming
  * request's own headers overlaid with the carried ones ([buildUpstreamHeaders]); the response is
  * streamed back with its headers forwarded ([forwardedResponseHeaders]) plus permissive CORS.
  * Broken relative-URI resolution inside proxied manifests is the RECEIVER's job (it detects the
@@ -51,9 +55,13 @@ class CastProxyServer(
     @Volatile
     private var server: Server? = null
 
+    /** The bound port, or null when not running. */
+    internal val listeningPort: Int?
+        get() = server?.takeIf { it.isAlive }?.listeningPort
+
     /** `http://<lanIp>:<port>`, or null when not running / no LAN address (recomputed per call — the IP can change). */
     fun baseUrl(): String? {
-        val port = server?.takeIf { it.isAlive }?.listeningPort ?: return null
+        val port = listeningPort ?: return null
         val ip = getLocalIPAddress(appContext) ?: return null
         return "http://$ip:$port"
     }
@@ -130,15 +138,20 @@ class CastProxyServer(
             ?: return cors(newResponse(NanoHTTPD.Response.Status.BAD_REQUEST, "text/plain", "bad url"))
         val carriedHeaders = parseHeadersParam(session.parameters["headers"]?.firstOrNull())
 
-        val headers = buildUpstreamHeaders(session.headers, carriedHeaders, fallbackUserAgent)
-        // Logged BEFORE the upstream call so a hung/failed fetch still shows its target.
-        // Header NAMES only (values can hold tokens/cookies).
-        Log.d(TAG, "HDR carried=${carriedHeaders != null} keys=${headers.names()} url=$url")
-
         // Mirror the incoming method: Shaka's container probe uses HEAD, and answering it with a
         // full upstream GET downloads whole segments just to discard them (and wedges the
         // connection on the unread body). Anything unexpected falls back to GET.
         val method = if (session.method == NanoHTTPD.Method.HEAD) "HEAD" else "GET"
+        val rangeRequested = session.headers["range"] != null
+
+        val headers = buildUpstreamHeaders(session.headers, carriedHeaders, fallbackUserAgent).let {
+            // A playlist may need fixing (ProxyPlaylists): get it decoded
+            if (method == "GET" && !rangeRequested && isPlaylistUrl(httpUrl)) withoutAcceptEncoding(it) else it
+        }
+        // Logged BEFORE the upstream call so a hung/failed fetch still shows its target.
+        // Header NAMES only (values can hold tokens/cookies).
+        Log.d(TAG, "HDR carried=${carriedHeaders != null} keys=${headers.names()} url=$url")
+
         val upstream = client.newCall(
             Request.Builder().url(httpUrl).headers(headers).method(method, null).build(),
         ).execute()
@@ -152,6 +165,27 @@ class CastProxyServer(
         val length = body.contentLength()
         val forwarded = forwardedResponseHeaders(upstream.headers)
         Log.d(TAG, "UP ${upstream.code} type=$contentType len=$length fwd=${forwarded.map { it.first }} url=$url")
+
+        val fixablePlaylist = isWholeDecodedBody(
+            method = method,
+            rangeRequested = rangeRequested,
+            code = upstream.code,
+            contentEncoding = upstream.header("Content-Encoding"),
+            contentLength = length,
+        ) && startsLikePlaylist(upstream.peekBody(PLAYLIST_MAGIC_BYTES).bytes())
+        if (fixablePlaylist) {
+            val original = body.string()
+            val fixed = HlsSegmentIvs.fix(original)
+            if (fixed != null) Log.d(TAG, "FIX playlist segment IVs url=$url")
+            val bytes = (fixed ?: original).toByteArray(Charsets.UTF_8)
+            val response = NanoHTTPD.newFixedLengthResponse(
+                statusOf(upstream.code), contentType, ByteArrayInputStream(bytes), bytes.size.toLong(),
+            )
+            for ((name, value) in playlistResponseHeaders(forwarded, rewritten = fixed != null)) {
+                response.addHeader(name, value)
+            }
+            return cors(response)
+        }
 
         val response = if (length >= 0) {
             NanoHTTPD.newFixedLengthResponse(statusOf(upstream.code), contentType, body.byteStream(), length)

@@ -64,6 +64,9 @@ fun sourcesTab(
                 onOptionsClicked = { source ->
                     navController.navigate("${SourcesRoutes.SETTINGS}/${source.id}")
                 },
+                onUnusableExtensionClicked = { extension ->
+                    navController.navigate("${DiscoverRoutes.EXTENSION_DETAILS}/${extension.pkgName}")
+                },
             )
         },
     )

@@ -108,6 +108,11 @@ fun RecentScreen(
                 snackbarHostState = snackbarHostState,
                 onAnimeClicked = {
                     navController.navigate("${AnimeInfosRoutes.DETAILS}/${it.source}/${it.id}")
+                },
+                onOpenInWebView = { url ->
+                    val source = recentViewModel.source
+                    val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
+                    navController.navigate("${SourcesRoutes.EXTENSIONS_WEBVIEW}/${source.id}/${source.name}/${encodedUrl}")
                 }
             )
         }

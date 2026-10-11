@@ -11,4 +11,5 @@ data class UpdatesWithRelations(
     val sourceId: Long,
     val dateFetch: Long,
     val thumbnailUrl: String?,
+    val language: String? = null,
 )

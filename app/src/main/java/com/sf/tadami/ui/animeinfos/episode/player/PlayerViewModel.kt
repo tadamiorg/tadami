@@ -106,8 +106,11 @@ class PlayerViewModel(
     val episodes = _episodesList.asStateFlow()
 
     val hasNextIterator = combine(currentEpisode, episodes) { ep, epList ->
+        val index = if (ep != null) epList.indexOfFirst { it.id == ep.id } else -1
         when {
-            ep != null && epList.isNotEmpty() -> epList.listIterator(epList.indexOfFirst { it.id == ep.id })
+            index >= 0 -> epList.listIterator(index)
+            // Current episode missing from the list (e.g. re-inserted with a new id by a sync): no neighbours
+            ep != null && epList.isNotEmpty() -> emptyList<Episode>().listIterator()
             else -> {
                 epList.listIterator()
             }
@@ -115,8 +118,11 @@ class PlayerViewModel(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, _episodesList.value.listIterator())
 
     val hasPreviousIterator = combine(currentEpisode, episodes) { ep, epList ->
+        val index = if (ep != null) epList.indexOfFirst { it.id == ep.id } else -1
         when {
-            ep != null && epList.isNotEmpty() -> epList.listIterator(epList.indexOfFirst { it.id == ep.id } + 1)
+            index >= 0 -> epList.listIterator(index + 1)
+            // Current episode missing from the list (e.g. re-inserted with a new id by a sync): no neighbours
+            ep != null && epList.isNotEmpty() -> emptyList<Episode>().listIterator()
             else -> {
                 epList.listIterator()
             }

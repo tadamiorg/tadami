@@ -71,7 +71,7 @@ suspend fun <T : Any> Observable<T>.awaitSingleOrNull(
                 else -> {
 
                     Injekt.get<Application>().let {
-                        val unknownError = when (val className = this::class.simpleName) {
+                        val unknownError = when (val className = e::class.simpleName) {
                             "Exception", "IOException" -> e.message ?: className
                             else -> "$className: ${e.message}"
                         }

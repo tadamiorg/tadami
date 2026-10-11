@@ -6,6 +6,10 @@ It is not a production ready app and mostly a protoype used to learn android dev
 ## Download
 Get the app from the [releases page](https://github.com/tadamiorg/tadami/releases).
 
+## Building & releasing
+Build with JDK 17, e.g. `./gradlew :app:assembleDebug`. No secrets are needed: without a keystore, debug builds use the default debug key and release builds are unsigned.
+Releases are built, signed and published by GitHub Actions when a `vX.Y.Z` tag is pushed. See [docs/RELEASING.md](docs/RELEASING.md) for the required secrets and the release flow.
+
 ## Ui
 
 ### Library

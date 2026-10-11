@@ -1,24 +1,26 @@
 package com.sf.tadami.ui.main
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sf.tadami.ui.tabs.more.about.AppUpdateDialog
+import androidx.navigation.NavController
+import com.sf.tadami.navigation.graphs.about.navigateToNewUpdate
 
+/** Opens the new update screen when the launch check finds a newer release. */
 @Composable
 fun AppUpdaterScreen(
+    navController: NavController,
     appUpdaterViewModel: AppUpdaterViewModel = viewModel()
 ) {
 
-    val uiState by appUpdaterViewModel.appUpdaterUiState.collectAsState()
+    val newRelease by appUpdaterViewModel.newRelease.collectAsState()
 
-    if (uiState.shouldShowUpdateDialog && uiState.updateInfos?.info != null) {
-        AppUpdateDialog(
-            onDismissRequest = {
-                appUpdaterViewModel.hideDialog()
-            },
-            uiState = uiState
-        )
+    LaunchedEffect(newRelease) {
+        newRelease?.let { release ->
+            navController.navigateToNewUpdate(release)
+            appUpdaterViewModel.onNewReleaseShown()
+        }
     }
 }

@@ -22,7 +22,8 @@ CREATE TABLE Anime (
   date_added INTEGER NOT NULL,
   studio TEXT,
   author TEXT,
-  raw_title TEXT
+  raw_title TEXT,
+  language TEXT
 );
 
 CREATE INDEX animes_favorite_index ON Anime(favorite) WHERE favorite = 1;
@@ -48,7 +49,8 @@ SELECT
     date_added,
     studio,
     author,
-    raw_title
+    raw_title,
+    language
 FROM Anime
 WHERE url = :url AND source = :source
 LIMIT 1;
@@ -73,7 +75,8 @@ SELECT
     date_added,
     studio,
     author,
-    raw_title
+    raw_title,
+    language
 FROM Anime;
 
 getById:
@@ -96,7 +99,8 @@ SELECT
     date_added,
     studio,
     author,
-    raw_title
+    raw_title,
+    language
 FROM Anime
 WHERE _id = :animeId;
 
@@ -105,8 +109,8 @@ DELETE FROM Anime
 WHERE _id IN :animeId;
 
 insert:
-INSERT INTO Anime(source, url, title, thumbnail_url, release, status, description, genres, last_update,next_update,calculate_interval,favorite, initialized,episode_flags,date_added,studio,author,raw_title)
-VALUES (:source,:url,:title,:thumbnailUrl,:release,:status,:description,:genres,:lastUpdate,:nextUpdate,:calculateInterval,:favorite,:initiliazed,:episodeFlags,:dateAdded,:studio,:author,:rawTitle);
+INSERT INTO Anime(source, url, title, thumbnail_url, release, status, description, genres, last_update,next_update,calculate_interval,favorite, initialized,episode_flags,date_added,studio,author,raw_title,language)
+VALUES (:source,:url,:title,:thumbnailUrl,:release,:status,:description,:genres,:lastUpdate,:nextUpdate,:calculateInterval,:favorite,:initiliazed,:episodeFlags,:dateAdded,:studio,:author,:rawTitle,:language);
 
 update:
 UPDATE Anime
@@ -127,7 +131,8 @@ SET source = coalesce(:source, source),
     date_added = coalesce(:dateAdded, date_added),
     studio = coalesce(:studio, studio),
     author = coalesce(:author, author),
-    raw_title = coalesce(:rawTitle, raw_title)
+    raw_title = coalesce(:rawTitle, raw_title),
+    language = coalesce(:language, language)
 WHERE _id = :animeId;
 
 getFavorites:
@@ -150,7 +155,8 @@ SELECT
     date_added,
     studio,
     author,
-    raw_title
+    raw_title,
+    language
 FROM Anime
 WHERE favorite = 1;
 

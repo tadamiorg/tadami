@@ -22,7 +22,7 @@ import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.setComposeContent
 import com.sf.tadami.utils.openInBrowser
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import uy.kohesive.injekt.injectLazy
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -44,9 +44,11 @@ class WebViewActivity : AppCompatActivity() {
             return
         }
 
-        val url =
-            URLDecoder.decode(intent.extras?.getString(URL_KEY), StandardCharsets.UTF_8.toString())
-                ?: return
+        val url = intent.extras?.getString(URL_KEY)?.let(::decodeExtra)
+        if (url == null) {
+            finish()
+            return
+        }
         assistUrl = url
 
         var headers = emptyMap<String, String>()
@@ -57,6 +59,9 @@ class WebViewActivity : AppCompatActivity() {
                 Log.d("Failed to build headers", e.stackTraceToString())
             }
         }
+        // Must match what OkHttp sends: Cloudflare binds its clearance to the user agent
+        val userAgent = headers["user-agent"]?.takeIf { it.isNotBlank() }
+            ?: network.advancedPreferences.userAgent.trim()
 
         setComposeContent {
             val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
@@ -76,15 +81,14 @@ class WebViewActivity : AppCompatActivity() {
             }
             WebviewScreen(
                 onNavigateUp = { finish() },
-                initialTitle = URLDecoder.decode(
-                    intent.extras?.getString(TITLE_KEY) ?: "",
-                    StandardCharsets.UTF_8.toString()
-                ),
+                initialTitle = decodeExtra(intent.extras?.getString(TITLE_KEY) ?: ""),
                 url = url,
+                userAgent = userAgent,
                 headers = headers,
                 onUrlChange = { assistUrl = it },
                 onOpenInBrowser = this::openInBrowser,
                 onClearCookies = this::clearCookies,
+                hasClearance = this::hasClearance,
             )
         }
     }
@@ -92,6 +96,12 @@ class WebViewActivity : AppCompatActivity() {
     override fun onProvideAssistContent(outContent: AssistContent) {
         super.onProvideAssistContent(outContent)
         assistUrl?.let { outContent.webUri = it.toUri() }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // A clearance solved here must survive the app being killed right after
+        network.cookieManager.flush()
     }
 
     override fun finish() {
@@ -104,8 +114,23 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     private fun clearCookies(url: String) {
-        network.cookieManager.remove(url.toHttpUrl())
-        Log.i("Webview", "Cleared cookies for: $url")
+        val httpUrl = url.toHttpUrlOrNull() ?: return
+        val cleared = network.cookieManager.remove(httpUrl)
+        Log.i("Webview", "Cleared $cleared cookies for: $url")
+    }
+
+    private fun hasClearance(url: String): Boolean = network.cookieManager.hasCloudflareClearance(url)
+
+    /**
+     * Extras may arrive URL-encoded (player) or already decoded by Navigation (details screen);
+     * a raw '%' must not crash the screen.
+     */
+    private fun decodeExtra(value: String): String {
+        return try {
+            URLDecoder.decode(value, StandardCharsets.UTF_8.toString())
+        } catch (e: IllegalArgumentException) {
+            value
+        }
     }
 
     companion object {

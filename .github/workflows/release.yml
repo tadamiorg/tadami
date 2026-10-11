@@ -1,0 +1,145 @@
+name: Release
+
+# Builds the signed APK for a v<versionName> tag and publishes it as a GitHub release, which the in-app
+# updater picks up (it reads /releases/latest and downloads the release APK). See docs/RELEASING.md.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build and publish (e.g. v1.9.4)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.TAG }}
+          persist-credentials: false
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      # The updater compares the tag with the installed versionName: a mismatch would offer the
+      # update forever, so the tag must be exactly v<versionName>.
+      - name: Check tag matches versionName
+        run: |
+          VERSION_NAME=$(./gradlew -q :app:printVersionName | tail -n 1 | tr -d '\r')
+          if [ "$TAG" != "v$VERSION_NAME" ]; then
+            echo "::error::Tag '$TAG' does not match versionName '$VERSION_NAME' in app/build.gradle.kts. Bump versionCode/versionName and tag v$VERSION_NAME, or fix the tag."
+            exit 1
+          fi
+          echo "Releasing $TAG (versionName $VERSION_NAME)"
+
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          ALIAS: ${{ secrets.ALIAS }}
+        run: |
+          for secret in KEYSTORE_BASE64 KEY_STORE_PASSWORD ALIAS; do
+            if [ -z "${!secret}" ]; then
+              echo "::error::The $secret repository secret is not set. See docs/RELEASING.md."
+              exit 1
+            fi
+          done
+          printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > "$RUNNER_TEMP/release.jks"
+
+      - name: Test and build release
+        env:
+          TADAMI_KEYSTORE_PATH: ${{ runner.temp }}/release.jks
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          ALIAS: ${{ secrets.ALIAS }}
+        run: ./gradlew :app:testReleaseUnitTest :app:assembleRelease
+
+      # Android refuses an update signed with another certificate, so check it before publishing
+      - name: Verify APK signature
+        env:
+          RELEASE_CERT_SHA256: ${{ vars.RELEASE_CERT_SHA256 }}
+        run: |
+          APK=app/build/outputs/apk/release/tadami.apk
+          BUILD_TOOLS=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)
+          "$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK" | tee "$RUNNER_TEMP/apksigner.txt"
+          if [ -n "$RELEASE_CERT_SHA256" ]; then
+            ACTUAL=$(grep -m 1 'certificate SHA-256 digest:' "$RUNNER_TEMP/apksigner.txt" | awk '{ print $NF }' | tr '[:upper:]' '[:lower:]')
+            EXPECTED=$(printf '%s' "$RELEASE_CERT_SHA256" | tr -d ': ' | tr '[:upper:]' '[:lower:]')
+            if [ "$ACTUAL" != "$EXPECTED" ]; then
+              echo "::error::APK certificate SHA-256 is '$ACTUAL', expected '$EXPECTED' (RELEASE_CERT_SHA256). Installed apps could not update to it."
+              exit 1
+            fi
+            echo "Signing certificate matches RELEASE_CERT_SHA256"
+          else
+            echo "::warning::RELEASE_CERT_SHA256 is not set, the signing certificate was not compared."
+          fi
+
+      - name: Prepare release asset
+        id: asset
+        run: |
+          ASSET="tadami-$TAG.apk"
+          cp app/build/outputs/apk/release/tadami.apk "$ASSET"
+          echo "file=$ASSET" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(sha256sum "$ASSET" | awk '{ print $1 }')" >> "$GITHUB_OUTPUT"
+          if [[ "$TAG" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The mapping stays a workflow artifact: the release must only carry the APK, which is what
+      # already installed versions of the updater download.
+      - name: Upload R8 mapping
+        uses: actions/upload-artifact@v4
+        with:
+          name: mapping-${{ env.TAG }}
+          path: app/build/outputs/mapping/release/
+          if-no-files-found: warn
+
+      # A draft unless the RELEASE_DRAFT variable is 'false': it reaches users through the in-app updater
+      # only once published by hand (drafts and prereleases are invisible to it).
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: Tadami ${{ env.TAG }}
+          generate_release_notes: true
+          body: |
+            ### Checksums
+            | File | SHA-256 |
+            | ---- | ------- |
+            | ${{ steps.asset.outputs.file }} | `${{ steps.asset.outputs.sha256 }}` |
+          files: ${{ steps.asset.outputs.file }}
+          fail_on_unmatched_files: true
+          prerelease: ${{ steps.asset.outputs.prerelease }}
+          draft: ${{ vars.RELEASE_DRAFT != 'false' }}
+          make_latest: ${{ steps.asset.outputs.prerelease == 'true' && 'false' || 'true' }}
+
+      - name: Delete keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks"

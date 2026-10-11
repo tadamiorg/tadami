@@ -46,3 +46,21 @@ fun TextBadge(
         style = MaterialTheme.typography.bodySmall,
     )
 }
+
+/**
+ * Language of an entry (VF, VOSTFR...) when its source lists each language as its own anime. Kept out
+ * of the title by the extension, so that it stays visible however long the title is.
+ */
+@Composable
+fun LanguageBadge(
+    language: String,
+    modifier: Modifier = Modifier,
+) {
+    TextBadge(
+        text = language,
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.tertiary,
+        textColor = MaterialTheme.colorScheme.onTertiary,
+        shape = MaterialTheme.shapes.extraSmall,
+    )
+}

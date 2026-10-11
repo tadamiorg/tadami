@@ -28,6 +28,7 @@ data class BackupAnime(
     @ProtoNumber(13) var studio: String? = null,
     @ProtoNumber(14) var author: String? = null,
     @ProtoNumber(15) var rawTitle: String? = null,
+    @ProtoNumber(16) var language: String? = null,
     @ProtoNumber(20) var episodes: List<BackupEpisode> = emptyList(),
     @ProtoNumber(30) var history: List<BackupHistory> = emptyList(),
 
@@ -38,6 +39,7 @@ data class BackupAnime(
             url = this@BackupAnime.url,
             title = this@BackupAnime.title,
             rawTitle = this@BackupAnime.rawTitle,
+            language = this@BackupAnime.language,
             thumbnailUrl = this@BackupAnime.thumbnailUrl,
             release = this@BackupAnime.release,
             studio = this@BackupAnime.studio,
@@ -71,6 +73,7 @@ data class BackupAnime(
                 url = anime.url,
                 title = anime.title,
                 rawTitle = anime.rawTitle,
+                language = anime.language,
                 thumbnailUrl = anime.thumbnailUrl,
                 release = anime.release,
                 studio = anime.studio,

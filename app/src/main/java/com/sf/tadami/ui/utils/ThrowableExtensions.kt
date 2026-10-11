@@ -3,6 +3,7 @@ package com.sf.tadami.ui.utils
 import android.content.Context
 import com.sf.tadami.R
 import com.sf.tadami.data.anime.NoResultException
+import com.sf.tadami.network.CloudflareChallengeException
 import com.sf.tadami.network.HttpException
 import com.sf.tadami.source.StubSource.SourceNotInstalledException
 import com.sf.tadami.utils.isOnline
@@ -21,6 +22,7 @@ val Throwable.formattedMessage: String
                 }
             }
 
+            is CloudflareChallengeException -> return message ?: context.getString(R.string.request_bypass_cloudflare_failure)
             is NoResultException -> return context.getString(R.string.pager_no_results)
             is SourceNotInstalledException -> return context.getString(R.string.source_not_installed)
         }

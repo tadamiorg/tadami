@@ -11,11 +11,13 @@ fun RecentComponent(
     animeList: LazyPagingItems<Anime>,
     snackbarHostState : SnackbarHostState,
     onAnimeClicked: (anime:Anime) -> Unit,
+    onOpenInWebView: ((url: String) -> Unit)? = null,
 ) {
     InfiniteAnimeGrid(
         animeList = animeList,
         snackbarHostState = snackbarHostState,
-        onAnimeClicked = onAnimeClicked
+        onAnimeClicked = onAnimeClicked,
+        onOpenInWebView = onOpenInWebView,
     )
 }
 

@@ -1,6 +1,7 @@
 package com.sf.tadami.network.utils
 
 import android.app.Application
+import android.os.Looper
 import com.sf.tadami.R
 import com.sf.tadami.data.anime.NoResultException
 import com.sf.tadami.network.HttpException
@@ -21,65 +22,74 @@ class TadaErrorConsumer(
     private val callback: ((error : Throwable,message: String?, errorCode: Int?) -> Unit)? = null
 ) : Consumer<Throwable> {
     override fun accept(e: Throwable) {
-        runBlocking {
-            withContext(Dispatchers.Main) {
-                when (e) {
-                    is HttpException -> {
-                        Injekt.get<Application>().let {
-                            UiToasts.showToast(
-                                stringRes = R.string.request_error_response,
-                                args = arrayOf("${e.code}")
-                            )
-                        }
-                        callback?.invoke(e,e.message, e.code)
-                    }
-                    is UnknownHostException -> {
-                        Injekt.get<Application>().let {
-                            val actualError =  if (!it.isOnline()) {
-                                it.getString(R.string.exception_offline)
-                            } else {
-                                it.getString(R.string.exception_unknown_host, e.message ?: "")
-                            }
-                            UiToasts.showToast(
-                                msg = actualError
-                            )
-                        }
-                    }
-                    is SourceNotInstalledException -> {
-                        Injekt.get<Application>().let {
-                            UiToasts.showToast(
-                                stringRes = R.string.source_not_installed,
-                                args = arrayOf("${e.message}")
-                            )
-                        }
-                        callback?.invoke(e,e.message, null)
-                    }
+        // Already on the main thread: runBlocking { withContext(Dispatchers.Main) } would deadlock
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            handleError(e)
+        } else {
+            runBlocking {
+                withContext(Dispatchers.Main) {
+                    handleError(e)
+                }
+            }
+        }
+    }
 
-                    is NoResultException -> {
-                        Injekt.get<Application>().let {
-                            UiToasts.showToast(
-                                msg = it.getString(R.string.pager_no_results)
-                            )
-                        }
-                        callback?.invoke(e,e.message, null)
+    private fun handleError(e: Throwable) {
+        when (e) {
+            is HttpException -> {
+                Injekt.get<Application>().let {
+                    UiToasts.showToast(
+                        stringRes = R.string.request_error_response,
+                        args = arrayOf("${e.code}")
+                    )
+                }
+                callback?.invoke(e,e.message, e.code)
+            }
+            is UnknownHostException -> {
+                Injekt.get<Application>().let {
+                    val actualError =  if (!it.isOnline()) {
+                        it.getString(R.string.exception_offline)
+                    } else {
+                        it.getString(R.string.exception_unknown_host, e.message ?: "")
                     }
+                    UiToasts.showToast(
+                        msg = actualError
+                    )
+                }
+            }
+            is SourceNotInstalledException -> {
+                Injekt.get<Application>().let {
+                    UiToasts.showToast(
+                        stringRes = R.string.source_not_installed,
+                        args = arrayOf("${e.message}")
+                    )
+                }
+                callback?.invoke(e,e.message, null)
+            }
 
-                    else -> {
-                        if (showUnknownError) {
-                            Injekt.get<Application>().let {
-                                val unknownError = when (val className = this::class.simpleName) {
-                                    "Exception", "IOException" -> e.message ?: className
-                                    else -> "$className: ${e.message}"
-                                }
-                                UiToasts.showToast(
-                                    msg = unknownError
-                                )
-                            }
+            is NoResultException -> {
+                Injekt.get<Application>().let {
+                    UiToasts.showToast(
+                        msg = it.getString(R.string.pager_no_results)
+                    )
+                }
+                callback?.invoke(e,e.message, null)
+            }
+
+            else -> {
+                if (showUnknownError) {
+                    Injekt.get<Application>().let {
+                        val unknownError = when (val className = e::class.simpleName) {
+                            "Exception", "IOException" -> e.message ?: className
+                            else -> "$className: ${e.message}"
                         }
-                        callback?.invoke(e,e.message, null)
-                        e.printStackTrace()
+                        UiToasts.showToast(
+                            msg = unknownError
+                        )
                     }
                 }
+                callback?.invoke(e,e.message, null)
+                e.printStackTrace()
             }
         }
     }

@@ -31,7 +31,6 @@ import com.sf.tadami.utils.powerManager
 import okhttp3.Headers
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import java.io.File
 
 class AdvancedPreferencesScreen(
     val navController: NavHostController
@@ -89,15 +88,19 @@ class AdvancedPreferencesScreen(
                     title = stringResource(R.string.pref_clear_webview_data),
                     onClick = {
                         try {
-                            WebView(context).run {
+                            WebView(context.applicationContext).run {
                                 setDefaultSettings()
                                 clearCache(true)
                                 clearFormData()
                                 clearHistory()
                                 clearSslPreferences()
+                                destroy()
                             }
                             WebStorage.getInstance().deleteAllData()
-                            context.applicationInfo?.dataDir?.let { File("$it/app_webview/").deleteRecursively() }
+                            // Deleting app_webview/ while the WebView is loaded would leave it
+                            // writing cookies to unlinked files, so clear them through the API
+                            networkHelper.cookieManager.removeAll()
+                            networkHelper.cookieManager.flush()
                             UiToasts.showToast(R.string.webview_data_deleted)
                         } catch (e: Throwable) {
                             Log.d("AdvancedNetworkSettings", e.stackTraceToString())
@@ -127,11 +130,12 @@ class AdvancedPreferencesScreen(
                 ),
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(R.string.pref_reset_user_agent_string),
-                    enabled = remember(advancedPreferences.userAgent) { advancedPreferences.userAgent != NetworkHelper.DEFAULT_USER_AGENT },
+                    enabled = remember(advancedPreferences.userAgent) { advancedPreferences.userAgent != NetworkHelper.defaultUserAgent },
                     onClick = {
+                        // Stored as "follow the WebView version" rather than as a fixed string
                         advancedPreferencesState.setValue(
                             advancedPreferences.copy(
-                                userAgent = NetworkHelper.DEFAULT_USER_AGENT
+                                userAgent = NetworkHelper.defaultUserAgent
                             )
                         )
                         UiToasts.showToast(R.string.requires_app_restart)

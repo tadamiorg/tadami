@@ -6,21 +6,19 @@ import androidx.lifecycle.viewModelScope
 import com.sf.tadami.R
 import com.sf.tadami.data.update.AppUpdate
 import com.sf.tadami.data.update.AppUpdater
-import com.sf.tadami.ui.main.AppUpdaterUiState
+import com.sf.tadami.data.update.GithubUpdate
 import com.sf.tadami.ui.utils.UiToasts
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class AboutViewModel : ViewModel() {
 
-    private val _appUpdaterUiState: MutableStateFlow<AppUpdaterUiState> = MutableStateFlow(
-        AppUpdaterUiState()
-    )
-    val appUpdaterUiState = _appUpdaterUiState.asStateFlow()
+    // The newer release found by the last check, until its screen is opened
+    private val _newRelease = MutableStateFlow<GithubUpdate?>(null)
+    val newRelease = _newRelease.asStateFlow()
 
     fun checkVersion(
         onFinish: () -> Unit,
@@ -34,12 +32,7 @@ class AboutViewModel : ViewModel() {
                     }
                 ) {
                     is AppUpdate.NewUpdate -> {
-                        _appUpdaterUiState.update {
-                            it.copy(
-                                updateInfos = result.release,
-                                shouldShowUpdateDialog = true
-                            )
-                        }
+                        _newRelease.value = result.release
                     }
 
                     is AppUpdate.NoNewUpdate -> {
@@ -55,11 +48,7 @@ class AboutViewModel : ViewModel() {
         }
     }
 
-    fun hideDialog(){
-        _appUpdaterUiState.update {
-            it.copy(
-                shouldShowUpdateDialog = false
-            )
-        }
+    fun onNewReleaseShown(){
+        _newRelease.value = null
     }
 }

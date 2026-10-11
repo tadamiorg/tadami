@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
 import com.sf.tadami.domain.history.HistoryWithRelations
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeCover
+import com.sf.tadami.ui.components.material.LanguageBadge
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.toTimestampString
 import java.text.DecimalFormat
@@ -56,13 +57,18 @@ fun HistoryItem(
                 .padding(start = MaterialTheme.padding.medium, end = MaterialTheme.padding.small),
         ) {
             val textStyle = MaterialTheme.typography.bodyMedium
-            Text(
-                text = history.title,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                style = textStyle,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                history.language?.takeIf { it.isNotBlank() }?.let {
+                    LanguageBadge(it, Modifier.padding(end = 4.dp))
+                }
+                Text(
+                    text = history.title,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    style = textStyle,
+                )
+            }
             val seenAt = remember { history.seenAt?.toTimestampString() ?: "" }
             Text(
                 text = if (history.episodeNumber > -1) {

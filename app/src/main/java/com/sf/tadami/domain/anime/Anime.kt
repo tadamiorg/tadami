@@ -11,6 +11,7 @@ data class Anime(
     val url: String,
     val title: String,
     val rawTitle: String?,
+    val language: String?,
     val thumbnailUrl: String?,
     val release: String?,
     val studio: String?,
@@ -30,6 +31,7 @@ data class Anime(
         val otherRawTitle = other.rawTitle
         return this.copy(
             rawTitle = otherRawTitle ?: rawTitle,
+            language = other.language ?: language,
             release = other.release,
             studio = other.studio,
             author = other.author,
@@ -44,6 +46,7 @@ data class Anime(
     fun copyFrom(other: AnimeDb): Anime {
         var anime = this
         other.raw_title?.let { anime = anime.copy(rawTitle = it) }
+        other.language?.let { anime = anime.copy(language = it) }
         other.release?.let { anime = anime.copy(release = it) }
         other.studio?.let { anime = anime.copy(studio = it) }
         other.author?.let { anime = anime.copy(author = it) }
@@ -107,6 +110,7 @@ data class Anime(
             url = "",
             title = "",
             rawTitle = null,
+            language = null,
             thumbnailUrl = null,
             release = null,
             studio = null,
@@ -131,6 +135,7 @@ fun SAnime.toDomainAnime(source: Long): Anime {
         url = url,
         title = title,
         rawTitle = rawTitle,
+        language = language,
         thumbnailUrl = thumbnailUrl,
         release = release,
         studio = studio,
@@ -149,6 +154,7 @@ fun LibraryAnime.toAnime(): Anime {
         url = url,
         title = title,
         rawTitle = rawTitle,
+        language = language,
         thumbnailUrl = thumbnailUrl,
         release = release,
         studio = studio,

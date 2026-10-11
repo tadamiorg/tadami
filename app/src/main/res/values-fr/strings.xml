@@ -7,7 +7,7 @@
     <string name="language_en">Anglais</string>
     <string name="language_unknown">Inconnue</string>
     <string name="request_error_response">Impossible de récupérer les données de la source. Code d\'erreur : %1$s</string>
-    <string name="request_bypass_cloudflare_failure">Impossible de contourner Cloudflare</string>
+    <string name="request_bypass_cloudflare_failure">Impossible de contourner Cloudflare. Ouvrez la source dans la WebView pour valider la vérification</string>
     <string name="discover_recents_screen_title">Récents</string>
     <string name="anime_sources_screen_recents_btn">Récents</string>
     <string name="information_no_recent_episodes">Aucun épisodes récents</string>
@@ -304,6 +304,9 @@
     <string name="whats_new">Quoi de neuf</string>
     <string name="version">Version</string>
     <string name="check_for_updates">Rechercher des mises à jour</string>
+    <string name="update_check_new_version">Nouvelle version disponible</string>
+    <string name="update_check_open_on_github">Ouvrir sur GitHub</string>
+    <string name="action_not_now">Pas maintenant</string>
 
     <!-- Extensions -->
     <string name="ext_install_service_notif">Installation de l\'extension…</string>
@@ -320,6 +323,14 @@
     <string name="ext_empty">Aucunes extensions trouvées</string>
     <string name="src_empty">Aucunes sources trouvées</string>
     <string name="ext_obsolete">Obsolète</string>
+    <string name="ext_issue_lib_too_old">Mise à jour requise</string>
+    <string name="ext_issue_lib_too_old_message">Conçue pour une ancienne version de Tadami : mettez l\'extension à jour pour l\'utiliser.</string>
+    <string name="ext_issue_lib_too_new">Nécessite une app plus récente</string>
+    <string name="ext_issue_lib_too_new_message">Conçue pour une version plus récente de Tadami : mettez l\'application à jour pour l\'utiliser.</string>
+    <string name="ext_issue_invalid_version">Version invalide</string>
+    <string name="ext_issue_invalid_version_message">Son numéro de version est invalide : mettez à jour ou réinstallez l\'extension.</string>
+    <string name="ext_issue_load_failed">Échec du chargement</string>
+    <string name="ext_issue_load_failed_message">Elle n\'a pas pu être chargée : mettez à jour ou réinstallez l\'extension.</string>
     <string name="ext_install">Installer</string>
     <string name="ext_pending">En attente</string>
     <string name="ext_downloading">En cours de téléchargement</string>
@@ -371,6 +382,9 @@
     <string name="crash_screen_description">%s a rencontré une erreur inattendue.</string>
     <string name="pref_dump_crash_logs">Partager les rapports de plantage</string>
     <string name="crash_screen_restart_application">Redémarrer l\'application</string>
+    <string name="webview_challenge_pending">Validez la vérification ci-dessous. La source l\'utilisera une fois revenu dans l\'application.</string>
+    <string name="webview_challenge_solved">Vérification terminée, vous pouvez revenir à l\'application.</string>
+    <string name="webview_challenge_done">Terminé</string>
 
 
 </resources>

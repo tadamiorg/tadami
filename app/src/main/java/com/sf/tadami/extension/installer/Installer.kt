@@ -110,9 +110,12 @@ abstract class Installer(private val service: Service) {
     @CallSuper
     open fun onDestroy() {
         scope.cancel()
+        // The entry being processed won't receive its result anymore (e.g. service timeout)
+        waitingInstall.getAndSet(null)?.let {
+            extensionManager.updateInstallStep(it.downloadId, InstallStep.Error)
+        }
         queue.forEach { extensionManager.updateInstallStep(it.downloadId, InstallStep.Error) }
         queue.clear()
-        waitingInstall.set(null)
     }
 
     protected fun getActiveEntry(): Entry? = waitingInstall.get()
@@ -124,7 +127,9 @@ abstract class Installer(private val service: Service) {
      */
     private fun cancelQueue(downloadId: Long) {
         val waitingInstall = this.getActiveEntry()
-        val toCancel = queue.find { it.downloadId == downloadId } ?: waitingInstall ?: return
+        val toCancel = queue.find { it.downloadId == downloadId }
+            ?: waitingInstall?.takeIf { it.downloadId == downloadId }
+            ?: return
         if (cancelEntry(toCancel)) {
             queue.remove(toCancel)
             if (waitingInstall == toCancel) {

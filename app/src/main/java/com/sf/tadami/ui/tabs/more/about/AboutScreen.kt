@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +31,7 @@ import androidx.navigation.NavHostController
 import com.sf.tadami.BuildConfig
 import com.sf.tadami.R
 import com.sf.tadami.data.update.AppUpdater.Companion.RELEASE_URL
+import com.sf.tadami.navigation.graphs.about.navigateToNewUpdate
 import com.sf.tadami.ui.components.customIcons.GithubIcon
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 import com.sf.tadami.ui.components.widgets.LinkIcon
@@ -50,14 +52,12 @@ fun AboutScreen(
 ) {
     val uriHandler = LocalUriHandler.current
     var isCheckingUpdates by remember { mutableStateOf(false) }
-    val uiState by aboutViewModel.appUpdaterUiState.collectAsState()
-    if (uiState.shouldShowUpdateDialog && uiState.updateInfos?.info != null) {
-        AppUpdateDialog(
-            onDismissRequest = {
-                aboutViewModel.hideDialog()
-            },
-            uiState = uiState
-        )
+    val newRelease by aboutViewModel.newRelease.collectAsState()
+    LaunchedEffect(newRelease) {
+        newRelease?.let { release ->
+            navHostController.navigateToNewUpdate(release)
+            aboutViewModel.onNewReleaseShown()
+        }
     }
 
     Scaffold(
@@ -95,28 +95,31 @@ fun AboutScreen(
             }
 
 
-            item {
-                TextPreference(
-                    title = stringResource(R.string.check_for_updates),
-                    widget = {
-                        AnimatedVisibility(visible = isCheckingUpdates) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(28.dp),
-                                strokeWidth = 3.dp,
-                            )
-                        }
-                    },
-                    onPreferenceClick = {
-                        if (!isCheckingUpdates) {
-                            isCheckingUpdates = true
-                            aboutViewModel.checkVersion(
-                                onFinish = {
-                                    isCheckingUpdates = false
-                                },
-                            )
-                        }
-                    },
-                )
+            // The updater is disabled in debug builds (see AppUpdater)
+            if (BuildConfig.UPDATER_ENABLED) {
+                item {
+                    TextPreference(
+                        title = stringResource(R.string.check_for_updates),
+                        widget = {
+                            AnimatedVisibility(visible = isCheckingUpdates) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(28.dp),
+                                    strokeWidth = 3.dp,
+                                )
+                            }
+                        },
+                        onPreferenceClick = {
+                            if (!isCheckingUpdates) {
+                                isCheckingUpdates = true
+                                aboutViewModel.checkVersion(
+                                    onFinish = {
+                                        isCheckingUpdates = false
+                                    },
+                                )
+                            }
+                        },
+                    )
+                }
             }
 
 

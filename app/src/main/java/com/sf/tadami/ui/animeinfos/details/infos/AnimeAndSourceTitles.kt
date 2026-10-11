@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -57,6 +58,7 @@ fun AnimeAndSourceTitles(
     appBarPadding: Dp,
     cover: () -> String,
     title: String,
+    language: String?,
     studio: String?,
     author: String?,
     release: String?,
@@ -136,6 +138,13 @@ fun AnimeAndSourceTitles(
                 IconTextRow(
                     icon = Icons.Outlined.CalendarMonth,
                     text = release,
+                )
+            }
+            // Language, when the source lists each language as its own entry
+            if (!language.isNullOrBlank()) {
+                IconTextRow(
+                    icon = Icons.Outlined.Translate,
+                    text = language,
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))

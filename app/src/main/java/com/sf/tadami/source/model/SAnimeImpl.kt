@@ -4,6 +4,7 @@ class SAnimeImpl : SAnime {
     override lateinit var title: String
     override lateinit var url: String
     override var rawTitle: String? = null
+    override var language: String? = null
     override var thumbnailUrl: String? = null
     override var release: String? = null
     override var studio: String? = null
@@ -13,7 +14,7 @@ class SAnimeImpl : SAnime {
     override var genres: List<String>? = null
     override var initialized: Boolean = false
     override fun toString(): String {
-        return "SAnimeImpl(title='$title', rawTitle=$rawTitle, url='$url', thumbnailUrl=$thumbnailUrl, " +
+        return "SAnimeImpl(title='$title', rawTitle=$rawTitle, language=$language, url='$url', thumbnailUrl=$thumbnailUrl, " +
                 "release=$release, studio=$studio, author=$author, status=$status, description=$description, " +
                 "genres=$genres, initialized=$initialized)"
     }

@@ -55,12 +55,13 @@ class CrashLogUtil(
                 val availableExtension = availableExtensions[it.pkgName]
                 val hasUpdate = (availableExtension?.versionCode ?: 0) > it.versionCode
 
-                if (!hasUpdate && !it.isObsolete) return@mapNotNull null
+                if (!hasUpdate && !it.isObsolete && it.loadIssue == null) return@mapNotNull null
 
                 """
                     - ${it.name}
                       Installed: ${it.versionName} / Available: ${availableExtension?.versionName ?: "?"}
                       Obsolete: ${it.isObsolete}
+                      Load issue: ${it.loadIssue ?: "none"}
                 """.trimIndent()
             }
 

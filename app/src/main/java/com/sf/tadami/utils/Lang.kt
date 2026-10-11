@@ -26,6 +26,15 @@ enum class Lang(private val langRes : Int) {
                 UNKNOWN
             }
         }
+        /** From a language code ("en", "fr"), as found in extension package names and repo indexes. */
+        fun fromCode(code: String?): Lang {
+            return when (code) {
+                "en" -> ENGLISH
+                "fr" -> FRENCH
+                else -> UNKNOWN
+            }
+        }
+
         fun getAllLangs(): Set<Lang> {
             return enumValues<Lang>().filter { it != UNKNOWN }.toSet()
         }
