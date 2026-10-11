@@ -35,15 +35,27 @@ CI never uses the signing secrets.
 
 ## Release workflow
 
-`.github/workflows/release.yml` runs when a `v*` tag is pushed. It can also be started from Actions > Release > Run workflow with an existing tag. It:
+`.github/workflows/release.yml` runs from Actions > Release > Run workflow, on `main` only. It:
 
-1. checks that the tag is exactly `v<versionName>` (the `versionName` in `app/build.gradle.kts`) and fails otherwise;
-2. decodes the keystore from the secrets, runs the release unit tests and builds the signed release APK;
-3. verifies the signature with `apksigner` and, when `RELEASE_CERT_SHA256` is set, fails if the APK is signed with another certificate;
-4. creates the GitHub release `Tadami vX.Y.Z`, as a draft by default, with generated release notes, a SHA-256 checksum and `tadami-vX.Y.Z.apk` as its only asset;
+1. computes the version from the commits since the last `vX.Y.Z` tag (`.github/scripts/next_version.py`, see "Versions" below) and fails when there are none;
+2. decodes the keystore from the secrets, runs the release unit tests and builds the signed release APK with that version;
+3. checks the APK's `versionName` is that version, verifies the signature with `apksigner` and, when `RELEASE_CERT_SHA256` is set, fails if the APK is signed with another certificate;
+4. pushes the tag `vX.Y.Z` on the released commit and creates the GitHub release `Tadami vX.Y.Z`, as a draft by default, with notes built from the commits, a SHA-256 checksum and `tadami-vX.Y.Z.apk` as its only asset;
 5. keeps the R8 mapping as the workflow artifact `mapping-vX.Y.Z` (not as a release asset).
 
-The release is created as a **draft**: users don't get it until you publish it. Open it in the repository's Releases page, check the notes and the APK, then Edit > Publish release, keeping "Set as the latest release" checked for a normal version. From then on, the in-app updater offers it. To publish right away instead, set the `RELEASE_DRAFT` variable to `false`. Tags containing a dash (for example `v2.0.0-beta1`) become prereleases, which the updater ignores.
+The release is created as a **draft**: users don't get it until you publish it. Open it in the repository's Releases page, check the notes and the APK, then Edit > Publish release, keeping "Set as the latest release" checked. From then on, the in-app updater offers it. To publish right away instead, set the `RELEASE_DRAFT` variable to `false`.
+
+### Versions
+
+Nothing in the repo holds the version: the workflow computes it, and passes it to Gradle as `-PappVersionName=X.Y.Z`. From the commits since the last tag, merge commits aside, with the `bump` input left on `auto`:
+
+- a breaking change, `feat!: ...` or `fix(scope)!: ...` or a `BREAKING CHANGE:` line in the body, bumps the major version (1.10.2 to 2.0.0);
+- otherwise a `feat` bumps the minor version (1.10.2 to 1.11.0);
+- otherwise anything else (`fix`, `chore`, ...) bumps the patch version (1.10.2 to 1.10.3).
+
+Pick `patch`, `minor` or `major` in the `bump` input to force one. The release notes list the breaking changes, the `feat` commits (under "New") and the `fix` and `perf` commits (under "Fixes"), so write their subjects for users.
+
+The version code is derived from the version, `major * 1000000 + minor * 1000 + patch` (1.10.0 is 1010000), so it always increases with the version. Codes up to 52 (1.9.3) were set by hand. Builds outside the workflow use the latest `vX.Y.Z` tag of the checkout (debug builds show it as `1.10.0-DEBUG`), or 0.0.1 without tags.
 
 ### Required secrets
 
@@ -69,27 +81,18 @@ Set them in Settings > Secrets and variables > Actions > Variables:
 
 ## Release flow
 
-1. On `develop`, bump `versionCode` (it must always increase) and `versionName` in `app/build.gradle.kts`, and the version in the README title. Commit and push.
-2. Merge `develop` into `main`.
-3. Tag `main` and push the tag:
+1. Bring `main` up to `develop`: `git push origin develop:main` fast-forwards it when `main` has nothing `develop` lacks. Squash-merging a pull request instead gives `main` a commit `develop` doesn't have.
+2. Actions > Release > Run workflow, with "Use workflow from" on `main` and `bump` on `auto`. The "Compute the version" step shows the version and the notes.
+3. Once the run is green, open the draft release, check it and publish it (see above). The release is then live: the app checks for updates at launch (at most every 3 days), or right away from More > About > Check for updates.
 
-   ```sh
-   git checkout main
-   git pull
-   git tag v1.9.4
-   git push origin v1.9.4
-   ```
-
-4. Follow the Release workflow in the Actions tab. Once it is green, open the draft release, check it and publish it (see above). The release is then live: the app checks for updates at launch (at most every 3 days), or right away from More > About > Check for updates.
-
-If the workflow fails before publishing, fix the cause and run it again from Actions > Release > Run workflow with the same tag. If the fix needs a new commit, move the tag to it first (`git tag -f v1.9.4` then `git push -f origin v1.9.4`), which also starts the workflow again.
+If the run fails before the "Tag the release" step, nothing was created: fix the cause and run it again. If it fails after, the tag exists, so a new run would see no commits since it: delete the tag (`git push --delete origin v1.10.0`) and run it again. Discarding a draft release works the same way: delete the draft and its tag, or the next release skips that version.
 
 ## In-app updater contract
 
 Keep these in mind when changing the workflow or the release process. Already installed versions rely on them:
 
 - the app reads `GET https://api.github.com/repos/tadamiorg/tadami/releases/latest`, which only returns published releases that are neither drafts nor prereleases;
-- the tag is compared with the installed `versionName`, so it must be `v<versionName>`;
+- the tag is compared with the installed `versionName`, so it must be `v<versionName>` (the workflow builds the APK with the version of the tag it creates, and checks it);
 - the release body is shown as the changelog;
 - the APK must be the first (ideally the only) asset: versions up to 1.9.3 download `assets[0]`, newer ones the first `.apk` asset;
 - the APK must be signed with the same key as the installed app.

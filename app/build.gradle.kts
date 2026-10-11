@@ -29,14 +29,19 @@ if (releaseKeystorePath != null && releaseKeystore == null) {
     logger.warn("Release keystore '$releaseKeystorePath' not found: release builds will be unsigned")
 }
 
+// The release workflow passes the version it computed from the commits since the last tag
+// (-PappVersionName=1.10.0, see docs/RELEASING.md). Other builds take the latest vX.Y.Z tag, or 0.0.1
+// when the tags weren't fetched (CI's shallow clone).
+val appVersionName = providers.gradleProperty("appVersionName").orNull ?: latestReleaseVersion() ?: "0.0.1"
+
 android {
     namespace = "com.sf.tadami"
     buildFeatures.buildConfig = true
 
     defaultConfig {
         applicationId = "com.sf.tadami"
-        versionCode = 52
-        versionName = "1.9.3"
+        versionCode = versionCodeOf(appVersionName)
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")
@@ -105,14 +110,26 @@ androidComponents {
     }
 }
 
-// Used by the release workflow to check that the pushed tag is v<versionName>:
-// ./gradlew -q :app:printVersionName
-tasks.register("printVersionName") {
-    val versionName = android.defaultConfig.versionName
-    doLast {
-        println(versionName)
+// 1.10.0 gives 1010000: it grows with the version, and stays above 52, the last hand-set code (1.9.3)
+fun versionCodeOf(versionName: String): Int {
+    val parts = Regex("""(\d+)\.(\d+)\.(\d+)""").matchEntire(versionName)?.groupValues?.drop(1)?.map { it.toInt() }
+    require(parts != null && parts[1] < 1000 && parts[2] < 1000) {
+        "Version '$versionName' isn't X.Y.Z with Y and Z below 1000"
     }
+    val (major, minor, patch) = parts
+    return major * 1_000_000 + minor * 1_000 + patch
 }
+
+// Highest vX.Y.Z tag, so local builds carry the version of the last release. Null without git or tags.
+fun latestReleaseVersion(): String? = runCatching {
+    providers.exec {
+        commandLine("git", "tag", "--list", "v*")
+    }.standardOutput.asText.get()
+}.getOrNull()
+    ?.lines()
+    ?.map { it.trim().removePrefix("v") }
+    ?.filter { Regex("""\d+\.\d+\.\d+""").matches(it) }
+    ?.maxByOrNull { versionCodeOf(it) }
 
 // Last commit time instead of the wall clock, so BuildConfig (and everything compiled against it) stays
 // up to date and cacheable for a given commit. Falls back to a constant when git is unavailable.

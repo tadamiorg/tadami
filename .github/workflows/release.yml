@@ -1,23 +1,27 @@
 name: Release
 
-# Builds the signed APK for a v<versionName> tag and publishes it as a GitHub release, which the in-app
-# updater picks up (it reads /releases/latest and downloads the release APK). See docs/RELEASING.md.
+# Computes the next version from the commits since the last vX.Y.Z tag, builds the signed APK with it and
+# publishes it as the GitHub release v<version>, which the in-app updater picks up (it reads
+# /releases/latest and downloads the release APK). See docs/RELEASING.md.
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
     inputs:
-      tag:
-        description: Existing tag to build and publish (e.g. v1.9.4)
-        required: true
-        type: string
+      bump:
+        description: 'Version bump. auto reads the commits since the last tag: a breaking change bumps the major version, a feat the minor one, anything else the patch one'
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+        default: auto
 
 permissions:
   contents: write
 
+# Two runs at once would compute the same version
 concurrency:
-  group: release-${{ inputs.tag || github.ref_name }}
+  group: release
   cancel-in-progress: false
 
 jobs:
@@ -25,15 +29,28 @@ jobs:
     name: Build and publish release
     runs-on: ubuntu-24.04
     timeout-minutes: 60
-    env:
-      TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
     steps:
+      - name: Check the branch
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Releases are made from main, not ${GITHUB_REF#refs/heads/}. Pick main in \"Use workflow from\"."
+          exit 1
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: refs/tags/${{ env.TAG }}
+          # The whole history and the tags, to find the last release and the commits since
+          fetch-depth: 0
           persist-credentials: false
+
+      - name: Compute the version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          python3 .github/scripts/next_version.py --bump "$BUMP" --repo "$GITHUB_REPOSITORY" \
+            --notes "$RUNNER_TEMP/notes.md" --github-output "$GITHUB_OUTPUT"
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -45,17 +62,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: true
-
-      # The updater compares the tag with the installed versionName: a mismatch would offer the
-      # update forever, so the tag must be exactly v<versionName>.
-      - name: Check tag matches versionName
-        run: |
-          VERSION_NAME=$(./gradlew -q :app:printVersionName | tail -n 1 | tr -d '\r')
-          if [ "$TAG" != "v$VERSION_NAME" ]; then
-            echo "::error::Tag '$TAG' does not match versionName '$VERSION_NAME' in app/build.gradle.kts. Bump versionCode/versionName and tag v$VERSION_NAME, or fix the tag."
-            exit 1
-          fi
-          echo "Releasing $TAG (versionName $VERSION_NAME)"
 
       - name: Decode keystore
         env:
@@ -77,7 +83,22 @@ jobs:
           KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           ALIAS: ${{ secrets.ALIAS }}
-        run: ./gradlew :app:testReleaseUnitTest :app:assembleRelease
+          VERSION: ${{ steps.version.outputs.version }}
+        run: ./gradlew :app:testReleaseUnitTest :app:assembleRelease -PappVersionName="$VERSION"
+
+      # The updater compares the release tag with the installed versionName: a mismatch would offer the
+      # update forever
+      - name: Check the APK version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          BUILD_TOOLS=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)
+          BADGING=$("$ANDROID_HOME/build-tools/$BUILD_TOOLS/aapt2" dump badging app/build/outputs/apk/release/tadami.apk | head -n 1)
+          echo "$BADGING"
+          if [[ "$BADGING" != *"versionName='$VERSION'"* ]]; then
+            echo "::error::The APK's versionName isn't $VERSION"
+            exit 1
+          fi
 
       # Android refuses an update signed with another certificate, so check it before publishing
       - name: Verify APK signature
@@ -99,46 +120,55 @@ jobs:
             echo "::warning::RELEASE_CERT_SHA256 is not set, the signing certificate was not compared."
           fi
 
+      # The release notes come from the commits (next_version.py), followed by the APK checksum
       - name: Prepare release asset
         id: asset
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
           ASSET="tadami-$TAG.apk"
           cp app/build/outputs/apk/release/tadami.apk "$ASSET"
+          SHA256=$(sha256sum "$ASSET" | awk '{ print $1 }')
+          {
+            cat "$RUNNER_TEMP/notes.md"
+            echo
+            echo "### Checksums"
+            echo "| File | SHA-256 |"
+            echo "| ---- | ------- |"
+            echo "| $ASSET | \`$SHA256\` |"
+          } > "$RUNNER_TEMP/release-body.md"
           echo "file=$ASSET" >> "$GITHUB_OUTPUT"
-          echo "sha256=$(sha256sum "$ASSET" | awk '{ print $1 }')" >> "$GITHUB_OUTPUT"
-          if [[ "$TAG" == *-* ]]; then
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
-          fi
 
       # The mapping stays a workflow artifact: the release must only carry the APK, which is what
       # already installed versions of the updater download.
       - name: Upload R8 mapping
         uses: actions/upload-artifact@v4
         with:
-          name: mapping-${{ env.TAG }}
+          name: mapping-${{ steps.version.outputs.tag }}
           path: app/build/outputs/mapping/release/
           if-no-files-found: warn
+
+      # Pushed now rather than when a draft is published, so the next run starts from this version
+      - name: Tag the release
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git tag "$TAG" "$GITHUB_SHA"
+          git push "https://x-access-token:$GH_TOKEN@github.com/$GITHUB_REPOSITORY.git" "refs/tags/$TAG"
 
       # A draft unless the RELEASE_DRAFT variable is 'false': it reaches users through the in-app updater
       # only once published by hand (drafts and prereleases are invisible to it).
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.TAG }}
-          name: Tadami ${{ env.TAG }}
-          generate_release_notes: true
-          body: |
-            ### Checksums
-            | File | SHA-256 |
-            | ---- | ------- |
-            | ${{ steps.asset.outputs.file }} | `${{ steps.asset.outputs.sha256 }}` |
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Tadami ${{ steps.version.outputs.tag }}
+          body_path: ${{ runner.temp }}/release-body.md
           files: ${{ steps.asset.outputs.file }}
           fail_on_unmatched_files: true
-          prerelease: ${{ steps.asset.outputs.prerelease }}
           draft: ${{ vars.RELEASE_DRAFT != 'false' }}
-          make_latest: ${{ steps.asset.outputs.prerelease == 'true' && 'false' || 'true' }}
+          make_latest: true
 
       - name: Delete keystore
         if: always()

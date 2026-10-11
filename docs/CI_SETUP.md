@@ -2,10 +2,10 @@
 
 What to configure for the two GitHub pipelines, and what each setting does:
 
-- **App** ([tadamiorg/tadami](https://github.com/tadamiorg/tadami)): builds and tests every push and pull request to `develop`, and releases the app when a version tag is pushed.
+- **App** ([tadamiorg/tadami](https://github.com/tadamiorg/tadami)): builds and tests every push and pull request to `develop`, and releases the app when you run the Release workflow, which computes the version from the commits.
 - **Extensions** ([tadamiorg/tadami-extensions-source](https://github.com/tadamiorg/tadami-extensions-source)): builds the extensions you pick and publishes them to [tadamiorg/tadami-extensions](https://github.com/tadamiorg/tadami-extensions), the repo the app downloads extensions from.
 
-The release process itself (bumping versions, tagging) is in [RELEASING.md](RELEASING.md).
+The release process itself (how versions are computed, the release flow) is in [RELEASING.md](RELEASING.md).
 
 ## Checklist
 
@@ -33,19 +33,17 @@ Secrets go in the repo's **Settings > Secrets and variables > Actions > Secrets*
 | Workflow | File | Runs on | Needs settings |
 | --- | --- | --- | --- |
 | CI | `.github/workflows/ci.yml` | Pushes and pull requests to `develop`, or Actions > CI > Run workflow | No |
-| Release | `.github/workflows/release.yml` | A pushed `v*` tag, or Actions > Release > Run workflow | Yes, see below |
+| Release | `.github/workflows/release.yml` | Actions > Release > Run workflow, on `main` | Yes, see below |
 | Dependabot | `.github/dependabot.yml` | Monthly | No: it opens pull requests on `develop` updating the workflow actions |
 
 **CI** runs the unit tests, builds the debug APK and an unsigned release APK (R8 included), runs lint (informational: lint errors don't fail it), then the instrumented tests on an Android 14 emulator. It uploads the debug APK and the test and lint reports as artifacts. It never uses the signing secrets.
 
 **Release**:
-1. checks the tag is exactly `v<versionName>` from `app/build.gradle.kts` (the in-app updater compares them);
-2. decodes the keystore, runs the release unit tests and builds the signed APK;
-3. verifies the signature, and compares the certificate with `RELEASE_CERT_SHA256` when it's set;
-4. creates the GitHub release `Tadami vX.Y.Z`, **as a draft** unless `RELEASE_DRAFT` is `false`, with generated notes, a SHA-256 checksum and `tadami-vX.Y.Z.apk` as its only asset;
+1. computes the version from the commits since the last `vX.Y.Z` tag (RELEASING.md, "Versions");
+2. decodes the keystore, runs the release unit tests and builds the signed APK with that version;
+3. checks the APK's version, verifies the signature, and compares the certificate with `RELEASE_CERT_SHA256` when it's set;
+4. pushes the tag `vX.Y.Z` and creates the GitHub release `Tadami vX.Y.Z`, **as a draft** unless `RELEASE_DRAFT` is `false`, with notes built from the commits, a SHA-256 checksum and `tadami-vX.Y.Z.apk` as its only asset;
 5. keeps the R8 mapping as the workflow artifact `mapping-vX.Y.Z`.
-
-A tag containing a dash (`v2.0.0-beta1`) becomes a **prerelease**, which the updater ignores.
 
 ### Run options
 
@@ -53,7 +51,7 @@ Actions > Release > Run workflow asks for one input:
 
 | Input | What it does |
 | --- | --- |
-| `tag` | An existing tag to build and release, e.g. `v1.9.4`. Use it to retry a failed release without moving the tag. |
+| `bump` | `auto` (default) picks the bump from the commits since the last tag: major for a breaking change, minor for a `feat`, patch otherwise. `patch`, `minor` or `major` forces it. |
 
 ### Secrets
 
@@ -197,5 +195,5 @@ keytool -list -v -keystore release.jks -alias <alias>     # the SHA256 line unde
 
 ## Checking the setup
 
-- **App**: with drafts on (the default), a real release tag is a safe test: the run ends with a draft nobody sees. Check the run is green and the draft holds the APK, then publish it, or delete the draft and the tag. The tag must be exactly `v<versionName>`, or the run stops at its first check.
+- **App**: with drafts on (the default), a real run is a safe test: it ends with a draft nobody sees. Check the run is green and the draft holds the APK, then publish it, or delete the draft and the tag it pushed (`git push --delete origin vX.Y.Z`), or the next release skips that version.
 - **Extensions**: run Release extensions on one extension with **dry_run** ticked. It builds, checks the signing key against the published APK and prepares the index without pushing anything. If that's green, the only thing left untested is the push, which needs `EXTENSIONS_REPO_TOKEN`.

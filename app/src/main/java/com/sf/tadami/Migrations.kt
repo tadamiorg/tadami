@@ -59,6 +59,9 @@ object Migrations {
                 return
             }
 
+            // Codes up to 52 (1.9.3) were set by hand. Later ones come from the version name,
+            // major * 1000000 + minor * 1000 + patch (1.10.0 is 1010000): compare with those.
+
             if (oldVersion < 20) {
                 dataStore.replacePreferences(
                     filterPredicate = {
