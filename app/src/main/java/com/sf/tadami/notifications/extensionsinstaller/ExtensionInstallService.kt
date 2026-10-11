@@ -58,6 +58,24 @@ class ExtensionInstallService : Service() {
         installer = null
     }
 
+    // Short foreground services must stop within a few seconds after their timeout (API 34+)
+    override fun onTimeout(startId: Int) {
+        stopOnTimeout()
+    }
+
+    override fun onTimeout(startId: Int, fgsType: Int) {
+        stopOnTimeout()
+    }
+
+    private fun stopOnTimeout() {
+        Log.d("ExtensionInstallService","Service timed out, failing pending installs")
+        // Fails the active and queued entries
+        installer?.onDestroy()
+        installer = null
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
+
     override fun onBind(i: Intent?): IBinder? = null
 
     companion object {

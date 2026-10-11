@@ -25,7 +25,8 @@ class GetExtensionsByType(
             val _enabledLanguages = _sourcesPreferences.enabledLanguages
             val (updates, installed) = _installed
                 .sortedWith(
-                    compareBy<Extension.Installed> { it.isObsolete.not() }
+                    compareBy<Extension.Installed> { it.loadIssue == null }
+                        .thenBy { it.isObsolete.not() }
                         .thenBy(String.CASE_INSENSITIVE_ORDER) { it.name },
                 )
                 .partition { it.hasUpdate }

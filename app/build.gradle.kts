@@ -19,6 +19,16 @@ sqldelight {
     }
 }
 
+// Release keystore, from environment variables (CI) or the local .env. Read through fetchOrNull: the
+// generated env.X accessors only exist for keys present in .env, so a checkout without it (forks, CI)
+// would not even configure. TADAMI_KEYSTORE_PATH is the CI name, SIGNING_KEY the legacy local .env one.
+val releaseKeystorePath = listOf("TADAMI_KEYSTORE_PATH", "SIGNING_KEY")
+    .firstNotNullOfOrNull { key -> env.fetchOrNull(key)?.takeIf { it.isNotBlank() } }
+val releaseKeystore = releaseKeystorePath?.let { file(it) }?.takeIf { it.exists() }
+if (releaseKeystorePath != null && releaseKeystore == null) {
+    logger.warn("Release keystore '$releaseKeystorePath' not found: release builds will be unsigned")
+}
+
 android {
     namespace = "com.sf.tadami"
     buildFeatures.buildConfig = true
@@ -30,17 +40,21 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")
+        // Version name without the debug suffix: the GitHub release tag is v<RELEASE_VERSION_NAME>
+        buildConfigField("String", "RELEASE_VERSION_NAME", "\"$versionName\"")
         vectorDrawables {
             useSupportLibrary = true
         }
     }
 
     signingConfigs {
-        create("release"){
-            storeFile = file(env.SIGNING_KEY.value)
-            storePassword = env.KEY_STORE_PASSWORD.value
-            keyAlias = env.ALIAS.value
-            keyPassword = env.KEY_STORE_PASSWORD.value
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = releaseKeystore
+                storePassword = env.fetchOrNull("KEY_STORE_PASSWORD")
+                keyAlias = env.fetchOrNull("ALIAS")
+                keyPassword = env.fetchOrNull("KEY_PASSWORD")?.takeIf { it.isNotEmpty() } ?: storePassword
+            }
         }
     }
 
@@ -49,15 +63,20 @@ android {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-DEBUG"
             isDebuggable = true
-            signingConfig = signingConfigs.getByName("release")
+            // The maintainer's debug builds are signed with the release keystore when it is available
+            // locally (keeps existing debug installs updatable); forks and CI use AGP's debug keystore.
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
+            buildConfigField("boolean", "UPDATER_ENABLED", "false")
         }
         named("release") {
             isDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
+            // Unsigned without a keystore, so CI can still run assembleRelease (R8, lintVital) on PRs
+            signingConfig = signingConfigs.findByName("release")
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
+            buildConfigField("boolean", "UPDATER_ENABLED", "true")
         }
     }
     buildFeatures {
@@ -65,18 +84,14 @@ android {
         viewBinding = true
     }
 
+    // JVM tests of classes that log (e.g. the cast proxy): android.util stubs return defaults
+    testOptions.unitTests.isReturnDefaultValues = true
+
     packaging {
         resources {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
             excludes.add("META-INF/INDEX.LIST")
             excludes.add("META-INF/io.netty.versions.properties")
-        }
-    }
-    sourceSets {
-        getByName("main") {
-            res {
-                srcDirs("src\\main\\res", "src\\main\\res\\chromecast-res")
-            }
         }
     }
 
@@ -90,11 +105,26 @@ androidComponents {
     }
 }
 
+// Used by the release workflow to check that the pushed tag is v<versionName>:
+// ./gradlew -q :app:printVersionName
+tasks.register("printVersionName") {
+    val versionName = android.defaultConfig.versionName
+    doLast {
+        println(versionName)
+    }
+}
+
+// Last commit time instead of the wall clock, so BuildConfig (and everything compiled against it) stays
+// up to date and cacheable for a given commit. Falls back to a constant when git is unavailable.
 fun getBuildDate(): String {
-    val date = Date()
+    val commitEpochSeconds = runCatching {
+        providers.exec {
+            commandLine("git", "log", "-1", "--format=%ct")
+        }.standardOutput.asText.get().trim().toLong()
+    }.getOrDefault(0L)
     val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
     format.timeZone = TimeZone.getTimeZone("UTC")
-    return format.format(date)
+    return format.format(Date(commitEpochSeconds * 1000))
 }
 
 dependencies {
@@ -103,7 +133,10 @@ dependencies {
 
 
     androidTestImplementation(androidx.androidx.test.ext.junit)
+    androidTestImplementation(androidx.androidx.test.runner)
+    androidTestImplementation(androidx.androidx.test.rules)
     androidTestImplementation(androidx.espresso.core)
+    androidTestImplementation(libs.okhttp.mockwebserver3)
 
     // Kotlin Coroutines
     implementation(platform(kotlinx.coroutines.bom))
@@ -150,6 +183,7 @@ dependencies {
     implementation(libs.nanohttpd)
 
     testImplementation(libs.junit)
+    testImplementation(libs.okhttp.mockwebserver3)
 
     // SQLite
     implementation(libs.bundles.sqlite)

@@ -54,7 +54,7 @@ fun HistoryScreen(
     }
 
     when (historyDialogOpened) {
-        is HistoryDialogs.DeleteSingle -> {
+        HistoryDialogs.DeleteSingle -> {
             DeleteHistoryDialog(
                 onDismissRequest = {
                     historyViewModel.setHistoryToDelete(null)
@@ -72,7 +72,7 @@ fun HistoryScreen(
             )
         }
 
-        is HistoryDialogs.DeleteAll -> {
+        HistoryDialogs.DeleteAll -> {
             DeleteAllHistoryDialog(
                 onDismissRequest = { historyDialogOpened = null },
                 onConfirm = {
@@ -147,8 +147,8 @@ fun HistoryScreen(
     }
 }
 
-private sealed class HistoryDialogs() {
-    data object DeleteAll : HistoryDialogs()
-
-    data object DeleteSingle : HistoryDialogs()
+// Enum (Serializable) so it can be held by rememberSaveable
+private enum class HistoryDialogs {
+    DeleteAll,
+    DeleteSingle
 }

@@ -11,7 +11,8 @@ SELECT
     Anime.favorite,
     Anime.thumbnail_url AS thumbnailUrl,
     Episode.date_upload AS dateUpload,
-    Episode.date_fetch AS dateFetch
+    Episode.date_fetch AS dateFetch,
+    Anime.language
 FROM Anime JOIN Episode
 ON Anime._id = Episode.anime_id
 WHERE favorite = 1

@@ -9,7 +9,7 @@
     <string name="anime_sources_screen_recents_btn">Recents</string>
     <string name="discover_recents_screen_title">Recents</string>
     <string name="request_error_response">Could not scrape source. Error Code : %1$s</string>
-    <string name="request_bypass_cloudflare_failure">Failed to bypass Cloudflare</string>
+    <string name="request_bypass_cloudflare_failure">Failed to bypass Cloudflare. Open the source in WebView to solve the challenge</string>
     <string name="exception_offline">No Internet connection</string>
     <string name="exception_unknown_host">Couldn\&apos;t reach %s</string>
     <string name="backup_restore_content_full">You may need to install any missing extensions afterwards to use them.</string>
@@ -290,6 +290,9 @@
     <string name="whats_new">What\&apos;s new</string>
     <string name="version">Version</string>
     <string name="check_for_updates">Check for updates</string>
+    <string name="update_check_new_version">New version available</string>
+    <string name="update_check_open_on_github">Open on GitHub</string>
+    <string name="action_not_now">Not now</string>
 
     <!-- Player screen -->
     <string name="player_epsiode_tooltip_no_content">No informations available for this source</string>
@@ -319,6 +322,14 @@
     <string name="ext_empty">No extensions found</string>
     <string name="src_empty">No sources found</string>
     <string name="ext_obsolete">Obsolete</string>
+    <string name="ext_issue_lib_too_old">Update required</string>
+    <string name="ext_issue_lib_too_old_message">Made for an older version of Tadami: update the extension to use it.</string>
+    <string name="ext_issue_lib_too_new">Requires a newer app</string>
+    <string name="ext_issue_lib_too_new_message">Made for a newer version of Tadami: update the app to use it.</string>
+    <string name="ext_issue_invalid_version">Invalid version</string>
+    <string name="ext_issue_invalid_version_message">Its version number is invalid: update or reinstall the extension.</string>
+    <string name="ext_issue_load_failed">Loading failed</string>
+    <string name="ext_issue_load_failed_message">It could not be loaded: update or reinstall the extension.</string>
     <string name="ext_install">Install</string>
     <string name="ext_pending">Pending</string>
     <string name="ext_downloading">Downloading</string>
@@ -364,5 +375,8 @@
     <string name="crash_screen_description">%s ran into an unexpected error.</string>
     <string name="pref_dump_crash_logs">Share crash logs</string>
     <string name="crash_screen_restart_application">Restart the application</string>
+    <string name="webview_challenge_pending">Complete the verification below. The source will use it once you go back.</string>
+    <string name="webview_challenge_solved">Verification complete, you can go back to the app.</string>
+    <string name="webview_challenge_done">Done</string>
 
 </resources>

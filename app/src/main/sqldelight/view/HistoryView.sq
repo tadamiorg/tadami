@@ -10,7 +10,8 @@ SELECT
     Episode.episode_number AS episodeNumber,
     History.seen_at AS seenAt,
     max_seen_at.seen_at AS maxSeenAt,
-    max_seen_at.episode_id AS maxSeenAtEpisodeId
+    max_seen_at.episode_id AS maxSeenAtEpisodeId,
+    Anime.language
 FROM Anime
 JOIN Episode
 ON Anime._id = Episode.anime_id
@@ -34,7 +35,8 @@ thumbnailUrl,
 source,
 favorite,
 episodeNumber,
-seenAt
+seenAt,
+language
 FROM HistoryView
 WHERE HistoryView.seenAt > 0
 AND maxSeenAtEpisodeId = HistoryView.episodeId
@@ -51,7 +53,8 @@ thumbnailUrl,
 source,
 favorite,
 episodeNumber,
-seenAt
+seenAt,
+language
 FROM HistoryView
 WHERE HistoryView.seenAt > 0
 ORDER BY seenAt DESC

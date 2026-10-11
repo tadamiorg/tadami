@@ -111,7 +111,44 @@ fun CastVideoPlayer(
     // True while the user is dragging/tapping the timeline: gates the progress ticks so they don't
     // clobber the user's position (isPlaying is unreliable — it's re-derived from the remote).
     var isSeeking by remember { mutableStateOf(false) }
+    // Which seek may release isSeeking: an older seek's result must not end a newer one
+    var seekGeneration by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
+
+    // The user moves the timeline: the progress ticks stop moving it, and the seeks already sent can no
+    // longer give it back to them
+    fun startSeeking() {
+        isSeeking = true
+        seekGeneration++
+    }
+
+    // Sends currentTime to the receiver after [delayMs], so that quick taps make a single seek. The
+    // receiver keeps reporting its old position until it has applied the seek: the progress ticks stay
+    // gated until then (or a timeout, should its answer never come).
+    fun commitSeek(delayMs: Long) {
+        debounceSeekJob?.cancel()
+        val generation = seekGeneration
+        val release = { if (seekGeneration == generation) isSeeking = false }
+        debounceSeekJob = coroutineScope.launch {
+            delay(delayMs.milliseconds)
+            val pending = castSession.remoteMediaClient?.seek(getSeek(currentTime))
+            if (pending == null) {
+                release()
+                return@launch
+            }
+            pending.setResultCallback { release() }
+            delay(SEEK_RESULT_TIMEOUT)
+            release()
+        }
+    }
+
+    // Double tap and skip buttons: moves the timeline right away and keeps playing, like the local player
+    fun seekBy(offsetMs: Long) {
+        startSeeking()
+        val max = totalDuration.takeIf { it > 0 } ?: Long.MAX_VALUE
+        currentTime = (currentTime + offsetMs).coerceIn(0L, max)
+        commitSeek(500)
+    }
 
     val idleLock by playerViewModel.idleLock.collectAsState()
 
@@ -411,44 +448,9 @@ fun CastVideoPlayer(
                 episode = "${stringResource(id = R.string.player_screen_episode_label)} $episodeNumber",
                 isIdle = isIdle && !idleLock,
                 idleLock = idleLock,
-                onReplay = {
-                    debounceSeekJob?.cancel()
-                    if (isPlaying) {
-                        isPlaying = false
-                        castSession.remoteMediaClient!!.pause()
-                    }
-                    currentTime =
-                        (currentTime - playerPreferences.doubleTapLength).coerceAtLeast(0L)
-                    debounceSeekJob = coroutineScope.launch {
-                        delay(500.milliseconds)
-                        castSession.remoteMediaClient!!.seek(getSeek(currentTime))
-                    }
-                },
-                onSkipOp = {
-                    debounceSeekJob?.cancel()
-                    if (isPlaying) {
-                        isPlaying = false
-                        castSession.remoteMediaClient!!.pause()
-                    }
-                    currentTime = (currentTime + 85000).coerceAtMost(totalDuration)
-                    debounceSeekJob = coroutineScope.launch {
-                        delay(500.milliseconds)
-                        castSession.remoteMediaClient!!.seek(getSeek(currentTime))
-                    }
-                },
-                onForward = {
-                    debounceSeekJob?.cancel()
-                    if (isPlaying) {
-                        isPlaying = false
-                        castSession.remoteMediaClient!!.pause()
-                    }
-                    currentTime =
-                        (currentTime + playerPreferences.doubleTapLength).coerceAtMost(totalDuration)
-                    debounceSeekJob = coroutineScope.launch {
-                        delay(500.milliseconds)
-                        castSession.remoteMediaClient!!.seek(getSeek(currentTime))
-                    }
-                },
+                onReplay = { seekBy(-playerPreferences.doubleTapLength) },
+                onSkipOp = { seekBy(85000) },
+                onForward = { seekBy(playerPreferences.doubleTapLength) },
                 onPauseToggle = {
                     if (isIdle && !idleLock) {
                         updateTime()
@@ -462,37 +464,28 @@ fun CastVideoPlayer(
                 currentTime = { currentTime },
                 bufferedPercentage = { 0 },
                 onSeekChanged = { timeMs: Float ->
-                    isSeeking = true
+                    startSeeking()
                     if (isPlaying) {
                         isPlaying = false
                         castSession.remoteMediaClient!!.pause()
                     }
                     currentTime = timeMs.toLong()
                 },
-                onSeekEnd = {
-                    debounceSeekJob?.cancel()
-                    debounceSeekJob = coroutineScope.launch {
-                        delay(300.milliseconds)
-                        val pending = castSession.remoteMediaClient?.seek(getSeek(currentTime))
-                        // Re-enable progress-driven updates only once the receiver has applied the
-                        // seek, so its next tick doesn't snap the cursor back to the old position.
-                        if (pending != null) {
-                            pending.setResultCallback { isSeeking = false }
-                        } else {
-                            isSeeking = false
-                        }
-                    }
-                },
+                onSeekEnd = { commitSeek(300) },
                 onBack = {
                     dispatcher.onBackPressed()
                 },
                 onNext = {
-                    val next = hasNextIterator.previous()
-                    selectEpisode(next)
+                    if (hasNextIterator.hasPrevious()) {
+                        val next = hasNextIterator.previous()
+                        selectEpisode(next)
+                    }
                 },
                 onPrevious = {
-                    val previous = hasPreviousIterator.next()
-                    selectEpisode(previous)
+                    if (hasPreviousIterator.hasNext()) {
+                        val previous = hasPreviousIterator.next()
+                        selectEpisode(previous)
+                    }
                 },
                 hasNext = {
                     hasNextIterator.hasPrevious()
@@ -548,6 +541,9 @@ private fun getErrorMessage(context: Context, errorCode: Int?): String {
         }
     }
 }
+
+/** How long the timeline waits for the receiver to confirm a seek before following its ticks again. */
+private val SEEK_RESULT_TIMEOUT = 5000.milliseconds
 
 private fun getSeek(time: Long): MediaSeekOptions {
     return MediaSeekOptions.Builder().apply {

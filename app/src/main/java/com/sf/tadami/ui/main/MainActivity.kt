@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity() {
             val basePreferencesState = rememberDataStoreState(BasePreferences)
             val basePreferences by basePreferencesState.value.collectAsState()
 
-            AppUpdaterScreen()
+            AppUpdaterScreen(navController)
             ExtensionsCheckForUpdates()
             val castConnectionError by CastConnectionState.error.collectAsState()
             if (castConnectionError) {
@@ -182,10 +182,13 @@ class MainActivity : AppCompatActivity() {
         LaunchedEffect(Unit) {
             try {
                 val extsUpdates = ExtensionsApi().checkForUpdates(context)
-                dataStore.editPreference(
-                    extsUpdates?.size ?: 0,
-                    SourcesPreferences.EXT_UPDATES_COUNT
-                )
+                // null when the check was skipped (throttled), keep the current count then
+                if (extsUpdates != null) {
+                    dataStore.editPreference(
+                        extsUpdates.size,
+                        SourcesPreferences.EXT_UPDATES_COUNT
+                    )
+                }
             } catch (e: Exception) {
                 Log.e("ExtensionsCheckForUpdates", e.stackTraceToString())
             }

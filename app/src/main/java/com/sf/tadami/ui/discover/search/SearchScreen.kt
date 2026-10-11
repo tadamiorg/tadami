@@ -195,6 +195,11 @@ fun SearchScreen(
                 contentPadding = innerPadding,
                 animeList = animeList,
                 snackbarHostState = snackbarHostState,
+                onOpenInWebView = { url ->
+                    val source = searchViewModel.source
+                    val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
+                    navController.navigate("${SourcesRoutes.EXTENSIONS_WEBVIEW}/${source.id}/${source.name}/${encodedUrl}")
+                },
                 onAnimeLongClicked = {
                     if (migrateHelperState.oldAnime != null) {
                         navController.navigate("${AnimeInfosRoutes.DETAILS}/${it.source}/${it.id}?migrationId=${migrateHelperState.oldAnime!!.id}")

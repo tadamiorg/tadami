@@ -6,6 +6,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.ExtensionManager
+import com.sf.tadami.extension.model.LibVersion
 import com.sf.tadami.extension.util.ExtensionsLoader
 import com.sf.tadami.network.GET
 import com.sf.tadami.network.NetworkHelper
@@ -16,11 +17,13 @@ import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.utils.Lang
 import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import uy.kohesive.injekt.injectLazy
 import java.time.Instant
 import kotlin.time.Duration.Companion.days
@@ -46,6 +49,9 @@ internal class ExtensionsApi {
         }
     }
 
+    /**
+     * Network, HTTP and index format errors are propagated so the caller can keep its previous state.
+     */
     private suspend fun getExtensions(repoBaseUrl: String): List<Extension.Available> {
         return try {
             val response = networkService.client
@@ -54,12 +60,20 @@ internal class ExtensionsApi {
 
             with(json) {
                 response
-                    .parseAs<List<ExtensionJsonObject>>()
+                    .parseAs<List<JsonElement>>()
+                    // Decode each entry on its own so one malformed entry doesn't hide the whole repo
+                    .mapNotNull { entry ->
+                        runCatching { json.decodeFromJsonElement(ExtensionJsonObject.serializer(), entry) }
+                            .onFailure { Log.d("GetExtensions", "Skipping malformed entry from $repoBaseUrl: ${it.message}") }
+                            .getOrNull()
+                    }
                     .toExtensions(repoBaseUrl)
             }
-        } catch (e: Throwable) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
             Log.d("GetExtensions","Failed to get extensions from $repoBaseUrl")
-            emptyList()
+            throw e
         }
     }
 
@@ -77,7 +91,9 @@ internal class ExtensionsApi {
         val extensions = if (fromAvailableExtensionList) {
             extensionManager.availableExtensionsFlow.value
         } else {
-            findExtensions().also { dataStore.editPreference(lastExtCheck, SourcesPreferences.LAST_EXT_CHECK) }
+            findExtensions().also {
+                dataStore.editPreference(Instant.now().toEpochMilli(), SourcesPreferences.LAST_EXT_CHECK)
+            }
         }
 
         val installedExtensions = extensionManager.installedExtensionsFlow.value
@@ -103,18 +119,18 @@ internal class ExtensionsApi {
 
     private fun List<ExtensionJsonObject>.toExtensions(repoUrl: String): List<Extension.Available> {
         return this
-            .filter {
-                val libVersion = it.extractLibVersion()
-                libVersion >= ExtensionsLoader.API_VERSION_MIN && libVersion <= ExtensionsLoader.API_VERSION_MAX
-            }
-            .map {
+            .mapNotNull {
+                val libVersion = LibVersion.fromVersionName(it.version) ?: return@mapNotNull null
+                if (libVersion < ExtensionsLoader.API_VERSION_MIN || libVersion > ExtensionsLoader.API_VERSION_MAX) {
+                    return@mapNotNull null
+                }
                 Extension.Available(
                     name = it.name.substringAfter("Tadami: "),
                     pkgName = it.pkg,
                     versionName = it.version,
                     versionCode = it.code,
-                    apiVersion = it.extractLibVersion(),
-                    lang = langMapper(it.lang),
+                    apiVersion = libVersion,
+                    lang = Lang.fromCode(it.lang),
                     sources = it.sources?.map(extensionSourceMapper).orEmpty(),
                     apkName = it.apk,
                     iconUrl = "$repoUrl/icon/${it.pkg}.png",
@@ -127,10 +143,6 @@ internal class ExtensionsApi {
 
     fun getApkUrl(extension: Extension.Available): String {
         return "${extension.repoUrl}/apk/${extension.apkName}"
-    }
-
-    private fun ExtensionJsonObject.extractLibVersion(): Double {
-        return version.substringBeforeLast('.').toDouble()
     }
 }
 
@@ -150,21 +162,13 @@ private data class ExtensionSourceJsonObject(
     val id: Long,
     val lang: String,
     val name: String,
-    val baseUrl: String,
+    val baseUrl: String = "",
 )
-
-private fun langMapper(lang : String) : Lang{
-    return when(lang){
-        "en" -> Lang.ENGLISH
-        "fr" -> Lang.FRENCH
-        else -> Lang.UNKNOWN
-    }
-}
 
 private val extensionSourceMapper: (ExtensionSourceJsonObject) -> Extension.Available.Source = {
     Extension.Available.Source(
         id = it.id,
-        lang = langMapper(it.lang),
+        lang = Lang.fromCode(it.lang),
         name = it.name,
         baseUrl = it.baseUrl,
     )

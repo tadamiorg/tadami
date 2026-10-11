@@ -19,6 +19,7 @@ Anime.date_added,
 Anime.studio,
 Anime.author,
 Anime.raw_title,
+Anime.language,
 COUNT(*) AS episodes,
 TOTAL(Episode.seen = 0) AS unseen_episodes
 FROM Anime

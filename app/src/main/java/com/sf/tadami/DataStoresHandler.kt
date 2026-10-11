@@ -18,17 +18,19 @@ class DataStoresHandler {
     private val dataStores: MutableMap<Long, DataStore<Preferences>> = mutableMapOf()
     private val dataStoresJobs : MutableMap<Long,CoroutineScope> = mutableMapOf()
 
+    // Synchronized: sources resolve their data store from several threads at once, and a lost
+    // entry would create a second DataStore for the same file
+    @Synchronized
     fun removeDataStore(id: Long){
-        dataStoresJobs[id]?.cancel()
+        dataStoresJobs.remove(id)?.cancel()
         dataStores.remove(id)
     }
 
+    @Synchronized
     fun getDataStore(id: Long, fileName: String): DataStore<Preferences> {
-        val dataStore = dataStores[id]
-        if(dataStore != null) return dataStore
-        val job = CoroutineScope(Dispatchers.IO + SupervisorJob())
-        dataStoresJobs[id] = job
         return dataStores.getOrPut(id) {
+            val job = CoroutineScope(Dispatchers.IO + SupervisorJob())
+            dataStoresJobs[id] = job
             PreferenceDataStoreFactory.create(
                 corruptionHandler = ReplaceFileCorruptionHandler(
                     produceNewData = { emptyPreferences() }

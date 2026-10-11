@@ -75,7 +75,8 @@ class AnimeRepositoryImpl(
                 dateAdded = anime.dateAdded,
                 studio = anime.studio,
                 author = anime.author,
-                rawTitle = anime.rawTitle
+                rawTitle = anime.rawTitle,
+                language = anime.language
             )
             animeQueries.selectLastInsertedRowId()
         }
@@ -89,7 +90,7 @@ class AnimeRepositoryImpl(
                 anime.copy(id = id!!)
             }
             !dbAnime.favorite -> {
-                dbAnime.copy(title = anime.title)
+                dbAnime.copy(title = anime.title, language = anime.language)
             }
             else -> {
                 dbAnime
@@ -151,7 +152,8 @@ class AnimeRepositoryImpl(
                     dateAdded = anime.dateAdded,
                     studio = anime.studio,
                     author = anime.author,
-                    rawTitle = anime.rawTitle
+                    rawTitle = anime.rawTitle,
+                    language = anime.language
                 )
             }
             true
@@ -182,7 +184,8 @@ class AnimeRepositoryImpl(
                     dateAdded = anime.dateAdded,
                     studio = anime.studio,
                     author = anime.author,
-                    rawTitle = anime.rawTitle
+                    rawTitle = anime.rawTitle,
+                    language = anime.language
                 )
             }
         }

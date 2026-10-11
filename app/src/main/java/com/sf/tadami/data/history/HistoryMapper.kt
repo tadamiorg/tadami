@@ -25,7 +25,8 @@ object HistoryMapper {
         sourceId: Long,
         isFavorite: Boolean,
         episodeNumber: Double,
-        seenAt: Date?
+        seenAt: Date?,
+        language: String?
     ): HistoryWithRelations = HistoryWithRelations(
         id = historyId,
         episodeId = episodeId,
@@ -34,6 +35,7 @@ object HistoryMapper {
         episodeNumber = episodeNumber,
         seenAt = seenAt,
         source = sourceId,
-        thumbnailUrl = thumbnailUrl
+        thumbnailUrl = thumbnailUrl,
+        language = language
     )
 }

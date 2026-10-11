@@ -17,7 +17,7 @@ object UpdatesMapper {
         thumbnailUrl: String?,
         dateUpload: Long,
         dateFetch: Long,
-
+        language: String?,
     ): UpdatesWithRelations = UpdatesWithRelations(
         animeId = animeId,
         episodeId = episodeId,
@@ -28,6 +28,7 @@ object UpdatesMapper {
         totalTime = totalTime,
         sourceId = sourceId,
         dateFetch = dateFetch,
-        thumbnailUrl = thumbnailUrl
+        thumbnailUrl = thumbnailUrl,
+        language = language
     )
 }

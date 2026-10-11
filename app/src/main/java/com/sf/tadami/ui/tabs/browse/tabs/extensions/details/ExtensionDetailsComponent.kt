@@ -21,6 +21,12 @@ fun ExtensionDetailsComponent(
     ScrollbarLazyColumn(
         contentPadding = contentPadding,
     ) {
+        extension.loadIssue?.let { issue ->
+            item {
+                WarningBanner(issue.messageRes)
+            }
+        }
+
         if (extension.isObsolete) {
             item {
                 WarningBanner(R.string.ext_obsolete)

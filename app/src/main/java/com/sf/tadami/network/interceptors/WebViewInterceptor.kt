@@ -7,12 +7,14 @@ import android.webkit.WebView
 import android.widget.Toast
 import com.sf.tadami.R
 import com.sf.tadami.network.utils.WebViewUtil
+import com.sf.tadami.network.utils.applyUserAgent
 import com.sf.tadami.network.utils.setDefaultSettings
 import com.sf.tadami.ui.utils.UiToasts
 import okhttp3.Headers
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
+import java.io.IOException
 import java.util.Locale
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -63,26 +65,46 @@ abstract class WebViewInterceptor(private val context: Context, private val user
     }
 
     fun parseHeaders(headers: Headers): Map<String, String> {
-        return headers
-            // Keeping unsafe header makes webview throw [net::ERR_INVALID_ARGUMENT]
-            .filter { (name, value) ->
-                isRequestHeaderSafe(name, value)
-            }
-            .groupBy(keySelector = { (name, _) -> name }) { (_, value) -> value }
-            .mapValues { it.value.getOrNull(0).orEmpty() }
+        return headers.toWebViewHeaders()
     }
 
-    fun CountDownLatch.awaitFor30Seconds() {
-        await(30, TimeUnit.SECONDS)
+    /**
+     * Waits for [latch] in short slices so a cancelled call (screen left, worker stopped) frees its
+     * thread right away instead of after the whole timeout.
+     *
+     * @return true if the latch was released, false on timeout
+     */
+    fun CountDownLatch.awaitUnlessCanceled(chain: Interceptor.Chain, timeoutSeconds: Long): Boolean {
+        val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds)
+        while (!await(AWAIT_SLICE_MILLIS, TimeUnit.MILLISECONDS)) {
+            if (chain.call().isCanceled()) throw IOException("Canceled")
+            if (System.nanoTime() >= deadline) return false
+        }
+        return true
     }
 
     fun createWebView(request: Request): WebView {
         return WebView(context).apply {
             setDefaultSettings()
             // Avoid sending empty User-Agent, Chromium WebView will reset to default if empty
-            settings.userAgentString = request.header("User-Agent") ?: userAgent
+            applyUserAgent(request.header("User-Agent")?.takeIf { it.isNotBlank() } ?: userAgent)
         }
     }
+
+    private companion object {
+        const val AWAIT_SLICE_MILLIS = 250L
+    }
+}
+
+/** Headers a WebView accepts in `loadUrl`, first value of each name. */
+internal fun Headers.toWebViewHeaders(): Map<String, String> {
+    return this
+        // Keeping unsafe header makes webview throw [net::ERR_INVALID_ARGUMENT]
+        .filter { (name, value) ->
+            isRequestHeaderSafe(name, value)
+        }
+        .groupBy(keySelector = { (name, _) -> name }) { (_, value) -> value }
+        .mapValues { it.value.getOrNull(0).orEmpty() }
 }
 
 // Based on [IsRequestHeaderSafe] in https://source.chromium.org/chromium/chromium/src/+/main:services/network/public/cpp/header_util.cc

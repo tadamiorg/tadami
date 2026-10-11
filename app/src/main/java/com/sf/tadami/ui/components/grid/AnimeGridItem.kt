@@ -11,6 +11,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeCover
+import com.sf.tadami.ui.components.material.LanguageBadge
 import com.sf.tadami.ui.utils.GridSelectedCoverAlpha
 
 
@@ -41,7 +42,7 @@ fun AnimeGridItem(
                     )
                 },
                 badgesStart = coverBadgeStart,
-                badgesEnd = coverBadgeEnd
+                badgesEnd = withLanguageBadge(anime.language, coverBadgeEnd)
             )
             GridItemTitle(
                 modifier = Modifier.padding(4.dp),
@@ -82,7 +83,7 @@ fun CompactAnimeGridItem(
                 )
             },
             badgesStart = coverBadgeStart,
-            badgesEnd = coverBadgeEnd,
+            badgesEnd = withLanguageBadge(anime.language, coverBadgeEnd),
             content = {
                 CoverTextOverlay(
                     title = anime.title
@@ -92,3 +93,14 @@ fun CompactAnimeGridItem(
     }
 }
 
+// The entry's language shows on every cover, before the end badges the caller adds
+private fun withLanguageBadge(
+    language: String?,
+    badgesEnd: (@Composable RowScope.() -> Unit)?,
+): (@Composable RowScope.() -> Unit)? {
+    if (language.isNullOrBlank()) return badgesEnd
+    return {
+        LanguageBadge(language)
+        badgesEnd?.invoke(this)
+    }
+}

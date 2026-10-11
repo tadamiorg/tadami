@@ -75,6 +75,7 @@ fun DetailsComponent(
                     AnimeInfosBox(
                         appBarPadding = topPadding,
                         title =  uiState.details?.title ?: "",
+                        language = uiState.details?.language,
                         studio = uiState.details?.studio,
                         author = uiState.details?.author,
                         release = uiState.details?.release,

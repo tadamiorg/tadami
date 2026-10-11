@@ -220,7 +220,8 @@ class BackupRestorer(
                 dateAdded = anime.dateAdded,
                 studio = anime.studio,
                 author = anime.author,
-                rawTitle = anime.rawTitle
+                rawTitle = anime.rawTitle,
+                language = anime.language
             )
         }
         return anime.id
@@ -357,7 +358,8 @@ class BackupRestorer(
                 dateAdded = anime.dateAdded,
                 studio = anime.studio,
                 author = anime.author,
-                rawTitle = anime.rawTitle
+                rawTitle = anime.rawTitle,
+                language = anime.language
             )
             animeQueries.selectLastInsertedRowId().executeAsOne()
         }

@@ -112,6 +112,17 @@ class TadamiPackageInstaller(private val service : Service) : Installer(service)
 
     override fun onDestroy() {
         service.unregisterReceiver(packageActionReceiver)
+        // Abandon the session still waiting for its result (e.g. user confirmation on service timeout)
+        activeSession?.let { (activeEntry, sessionId) ->
+            if (activeEntry == getActiveEntry()) {
+                try {
+                    packageInstaller.abandonSession(sessionId)
+                } catch (e: Exception) {
+                    Log.d("PackageInstallerInstaller","Failed to abandon session $sessionId")
+                }
+            }
+        }
+        activeSession = null
         super.onDestroy()
     }
 

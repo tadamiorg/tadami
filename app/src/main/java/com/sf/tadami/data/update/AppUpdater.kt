@@ -11,9 +11,11 @@ import com.sf.tadami.preferences.app.UpdatePreferences
 import com.sf.tadami.ui.utils.awaitSingleOrNull
 import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
+import com.sf.tadami.utils.logcat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import logcat.LogPriority
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.time.Instant
@@ -25,6 +27,11 @@ class AppUpdater {
     private val dataStore : DataStore<Preferences> = Injekt.get()
 
     suspend fun checkForUpdate(forceCheck : Boolean = false) : AppUpdate{
+        // Disabled in debug builds: the release APK has another applicationId and would install next to them
+        if (!BuildConfig.UPDATER_ENABLED) {
+            return AppUpdate.NoNewUpdate
+        }
+
         val now = Instant.now()
 
         // Limit checks to once every 3 days at most
@@ -35,23 +42,29 @@ class AppUpdater {
             return AppUpdate.NoNewUpdate
         }
 
-        dataStore.editPreference(now.toEpochMilli(),UpdatePreferences.APP_UPDATE_CHECK_LAST_TIMESTAMP)
-
         return withContext(Dispatchers.IO) {
             val response = networkHelper.client
                 .newCall(GET("https://api.github.com/repos/$GITHUB_REPO/releases/latest"))
                 .asObservableSuccess()
                 .awaitSingleOrNull(printErrors = false) ?: return@withContext AppUpdate.NoNewUpdate
             try{
-                with(json){
-                    response.parseAs<GithubUpdate>().let{
-                        val isNewversion = checkNewVersion(it.version)
-                        if(isNewversion) AppUpdate.NewUpdate(it)
-                        else AppUpdate.NoNewUpdate
-                    }
+                val release = with(json){
+                    response.parseAs<GithubUpdate>()
+                }
+                val isNewVersion = checkNewVersion(release.version)
+
+                // Newer release whose APK is not uploaded yet: offer nothing and check again on next launch
+                if (isNewVersion && release.getDownloadLink() == null) {
+                    return@withContext AppUpdate.NoNewUpdate
                 }
 
+                // Only a successful check starts the 3 days delay, so an offline launch does not skip it
+                dataStore.editPreference(now.toEpochMilli(),UpdatePreferences.APP_UPDATE_CHECK_LAST_TIMESTAMP)
+
+                if(isNewVersion) AppUpdate.NewUpdate(release)
+                else AppUpdate.NoNewUpdate
             } catch(e : Exception) {
+                this@AppUpdater.logcat(LogPriority.WARN, e) { "Could not read the latest release" }
                 AppUpdate.NoNewUpdate
             }
 
@@ -59,28 +72,43 @@ class AppUpdater {
     }
 
     private fun checkNewVersion(newVersionTag : String) : Boolean{
-        val newVersion = newVersionTag.replace("[^\\d.]".toRegex(), "").split(".").map { it.toInt() }
-        val oldVersion = BuildConfig.VERSION_NAME.replace("[^\\d.]".toRegex(), "").split(".").map { it.toInt() }
-
-        val versionComparison = oldVersion.indices.any { fragmentIndex ->
-            if(newVersion[fragmentIndex] != oldVersion[fragmentIndex]){
-                return newVersion[fragmentIndex] > oldVersion[fragmentIndex]
-            }
-            false
-        }
-
-        return versionComparison
+        return isNewerVersion(newVersionTag, BuildConfig.RELEASE_VERSION_NAME)
     }
 
     companion object{
         const val GITHUB_REPO = "tadamiorg/tadami"
 
         val RELEASE_TAG: String by lazy {
-            "v${BuildConfig.VERSION_NAME}"
+            "v${BuildConfig.RELEASE_VERSION_NAME}"
         }
 
         val RELEASE_URL = "https://github.com/$GITHUB_REPO/releases/tag/$RELEASE_TAG"
     }
 }
 
+/**
+ * Whether the release tagged [newTag] (`v1.10.0`) is newer than [currentVersion]. Missing segments
+ * count as 0, so v1.9.3.1 is newer than 1.9.3 and v1.10 equals 1.10.0, and a pre-release
+ * (`2.0.0-beta1`) is older than the release with the same numbers.
+ */
+internal fun isNewerVersion(newTag: String, currentVersion: String): Boolean {
+    val newVersion = newTag.versionCore()
+    val oldVersion = currentVersion.versionCore()
+    for (fragmentIndex in 0 until maxOf(newVersion.size, oldVersion.size)) {
+        val newFragment = newVersion.getOrElse(fragmentIndex) { 0 }
+        val oldFragment = oldVersion.getOrElse(fragmentIndex) { 0 }
+        if (newFragment != oldFragment) {
+            return newFragment > oldFragment
+        }
+    }
+    return currentVersion.isPreRelease() && !newTag.isPreRelease()
+}
 
+private fun String.versionCore(): List<Int> {
+    return withoutVersionPrefix().substringBefore('-').substringBefore('+')
+        .split(".").map { fragment -> fragment.filter(Char::isDigit).toIntOrNull() ?: 0 }
+}
+
+private fun String.isPreRelease(): Boolean = '-' in withoutVersionPrefix().substringBefore('+')
+
+private fun String.withoutVersionPrefix(): String = trim().removePrefix("v")

@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
+import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.domain.source.Source
 import com.sf.tadami.ui.components.grid.EmptyScreen
 import com.sf.tadami.ui.components.widgets.ContentLoader
@@ -14,6 +15,7 @@ import com.sf.tadami.ui.components.widgets.ScrollbarLazyColumn
 import com.sf.tadami.ui.tabs.browse.tabs.sources.SourcesUiModel
 import com.sf.tadami.ui.tabs.browse.tabs.sources.SourcesUiState
 import com.sf.tadami.ui.tabs.browse.tabs.sources.components.item.SourceItem
+import com.sf.tadami.ui.tabs.browse.tabs.sources.components.item.UnusableExtensionItem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -24,6 +26,7 @@ fun SourcesComponent(
     onLongClickItem: (Source) -> Unit = onClickItem,
     onOptionsClicked : (Source) -> Unit = {},
     onRecentClicked: (Source) -> Unit = {},
+    onUnusableExtensionClicked: (Extension.Installed) -> Unit = {},
 ) {
     ContentLoader(isLoading = uiState.isLoading) {
         when {
@@ -38,12 +41,14 @@ fun SourcesComponent(
                             when (it) {
                                 is SourcesUiModel.Header -> "header"
                                 is SourcesUiModel.Item -> "item"
+                                is SourcesUiModel.UnusableExtension -> "unusable-extension"
                             }
                         },
                         key = {
                             when (it) {
                                 is SourcesUiModel.Header -> it.hashCode()
                                 is SourcesUiModel.Item -> "source-${it.source.key()}"
+                                is SourcesUiModel.UnusableExtension -> "extension-${it.extension.pkgName}"
                             }
                         },
                     ) { model ->
@@ -61,6 +66,11 @@ fun SourcesComponent(
                                 onLongClickItem = onLongClickItem,
                                 onOptionsClicked = onOptionsClicked,
                                 onRecentClicked = onRecentClicked
+                            )
+                            is SourcesUiModel.UnusableExtension -> UnusableExtensionItem(
+                                modifier = Modifier.animateItem(),
+                                extension = model.extension,
+                                onClickItem = onUnusableExtensionClicked,
                             )
                         }
                     }

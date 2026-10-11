@@ -1,6 +1,8 @@
 package com.sf.tadami.domain.extensions
 
 import android.graphics.drawable.Drawable
+import com.sf.tadami.extension.model.ExtensionLoadIssue
+import com.sf.tadami.extension.model.LibVersion
 import com.sf.tadami.source.Source
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.utils.Lang
@@ -11,7 +13,7 @@ sealed class Extension {
     abstract val pkgName: String
     abstract val versionName: String
     abstract val versionCode: Long
-    abstract val apiVersion: Double
+    abstract val apiVersion: LibVersion
     abstract val lang: Lang?
 
     data class Installed(
@@ -19,7 +21,7 @@ sealed class Extension {
         override val pkgName: String,
         override val versionName: String,
         override val versionCode: Long,
-        override val apiVersion: Double,
+        override val apiVersion: LibVersion,
         override val lang: Lang,
         val pkgFactory: String?,
         val sources: List<Source>,
@@ -28,6 +30,8 @@ sealed class Extension {
         val isObsolete: Boolean = false,
         val isShared: Boolean,
         val repoUrl: String? = null,
+        /** Set when the extension can't be used, [sources] is empty then. */
+        val loadIssue: ExtensionLoadIssue? = null,
     ) : Extension()
 
     data class Available(
@@ -35,7 +39,7 @@ sealed class Extension {
         override val pkgName: String,
         override val versionName: String,
         override val versionCode: Long,
-        override val apiVersion: Double,
+        override val apiVersion: LibVersion,
         override val lang: Lang,
         val sources: List<Source>,
         val apkName: String,

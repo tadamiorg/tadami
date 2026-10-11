@@ -42,6 +42,9 @@ class ExtensionInstallActivity : Activity() {
             // Either install package can't be found (probably bots) or there's a security exception
             // with the download manager. Nothing we can workaround.
             UiToasts.showToast(error.message ?: "")
+            // Mark the install as failed (maps to Error) instead of staying behind an invisible activity
+            checkInstallationResult(RESULT_FIRST_USER)
+            finish()
         }
     }
 

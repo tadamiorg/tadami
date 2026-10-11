@@ -7,6 +7,7 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,19 +21,21 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.kevinnzou.web.AccompanistWebViewClient
 import com.kevinnzou.web.LoadingState
 import com.kevinnzou.web.WebView
@@ -40,16 +43,15 @@ import com.kevinnzou.web.rememberWebViewNavigator
 import com.kevinnzou.web.rememberWebViewState
 import com.sf.tadami.BuildConfig
 import com.sf.tadami.R
+import com.sf.tadami.network.utils.CLOUDFLARE_CHALLENGE_PROBE
+import com.sf.tadami.network.utils.applyUserAgent
 import com.sf.tadami.network.utils.setDefaultSettings
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
-import com.sf.tadami.ui.utils.getHtml
-import kotlinx.coroutines.launch
-import java.io.BufferedReader
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
-import java.io.IOException
-import java.io.InputStreamReader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,67 +59,43 @@ fun WebviewScreen(
     onNavigateUp: () -> Unit,
     initialTitle: String,
     url: String,
+    userAgent: String,
     onOpenInBrowser: (String) -> Unit,
     onClearCookies: (String) -> Unit,
+    hasClearance: (String) -> Boolean,
     headers: Map<String, String> = emptyMap(),
     onUrlChange: (String) -> Unit = {},
 ) {
     val state = rememberWebViewState(url = url, additionalHttpHeaders = headers)
     val navigator = rememberWebViewNavigator()
-    val uriHandler = LocalUriHandler.current
-    val scope = rememberCoroutineScope()
 
     var currentUrl by remember { mutableStateOf(url) }
-    var showCloudflareHelp by remember { mutableStateOf(false) }
+    var challengeState by remember { mutableStateOf(ChallengeState.NONE) }
+    var solvedUrl by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) { WebViewAdBlocker.load(context.applicationContext) }
+    }
+
+    // The user agent travels through the WebView settings, only re-send the other source headers
+    val navigationHeaders = remember(headers) {
+        headers.filterKeys { !it.equals("user-agent", ignoreCase = true) }
+    }
 
     val webClient = remember {
         object : AccompanistWebViewClient() {
-
-            // Adds Handling
-            private lateinit var adservers : StringBuilder
-            init {
-                readAdServers()
-            }
-
-            private fun readAdServers()
-            {
-                adservers = StringBuilder()
-
-                var line: String?
-                val inputStream = context.resources.openRawResource(R.raw.adservers)
-                val br = BufferedReader(InputStreamReader(inputStream))
-
-                try
-                {
-                    while (br.readLine().also { line = it } != null)
-                    {
-                        adservers.append(line)
-                        adservers.append("\n")
-                    }
-                }
-                catch (e: IOException)
-                {
-                    e.printStackTrace()
-                }
-            }
 
             override fun shouldInterceptRequest(
                 view: WebView?,
                 request: WebResourceRequest?
             ): WebResourceResponse? {
-                val empty = ByteArrayInputStream("".toByteArray())
-                val kk5 = adservers.toString()
-
-                if (request != null) {
-                    if (kk5.contains("0.0.0.0 " + request.url.host)){
-                        return WebResourceResponse("text/plain", "utf-8", empty)
-                    }
+                // Never block the page itself, only what it loads
+                if (request != null && !request.isForMainFrame && WebViewAdBlocker.isBlocked(request.url.host)) {
+                    return WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream(ByteArray(0)))
                 }
                 return super.shouldInterceptRequest(view, request)
             }
-
-            // Actual Webview Code
 
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
@@ -129,9 +107,18 @@ fun WebviewScreen(
 
             override fun onPageFinished(view: WebView, url: String?) {
                 super.onPageFinished(view, url)
-                scope.launch {
-                    val html = view.getHtml()
-                    showCloudflareHelp = "window._cf_chl_opt" in html || "Ray ID is" in html
+                val pageUrl = url ?: return
+                view.evaluateJavascript(CLOUDFLARE_CHALLENGE_PROBE) { result ->
+                    challengeState = when {
+                        result == "true" -> ChallengeState.PENDING
+                        challengeState == ChallengeState.PENDING && hasClearance(pageUrl) -> {
+                            solvedUrl = pageUrl
+                            ChallengeState.SOLVED
+                        }
+                        // Only on the verified page: browsing on gives the back button its history back
+                        challengeState == ChallengeState.SOLVED && pageUrl == solvedUrl -> ChallengeState.SOLVED
+                        else -> ChallengeState.NONE
+                    }
                 }
             }
 
@@ -151,21 +138,22 @@ fun WebviewScreen(
                 view: WebView?,
                 request: WebResourceRequest?,
             ): Boolean {
-                request?.let {
-                    // Don't attempt to open blobs as webpages
-                    if (it.url.toString().startsWith("blob:http")) {
-                        return false
-                    }
-
-                    // Ignore intents urls
-                    if (it.url.toString().startsWith("intent://")) {
-                        return true
-                    }
-
-                    // Continue with request, but with custom headers
-                    view?.loadUrl(it.url.toString(), headers)
+                val target = request?.url ?: return false
+                val scheme = target.scheme?.lowercase()
+                // Don't attempt to open blobs as webpages
+                if (scheme == "blob" || scheme == "data" || scheme == "about") {
+                    return false
                 }
-                return super.shouldOverrideUrlLoading(view, request)
+                // Ignore intent://, market://, mailto:... the WebView can't open them
+                if (scheme != "http" && scheme != "https") {
+                    return true
+                }
+                if (!request.isForMainFrame || navigationHeaders.isEmpty()) {
+                    return false
+                }
+                // Continue with request, but with custom headers
+                view?.loadUrl(target.toString(), navigationHeaders)
+                return true
             }
         }
     }
@@ -267,27 +255,71 @@ fun WebviewScreen(
             }
         },
     ) { contentPadding ->
-        WebView(
-            state = state,
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(contentPadding),
-            navigator = navigator,
-            onCreated = { webView ->
-                webView.setDefaultSettings()
+        ) {
+            if (challengeState != ChallengeState.NONE) {
+                ChallengeBanner(
+                    solved = challengeState == ChallengeState.SOLVED,
+                    onDone = onNavigateUp,
+                )
+            }
+            WebView(
+                state = state,
+                modifier = Modifier.fillMaxSize(),
+                // Once verified, back returns to the source instead of replaying the challenge pages
+                captureBackPresses = challengeState != ChallengeState.SOLVED,
+                navigator = navigator,
+                onCreated = { webView ->
+                    webView.setDefaultSettings()
 
-                // Debug mode (chrome://inspect/#devices)
-                if (BuildConfig.DEBUG &&
-                    0 != webView.context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE
-                ) {
-                    WebView.setWebContentsDebuggingEnabled(true)
-                }
+                    // Debug mode (chrome://inspect/#devices)
+                    if (BuildConfig.DEBUG &&
+                        0 != webView.context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE
+                    ) {
+                        WebView.setWebContentsDebuggingEnabled(true)
+                    }
 
-                headers["user-agent"]?.let {
-                    webView.settings.userAgentString = it
-                }
-            },
-            client = webClient,
-        )
+                    // Same UA as OkHttp, or the clearance obtained here would be useless to it
+                    webView.applyUserAgent(userAgent)
+                },
+                onDispose = { webView ->
+                    // Stop media and scripts now rather than whenever the WebView is collected
+                    webView.stopLoading()
+                    webView.destroy()
+                },
+                client = webClient,
+            )
+        }
     }
 }
+
+@Composable
+private fun ChallengeBanner(solved: Boolean, onDone: () -> Unit) {
+    Surface(
+        color = if (solved) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(if (solved) R.string.webview_challenge_solved else R.string.webview_challenge_pending),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
+            if (solved) {
+                TextButton(onClick = onDone) {
+                    Text(text = stringResource(R.string.webview_challenge_done))
+                }
+            }
+        }
+    }
+}
+
+private enum class ChallengeState { NONE, PENDING, SOLVED }
+
+/** Cheap check for a Cloudflare challenge page, instead of pulling the whole DOM over the bridge. */

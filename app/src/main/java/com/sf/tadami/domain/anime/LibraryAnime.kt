@@ -8,6 +8,7 @@ data class LibraryAnime(
     val url: String,
     val title: String,
     val rawTitle: String?,
+    val language: String?,
     val thumbnailUrl: String?,
     val release: String?,
     val studio: String?,

@@ -1,10 +1,18 @@
 name: CI
+
 on:
   push:
     branches:
+      - develop
       - main
-    tags:
-      - v*
+  pull_request:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -12,76 +20,103 @@ concurrency:
 
 jobs:
   build:
-    name: Build app
-    runs-on: 'ubuntu-24.04'
+    name: Build and unit tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
 
     steps:
-      - name: Clone repo
-        uses: actions/checkout@v4.2.2 # v4.2.2
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up JDK
-        uses: actions/setup-java@v4.7.0 # v4.7.0
+        uses: actions/setup-java@v4
         with:
-          java-version: 17
           distribution: temurin
+          java-version: 17
 
-      - name: Set up gradle
-        uses: gradle/actions/setup-gradle@v4.4.0 # v4.3.0
-
-      - name: Build app
-        run: ./gradlew assembleRelease -Pinclude-telemetry -Penable-updater
-
-      - name: Upload APK
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
-          name: arm64-v8a-${{ github.sha }}
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
 
-      - name: Upload mapping
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      # No signing secrets here: debug uses the default debug keystore and release is left unsigned,
+      # which still runs R8 and lintVital.
+      - name: Unit tests and build
+        run: ./gradlew :app:testDebugUnitTest :app:assembleDebug :app:assembleRelease
+
+      # Informational only until the existing lint errors are fixed
+      - name: Lint
+        continue-on-error: true
+        run: ./gradlew :app:lintDebug
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
         with:
-          name: mapping-${{ github.sha }}
-          path: app/build/outputs/mapping/release
+          name: tadami-debug-${{ github.sha }}
+          path: app/build/outputs/apk/debug/tadami.apk
+          if-no-files-found: error
 
-      - name: Get tag name
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Upload unit test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports-${{ github.sha }}
+          path: app/build/reports/tests/
+          if-no-files-found: ignore
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report-${{ github.sha }}
+          path: app/build/reports/lint-results-debug.*
+          if-no-files-found: ignore
+
+  instrumented:
+    name: Instrumented tests
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+
+      - name: Enable KVM
         run: |
-          set -x
-          echo "VERSION_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-          
-      - name: Sign APK
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: r0adkll/sign-android-release@f30bdd30588842ac76044ecdbd4b6d0e3e813478
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: '35.0.1'
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
-      - name: Clean up build artifacts
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          set -e
-          mv app/build/outputs/apk/release/app-release-unsigned.apk tadami-${{ env.VERSION_TAG }}.apk
-          sha=`sha256sum tadami-${{ env.VERSION_TAG }}.apk | awk '{ print $1 }'`
-          echo "APK_UNIVERSAL_SHA=$sha" >> $GITHUB_ENV
-      - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
+      - name: Run instrumented tests
+        uses: reactivecircus/android-emulator-runner@v2
         with:
-          tag_name: ${{ env.VERSION_TAG }}
-          name: Tadami ${{ env.VERSION_TAG }}
-          body: |
-            ---
-            ### Checksums
-            | Variant | SHA-256 |
-            | ------- | ------- |
-            | Universal | ${{ env.APK_UNIVERSAL_SHA }}
-          files: |
-            tadami-${{ env.VERSION_TAG }}.apk
-          draft: true
-          prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: "-no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim"
+          script: ./gradlew :app:connectedDebugAndroidTest
+
+      - name: Upload instrumented test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-reports-${{ github.sha }}
+          path: app/build/reports/androidTests/
+          if-no-files-found: ignore

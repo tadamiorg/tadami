@@ -34,7 +34,12 @@ fun EmptyScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = message, style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = message,
+            style = MaterialTheme.typography.titleMedium,
+            // Error messages often wrap
+            textAlign = TextAlign.Center,
+        )
         Row(
             modifier = Modifier
                 .padding(

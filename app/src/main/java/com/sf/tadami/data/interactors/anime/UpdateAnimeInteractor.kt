@@ -65,6 +65,7 @@ class UpdateAnimeInteractor(
                 id = localAnime.id,
                 title = title,
                 rawTitle = remoteAnime.rawTitle,
+                language = remoteAnime.language,
                 description = remoteAnime.description,
                 genres = remoteAnime.genres,
                 thumbnailUrl = thumbnailUrl,

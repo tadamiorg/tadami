@@ -57,7 +57,7 @@ import uy.kohesive.injekt.api.addSingleton
 import uy.kohesive.injekt.api.addSingletonFactory
 import uy.kohesive.injekt.api.get
 
-class AppModule(private val app: Application) : InjektModule {
+class AppModule(private val app: Application, private val warmUp: Boolean = true) : InjektModule {
 
     @OptIn(ExperimentalSerializationApi::class)
     override fun InjektRegistrar.registerInjectables() {
@@ -257,7 +257,7 @@ class AppModule(private val app: Application) : InjektModule {
 
 
         // Asynchronously init expensive components for a faster cold start
-        ContextCompat.getMainExecutor(app).execute {
+        if (warmUp) ContextCompat.getMainExecutor(app).execute {
             get<NetworkHelper>()
             get<SourceManager>()
             get<Database>()

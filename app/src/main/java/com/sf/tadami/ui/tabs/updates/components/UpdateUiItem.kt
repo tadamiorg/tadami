@@ -30,6 +30,7 @@ import com.sf.tadami.domain.updates.UpdatesWithRelations
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeCover
 import com.sf.tadami.ui.animeinfos.details.infos.DotSeparatorText
 import com.sf.tadami.ui.utils.SeenItemAlpha
+import com.sf.tadami.ui.components.material.LanguageBadge
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.selectedBackground
 
@@ -74,13 +75,18 @@ fun UpdatesUiItem(
                 .padding(horizontal = MaterialTheme.padding.medium)
                 .weight(1f),
         ) {
-            Text(
-                text = update.animeTitle,
-                maxLines = 1,
-                style = MaterialTheme.typography.bodyMedium,
-                color = LocalContentColor.current.copy(alpha = textAlpha),
-                overflow = TextOverflow.Ellipsis,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                update.language?.takeIf { it.isNotBlank() }?.let {
+                    LanguageBadge(it, Modifier.padding(end = 4.dp))
+                }
+                Text(
+                    text = update.animeTitle,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = LocalContentColor.current.copy(alpha = textAlpha),
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 var textHeight by remember { mutableIntStateOf(0) }

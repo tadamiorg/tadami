@@ -23,7 +23,8 @@ object CastProtocol {
      *
      * v3: the phone proxy is a STATELESS forwarder — `GET /proxy?url=<enc>&headers=<enc-json>`,
      * with the source headers carried by the receiver on each request (no phone-side media
-     * registry, no m3u8 rewriting); the web receiver proxies only header-bound sources and fixes
+     * registry, no URI rewriting in manifests; the only payload change, explicit HLS segment IVs, is
+     * invisible to receivers); the web receiver proxies only header-bound sources and fixes
      * broken relative-URI resolution itself by detecting the proxy origin in request URLs. Still
      * additive for Terebi, which never touches the proxy.
      */

@@ -18,6 +18,7 @@ fun InfiniteAnimeGrid(
     onAnimeLongClicked: (anime: Anime) -> Unit = onAnimeClicked,
     snackbarHostState : SnackbarHostState = remember { SnackbarHostState() },
     contentPadding : PaddingValues = PaddingValues(0.dp),
+    onOpenInWebView: ((url: String) -> Unit)? = null,
 ) {
 
     val lazyGridState = animeList.rememberLazyGridState()
@@ -29,6 +30,7 @@ fun InfiniteAnimeGrid(
         onAnimeClicked = onAnimeClicked,
         onAnimeLongClicked = onAnimeLongClicked,
         snackbarHostState = snackbarHostState,
-        lazyGridState = lazyGridState
+        lazyGridState = lazyGridState,
+        onOpenInWebView = onOpenInWebView,
     )
 }

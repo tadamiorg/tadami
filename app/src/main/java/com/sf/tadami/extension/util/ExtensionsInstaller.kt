@@ -1,6 +1,7 @@
 package com.sf.tadami.extension.util
 
 import android.app.DownloadManager
+import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -37,6 +38,7 @@ import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -61,9 +63,15 @@ internal class ExtensionsInstaller(private val context: Context) {
      * The currently requested downloads, with the package name (unique id) as key, and the id
      * returned by the download manager.
      */
-    private val activeDownloads = hashMapOf<String, Long>()
+    private val activeDownloads = ConcurrentHashMap<String, Long>()
 
-    private val downloadsStateFlows = hashMapOf<Long, MutableStateFlow<InstallStep>>()
+    private val downloadsStateFlows = ConcurrentHashMap<Long, MutableStateFlow<InstallStep>>()
+
+    /**
+     * Guards the changes of [activeDownloads] made together with the receiver registration, as
+     * downloads are started from several IO threads while completions are handled on main.
+     */
+    private val lock = Any()
 
     private val extensionInstaller = runBlocking {
         dataStore.getPreferencesGroup(ExtensionsPreferences).extensionInstallerEnum
@@ -79,14 +87,6 @@ internal class ExtensionsInstaller(private val context: Context) {
     fun downloadAndInstall(url: String, extension: Extension): Flow<InstallStep> {
         val pkgName = extension.pkgName
 
-        val oldDownload = activeDownloads[pkgName]
-        if (oldDownload != null) {
-            deleteDownload(pkgName)
-        }
-
-        // Register the receiver after removing (and unregistering) the previous download
-        downloadReceiver.register()
-
         val downloadUri = url.toUri()
         val request = DownloadManager.Request(downloadUri)
             .setTitle(extension.name)
@@ -94,11 +94,22 @@ internal class ExtensionsInstaller(private val context: Context) {
             .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, downloadUri.lastPathSegment)
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
 
-        val id = downloadManager.enqueue(request)
-        activeDownloads[pkgName] = id
-
         val downloadStateFlow = MutableStateFlow(InstallStep.Pending)
-        downloadsStateFlows[id] = downloadStateFlow
+
+        val id = synchronized(lock) {
+            val oldDownload = activeDownloads[pkgName]
+            if (oldDownload != null) {
+                deleteDownload(pkgName)
+            }
+
+            // Register the receiver after removing (and unregistering) the previous download
+            downloadReceiver.register()
+
+            downloadManager.enqueue(request).also {
+                activeDownloads[pkgName] = it
+                downloadsStateFlows[it] = downloadStateFlow
+            }
+        }
 
         // Poll download status
         val pollStatusFlow = downloadStatusFlow(id).mapNotNull { downloadStatus ->
@@ -118,7 +129,7 @@ internal class ExtensionsInstaller(private val context: Context) {
             // Always notify on main thread
             withContext(Dispatchers.Main) {
                 // Always remove the download when unsubscribed
-                deleteDownload(pkgName)
+                deleteDownload(pkgName, id)
             }
         }
     }
@@ -167,11 +178,22 @@ internal class ExtensionsInstaller(private val context: Context) {
                     .putExtra(EXTRA_DOWNLOAD_ID, downloadId)
                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
-                context.startActivity(intent)
+                try {
+                    context.startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    Log.d("ExtensionsInstaller - installApk","Couldn't start the install activity")
+                    updateInstallStep(downloadId, InstallStep.Error)
+                }
             }
             else -> {
                 val intent = ExtensionInstallService.getIntent(context, downloadId, uri, installer)
-                ContextCompat.startForegroundService(context, intent)
+                try {
+                    ContextCompat.startForegroundService(context, intent)
+                } catch (e: IllegalStateException) {
+                    // ForegroundServiceStartNotAllowedException when the app is in the background
+                    Log.d("ExtensionsInstaller - installApk","Couldn't start the install service")
+                    updateInstallStep(downloadId, InstallStep.Error)
+                }
             }
         }
     }
@@ -180,8 +202,16 @@ internal class ExtensionsInstaller(private val context: Context) {
      * Cancels extension install and remove from download manager and installer.
      */
     fun cancelInstall(pkgName: String) {
-        val downloadId = activeDownloads.remove(pkgName) ?: return
-        downloadManager.remove(downloadId)
+        val downloadId = synchronized(lock) {
+            val id = activeDownloads.remove(pkgName) ?: return
+            downloadManager.remove(id)
+            if (activeDownloads.isEmpty()) {
+                downloadReceiver.unregister()
+            }
+            id
+        }
+        // Emit a terminal step so the install flow completes and cleans up
+        downloadsStateFlows.remove(downloadId)?.value = InstallStep.Idle
         Installer.cancelInstallQueue(downloadId)
     }
 
@@ -213,15 +243,23 @@ internal class ExtensionsInstaller(private val context: Context) {
      * Deletes the download for the given package name.
      *
      * @param pkgName The package name of the download to delete.
+     * @param downloadId If set, only deletes the download if it is still the active one for this
+     * package (it may have been cancelled and requested again since).
      */
-    private fun deleteDownload(pkgName: String) {
-        val downloadId = activeDownloads.remove(pkgName)
-        if (downloadId != null) {
-            downloadManager.remove(downloadId)
-            downloadsStateFlows.remove(downloadId)
-        }
-        if (activeDownloads.isEmpty()) {
-            downloadReceiver.unregister()
+    private fun deleteDownload(pkgName: String, downloadId: Long? = null) {
+        synchronized(lock) {
+            val removedId = if (downloadId == null) {
+                activeDownloads.remove(pkgName)
+            } else {
+                downloadId.takeIf { activeDownloads.remove(pkgName, it) }
+            }
+            if (removedId != null) {
+                downloadManager.remove(removedId)
+                downloadsStateFlows.remove(removedId)
+            }
+            if (activeDownloads.isEmpty()) {
+                downloadReceiver.unregister()
+            }
         }
     }
 
@@ -231,7 +269,7 @@ internal class ExtensionsInstaller(private val context: Context) {
     private inner class DownloadCompletionReceiver : BroadcastReceiver() {
 
         /**
-         * Whether this receiver is currently registered.
+         * Whether this receiver is currently registered. Only changed while holding [lock].
          */
         private var isRegistered = false
 
@@ -263,7 +301,7 @@ internal class ExtensionsInstaller(private val context: Context) {
         override fun onReceive(context: Context, intent: Intent?) {
             val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0) ?: return
             // Avoid events for downloads we didn't request
-            if (id !in activeDownloads.values) return
+            if (synchronized(lock) { id !in activeDownloads.values }) return
 
             val uri = downloadManager.getUriForDownloadedFile(id)
 

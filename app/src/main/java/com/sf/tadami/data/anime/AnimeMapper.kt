@@ -24,13 +24,15 @@ object AnimeMapper {
         dateAdded : Long,
         studio: String?,
         author: String?,
-        rawTitle: String?
+        rawTitle: String?,
+        language: String?
     ) : Anime = Anime(
         id = id,
         source = source,
         url = url,
         title = title,
         rawTitle = rawTitle,
+        language = language,
         thumbnailUrl = thumbnailUrl,
         release = release,
         studio = studio,
@@ -67,6 +69,7 @@ object AnimeMapper {
         studio: String?,
         author: String?,
         rawTitle: String?,
+        language: String?,
 
         episodes : Long,
         unseenEpisodes: Double
@@ -76,6 +79,7 @@ object AnimeMapper {
         url = url,
         title = title,
         rawTitle = rawTitle,
+        language = language,
         thumbnailUrl = thumbnailUrl,
         release = release,
         studio = studio,
