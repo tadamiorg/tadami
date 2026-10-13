@@ -79,11 +79,24 @@ class LibraryViewModel : ViewModel() {
         _libraryList.update{ newLibraryItems }
     }
 
-    fun inverseSelected() {
+    fun inverseSelected(displayedIds: Set<Long>) {
+        updateDisplayedSelection(displayedIds) { !it.selected }
+    }
+
+    fun selectAllDisplayed(displayedIds: Set<Long>) {
+        updateDisplayedSelection(displayedIds) { true }
+    }
+
+    // Called when the search or the filters change: an anime no longer displayed can't stay selected
+    fun keepDisplayedSelected(displayedIds: Set<Long>) {
+        updateDisplayedSelection(displayedIds) { it.selected }
+    }
+
+    private fun updateDisplayedSelection(displayedIds: Set<Long>, selected: (LibraryItem) -> Boolean) {
         _libraryList.update { currentState ->
-            currentState.map {
-                selectedIds.addOrRemove(it.anime.id, !it.selected)
-                it.copy(selected = !it.selected)
+            currentState.selectDisplayed(displayedIds, selected).also { items ->
+                selectedIds.clear()
+                items.filter { it.selected }.mapTo(selectedIds) { it.anime.id }
             }
         }
     }
@@ -118,4 +131,12 @@ class LibraryViewModel : ViewModel() {
             )
         }
     }
+}
+
+// Select all and invert act on the displayed items only, the hidden ones end up unselected
+internal fun List<LibraryItem>.selectDisplayed(
+    displayedIds: Set<Long>,
+    selected: (LibraryItem) -> Boolean
+): List<LibraryItem> {
+    return map { it.copy(selected = it.anime.id in displayedIds && selected(it)) }
 }

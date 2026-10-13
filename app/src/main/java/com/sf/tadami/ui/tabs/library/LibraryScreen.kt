@@ -20,6 +20,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -67,6 +68,13 @@ fun LibraryScreen(
     val libraryList by libraryViewModel.libraryList.collectAsState()
     val searchFilter by libraryViewModel.searchFilter.collectAsState()
     val libraryPreferences by rememberDataStoreState(customPrefs = LibraryPreferences).value.collectAsState()
+    val displayedList = remember(libraryList, libraryPreferences, searchFilter) {
+        libraryList.addFilters(libraryPreferences, searchFilter)
+    }
+    val displayedIds = remember(displayedList) { displayedList.mapTo(HashSet()) { it.anime.id } }
+    LaunchedEffect(displayedIds) {
+        libraryViewModel.keepDisplayedSelected(displayedIds)
+    }
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
@@ -134,10 +142,10 @@ fun LibraryScreen(
                     libraryViewModel.toggleAllSelected(false)
                 },
                 onToggleAll = {
-                    libraryViewModel.toggleAllSelected(true)
+                    libraryViewModel.selectAllDisplayed(displayedIds)
                 },
                 onInverseAll = {
-                    libraryViewModel.inverseSelected()
+                    libraryViewModel.inverseSelected(displayedIds)
                 },
                 onSearchChange = {
                     libraryViewModel.updateSearchFilter(it)
@@ -186,7 +194,7 @@ fun LibraryScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(contentPadding).consumeWindowInsets(contentPadding),
-            libraryList = libraryList.addFilters(libraryPreferences, searchFilter),
+            libraryList = displayedList,
             librarySize = libraryList.size,
             initLoaded = initLoaded,
             onAnimeClicked = { libraryItem ->
