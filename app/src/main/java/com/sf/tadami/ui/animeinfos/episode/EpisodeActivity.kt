@@ -450,6 +450,20 @@ class EpisodeActivity : AppCompatActivity() {
         this.updateTimeJob = job
     }
 
+    /** Saves the local player's position for the current episode, like VideoPlayer's updateTime(). */
+    private fun saveLocalProgress(): Job? {
+        val player = exoPlayer ?: return null
+        val totalTime = player.duration.coerceAtLeast(0L)
+        val job = playerViewModel.updateTime(
+            playerViewModel.currentEpisode.value,
+            totalTime,
+            player.currentPosition.coerceAtLeast(0L).coerceAtMost(totalTime),
+            playerPreferences?.seenThreshold ?: PlayerPreferences.SeenThresholdItems.EIGHTY_FIVE
+        )
+        setUpdateTimeJob(job)
+        return job
+    }
+
     private fun checkUpdateTimeJobEnded(callback: () -> Unit) {
         if (this.updateTimeJob == null) return callback()
         this.updateTimeJob!!.invokeOnCompletion { cancellation ->
@@ -730,6 +744,7 @@ class EpisodeActivity : AppCompatActivity() {
                         PIP_PREVIOUS -> {
                             if (playerViewModel.hasPreviousIterator.value.hasNext()) {
                                 val previous = playerViewModel.hasPreviousIterator.value.next()
+                                saveLocalProgress()
                                 exoPlayer?.clearMediaItems()
                                 playerViewModel.setCurrentEpisode(previous)
                             }
@@ -738,6 +753,7 @@ class EpisodeActivity : AppCompatActivity() {
                         PIP_NEXT -> {
                             if (playerViewModel.hasNextIterator.value.hasPrevious()) {
                                 val next = playerViewModel.hasNextIterator.value.previous()
+                                saveLocalProgress()
                                 exoPlayer?.clearMediaItems()
                                 playerViewModel.setCurrentEpisode(next)
                             }
