@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.mutablePreferencesOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -97,9 +98,19 @@ class DataStoreState<T>(
     val value: StateFlow<T> = _value.asStateFlow()
 
     fun setValue(newValue: T) {
+        // Only the keys that differ from the current value, or aren't stored yet: writing the whole group
+        // from this copy could revert a key written meanwhile elsewhere, like the library update worker's count
+        val oldPrefs = mutablePreferencesOf().also { customPrefs.setPrefs(_value.value, it) }.asMap()
+        val newPrefs = mutablePreferencesOf().also { customPrefs.setPrefs(newValue, it) }.asMap()
         runBlocking {
             dataStore.edit { preferences ->
-                customPrefs.setPrefs(newValue, preferences)
+                oldPrefs.keys.filter { it !in newPrefs }.forEach { preferences.remove(it) }
+                newPrefs.filter { (key, value) ->
+                    oldPrefs[key] != value || key !in preferences
+                }.forEach { (key, value) ->
+                    @Suppress("UNCHECKED_CAST")
+                    preferences[key as Preferences.Key<Any>] = value
+                }
             }
         }
     }
