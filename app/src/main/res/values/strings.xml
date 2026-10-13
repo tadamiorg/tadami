@@ -288,6 +288,7 @@
     <string name="updates_last_update_info_just_now">Just now</string>
     <string name="relative_time_span_never">Never</string>
     <string name="update_check_no_new_updates">No new updates available</string>
+    <string name="update_check_failed">Could not check for updates</string>
     <string name="whats_new">What\&apos;s new</string>
     <string name="version">Version</string>
     <string name="check_for_updates">Check for updates</string>

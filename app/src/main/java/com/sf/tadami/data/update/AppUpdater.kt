@@ -8,10 +8,11 @@ import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.asObservableSuccess
 import com.sf.tadami.network.parseAs
 import com.sf.tadami.preferences.app.UpdatePreferences
-import com.sf.tadami.ui.utils.awaitSingleOrNull
+import com.sf.tadami.ui.utils.awaitSingleOrError
 import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.logcat
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -43,11 +44,11 @@ class AppUpdater {
         }
 
         return withContext(Dispatchers.IO) {
-            val response = networkHelper.client
-                .newCall(GET("https://api.github.com/repos/$GITHUB_REPO/releases/latest"))
-                .asObservableSuccess()
-                .awaitSingleOrNull(printErrors = false) ?: return@withContext AppUpdate.NoNewUpdate
             try{
+                val response = networkHelper.client
+                    .newCall(GET("https://api.github.com/repos/$GITHUB_REPO/releases/latest"))
+                    .asObservableSuccess()
+                    .awaitSingleOrError()
                 val release = with(json){
                     response.parseAs<GithubUpdate>()
                 }
@@ -63,9 +64,11 @@ class AppUpdater {
 
                 if(isNewVersion) AppUpdate.NewUpdate(release)
                 else AppUpdate.NoNewUpdate
+            } catch(e : CancellationException) {
+                throw e
             } catch(e : Exception) {
                 this@AppUpdater.logcat(LogPriority.WARN, e) { "Could not read the latest release" }
-                AppUpdate.NoNewUpdate
+                AppUpdate.CheckFailed
             }
 
         }

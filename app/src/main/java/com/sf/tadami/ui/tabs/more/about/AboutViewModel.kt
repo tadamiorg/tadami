@@ -8,6 +8,7 @@ import com.sf.tadami.data.update.AppUpdate
 import com.sf.tadami.data.update.AppUpdater
 import com.sf.tadami.data.update.GithubUpdate
 import com.sf.tadami.ui.utils.UiToasts
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,7 +39,13 @@ class AboutViewModel : ViewModel() {
                     is AppUpdate.NoNewUpdate -> {
                         UiToasts.showToast(R.string.update_check_no_new_updates)
                     }
+
+                    is AppUpdate.CheckFailed -> {
+                        UiToasts.showToast(R.string.update_check_failed)
+                    }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 e.message?.let { UiToasts.showToast(it) }
                 Log.d("Check version", e.stackTraceToString())

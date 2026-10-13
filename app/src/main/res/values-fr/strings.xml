@@ -302,6 +302,7 @@
     <string name="updates_last_update_info_just_now">À l\'instant</string>
     <string name="relative_time_span_never">Jamais</string>
     <string name="update_check_no_new_updates">Aucune mise à jour disponible</string>
+    <string name="update_check_failed">Impossible de rechercher des mises à jour</string>
     <string name="whats_new">Quoi de neuf</string>
     <string name="version">Version</string>
     <string name="check_for_updates">Rechercher des mises à jour</string>
