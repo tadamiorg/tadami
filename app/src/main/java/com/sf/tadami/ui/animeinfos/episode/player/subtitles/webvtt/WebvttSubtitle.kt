@@ -50,6 +50,7 @@ internal class WebvttSubtitle(cueInfos: List<WebvttCueInfo>) : Subtitle {
             if (cueTimesUs[i * 2] <= timeUs && timeUs < cueTimesUs[i * 2 + 1]) {
                 val cueInfo = cueInfos[i]
                 val activeCue = ActiveCue(
+                    index = i,
                     cue = cueInfo.cue,
                     startTimeUs = cueInfo.startTimeUs,
                     endTimeUs = cueInfo.endTimeUs,
@@ -69,6 +70,7 @@ internal class WebvttSubtitle(cueInfos: List<WebvttCueInfo>) : Subtitle {
     }
 
     private data class ActiveCue(
+        val index: Int,
         val cue: Cue,
         val startTimeUs: Long,
         val endTimeUs: Long,
@@ -81,12 +83,12 @@ internal class WebvttSubtitle(cueInfos: List<WebvttCueInfo>) : Subtitle {
     }
 
     /**
-     * Sticky line assignment, keyed by cue start time. Once a cue is placed it keeps its line for its whole
+     * Sticky line assignment, keyed by cue index (cues can share a start time). Once a cue is placed it keeps its line for its whole
      * lifetime, so a neighbour appearing or ending never shifts it (previously every interval recomputed all
      * lines from the active set, which made a surviving cue jump to the bottom when the cue below it ended).
      * [getCues] is only called as a single forward pass at parse time, so keeping state here is safe.
      */
-    private val assignedLines = HashMap<Long, Float>()
+    private val assignedLines = HashMap<Int, Float>()
 
     private fun positionCuesWithoutOverlap(cues: List<ActiveCue>): List<Cue> {
         if (cues.isEmpty()) {
@@ -96,14 +98,14 @@ internal class WebvttSubtitle(cueInfos: List<WebvttCueInfo>) : Subtitle {
         }
 
         // Free the lines of cues that have ended.
-        val activeIds = cues.mapTo(HashSet()) { it.startTimeUs }
+        val activeIds = cues.mapTo(HashSet()) { it.index }
         assignedLines.keys.retainAll(activeIds)
 
         val occupiedLines = HashMap<Float, Boolean>()
 
         // Reserve the lines already held by cues with a sticky assignment.
         for (activeCue in cues) {
-            val line = assignedLines[activeCue.startTimeUs] ?: continue
+            val line = assignedLines[activeCue.index] ?: continue
             for (i in 0 until activeCue.lineCount) {
                 occupiedLines[line - i] = true
             }
@@ -111,7 +113,7 @@ internal class WebvttSubtitle(cueInfos: List<WebvttCueInfo>) : Subtitle {
 
         // Assign a line to each new cue: lowest free block starting at the bottom (-2) moving up.
         for (activeCue in cues) {
-            if (assignedLines.containsKey(activeCue.startTimeUs)) continue
+            if (assignedLines.containsKey(activeCue.index)) continue
 
             var linePosition = -2f
             while (true) {
@@ -129,13 +131,13 @@ internal class WebvttSubtitle(cueInfos: List<WebvttCueInfo>) : Subtitle {
             for (i in 0 until activeCue.lineCount) {
                 occupiedLines[linePosition - i] = true
             }
-            assignedLines[activeCue.startTimeUs] = linePosition
+            assignedLines[activeCue.index] = linePosition
         }
 
         // Emit every active cue at its (now stable) line.
         return cues.map { activeCue ->
             activeCue.cue.buildUpon()
-                .setLine(assignedLines.getValue(activeCue.startTimeUs), Cue.LINE_TYPE_NUMBER)
+                .setLine(assignedLines.getValue(activeCue.index), Cue.LINE_TYPE_NUMBER)
                 .build()
         }
     }
