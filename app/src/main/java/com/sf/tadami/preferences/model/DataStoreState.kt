@@ -1,11 +1,11 @@
 package com.sf.tadami.preferences.model
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,8 +14,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -25,12 +25,17 @@ fun <T> rememberDataStoreState(
     customDataStore: DataStore<Preferences>? = null
 ): DataStoreState<T> {
     val dataStore: DataStore<Preferences> = customDataStore ?: Injekt.get()
-    return remember(dataStore) {
+    val state = remember(dataStore) {
         DataStoreState(
             dataStore = dataStore,
             customPrefs = customPrefs
         )
     }
+    // Follow the changes only while in the composition, a collector that outlives it leaks
+    LaunchedEffect(state) {
+        state.collectChanges()
+    }
+    return state
 }
 
 @Composable
@@ -38,11 +43,15 @@ fun rememberUnknownDataStoreState(
     unknownDataStore: DataStore<Preferences>
 ): UnknownDataStoreState {
     val dataStore: DataStore<Preferences> = unknownDataStore
-    return remember(dataStore) {
+    val state = remember(dataStore) {
         UnknownDataStoreState(
             dataStore = dataStore,
         )
     }
+    LaunchedEffect(state) {
+        state.collectChanges()
+    }
+    return state
 }
 
 class UnknownDataStoreState(
@@ -64,13 +73,11 @@ class UnknownDataStoreState(
         }
     }
 
-    init {
-        CoroutineScope(Dispatchers.IO).launch {
-            dataStore.data
-                .collectLatest { prefs ->
-                    _value.update { prefs }
-                }
-        }
+    internal suspend fun collectChanges() = withContext(Dispatchers.IO) {
+        dataStore.data
+            .collectLatest { prefs ->
+                _value.update { prefs }
+            }
     }
 }
 
@@ -97,15 +104,13 @@ class DataStoreState<T>(
         }
     }
 
-    init {
-        CoroutineScope(Dispatchers.IO).launch {
-            dataStore.data
-                .map { preferences ->
-                    customPrefs.transform(preferences)
-                }
-                .collectLatest { prefs ->
-                    _value.update { prefs }
-                }
-        }
+    internal suspend fun collectChanges() = withContext(Dispatchers.IO) {
+        dataStore.data
+            .map { preferences ->
+                customPrefs.transform(preferences)
+            }
+            .collectLatest { prefs ->
+                _value.update { prefs }
+            }
     }
 }
