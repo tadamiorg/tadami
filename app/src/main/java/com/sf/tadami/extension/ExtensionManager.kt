@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.api.ExtensionsApi
+import com.sf.tadami.extension.api.RepoExtensions
 import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.extension.model.LoadResult
 import com.sf.tadami.extension.util.ExtensionsInstaller
@@ -106,7 +107,7 @@ class ExtensionManager(
     }
 
     suspend fun findAvailableExtensions() {
-        val extensions: List<Extension.Available> = try {
+        val extensions: RepoExtensions = try {
             api.findExtensions()
         } catch (e: CancellationException) {
             throw e
@@ -118,17 +119,18 @@ class ExtensionManager(
             // Keep the previous available extensions, statuses and updates count
             return
         }
-        _availableExtensionsFlow.value = extensions
+        _availableExtensionsFlow.value = extensions.available
         updatedInstalledExtensionsStatuses(extensions)
-        setupAvailableExtensionsSourcesDataMap(extensions)
+        setupAvailableExtensionsSourcesDataMap(extensions.available)
     }
 
     /**
-     * Sets the update field of the installed extensions with the given [availableExtensions].
+     * Sets the update field of the installed extensions with the given [repoExtensions].
      *
-     * @param availableExtensions The list of extensions given by the [api].
+     * @param repoExtensions The extensions given by the [api].
      */
-    private fun updatedInstalledExtensionsStatuses(availableExtensions: List<Extension.Available>) {
+    private fun updatedInstalledExtensionsStatuses(repoExtensions: RepoExtensions) {
+        val availableExtensions = repoExtensions.available
         // Nothing to compare against, keep the current statuses and updates count
         if (availableExtensions.isEmpty()) return
 
@@ -141,8 +143,9 @@ class ExtensionManager(
                 val availableExt = availableExtensions.find { it.pkgName == pkgName }
 
                 if (availableExt == null) {
-                    if (!installedExt.isObsolete) {
-                        mutInstalledExtensions[index] = installedExt.copy(isObsolete = true)
+                    val isObsolete = pkgName !in repoExtensions.listedPkgNames
+                    if (installedExt.isObsolete != isObsolete) {
+                        mutInstalledExtensions[index] = installedExt.copy(isObsolete = isObsolete)
                         changed = true
                     }
                 } else {

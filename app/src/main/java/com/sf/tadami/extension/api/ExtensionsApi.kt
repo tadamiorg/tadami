@@ -43,9 +43,9 @@ internal class ExtensionsApi {
         sourcePreferences.lastExtCheck
     }
 
-    suspend fun findExtensions(): List<Extension.Available> {
+    suspend fun findExtensions(): RepoExtensions {
         return withContext(Dispatchers.IO) {
-            sourcePreferences.extensionsRepos.flatMap { getExtensions(it) }
+            RepoExtensions(sourcePreferences.extensionsRepos.flatMap { getExtensions(it) })
         }
     }
 
@@ -91,7 +91,7 @@ internal class ExtensionsApi {
         val extensions = if (fromAvailableExtensionList) {
             extensionManager.availableExtensionsFlow.value
         } else {
-            findExtensions().also {
+            findExtensions().available.also {
                 dataStore.editPreference(Instant.now().toEpochMilli(), SourcesPreferences.LAST_EXT_CHECK)
             }
         }
@@ -121,9 +121,6 @@ internal class ExtensionsApi {
         return this
             .mapNotNull {
                 val libVersion = LibVersion.fromVersionName(it.version) ?: return@mapNotNull null
-                if (libVersion < ExtensionsLoader.API_VERSION_MIN || libVersion > ExtensionsLoader.API_VERSION_MAX) {
-                    return@mapNotNull null
-                }
                 Extension.Available(
                     name = it.name.substringAfter("Tadami: "),
                     pkgName = it.pkg,
@@ -144,6 +141,15 @@ internal class ExtensionsApi {
     fun getApkUrl(extension: Extension.Available): String {
         return "${extension.repoUrl}/apk/${extension.apkName}"
     }
+}
+
+/** The extensions the repos list. */
+internal class RepoExtensions(listed: List<Extension.Available>) {
+    /** The ones this app can load, the others can't be installed nor be an update. */
+    val available = listed.filter { ExtensionsLoader.libVersionIssue(it.apiVersion) == null }
+
+    /** All of them: one made for a lib version this app can't load is still in the repo, not removed. */
+    val listedPkgNames = listed.mapTo(HashSet()) { it.pkgName }
 }
 
 @Serializable
