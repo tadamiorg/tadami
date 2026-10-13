@@ -40,7 +40,7 @@ data class LibraryPreferences(
         private val AUTO_UPDATE_INTERVAL = intPreferencesKey("library_auto_update_interval")
         private val AUTO_UPDATE_RESTRICTIONS = stringSetPreferencesKey("library_auto_update_restrictions")
         private val LIBRARY_UPDATE_LAST_TIMESTAMP = longPreferencesKey(CustomPreferences.appStateKey("library_update_last_timestamp"))
-        private val NEW_UPDATES_COUNT = intPreferencesKey(CustomPreferences.appStateKey("library_unseen_updates_count"))
+        val NEW_UPDATES_COUNT = intPreferencesKey(CustomPreferences.appStateKey("library_unseen_updates_count"))
 
         // Flags
         private val FILTER_FLAGS = longPreferencesKey("library_filter_flags")

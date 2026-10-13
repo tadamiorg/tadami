@@ -11,8 +11,7 @@ import com.sf.tadami.domain.updates.UpdatesWithRelations
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.ui.utils.addOrRemove
-import com.sf.tadami.utils.editPreferences
-import com.sf.tadami.utils.getPreferencesGroup
+import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.launchIO
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -56,10 +55,8 @@ class UpdatesViewModel : ViewModel() {
 
     fun resetNewUpdatesCount(){
         viewModelScope.launchIO {
-            val libraryPreferences = dataStore.getPreferencesGroup(LibraryPreferences)
-            dataStore.editPreferences(libraryPreferences.copy(newUpdatesCount = 0),
-                LibraryPreferences
-            )
+            // Only this key: writing the whole group could revert changes made since the read
+            dataStore.editPreference(0, LibraryPreferences.NEW_UPDATES_COUNT)
         }
     }
 

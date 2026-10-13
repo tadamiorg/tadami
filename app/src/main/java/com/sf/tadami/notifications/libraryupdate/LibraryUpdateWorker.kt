@@ -6,6 +6,7 @@ import android.os.Build
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -180,15 +181,12 @@ class LibraryUpdateWorker(
                                                     fetchWindow
                                                 ).sortedBy { it.sourceOrder }
                                             if (newEpisodes.isNotEmpty()) {
-                                                val newUpdatesCount = dataStore.getPreferencesGroup(
-                                                    LibraryPreferences
-                                                ).let {
-                                                    it.copy(newUpdatesCount = it.newUpdatesCount + newEpisodes.size)
+                                                // Only this key, read and written in one edit: a read then a write of the
+                                                // whole group loses parallel increments and reverts sort or filter changes
+                                                dataStore.edit {
+                                                    val count = it[LibraryPreferences.NEW_UPDATES_COUNT] ?: 0
+                                                    it[LibraryPreferences.NEW_UPDATES_COUNT] = count + newEpisodes.size
                                                 }
-                                                dataStore.editPreferences(
-                                                    newValue = newUpdatesCount,
-                                                    preferences = LibraryPreferences
-                                                )
                                                 newUpdates.add(anime to newEpisodes.toTypedArray())
                                             }
                                         } catch (e: Throwable) {
