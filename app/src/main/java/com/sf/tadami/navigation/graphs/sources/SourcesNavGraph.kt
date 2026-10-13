@@ -21,7 +21,8 @@ fun NavGraphBuilder.sourcesNavGraph(
     ) {
         BrowseScreen(
             modifier = modifier,
-            navController = navController
+            navController = navController,
+            savedStateHandle = it.savedStateHandle,
         )
     }
 

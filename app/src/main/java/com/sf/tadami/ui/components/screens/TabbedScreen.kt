@@ -19,6 +19,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,9 +43,19 @@ fun TabbedScreen(
     tabs: List<ScreenTabContent>,
     searchValue: String = "",
     onSearchChange: (String) -> Unit = {},
+    /** A tab to switch to, asked from outside the screen. [onTabRequestHandled] is called once shown. */
+    requestedTab: Int? = null,
+    onTabRequestHandled: () -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     val state = rememberPagerState { tabs.size }
+
+    LaunchedEffect(requestedTab) {
+        if (requestedTab != null) {
+            state.scrollToPage(requestedTab)
+            onTabRequestHandled()
+        }
+    }
     val snackbarHostState = remember { SnackbarHostState() }
     var searchOpened by rememberSaveable { mutableStateOf(false) }
 

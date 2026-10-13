@@ -124,8 +124,9 @@ class ExtensionInstallerReceiver(private val listener: Listener) : BroadcastRece
     companion object {
         fun openExtensionsPendingActivity(context: Context): PendingIntent {
             val intent = Intent(context, MainActivity::class.java).apply {
-                action = "com.sf.tadami.EXTENSIONS"
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                action = MainActivity.ACTION_OPEN_EXTENSIONS
+                // Single top: the running activity gets the intent instead of being recreated
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             }
             return PendingIntent.getActivity(
                 context,

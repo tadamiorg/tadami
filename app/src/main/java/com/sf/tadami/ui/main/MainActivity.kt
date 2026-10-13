@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.main
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -20,6 +21,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
@@ -29,6 +31,7 @@ import com.sf.tadami.Migrations
 import com.sf.tadami.R
 import com.sf.tadami.extension.api.ExtensionsApi
 import com.sf.tadami.navigation.HomeScreen
+import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.navigation.graphs.onboarding.OnboardingRoutes
 import com.sf.tadami.notifications.cast.CastControlService
 import com.sf.tadami.preferences.app.BasePreferences
@@ -46,12 +49,15 @@ import com.sf.tadami.ui.animeinfos.episode.cast.CastWebReceiverNoticeDialog
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.logCastConnectionError
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
+import com.sf.tadami.ui.tabs.browse.BROWSE_TAB_KEY
+import com.sf.tadami.ui.tabs.browse.EXTENSIONS_TAB
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.setComposeContent
 import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.editPreferences
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
@@ -66,6 +72,7 @@ class MainActivity : AppCompatActivity() {
     private var ready = false
     private val dataStore: DataStore<Preferences> = Injekt.get()
     private val sourcesManager: SourceManager = Injekt.get()
+    private val openExtensionsRequests = Channel<Unit>(Channel.CONFLATED)
 
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,6 +114,10 @@ class MainActivity : AppCompatActivity() {
                     sourcesPreferences = dataStore.getPreferencesGroup(SourcesPreferences)
                 )
             }
+        }
+
+        if (isLaunch && intent?.action == ACTION_OPEN_EXTENSIONS) {
+            openExtensionsRequests.trySend(Unit)
         }
 
         castContext = CastContext.getSharedInstance(this)
@@ -165,12 +176,33 @@ class MainActivity : AppCompatActivity() {
                     ready = true
                 }
             }
+            LaunchedEffect(navController) {
+                for (request in openExtensionsRequests) {
+                    if (!basePreferences.onboardingComplete) continue
+                    navController.navigate(HomeNavItems.Browse.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                    navController.getBackStackEntry(HomeNavItems.Browse.route)
+                        .savedStateHandle[BROWSE_TAB_KEY] = EXTENSIONS_TAB
+                }
+            }
         }
 
         val startTime = System.currentTimeMillis()
         splashScreen?.setKeepOnScreenCondition {
             val elapsed = System.currentTimeMillis() - startTime
             elapsed <= SPLASH_MIN_DURATION || (!ready && elapsed <= SPLASH_MAX_DURATION)
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.action == ACTION_OPEN_EXTENSIONS) {
+            openExtensionsRequests.trySend(Unit)
         }
     }
 
@@ -267,5 +299,8 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val SPLASH_MIN_DURATION = 500 // ms
         const val SPLASH_MAX_DURATION = 5000 // ms
+
+        /** Opens the extensions tab, from the extension updates notification. */
+        const val ACTION_OPEN_EXTENSIONS = "com.sf.tadami.EXTENSIONS"
     }
 }
