@@ -42,6 +42,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.google.android.gms.cast.framework.CastContext
@@ -517,8 +518,9 @@ class EpisodeActivity : AppCompatActivity() {
         }
     }
 
+    /** [localResumeTimeMs] overrides the saved time, for a cast started while the local player is mid-episode. */
     @SuppressLint("VisibleForTests")
-    private fun loadRemoteMedia() {
+    private fun loadRemoteMedia(localResumeTimeMs: Long? = null) {
         // Use the ViewModel's current episode (the source of truth that drove the switch), not the
         // Activity mirror field which can be stale on a swap — otherwise the receiver gets the new
         // video with the previous episode's title/duration.
@@ -600,7 +602,7 @@ class EpisodeActivity : AppCompatActivity() {
                     userAgent = userAgent,
                     subtitlePrefLanguages = playerPreferences?.subtitlePrefLanguages
                         ?.split(",")?.filter { it.isNotBlank() } ?: emptyList(),
-                    resumeTimeMs = time,
+                    resumeTimeMs = localResumeTimeMs ?: time,
                     proxyBaseUrl = proxy?.baseUrl(),
                     subtitleStyle = playerPreferences?.toCastSubtitleStyle(),
                 )
@@ -665,7 +667,11 @@ class EpisodeActivity : AppCompatActivity() {
                 // The foreground service owns the control channel + episode switching so it survives
                 // the activity being locked/exited.
                 CastControlService.startNow(this@EpisodeActivity)
-                loadRemoteMedia()
+                // The saved time lags the local player (it is only saved on pause/exit/switch): resume the TV from it.
+                val localTime = exoPlayer
+                    ?.takeIf { it.playbackState == Player.STATE_READY || it.playbackState == Player.STATE_BUFFERING }
+                    ?.currentPosition?.takeIf { it > 0L }
+                loadRemoteMedia(localTime)
             }
 
             private fun onApplicationDisconnected() {
