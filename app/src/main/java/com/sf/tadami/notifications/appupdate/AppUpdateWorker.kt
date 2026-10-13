@@ -23,7 +23,13 @@ import com.sf.tadami.notifications.utils.okhttp.ProgressListener
 import com.sf.tadami.ui.utils.awaitSingleOrNull
 import com.sf.tadami.ui.utils.getUriCompat
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Call
 import uy.kohesive.injekt.Injekt
@@ -102,11 +108,27 @@ class AppUpdateWorker(
         val apkFile = File(context.externalCacheDir, "update.apk")
 
         if (response.isSuccessful) {
-            response.body.source().saveTo(apkFile)
+            coroutineScope {
+                // The copy blocks without checking for cancellation: cancel the call once the work is stopped
+                val cancelOnStop = launch(start = CoroutineStart.UNDISPATCHED) {
+                    try {
+                        awaitCancellation()
+                    } finally {
+                        if (isStopped) call.cancel()
+                    }
+                }
+                try {
+                    response.body.source().saveTo(apkFile)
+                } finally {
+                    cancelOnStop.cancel()
+                }
+            }
         } else {
             response.close()
             throw Exception("Unsuccessful response")
         }
+        // The copy may have ended just as the work was stopped
+        currentCoroutineContext().ensureActive()
         notifier.showInstallNotification(apkFile.getUriCompat(context))
     }
 
