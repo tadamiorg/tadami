@@ -41,7 +41,7 @@ fun EpisodesDialog(
         },
         confirmButton = {
             DefaultDialogConfirmButton(
-                enabled = selectedEpisode != initialEpisode
+                enabled = selectedEpisode?.id != initialEpisode?.id
             ) {
                 if(selectedEpisode != null){
                     onConfirm(selectedEpisode!!)
@@ -59,7 +59,8 @@ fun EpisodesDialog(
         LaunchedEffect(Unit){
             val realEpisode = initialEpisode
             selectedEpisode = realEpisode
-            listState.animateScrollToItem(realEpisode?.let { episodes.indexOf(it) }.takeIf { it !=-1 } ?: 0)
+            // Match by id: the list re-emits updated copies (progress, seen) that no longer equal the current episode.
+            listState.animateScrollToItem(realEpisode?.let { episodes.indexOfFirst { ep -> ep.id == it.id } }.takeIf { it !=-1 } ?: 0)
         }
         FastScrollLazyColumn(thumbAlways = true, noEndPadding = true, state = listState){
             items(episodes){episode ->
