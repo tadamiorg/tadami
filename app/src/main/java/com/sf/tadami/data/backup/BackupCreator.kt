@@ -29,6 +29,7 @@ import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.notifications.backup.BackupFileValidator
 import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.preferences.model.CustomPreferences
+import com.sf.tadami.preferences.storage.StoragePreferences
 import com.sf.tadami.source.Source
 import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
@@ -166,7 +167,10 @@ class BackupCreator(
     private suspend fun backupAppPreferences(options: BackupOptions): List<BackupPreference> {
         if (!options.appSettings) return emptyList()
 
-        return dataStore.getDataStoreValues().asMap().toBackupPreferences()
+        // The storage folder is an access grant of this install: it doesn't work on another one
+        return dataStore.getDataStoreValues().asMap()
+            .filterKeys { it != StoragePreferences.STORAGE_DIR }
+            .toBackupPreferences()
     }
 
     @Suppress("UNCHECKED_CAST")

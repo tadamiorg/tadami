@@ -34,6 +34,7 @@ import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.notifications.backup.BackupNotifier
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.model.CustomPreferences
+import com.sf.tadami.preferences.storage.StoragePreferences
 import com.sf.tadami.utils.createFileInCacheDir
 import com.sf.tadami.utils.editPreference
 import kotlinx.coroutines.CoroutineScope
@@ -368,7 +369,8 @@ class BackupRestorer(
 
     private fun CoroutineScope.restoreAppPreferences(preferences: List<BackupPreference>) = launch {
         ensureActive()
-        restorePreferences(preferences, dataStore)
+        // Older backups have the storage folder, an access grant of the install they come from
+        restorePreferences(preferences.filterNot { it.key == StoragePreferences.STORAGE_DIR.name }, dataStore)
 
         LibraryUpdateWorker.setupTask(context)
         BackupCreateWorker.setupTask(context)
