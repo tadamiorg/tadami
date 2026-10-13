@@ -231,11 +231,13 @@ class CastProxyServer(
 
     /** NanoHTTPD's default runner spawns unbounded threads; cap them, playback needs only a few. */
     private class BoundedAsyncRunner : NanoHTTPD.AsyncRunner {
+        // Core size = max: with an unbounded queue the pool never grows past its core size, so a
+        // core of 0 served one connection at a time (a streaming GET blocked subtitles and seeks).
         private val executor = ThreadPoolExecutor(
-            0, MAX_THREADS, 30L, TimeUnit.SECONDS, LinkedBlockingQueue(),
+            MAX_THREADS, MAX_THREADS, 30L, TimeUnit.SECONDS, LinkedBlockingQueue(),
         ) { runnable ->
             Thread(runnable, "CastProxy-worker").apply { isDaemon = true }
-        }
+        }.apply { allowCoreThreadTimeOut(true) }
         private val running = Collections.synchronizedList(mutableListOf<NanoHTTPD.ClientHandler>())
 
         override fun exec(code: NanoHTTPD.ClientHandler) {
