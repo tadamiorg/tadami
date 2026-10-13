@@ -10,20 +10,21 @@ Get the latest version from the [releases page](https://github.com/tadamiorg/tad
 
 ### Library
 
-![Library Screen](docs/images/library.gif)
+<img width="236" height="480" alt="library" src="https://github.com/user-attachments/assets/44670434-842e-4da7-94e6-ef1590bed730" />
 
 ### Browse
 
-![Browse Screen](docs/images/browse.gif)
+<img width="236" height="480" alt="browse" src="https://github.com/user-attachments/assets/b128707a-3b50-495d-a26c-89e2e9dd477a" />
 
 ### Player
 
-![Player Screen](docs/images/player.gif)
+<img width="480" height="236" alt="player" src="https://github.com/user-attachments/assets/c53f534b-ff15-4c01-8b65-683e7dbd9388" />
 
 ### Anime details
 
-![Anime Details Screen](docs/images/details.gif)
+<img width="236" height="480" alt="details" src="https://github.com/user-attachments/assets/40083d21-bb23-495b-9606-ad333d3183e3" />
 
 ### Settings
 
-![Settings Screen](docs/images/settings.gif)
+<img width="236" height="480" alt="settings" src="https://github.com/user-attachments/assets/a6f6a2d5-ed11-4f20-bb2d-806f65a1971a" />
+
