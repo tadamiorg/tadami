@@ -236,7 +236,7 @@ class BackupRestorer(
     ): Anime {
         val fetchedAnime = restoreAnime(anime)
         restoreEpisodes(fetchedAnime, episodes)
-        restoreHistory(history)
+        restoreHistory(fetchedAnime.id, history)
         return fetchedAnime
     }
 
@@ -336,7 +336,7 @@ class BackupRestorer(
         history: List<BackupHistory>
     ): Anime {
         restoreEpisodes(backupAnime, episodes)
-        restoreHistory(history)
+        restoreHistory(backupAnime.id, history)
         return backupAnime
     }
 
@@ -419,11 +419,14 @@ class BackupRestorer(
         }
     }
 
-    private suspend fun restoreHistory(history: List<BackupHistory>) {
+    private suspend fun restoreHistory(animeId: Long, history: List<BackupHistory>) {
         // List containing history to be updated
         val toUpdate = mutableListOf<HistoryUpdate>()
         for ((url, seenAt) in history) {
-            var dbHistory = handler.awaitOneOrNull { historyQueries.getHistoryByEpisodeUrl(url) }
+            // Scoped to the anime: an episode url isn't unique across anime
+            var dbHistory = handler.awaitOneOrNull {
+                historyQueries.getHistoryByEpisodeUrl(animeId = animeId, episodeUrl = url)
+            }
             // Check if history already in database and update
             if (dbHistory != null) {
                 dbHistory = dbHistory.copy(
@@ -438,7 +441,7 @@ class BackupRestorer(
             } else {
                 // If not in database create
                 handler
-                    .awaitOneOrNull { episodeQueries.getEpisodeByUrl(url) }
+                    .awaitOneOrNull { episodeQueries.getEpisodeByUrl(animeId = animeId, episodeUrl = url) }
                     ?.let {
                         toUpdate.add(
                             HistoryUpdate(

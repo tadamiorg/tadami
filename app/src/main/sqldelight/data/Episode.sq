@@ -70,7 +70,7 @@ WHERE _id IN :episodeId;
 getEpisodeByUrl:
 SELECT *
 FROM Episode
-WHERE url = :episodeUrl;
+WHERE anime_id = :animeId AND url = :episodeUrl;
 
 selectLastInsertedRowId:
 SELECT last_insert_rowid();
