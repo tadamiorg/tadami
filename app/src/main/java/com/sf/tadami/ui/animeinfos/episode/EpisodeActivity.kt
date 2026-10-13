@@ -179,6 +179,9 @@ class EpisodeActivity : AppCompatActivity() {
                     (castSession?.remoteMediaClient?.mediaInfo?.customData!!.get("episodeId") as? Number)?.toInt()
                 val intentEpisodeId = checkNotNull(intent.extras?.getLong("episode")).toInt()
                 val isResumedFromCast = episodeId == intentEpisodeId
+                // Decoded before the view model exists, so a bad payload can't leave it waiting on a cast resume.
+                val decodedSelectedSource: StreamSource = json.decodeFromString(selectedSource)
+                val decodedSources: List<StreamSource> = json.decodeFromString(customDataSources)
                 val viewModel: PlayerViewModel by viewModels(factoryProducer = {
                     PlayerViewModelFactory(isResumedFromCast)
                 })
@@ -186,12 +189,8 @@ class EpisodeActivity : AppCompatActivity() {
                 if (isResumedFromCast) {
                     playerViewModel.setResumeFromCastSession(
                         rawUrl = rawUrl,
-                        selectedSource = json.decodeFromString(
-                            selectedSource
-                        ),
-                        availableSources = json.decodeFromString(
-                            customDataSources
-                        ),
+                        selectedSource = decodedSelectedSource,
+                        availableSources = decodedSources,
                         selectedTrack = selectedTracks
                     )
                 }
@@ -199,7 +198,9 @@ class EpisodeActivity : AppCompatActivity() {
                 Log.w(TAG, "Failed to resume playback state from the cast session", e)
             }
 
-        } else {
+        }
+        // No cast media, or its payload couldn't be read: load the episode normally.
+        if (!::playerViewModel.isInitialized) {
             val viewModel: PlayerViewModel by viewModels(factoryProducer = {
                 PlayerViewModelFactory()
             })
