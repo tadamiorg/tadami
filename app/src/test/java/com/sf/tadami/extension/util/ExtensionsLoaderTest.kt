@@ -16,6 +16,8 @@ class ExtensionsLoaderTest {
 
         assertNull(issue("${ExtensionsLoader.API_VERSION_MIN}.4"))
         assertNull(issue("${ExtensionsLoader.API_VERSION_MAX}.12"))
+        assertEquals(ExtensionLoadIssue.LIB_TOO_OLD, issue("1.4.12"))
+        assertEquals(ExtensionLoadIssue.LIB_TOO_OLD, issue("1.3.5"))
         assertEquals(ExtensionLoadIssue.LIB_TOO_OLD, issue("1.2.30"))
         assertEquals(ExtensionLoadIssue.LIB_TOO_OLD, issue("0.9.1"))
         assertEquals(ExtensionLoadIssue.LIB_TOO_NEW, issue("1.7.1"))

@@ -26,7 +26,8 @@ internal object ExtensionsLoader {
     private const val EXTENSION_PACKAGE_PREFIX = "com.sf.tadami.extension."
     /** Stands for the lib version of an extension whose version name can't be parsed. */
     private val UNKNOWN_LIB_VERSION = LibVersion(0, 0)
-    val API_VERSION_MIN = LibVersion(1, 3)
+    // 1.5: SAnime.status became an SAnimeStatus, older extensions call the removed setStatus(String)
+    val API_VERSION_MIN = LibVersion(1, 5)
     // Bump with each extension API addition, and have the extensions using it declare that lib
     // version: older apps refuse lib versions above their own max instead of crashing on a missing
     // member. 1.6: SAnime.language (released 1.9.3 accepts up to 1.5).
