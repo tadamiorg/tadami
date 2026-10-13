@@ -13,12 +13,15 @@ import com.sf.tadami.ui.components.globalSearch.GlobalSearchItemResult
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.awaitSingleOrError
 import com.sf.tadami.utils.getPreferencesGroup
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
@@ -42,6 +45,7 @@ open class GlobalSearchViewModelBase(
     private val animeRepository: AnimeRepository = Injekt.get()
 
     private var lastQuery : String = ""
+    private var searchJob : Job? = null
 
     val _uiState = MutableStateFlow(GlobalSearchUiState(searchQuery = stateHandle["initialQuery"] ?: "") )
     val uiState = _uiState.asStateFlow()
@@ -70,13 +74,15 @@ open class GlobalSearchViewModelBase(
 
         val enabledSources = getEnabledSources()
 
+        // A previous search still running would otherwise write its results over this one's
+        searchJob?.cancel()
         _uiState.update {
             it.copy(
                 items = enabledSources.associateWith { GlobalSearchItemResult.Loading }
             )
         }
 
-        viewModelScope.launch(Dispatchers.IO) {
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
             enabledSources.map { source ->
                 async {
                     try {
@@ -91,13 +97,17 @@ open class GlobalSearchViewModelBase(
                             animeRepository.insertNetworkToLocalAnime(sAnime.toDomainAnime(source.id))
                         }
                         _uiState.update { currentState ->
+                            if (!isActive) return@update currentState
                             val mutableItems = currentState.items.toMutableMap()
                             mutableItems[source] = GlobalSearchItemResult.Success(titles)
                             currentState.copy(items = mutableItems)
                         }
 
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         _uiState.update { currentState ->
+                            if (!isActive) return@update currentState
                             val mutableItems = currentState.items.toMutableMap()
                             mutableItems[source] = GlobalSearchItemResult.Error(e)
                             currentState.copy(items = mutableItems)
