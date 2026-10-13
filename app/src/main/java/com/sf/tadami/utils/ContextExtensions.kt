@@ -90,16 +90,12 @@ val Context.connectivityManager: ConnectivityManager
 fun Context.isConnectedToWifi(): Boolean {
     if (!wifiManager.isWifiEnabled) return false
 
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        val activeNetwork = connectivityManager.activeNetwork ?: return false
-        val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+    // The bssid can't tell: without the location permission it is a placeholder, connected or not
+    val activeNetwork = connectivityManager.activeNetwork ?: return false
+    val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
 
-        networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) &&
-                networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-    } else {
-        @Suppress("DEPRECATION")
-        wifiManager.connectionInfo.bssid != null
-    }
+    return networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) &&
+            networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
 }
 
 fun Context.isOnline(): Boolean {
