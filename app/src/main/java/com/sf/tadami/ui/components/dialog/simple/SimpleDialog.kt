@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.components.dialog.simple
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -55,6 +56,9 @@ fun SimpleDialog(
             if(isTablet) 600.dp else 450.dp
         }
     }
+
+    // Drawn in the composition rather than in a window, so back has to be routed to the dialog explicitly.
+    BackHandler(enabled = opened, onBack = onDismissRequest)
 
     Crossfade(modifier = Modifier.zIndex(5f),targetState = opened, label = "") { visible ->
         if (visible) {
