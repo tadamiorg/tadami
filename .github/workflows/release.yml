@@ -106,6 +106,8 @@ jobs:
         env:
           RELEASE_CERT_SHA256: ${{ vars.RELEASE_CERT_SHA256 }}
         run: |
+          # The default shell has no pipefail: a failed verify would pass through tee
+          set -o pipefail
           APK=app/build/outputs/apk/release/tadami.apk
           BUILD_TOOLS=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)
           "$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK" | tee "$RUNNER_TEMP/apksigner.txt"
