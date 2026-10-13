@@ -17,3 +17,4 @@ local.properties
 .kotlin/
 .claude
 nul
+/tmp
