@@ -45,6 +45,11 @@ data class Episode(
     }
 }
 
+/** Whether [timeSeen] out of [totalTime] reaches the seen [threshold] percentage (inclusive, so 100% can be reached). */
+fun isEpisodeWatched(timeSeen: Long, totalTime: Long, threshold: Int): Boolean {
+    return (timeSeen.toDouble() / totalTime) * 100 >= threshold
+}
+
 fun Episode.toSEpisode() : SEpisode{
     return SEpisode.create().apply {
         url = this@toSEpisode.url

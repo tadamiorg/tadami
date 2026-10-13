@@ -22,6 +22,7 @@ import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.domain.episode.isEpisodeWatched
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
 import com.sf.tadami.preferences.cast.CastPreferences
@@ -317,7 +318,7 @@ class CastControlService : Service() {
             if (episode.seen || episode.id == 0L) return@launch
             if (totalTime > 0L && timeSeen > 999L) {
                 withContext(Dispatchers.IO) {
-                    val watched = (timeSeen.toDouble() / totalTime) * 100 > threshold
+                    val watched = isEpisodeWatched(timeSeen, totalTime, threshold)
                     if (watched) {
                         updateAnimeInteractor.awaitSeenEpisodeUpdate(setOf(episode.id), true)
                     } else {

@@ -13,6 +13,7 @@ import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.data.interactors.history.UpdateHistoryInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.domain.episode.isEpisodeWatched
 import com.sf.tadami.network.utils.TadaErrorConsumer
 import com.sf.tadami.preferences.CommonKeys
 import com.sf.tadami.source.StubSource
@@ -241,7 +242,7 @@ class PlayerViewModel(
             if (ep.seen) return null
             return viewModelScope.launch(Dispatchers.IO) {
                 if (totalTime > 0L && timeSeen > 999L) {
-                    val watched = (timeSeen.toDouble() / totalTime) * 100 > threshold
+                    val watched = isEpisodeWatched(timeSeen, totalTime, threshold)
                     if (watched) {
                         updateAnimeInteractor.awaitSeenEpisodeUpdate(setOf(ep.id), true)
                     } else {
