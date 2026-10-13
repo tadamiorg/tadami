@@ -195,6 +195,7 @@
     <string name="cache_deleted">Cache effacé.</string>
     <string name="action_migrate">Migrer</string>
     <string name="player_screen_empty_sources">Aucune source vidéo trouvée</string>
+    <string name="player_pip_unavailable">Le mode image dans l\'image n\'est pas disponible</string>
     <string name="filter_display_source_name">Titre de la source</string>
     <string name="filter_display_episode_number">Numéro de l\'episode</string>
     <string name="label_history">Historique</string>

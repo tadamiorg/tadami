@@ -47,6 +47,7 @@
     <string name="player_screen_controls_forward_85" translatable="false">+85 s</string>
     <string name="player_screen_source_load_error">Stream source %1$s can\'t load</string>
     <string name="player_screen_empty_sources">No video sources found</string>
+    <string name="player_pip_unavailable">Picture-in-picture isn\'t available</string>
     <string name="stub_text" translatable="false">stub</string>
     <string name="default_string">Default</string>
     <string name="preferences_library_title">Library</string>

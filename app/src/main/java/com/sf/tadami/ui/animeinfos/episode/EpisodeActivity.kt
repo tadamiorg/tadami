@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -89,6 +90,7 @@ import com.sf.tadami.ui.animeinfos.episode.player.PlayerViewModelFactory
 import com.sf.tadami.ui.animeinfos.episode.player.VideoPlayer
 import com.sf.tadami.ui.utils.getUriCompat
 import com.sf.tadami.ui.utils.setComposeContent
+import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.toShareIntent
 import com.sf.tadami.ui.webview.WebViewActivity
 import com.sf.tadami.utils.createFileInCacheDir
@@ -696,6 +698,11 @@ class EpisodeActivity : AppCompatActivity() {
     }
 
     private fun updatePip(start: Boolean) {
+        // Both PiP calls below throw on devices without picture-in-picture.
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+            if (start) UiToasts.showToast(R.string.player_pip_unavailable)
+            return
+        }
         val anime = playerViewModel.anime.value ?: return
         val episode = playerViewModel.currentEpisode.value ?: return
         val paused = exoPlayer?.isPlaying?.not() ?: return
@@ -713,7 +720,12 @@ class EpisodeActivity : AppCompatActivity() {
             if (PipState.mode == PipState.OFF && start) {
                 PipState.mode = PipState.STARTED
                 playerViewModel.lockControls(locked = true)
-                enterPictureInPictureMode(it)
+                // Refused (e.g. picture-in-picture turned off for the app): give the player back its controls.
+                if (!enterPictureInPictureMode(it)) {
+                    PipState.mode = PipState.OFF
+                    playerViewModel.lockControls(locked = false)
+                    UiToasts.showToast(R.string.player_pip_unavailable)
+                }
             }
         }
 
