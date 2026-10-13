@@ -270,7 +270,7 @@ class PlayerViewModel(
                 selectedSource = selectedSource,
                 availableSources = availableSources,
                 selectedSubtitleTrack = selectedTrack?.toInt()
-                    ?.let { selectedSource.subtitleTracks.takeIf { tracks -> tracks.isNotEmpty() }?.get((it-1.coerceAtLeast(0))) }
+                    ?.let { selectedSource.subtitleTracks.getOrNull(it - 1) }
             )
         }
     }
