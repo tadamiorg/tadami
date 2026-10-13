@@ -23,17 +23,39 @@ import org.jsoup.nodes.Document
 import java.io.File
 import java.io.OutputStream
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resumeWithException
 
 fun Call.asObservable(): Observable<Response> {
-    return Observable.fromCallable {
-        this.execute().also { if (!it.isSuccessful) it.close() }.handleErrors()
+    return executeAsObservable {
+        it.also { if (!it.isSuccessful) it.close() }.handleErrors()
     }
 }
 
 fun Call.asObservableSuccess(): Observable<Response> {
-    return Observable.fromCallable {
-        this.execute()
+    return executeAsObservable { it }
+}
+
+/** Runs the blocking call on subscription. Disposing cancels it, and a late result goes nowhere. */
+private fun Call.executeAsObservable(onResponse: (Response) -> Response): Observable<Response> {
+    return Observable.create { emitter ->
+        // Set once the response is handed over or the subscriber left, whichever comes first
+        val settled = AtomicBoolean(false)
+        // Cancelling after the response is handed over would break the read of its body
+        emitter.setCancellable { if (settled.compareAndSet(false, true)) cancel() }
+        try {
+            val response = onResponse(execute())
+            if (settled.compareAndSet(false, true)) {
+                emitter.onNext(response)
+                emitter.onComplete()
+            } else {
+                // Nobody will consume the response anymore
+                response.close()
+            }
+        } catch (e: Exception) {
+            // Dropped once disposed, instead of reaching RxJavaPlugins.onError
+            emitter.tryOnError(e)
+        }
     }
 }
 

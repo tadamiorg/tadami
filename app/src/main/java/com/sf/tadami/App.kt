@@ -14,6 +14,7 @@ import coil.memory.MemoryCache
 import coil.request.CachePolicy
 import com.sf.tadami.crash.CrashActivity
 import com.sf.tadami.crash.GlobalExceptionHandler
+import com.sf.tadami.network.HttpException
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.interceptors.ImageLoaderInterceptor
 import com.sf.tadami.network.utils.WebViewUtil
@@ -22,16 +23,22 @@ import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.preferences.appearance.setAppCompatDelegateThemeMode
 import com.sf.tadami.utils.animatorDurationScale
 import com.sf.tadami.utils.getPreferencesGroup
+import com.sf.tadami.utils.logcat
+import io.reactivex.rxjava3.exceptions.UndeliverableException
+import io.reactivex.rxjava3.plugins.RxJavaPlugins
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import logcat.LogPriority
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import java.io.IOException
 
 open class App : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
+        setupRxJavaErrorHandler()
 
         // The crash screen runs in its own process, which runs this too
         val isMainProcess = getProcessName() == packageName
@@ -56,6 +63,22 @@ open class App : Application(), ImageLoaderFactory {
 
         setAppCompatDelegateThemeMode(appearancePreferences.themeMode)
     }
+    private fun setupRxJavaErrorHandler() {
+        RxJavaPlugins.setErrorHandler { error ->
+            // An error nobody is subscribed to anymore, e.g. a request failing after its screen
+            // closed: not worth a crash
+            if (error is UndeliverableException || error is IOException ||
+                error is InterruptedException || error is HttpException
+            ) {
+                logcat(LogPriority.WARN, error) { "Undeliverable RxJava error" }
+                return@setErrorHandler
+            }
+            // Likely a bug, crash as RxJava does without a handler
+            val thread = Thread.currentThread()
+            thread.uncaughtExceptionHandler?.uncaughtException(thread, error)
+        }
+    }
+
     private fun createNotificationChannels(){
         Notifications.setupNotificationsChannels(this)
     }
