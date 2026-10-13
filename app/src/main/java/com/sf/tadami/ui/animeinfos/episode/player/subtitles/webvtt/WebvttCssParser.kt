@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.animeinfos.episode.player.subtitles.webvtt
 
-import android.text.TextUtils
 import androidx.media3.common.text.TextAnnotation
 import androidx.media3.common.util.Assertions
 import androidx.media3.common.util.ColorParser
@@ -36,11 +35,8 @@ internal class WebvttCssParser {
         styleInput.position = initialInputPosition
 
         val styles: MutableList<WebvttCssStyle> = ArrayList()
-        var selector: String
-        while ((parseSelector(styleInput, stringBuilder).also {
-                selector =
-                    it!!
-            }) != null) {
+        while (true) {
+            val selector = parseSelector(styleInput, stringBuilder) ?: break
             if (RULE_START != parseNextToken(styleInput, stringBuilder)) {
                 return styles
             }
@@ -277,7 +273,7 @@ internal class WebvttCssParser {
             var line: String?
             do {
                 line = input.readLine()
-            } while (!TextUtils.isEmpty(line))
+            } while (!line.isNullOrEmpty())
         }
 
         private fun peekCharAtPosition(input: ParsableByteArray, position: Int): Char {
