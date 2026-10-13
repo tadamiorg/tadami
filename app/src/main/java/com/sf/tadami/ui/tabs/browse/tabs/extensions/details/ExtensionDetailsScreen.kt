@@ -120,6 +120,7 @@ fun ExtensionDetailsScreen(
             ExtensionDetailsComponent(
                 contentPadding = it,
                 onClickUninstall = extensionDetailsViewModel::uninstallExtension,
+                onClickTrust = extensionDetailsViewModel::trustExtension,
                 extension = uiState.extension!!
             )
         }

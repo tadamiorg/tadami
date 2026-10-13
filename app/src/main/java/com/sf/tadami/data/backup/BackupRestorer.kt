@@ -33,6 +33,7 @@ import com.sf.tadami.domain.history.HistoryUpdate
 import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.notifications.backup.BackupNotifier
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
+import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.utils.createFileInCacheDir
 import com.sf.tadami.utils.editPreference
 import kotlinx.coroutines.CoroutineScope
@@ -386,7 +387,8 @@ class BackupRestorer(
         preferenceStore: DataStore<Preferences>,
     ) {
 
-        toRestore.forEach { (key, value) ->
+        // Never backed up, so a backup file can't set them, like the trusted extension signatures
+        toRestore.filterNot { CustomPreferences.isPrivate(it.key) }.forEach { (key, value) ->
             when (value) {
                 is IntPreferenceValue -> {
                     preferenceStore.editPreference(value.value, intPreferencesKey(key))

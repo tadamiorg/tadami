@@ -11,11 +11,14 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
+import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.ui.utils.padding
 
@@ -60,7 +63,11 @@ fun ExtensionItemActions(
                             )
                         }
 
-                        if (extension.hasUpdate) {
+                        if (extension.loadIssue == ExtensionLoadIssue.UNTRUSTED) {
+                            TextButton(onClick = { onClickItemAction(extension) }) {
+                                Text(text = stringResource(R.string.ext_trust))
+                            }
+                        } else if (extension.hasUpdate) {
                             IconButton(onClick = { onClickItemAction(extension) }) {
                                 Icon(
                                     imageVector = Icons.Outlined.GetApp,

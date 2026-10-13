@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
+import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.ui.components.banners.WarningBanner
 import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.ExtensionUiModel
@@ -33,6 +34,7 @@ fun ExtensionContent(
     onOpenWebView: (Extension.Available) -> Unit,
     onInstallExtension: (Extension.Available) -> Unit,
     onUninstallExtension: (Extension) -> Unit,
+    onTrustExtension: (Extension.Installed) -> Unit,
     onUpdateExtension: (Extension.Installed) -> Unit,
     onOpenExtension: (Extension.Installed) -> Unit,
     onClickUpdateAll: () -> Unit,
@@ -116,7 +118,9 @@ fun ExtensionContent(
                         when (it) {
                             is Extension.Available -> onInstallExtension(it)
                             is Extension.Installed -> {
-                                if (it.hasUpdate) {
+                                if (it.loadIssue == ExtensionLoadIssue.UNTRUSTED) {
+                                    onTrustExtension(it)
+                                } else if (it.hasUpdate) {
                                     onUpdateExtension(it)
                                 } else {
                                     onOpenExtension(it)

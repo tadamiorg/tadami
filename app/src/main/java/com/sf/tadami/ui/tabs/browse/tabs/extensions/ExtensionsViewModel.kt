@@ -191,6 +191,10 @@ class ExtensionsViewModel : ViewModel() {
         extensionManager.uninstallExtension(extension)
     }
 
+    fun trustExtension(extension: Extension.Installed) {
+        viewModelScope.launchIO { extensionManager.trustExtension(extension) }
+    }
+
     fun findAvailableExtensions() {
         viewModelScope.launchIO {
             _uiState.update { it.copy(isRefreshing = true) }

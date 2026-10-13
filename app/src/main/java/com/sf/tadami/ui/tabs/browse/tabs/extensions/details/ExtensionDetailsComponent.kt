@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
+import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.ui.components.banners.WarningBanner
 import com.sf.tadami.ui.components.widgets.ScrollbarLazyColumn
 
@@ -15,6 +16,7 @@ import com.sf.tadami.ui.components.widgets.ScrollbarLazyColumn
 fun ExtensionDetailsComponent(
     contentPadding : PaddingValues,
     onClickUninstall: () -> Unit,
+    onClickTrust: () -> Unit,
     extension : Extension.Installed
 ) {
     val context = LocalContext.current
@@ -37,6 +39,7 @@ fun ExtensionDetailsComponent(
             ExtensionDetailsHeader(
                 extension = extension,
                 onClickUninstall = onClickUninstall,
+                onClickTrust = onClickTrust.takeIf { extension.loadIssue == ExtensionLoadIssue.UNTRUSTED },
                 onClickAppInfo = {
                     Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                         data = Uri.fromParts("package", extension.pkgName, null)

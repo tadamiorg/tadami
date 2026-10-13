@@ -5,16 +5,19 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.api.ExtensionsApi
 import com.sf.tadami.extension.api.RepoExtensions
+import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.extension.model.LoadResult
 import com.sf.tadami.extension.util.ExtensionsInstaller
 import com.sf.tadami.extension.util.ExtensionsLoader
 import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerNotifier
 import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerReceiver
+import com.sf.tadami.preferences.extensions.TrustedExtensionsPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.ui.utils.UiToasts
@@ -217,6 +220,31 @@ class ExtensionManager(
      */
     fun uninstallExtension(extension: Extension) {
         installer.uninstallApk(extension.pkgName)
+    }
+
+    /**
+     * Trusts the key the given untrusted extension is signed with, then loads the extensions signed
+     * with it. They, and their updates signed with it, are loaded from now on.
+     *
+     * @param extension The extension to trust.
+     */
+    suspend fun trustExtension(extension: Extension.Installed) {
+        val signatureHash = extension.signatureHash ?: return
+        dataStore.edit { preferences ->
+            preferences[TrustedExtensionsPreferences.TRUSTED_SIGNATURES] =
+                preferences[TrustedExtensionsPreferences.TRUSTED_SIGNATURES].orEmpty() + signatureHash
+        }
+        withContext(Dispatchers.IO) {
+            _installedExtensionsFlow.value
+                .filter { it.loadIssue == ExtensionLoadIssue.UNTRUSTED && it.signatureHash == signatureHash }
+                .forEach {
+                    val result = ExtensionsLoader.loadExtensionFromPkgName(context, it.pkgName)
+                    if (result is LoadResult.Success) {
+                        registerUpdatedExtension(result.extension.withUpdateCheck())
+                    }
+                }
+            updatePendingUpdatesCount()
+        }
     }
 
     /**

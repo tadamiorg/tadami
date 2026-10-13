@@ -24,4 +24,7 @@ enum class ExtensionLoadIssue(
 
     /** Its sources couldn't be found or instantiated. */
     LOAD_FAILED(R.string.ext_issue_load_failed, R.string.ext_issue_load_failed_message),
+
+    /** Signed with a key that isn't the official one nor trusted by the user: none of it is loaded. */
+    UNTRUSTED(R.string.ext_issue_untrusted, R.string.ext_issue_untrusted_message),
 }

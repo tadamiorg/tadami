@@ -26,7 +26,7 @@ import com.sf.tadami.ui.utils.secondaryItemAlpha
 /**
  * An installed extension that can't be used ([Extension.Installed.loadIssue]), in place of its
  * sources: its buttons are there but disabled, and the reason is shown. Clicking it opens the
- * extension, where it can be uninstalled.
+ * extension, where it can be uninstalled, or trusted when it's untrusted.
  */
 @Composable
 fun UnusableExtensionItem(

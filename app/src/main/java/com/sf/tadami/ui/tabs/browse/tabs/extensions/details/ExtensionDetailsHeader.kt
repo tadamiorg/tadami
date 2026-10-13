@@ -27,6 +27,7 @@ fun ExtensionDetailsHeader(
     extension: Extension,
     onClickUninstall: () -> Unit,
     onClickAppInfo: (() -> Unit)?,
+    onClickTrust: (() -> Unit)? = null,
 ) {
     Column {
         Column(
@@ -95,6 +96,17 @@ fun ExtensionDetailsHeader(
             ),
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.medium),
         ) {
+            if (onClickTrust != null) {
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onClickTrust,
+                ) {
+                    Text(
+                        text = stringResource(R.string.ext_trust),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                }
+            }
             if (onClickAppInfo != null) {
                 Button(
                     modifier = Modifier.fillMaxWidth(),

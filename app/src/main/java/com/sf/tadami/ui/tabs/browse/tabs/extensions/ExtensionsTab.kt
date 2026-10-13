@@ -76,6 +76,7 @@ fun extensionsTab(
                 navController.navigate("${DiscoverRoutes.EXTENSION_DETAILS}/${it.pkgName}")
             },
             onUninstallExtension = { extensionsViewModel.uninstallExtension(it) },
+            onTrustExtension = extensionsViewModel::trustExtension,
             onUpdateExtension = extensionsViewModel::updateExtension,
             onRefresh = extensionsViewModel::findAvailableExtensions,
         )

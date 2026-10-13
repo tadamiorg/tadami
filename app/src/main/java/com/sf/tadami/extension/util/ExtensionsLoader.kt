@@ -7,17 +7,24 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import androidx.core.content.pm.PackageInfoCompat
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.extension.model.LibVersion
 import com.sf.tadami.extension.model.LoadResult
+import com.sf.tadami.preferences.extensions.TrustedExtensionsPreferences
 import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.source.Source
 import com.sf.tadami.utils.Lang
+import com.sf.tadami.utils.getPreferencesGroup
 import dalvik.system.PathClassLoader
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
+import java.security.MessageDigest
 
 internal object ExtensionsLoader {
 
@@ -32,6 +39,10 @@ internal object ExtensionsLoader {
     // version: older apps refuse lib versions above their own max instead of crashing on a missing
     // member. 1.6: SAnime.language (released 1.9.3 accepts up to 1.5).
     val API_VERSION_MAX = LibVersion(1, 6)
+
+    /** SHA-256 fingerprint of the key the official extensions are signed with. */
+    private const val OFFICIAL_SIGNATURE_HASH =
+        "11dec208a209773efdc5348af5de709ca9af067e9154d1dd3c6abdb0fa3cc200"
 
     @Suppress("DEPRECATION")
     private val PACKAGE_FLAGS = PackageManager.GET_CONFIGURATIONS or
@@ -66,11 +77,13 @@ internal object ExtensionsLoader {
 
         if (extPkgs.isEmpty()) return emptyList()
 
+        val trustedSignatures = trustedSignatures()
+
         // Load each extension concurrently and wait for completion
         return runBlocking {
             val deferred = extPkgs.map {
                 // One malformed package must not prevent the others from loading
-                async { runCatching { loadExtension(context, it) }.getOrDefault(LoadResult.Error) }
+                async { runCatching { loadExtension(context, it, trustedSignatures) }.getOrDefault(LoadResult.Error) }
             }
             deferred.awaitAll()
         }
@@ -87,7 +100,7 @@ internal object ExtensionsLoader {
             Log.d("LoadExtensionFromPkgName","Extension package is not found ($pkgName)")
             return LoadResult.Error
         }
-        return loadExtension(context, extensionPackage)
+        return loadExtension(context, extensionPackage, trustedSignatures())
     }
 
     fun getExtensionPackageInfoFromPkgName(context: Context, pkgName: String): PackageInfo? {
@@ -116,10 +129,15 @@ internal object ExtensionsLoader {
      *
      * @param context The application context.
      * @param extensionInfo The extension to load.
+     * @param trustedSignatures The signing keys the user trusted, see [isTrusted].
      */
-    private fun loadExtension(context: Context, extensionInfo: ExtensionInfo): LoadResult {
+    private fun loadExtension(
+        context: Context,
+        extensionInfo: ExtensionInfo,
+        trustedSignatures: Set<String>,
+    ): LoadResult {
         return try {
-            loadExtensionUnsafe(context, extensionInfo)
+            loadExtensionUnsafe(context, extensionInfo, trustedSignatures)
         } catch (e: Throwable) {
             Log.d("LoadExtension","Extension load error: ${extensionInfo.packageInfo.packageName}")
             Log.d("LoadExtension Error",e.stackTraceToString())
@@ -127,7 +145,11 @@ internal object ExtensionsLoader {
         }
     }
 
-    private fun loadExtensionUnsafe(context: Context, extensionInfo: ExtensionInfo): LoadResult {
+    private fun loadExtensionUnsafe(
+        context: Context,
+        extensionInfo: ExtensionInfo,
+        trustedSignatures: Set<String>,
+    ): LoadResult {
         val pkgManager = context.packageManager
         val pkgInfo = extensionInfo.packageInfo
         val appInfo = pkgInfo.applicationInfo ?: return LoadResult.Error
@@ -137,6 +159,7 @@ internal object ExtensionsLoader {
         val versionName = pkgInfo.versionName
         val versionCode = PackageInfoCompat.getLongVersionCode(pkgInfo)
         val apiVersion = versionName?.let { LibVersion.fromVersionName(it) }
+        val signatureHashes = signatureHashes(pkgInfo)
 
         // Still listed, without its sources, so that the user sees why it can't be used
         fun unusable(issue: ExtensionLoadIssue): LoadResult {
@@ -154,8 +177,14 @@ internal object ExtensionsLoader {
                     icon = appInfo.loadIcon(pkgManager),
                     isShared = extensionInfo.isShared,
                     loadIssue = issue,
+                    signatureHash = signatureHashes.lastOrNull(),
                 ),
             )
+        }
+
+        // Before anything of the package is loaded: the code of an untrusted one must never run
+        if (!isTrusted(signatureHashes, trustedSignatures)) {
+            return unusable(ExtensionLoadIssue.UNTRUSTED)
         }
 
         libVersionIssue(apiVersion)?.let {
@@ -216,8 +245,43 @@ internal object ExtensionsLoader {
             pkgFactory = null,
             icon = appInfo.loadIcon(pkgManager),
             isShared = extensionInfo.isShared,
+            signatureHash = signatureHashes.lastOrNull(),
         )
         return LoadResult.Success(extension)
+    }
+
+    private fun trustedSignatures(): Set<String> = runBlocking {
+        Injekt.get<DataStore<Preferences>>()
+            .getPreferencesGroup(TrustedExtensionsPreferences)
+            .trustedSignatures
+    }
+
+    /**
+     * SHA-256 fingerprints of the certificates [pkgInfo] is signed with, the current one last.
+     * With a rotated key, the older ones the platform verified come first.
+     */
+    private fun signatureHashes(pkgInfo: PackageInfo): List<String> {
+        // signingInfo is there from API 28, the minSdk: no need for the legacy signatures
+        val signingInfo = pkgInfo.signingInfo ?: return emptyList()
+        val signatures = if (signingInfo.hasMultipleSigners()) {
+            signingInfo.apkContentsSigners
+        } else {
+            signingInfo.signingCertificateHistory
+        }
+        return signatures.orEmpty().map { sha256(it.toByteArray()) }
+    }
+
+    /** Lowercase hex SHA-256 of [bytes]. */
+    internal fun sha256(bytes: ByteArray): String {
+        return MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+    }
+
+    /**
+     * Whether an extension signed with [signatureHashes] can be loaded: signed with the official
+     * key, or with one of the [trustedSignatures] the user trusted.
+     */
+    internal fun isTrusted(signatureHashes: List<String>, trustedSignatures: Set<String>): Boolean {
+        return signatureHashes.any { it == OFFICIAL_SIGNATURE_HASH || it in trustedSignatures }
     }
 
     /** Why an extension built against [libVersion] can't be loaded, or null when it can. */

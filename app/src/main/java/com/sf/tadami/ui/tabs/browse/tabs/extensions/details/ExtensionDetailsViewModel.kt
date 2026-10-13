@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.source.online.AnimeHttpSource
+import com.sf.tadami.utils.launchIO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -68,5 +69,10 @@ class ExtensionDetailsViewModel(
     fun uninstallExtension() {
         val extension = _uiState.value.extension ?: return
         extensionManager.uninstallExtension(extension)
+    }
+
+    fun trustExtension() {
+        val extension = _uiState.value.extension ?: return
+        viewModelScope.launchIO { extensionManager.trustExtension(extension) }
     }
 }

@@ -32,6 +32,8 @@ sealed class Extension {
         val repoUrl: String? = null,
         /** Set when the extension can't be used, [sources] is empty then. */
         val loadIssue: ExtensionLoadIssue? = null,
+        /** SHA-256 fingerprint of its signing key, the one stored when the user trusts it. */
+        val signatureHash: String? = null,
     ) : Extension()
 
     data class Available(
