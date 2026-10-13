@@ -21,4 +21,10 @@ class CastUtilsTest {
         assertTrue(isCastMediaEnded(MediaStatus.IDLE_REASON_FINISHED))
         assertFalse(isCastMediaEnded(MediaStatus.IDLE_REASON_INTERRUPTED))
     }
+
+    @Test
+    fun vpnAndCellularInterfacesAreNotLanCandidates() {
+        listOf("tun0", "ppp0", "wg0", "ipsec0", "rmnet_data0").forEach { assertFalse(it, isLanInterfaceCandidate(it)) }
+        listOf("wlan0", "eth0", "ap0", "swlan0").forEach { assertTrue(it, isLanInterfaceCandidate(it)) }
+    }
 }

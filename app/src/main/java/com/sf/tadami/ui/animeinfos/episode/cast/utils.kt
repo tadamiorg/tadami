@@ -58,7 +58,8 @@ fun getLocalIPAddress(context: Context): String? {
             @Suppress("DEPRECATION")
             for (network in connectivity.allNetworks) {
                 val capabilities = connectivity.getNetworkCapabilities(network) ?: continue
-                if (!capabilities.hasTransport(transport)) continue
+                // A VPN network also lists the transports it runs over (Wi-Fi), but its address is the tunnel's
+                if (!capabilities.hasTransport(transport) || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) continue
                 connectivity.getLinkProperties(network)?.linkAddresses
                     ?.map { it.address }
                     ?.firstOrNull { it is Inet4Address && !it.isLoopbackAddress }
@@ -70,15 +71,18 @@ fun getLocalIPAddress(context: Context): String? {
     // 2) Interface scan fallback (covers hotspot ap0/swlan0), skipping VPN/cellular interfaces.
     return runCatching {
         NetworkInterface.getNetworkInterfaces().asSequence()
-            .filter { nic ->
-                val name = nic.name.lowercase()
-                !name.startsWith("tun") && !name.startsWith("ppp") && !name.startsWith("rmnet")
-            }
+            .filter { nic -> isLanInterfaceCandidate(nic.name) }
             .sortedByDescending { it.name.lowercase().let { n -> n.startsWith("wlan") || n.startsWith("ap") || n.startsWith("swlan") } }
             .flatMap { it.inetAddresses.asSequence() }
             .firstOrNull { it is Inet4Address && !it.isLoopbackAddress && it.isSiteLocalAddress }
             ?.hostAddress
     }.getOrNull()
+}
+
+/** Not a VPN tunnel (tun, ppp, WireGuard, IPsec) nor a cellular interface: the TV can't reach those addresses. */
+internal fun isLanInterfaceCandidate(interfaceName: String): Boolean {
+    val name = interfaceName.lowercase()
+    return listOf("tun", "ppp", "wg", "ipsec", "rmnet").none { name.startsWith(it) }
 }
 
 fun logCastConnectionError(source: String, error: Int) {
