@@ -1,17 +1,17 @@
 package com.sf.tadami.data.episode
 
+import com.sf.tadami.Database
 import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.UpdateEpisode
 import kotlinx.coroutines.flow.Flow
 
 interface EpisodeRepository {
-    suspend fun addAll(episodes: List<Episode>): List<Episode>
+    suspend fun sync(toAdd: List<Episode>, toUpdate: List<UpdateEpisode>, toDelete: List<Long>): List<Episode>
     suspend fun getEpisodesByAnimeId(animeId: Long): List<Episode>
     suspend fun getEpisodeById(episodeId: Long): Episode
     fun getEpisodeByIdAsFlow(episodeId: Long): Flow<Episode>
     fun getEpisodesByAnimeIdAsFlow(animeId: Long): Flow<List<Episode>>
-    suspend fun deleteEpisodesById(ids: List<Long>)
     suspend fun updateAll(episodes: List<UpdateEpisode>)
     suspend fun updateAllByAnimeIds(animeIdsWithEpUpdate : List<Pair<Long,UpdateEpisode>>)
     suspend fun update(episodeUpdate: UpdateEpisode)
@@ -21,32 +21,34 @@ interface EpisodeRepository {
 class EpisodeRepositoryImpl(
     private val handler: DataBaseHandler
 ) : EpisodeRepository {
-    override suspend fun addAll(episodes: List<Episode>): List<Episode> {
-        return try {
-            handler.await {
-                episodes.map { episode ->
-                   episodeQueries.insert(
-                        animeId = episode.animeId,
-                        url = episode.url,
-                        name = episode.name,
-                        episodeNumber = episode.episodeNumber.toDouble(),
-                        timeSeen = episode.timeSeen,
-                        totalTime = episode.totalTime,
-                        dateFetch = episode.dateFetch,
-                        dateUpload = episode.dateUpload,
-                        seen = episode.seen,
-                        sourceOrder = episode.sourceOrder,
-                        languages = episode.languages
-                    )
-                    val insertedEpId = episodeQueries.selectLastInsertedRowId().executeAsOne()
-                    episode.copy(id = insertedEpId)
-                }
+    override suspend fun sync(
+        toAdd: List<Episode>,
+        toUpdate: List<UpdateEpisode>,
+        toDelete: List<Long>
+    ): List<Episode> {
+        return handler.await {
+            if (toDelete.isNotEmpty()) {
+                episodeQueries.delete(toDelete)
             }
-        } catch (e: Exception) {
-            emptyList()
+            toUpdate.forEach { updateEpisode(it) }
+            toAdd.map { episode ->
+                episodeQueries.insert(
+                    animeId = episode.animeId,
+                    url = episode.url,
+                    name = episode.name,
+                    episodeNumber = episode.episodeNumber.toDouble(),
+                    timeSeen = episode.timeSeen,
+                    totalTime = episode.totalTime,
+                    dateFetch = episode.dateFetch,
+                    dateUpload = episode.dateUpload,
+                    seen = episode.seen,
+                    sourceOrder = episode.sourceOrder,
+                    languages = episode.languages
+                )
+                val insertedEpId = episodeQueries.selectLastInsertedRowId().executeAsOne()
+                episode.copy(id = insertedEpId)
+            }
         }
-
-
     }
 
     override suspend fun getEpisodesByAnimeId(animeId: Long): List<Episode> {
@@ -77,28 +79,9 @@ class EpisodeRepositoryImpl(
         }
     }
 
-    override suspend fun deleteEpisodesById(ids: List<Long>) {
-        handler.await { episodeQueries.delete(ids) }
-    }
-
     override suspend fun updateAll(episodes: List<UpdateEpisode>) {
         handler.await {
-            episodes.forEach { episodeUpdate ->
-                episodeQueries.update(
-                    animeId = episodeUpdate.animeId,
-                    url = episodeUpdate.url,
-                    name = episodeUpdate.name,
-                    episodeNumber = episodeUpdate.episodeNumber?.toDouble(),
-                    timeSeen = episodeUpdate.timeSeen,
-                    totalTime = episodeUpdate.totalTime,
-                    dateFetch = episodeUpdate.dateFetch,
-                    dateUpload = episodeUpdate.dateUpload,
-                    seen = episodeUpdate.seen,
-                    sourceOrder = episodeUpdate.sourceOrder,
-                    episodeId = episodeUpdate.id,
-                    languages = episodeUpdate.languages
-                )
-            }
+            episodes.forEach { updateEpisode(it) }
         }
     }
 
@@ -123,21 +106,23 @@ class EpisodeRepositoryImpl(
     }
 
     override suspend fun update(episodeUpdate: UpdateEpisode) {
-        handler.await {
-            episodeQueries.update(
-                animeId = episodeUpdate.animeId,
-                url = episodeUpdate.url,
-                name = episodeUpdate.name,
-                episodeNumber = episodeUpdate.episodeNumber?.toDouble(),
-                timeSeen = episodeUpdate.timeSeen,
-                totalTime = episodeUpdate.totalTime,
-                dateFetch = episodeUpdate.dateFetch,
-                dateUpload = episodeUpdate.dateUpload,
-                seen = episodeUpdate.seen,
-                sourceOrder = episodeUpdate.sourceOrder,
-                episodeId = episodeUpdate.id,
-                languages = episodeUpdate.languages
-            )
-        }
+        handler.await { updateEpisode(episodeUpdate) }
+    }
+
+    private fun Database.updateEpisode(episodeUpdate: UpdateEpisode) {
+        episodeQueries.update(
+            animeId = episodeUpdate.animeId,
+            url = episodeUpdate.url,
+            name = episodeUpdate.name,
+            episodeNumber = episodeUpdate.episodeNumber?.toDouble(),
+            timeSeen = episodeUpdate.timeSeen,
+            totalTime = episodeUpdate.totalTime,
+            dateFetch = episodeUpdate.dateFetch,
+            dateUpload = episodeUpdate.dateUpload,
+            seen = episodeUpdate.seen,
+            sourceOrder = episodeUpdate.sourceOrder,
+            episodeId = episodeUpdate.id,
+            languages = episodeUpdate.languages
+        )
     }
 }

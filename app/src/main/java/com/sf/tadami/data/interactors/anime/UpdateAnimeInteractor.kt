@@ -12,7 +12,6 @@ import com.sf.tadami.source.model.SAnime
 import com.sf.tadami.source.model.SEpisode
 import java.time.Instant
 import java.time.ZonedDateTime
-import java.util.TreeSet
 
 class UpdateAnimeInteractor(
     private val animeRepository: AnimeRepository,
@@ -114,7 +113,7 @@ class UpdateAnimeInteractor(
             sourceEpisodes.any { sourceEpisode ->
                 dbEpisode.url == sourceEpisode.url
             }
-        }
+        }.toMutableList()
 
         // Used to not set upload date of older episodes
         // to a higher value than newer episodes
@@ -127,7 +126,11 @@ class UpdateAnimeInteractor(
             val episodeNumber = episode.episodeNumber
             episode = episode.copy(episodeNumber = episodeNumber)
 
+            // An episode the source moved to another url is matched by number to a removed one,
+            // updated in place to keep its seen state, progress and history
             val dbEpisode = dbEpisodes.find { it.url == episode.url }
+                ?: removedEpisodes.find { it.episodeNumber == episode.episodeNumber }
+                    ?.also { removedEpisodes.remove(it) }
 
             if (dbEpisode == null) {
                 val toAddEpisode = if (episode.dateUpload == 0L) {
@@ -141,6 +144,7 @@ class UpdateAnimeInteractor(
                 newEpisodes.add(toAddEpisode)
             } else {
                     var toChangeEpisode = dbEpisode.copy(
+                        url = episode.url,
                         name = episode.name,
                         episodeNumber = episode.episodeNumber,
                         languages = episode.languages,
@@ -169,75 +173,37 @@ class UpdateAnimeInteractor(
             return emptyList()
         }
 
-        val reAdded = mutableListOf<Episode>()
-
-        val deletedEpisodeNumbers = TreeSet<Double>()
-        val deletedSeenEpisodeNumbers = TreeSet<Double>()
-
-        removedEpisodes.forEach { episode ->
-            if (episode.seen) deletedSeenEpisodeNumbers.add(episode.episodeNumber.toDouble())
-            deletedEpisodeNumbers.add(episode.episodeNumber.toDouble())
-        }
-
-        val deletedEpisodeNumberDateFetchMap = removedEpisodes.sortedByDescending { it.dateFetch }
-            .associate { it.episodeNumber to it.dateFetch }
-
         // Date fetch is set in such a way that the upper ones will have bigger value than the lower ones
         // Sources MUST return the episodes from most to less recent, which is common.
         var itemCount = newEpisodes.size
-        var updatedToAdd = newEpisodes.map { toAddItem ->
-            var episode = toAddItem.copy(dateFetch = nowMillis + itemCount--)
+        val toAdd = newEpisodes.map { it.copy(dateFetch = nowMillis + itemCount--) }
 
-            if (episode.episodeNumber.toDouble() !in deletedEpisodeNumbers) return@map episode
-
-            episode = episode.copy(
-                seen = episode.episodeNumber.toDouble() in deletedSeenEpisodeNumbers,
+        // Only the fields from the source: the seen state and progress read above may be stale by now
+        val episodeUpdates = updatedEpisodes.map {
+            UpdateEpisode(
+                id = it.id,
+                url = it.url,
+                name = it.name,
+                episodeNumber = it.episodeNumber,
+                dateUpload = it.dateUpload,
+                sourceOrder = it.sourceOrder,
+                languages = it.languages,
             )
-
-            // Try to to use the fetch date of the original entry to not pollute 'Updates' tab
-            deletedEpisodeNumberDateFetchMap[episode.episodeNumber]?.let {
-                episode = episode.copy(dateFetch = it)
-            }
-
-            reAdded.add(episode)
-
-            episode
         }
 
-        if (removedEpisodes.isNotEmpty()) {
-            val toDeleteIds = removedEpisodes.map { it.id }
-            episodeRepository.deleteEpisodesById(toDeleteIds)
-        }
-
-        if (updatedToAdd.isNotEmpty()) {
-            updatedToAdd = episodeRepository.addAll(updatedToAdd)
-        }
-
-        if (updatedEpisodes.isNotEmpty()) {
-            // Only the fields from the source: the seen state and progress read above may be stale by now
-            val episodeUpdates = updatedEpisodes.map {
-                UpdateEpisode(
-                    id = it.id,
-                    name = it.name,
-                    episodeNumber = it.episodeNumber,
-                    dateUpload = it.dateUpload,
-                    sourceOrder = it.sourceOrder,
-                    languages = it.languages,
-                )
-            }
-            episodeRepository.updateAll(episodeUpdates)
-        }
+        // One transaction, so a cancel or an error can't delete the removed episodes without adding the new ones
+        val addedEpisodes = episodeRepository.sync(
+            toAdd = toAdd,
+            toUpdate = episodeUpdates,
+            toDelete = removedEpisodes.map { it.id },
+        )
         awaitUpdateFetchInterval(anime, now, fetchWindow)
 
         // Set this anime as updated since episodes were changed
         // Note that last_update actually represents last time the episode list changed at all
         awaitUpdateLastUpdate(anime.id)
 
-        val reAddedUrls = reAdded.map { it.url }.toHashSet()
-
-        return updatedToAdd.filterNot {
-            it.url in reAddedUrls
-        }
+        return addedEpisodes
     }
 
     suspend fun awaitSeenEpisodeTimeUpdate(

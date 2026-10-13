@@ -67,6 +67,36 @@ class UpdateAnimeInteractorTest {
         assertTrue(animes.updates.any { it.lastUpdate != null })
     }
 
+    @Test
+    fun episodeMovedToAnotherUrlIsUpdatedInPlace() = runBlocking {
+        val episodes = FakeEpisodeRepository(listOf(dbEpisode))
+        val animes = FakeAnimeRepository()
+
+        val added = sync(episodes, animes, sEpisode("/new-ep1", "Episode 1", 1f))
+
+        // Same row: it keeps its seen state, progress and the history pointing to it
+        assertTrue(added.isEmpty())
+        assertTrue(episodes.added.isEmpty())
+        assertTrue(episodes.deleted.isEmpty())
+        val update = episodes.updated.single()
+        assertEquals(dbEpisode.id, update.id)
+        assertEquals("/new-ep1", update.url)
+        assertEquals(null, update.seen)
+        assertEquals(null, update.timeSeen)
+    }
+
+    @Test
+    fun removedAndNewEpisodesWithOtherNumbersAreDeletedAndAdded() = runBlocking {
+        val episodes = FakeEpisodeRepository(listOf(dbEpisode))
+        val animes = FakeAnimeRepository()
+
+        val added = sync(episodes, animes, sEpisode("/ep2", "Episode 2", 2f))
+
+        assertEquals(listOf(dbEpisode.id), episodes.deleted)
+        assertEquals("/ep2", added.single().url)
+        assertTrue(episodes.updated.isEmpty())
+    }
+
     private suspend fun sync(
         episodes: FakeEpisodeRepository,
         animes: FakeAnimeRepository,
@@ -95,23 +125,23 @@ class UpdateAnimeInteractorTest {
         val deleted = mutableListOf<Long>()
         val updated = mutableListOf<UpdateEpisode>()
 
-        override suspend fun addAll(episodes: List<Episode>): List<Episode> {
-            added += episodes
-            return episodes.mapIndexed { i, episode -> episode.copy(id = 100L + i) }
+        override suspend fun sync(
+            toAdd: List<Episode>,
+            toUpdate: List<UpdateEpisode>,
+            toDelete: List<Long>
+        ): List<Episode> {
+            added += toAdd
+            updated += toUpdate
+            deleted += toDelete
+            return toAdd.mapIndexed { i, episode -> episode.copy(id = 100L + i) }
         }
 
         override suspend fun getEpisodesByAnimeId(animeId: Long) = episodes
-        override suspend fun deleteEpisodesById(ids: List<Long>) {
-            deleted += ids
-        }
-
-        override suspend fun updateAll(episodes: List<UpdateEpisode>) {
-            updated += episodes
-        }
 
         override suspend fun getEpisodeById(episodeId: Long): Episode = TODO()
         override fun getEpisodeByIdAsFlow(episodeId: Long): Flow<Episode> = TODO()
         override fun getEpisodesByAnimeIdAsFlow(animeId: Long): Flow<List<Episode>> = TODO()
+        override suspend fun updateAll(episodes: List<UpdateEpisode>) = TODO()
         override suspend fun updateAllByAnimeIds(animeIdsWithEpUpdate: List<Pair<Long, UpdateEpisode>>) = TODO()
         override suspend fun update(episodeUpdate: UpdateEpisode) = TODO()
     }
