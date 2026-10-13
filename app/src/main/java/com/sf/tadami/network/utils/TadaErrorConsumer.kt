@@ -56,6 +56,7 @@ class TadaErrorConsumer(
                         msg = actualError
                     )
                 }
+                callback?.invoke(e,e.message, null)
             }
             is SourceNotInstalledException -> {
                 Injekt.get<Application>().let {
