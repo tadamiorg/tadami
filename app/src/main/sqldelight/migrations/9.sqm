@@ -1,0 +1,31 @@
+-- COUNT(*) counted the LEFT JOIN's empty row as an episode for an anime without any: count episode ids.
+DROP VIEW IF EXISTS LibraryView;
+
+CREATE VIEW LibraryView AS
+SELECT
+Anime._id,
+Anime.source,
+Anime.url,
+Anime.title,
+Anime.thumbnail_url,
+Anime.release,
+Anime.status,
+Anime.description,
+Anime.genres,
+Anime.last_update,
+Anime.next_update,
+Anime.calculate_interval,
+Anime.favorite,
+Anime.initialized,
+Anime.episode_flags,
+Anime.date_added,
+Anime.studio,
+Anime.author,
+Anime.raw_title,
+Anime.language,
+COUNT(Episode._id) AS episodes,
+TOTAL(Episode.seen = 0) AS unseen_episodes
+FROM Anime
+LEFT JOIN Episode ON Anime._id = Episode.anime_id
+WHERE Anime.favorite = 1
+GROUP BY Anime._id;

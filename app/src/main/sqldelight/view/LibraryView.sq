@@ -20,7 +20,7 @@ Anime.studio,
 Anime.author,
 Anime.raw_title,
 Anime.language,
-COUNT(*) AS episodes,
+COUNT(Episode._id) AS episodes,
 TOTAL(Episode.seen = 0) AS unseen_episodes
 FROM Anime
 LEFT JOIN Episode ON Anime._id = Episode.anime_id
