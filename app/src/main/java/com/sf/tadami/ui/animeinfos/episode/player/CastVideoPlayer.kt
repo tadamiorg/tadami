@@ -48,6 +48,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TadamiCastError
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvControlMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.tadamiCastMessageCallback
+import com.sf.tadami.ui.animeinfos.episode.cast.isCastMediaEnded
 import com.sf.tadami.ui.animeinfos.episode.cast.isCastMediaFinished
 import com.sf.tadami.ui.animeinfos.episode.cast.sendCastMessage
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
@@ -152,7 +153,9 @@ fun CastVideoPlayer(
 
     val idleLock by playerViewModel.idleLock.collectAsState()
 
-    var isIdle by remember { mutableStateOf(isCastMediaFinished(castSession.remoteMediaClient?.idleReason)) }
+    var isIdle by remember { mutableStateOf(isCastMediaEnded(castSession.remoteMediaClient?.idleReason)) }
+    // Only a media that played to its end moves on to the next episode, not one that failed
+    var isFinished by remember { mutableStateOf(isCastMediaFinished(castSession.remoteMediaClient?.idleReason)) }
 
     var openStreamDialog by remember { mutableStateOf(false) }
 
@@ -226,6 +229,8 @@ fun CastVideoPlayer(
                 super.onStatusUpdated()
                 isPlaying = castSession.remoteMediaClient!!.isPlaying
                 isIdle =
+                    isCastMediaEnded(castSession.remoteMediaClient!!.idleReason) && castSession.remoteMediaClient!!.loadingItem == null
+                isFinished =
                     isCastMediaFinished(castSession.remoteMediaClient!!.idleReason) && castSession.remoteMediaClient!!.loadingItem == null
             }
 
@@ -307,8 +312,8 @@ fun CastVideoPlayer(
     }
 
     if (playerPreferences.autoPlay) {
-        LaunchedEffect(isIdle && !idleLock) {
-            val autoIdle = isIdle && !idleLock
+        LaunchedEffect(isFinished && !idleLock) {
+            val autoIdle = isFinished && !idleLock
             if (currentTime > 0L && totalDuration > 0L) {
                 if (autoIdle && hasNextIterator.hasPrevious()) {
                     val next = hasNextIterator.previous()

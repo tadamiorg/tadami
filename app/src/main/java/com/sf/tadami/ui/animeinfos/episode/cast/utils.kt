@@ -33,9 +33,16 @@ fun castContextOrNull(context: Context): CastContext? {
     }
 }
 
+/** The media played to its end (not stopped, replaced or failed). */
 @SuppressLint("VisibleForTests")
 fun isCastMediaFinished(playerState : Int?): Boolean {
-    return playerState == MediaStatus.IDLE_REASON_FINISHED || playerState == MediaStatus.IDLE_REASON_ERROR
+    return playerState == MediaStatus.IDLE_REASON_FINISHED
+}
+
+/** The media is over, finished or failed: it can be played again. */
+@SuppressLint("VisibleForTests")
+fun isCastMediaEnded(playerState : Int?): Boolean {
+    return isCastMediaFinished(playerState) || playerState == MediaStatus.IDLE_REASON_ERROR
 }
 
 /**
