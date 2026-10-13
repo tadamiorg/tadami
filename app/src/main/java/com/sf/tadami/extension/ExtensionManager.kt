@@ -291,8 +291,9 @@ class ExtensionManager(
             val existing = _installedExtensionsFlow.value.find { it.pkgName == extension.pkgName }
             Log.d("ExtensionManager", "Existing version: ${existing?.versionCode}")
 
-            // Only update if version is actually newer
-            if (existing != null && existing.versionCode >= extension.versionCode) {
+            // Only update if version is actually newer, or if the loaded one can't be used: a
+            // reinstall of the same version may fix it
+            if (existing != null && existing.loadIssue == null && existing.versionCode >= extension.versionCode) {
                 Log.d("ExtensionManager", "Extension ${extension.pkgName} version ${extension.versionCode} not newer than ${existing.versionCode}, skipping")
                 return
             }
