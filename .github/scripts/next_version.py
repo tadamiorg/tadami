@@ -20,6 +20,8 @@ TAG = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
 SUBJECT = re.compile(r"^(?P<type>[A-Za-z]+)(?:\((?P<scope>[^)]*)\))?(?P<breaking>!)?:\s*(?P<description>\S.*)$")
 BREAKING_FOOTER = re.compile(r"^BREAKING[ -]CHANGE:", re.MULTILINE)
 SECTIONS = (("breaking", "Breaking changes"), ("feat", "New"), ("fix", "Fixes"))
+# What the APK is built from: commits that only touch the rest (docs, CI) would release an identical app
+APP_PATHS = ("app", "gradle", "build.gradle.kts", "settings.gradle.kts", "gradle.properties")
 
 
 def git(*args):
@@ -109,6 +111,8 @@ def main():
     commits = commits_since(previous_tag)
     if not commits:
         fail(f"No commits since {previous_tag}: nothing to release.")
+    if not git("diff", "--name-only", previous_tag, "HEAD", "--", *APP_PATHS).strip():
+        fail(f"The commits since {previous_tag} change nothing the app is built from: nothing to release.")
 
     bump = args.bump
     if bump == "auto":
