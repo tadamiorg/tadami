@@ -302,6 +302,8 @@ class ExtensionManager(
         }
 
         override fun onPackageUninstalled(pkgName: String) {
+            // Called for any app, only an extension can change the count
+            if (_installedExtensionsFlow.value.none { it.pkgName == pkgName }) return
             unregisterExtension(pkgName)
             updatePendingUpdatesCount()
         }
@@ -327,6 +329,9 @@ class ExtensionManager(
     }
 
     private fun updatePendingUpdatesCount() {
+        // The update statuses aren't known before the available extensions are, keep the count
+        // the startup check stored
+        if (_availableExtensionsFlow.value.isEmpty()) return
         val pendingUpdateCount = _installedExtensionsFlow.value.count { it.hasUpdate }
         runBlocking {
             dataStore.editPreference(pendingUpdateCount,SourcesPreferences.EXT_UPDATES_COUNT)
