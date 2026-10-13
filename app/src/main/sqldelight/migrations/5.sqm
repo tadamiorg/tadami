@@ -2,15 +2,14 @@
 ALTER TABLE Anime
 ADD COLUMN date_added INTEGER NOT NULL DEFAULT 0;
 
+-- Each favorite gets the fetch date of its first episode, or 0 when it has none
 UPDATE Anime
-SET date_added = (
-    SELECT MIN(date_fetch)
-    FROM Anime A
-    INNER JOIN Episode EP
-    ON A._id = EP.anime_id
-    WHERE A.favorite = 1
-    GROUP BY A._id
-);
+SET date_added = coalesce((
+    SELECT MIN(EP.date_fetch)
+    FROM Episode EP
+    WHERE EP.anime_id = Anime._id
+), 0)
+WHERE favorite = 1;
 
 -- Create the updates view
 DROP VIEW IF EXISTS UpdatesView;
