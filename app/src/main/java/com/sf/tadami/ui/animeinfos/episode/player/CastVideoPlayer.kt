@@ -41,6 +41,7 @@ import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
+import com.sf.tadami.ui.animeinfos.episode.cast.activeCastSubtitleTrackId
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.CastErrorCode
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.CastSubtitleStyle
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ControlChannel
@@ -67,9 +68,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import org.json.JSONObject
 import kotlin.time.Duration.Companion.milliseconds
 
 private val castControlJson = Json { encodeDefaults = true }
+
+// episodeId round-trips as Integer (small ids) or Long (large)
+private fun JSONObject.castEpisodeId(): Long? = (opt("episodeId") as? Number)?.toLong()
 
 @OptIn(UnstableApi::class)
 @SuppressLint("SourceLockedOrientationActivity", "ContextCastToActivity")
@@ -223,7 +228,29 @@ fun CastVideoPlayer(
         playerViewModel.setCurrentEpisode(episode)
     }
 
+    // An episode switch made from the TV or the notification: follow it, or the new episode's progress
+    // would be saved onto the old one
+    fun followCastEpisode(episodeId: Long) {
+        if (episodeId == playerViewModel.currentEpisode.value?.id) return
+        val episode = playerViewModel.episodes.value.firstOrNull { it.id == episodeId } ?: return
+        val client = castSession.remoteMediaClient ?: return
+        val customData = client.mediaInfo?.customData ?: return
+        runCatching {
+            playerViewModel.followCastEpisode(
+                episode = episode,
+                rawUrl = customData.get("episodeUrl") as String,
+                selectedSource = Json.decodeFromString(customData.get("selectedSource") as String),
+                availableSources = Json.decodeFromString(customData.get("availableSources") as String),
+                selectedTrack = activeCastSubtitleTrackId(client.mediaStatus?.activeTrackIds, client.mediaInfo?.mediaTracks),
+            )
+            currentTime = 0
+            totalDuration = 0
+        }.onFailure { Log.w("CastVideoPlayer", "Failed to follow the cast episode", it) }
+    }
+
     DisposableEffect(Unit) {
+        // The episode the receiver plays, to notice when it changes
+        var castEpisodeId = castSession.remoteMediaClient?.mediaInfo?.customData?.castEpisodeId()
         val mediaCallback = object : Callback() {
             override fun onStatusUpdated() {
                 super.onStatusUpdated()
@@ -232,6 +259,15 @@ fun CastVideoPlayer(
                     isCastMediaEnded(castSession.remoteMediaClient!!.idleReason) && castSession.remoteMediaClient!!.loadingItem == null
                 isFinished =
                     isCastMediaFinished(castSession.remoteMediaClient!!.idleReason) && castSession.remoteMediaClient!!.loadingItem == null
+                castSession.remoteMediaClient!!.mediaInfo?.customData?.castEpisodeId()
+                    ?.takeIf { it != castEpisodeId }
+                    ?.let { episodeId ->
+                        // Only a move away from the episode the phone shows: not a load the phone made itself
+                        if (castEpisodeId != null && castEpisodeId == playerViewModel.currentEpisode.value?.id) {
+                            followCastEpisode(episodeId)
+                        }
+                        castEpisodeId = episodeId
+                    }
             }
 
             override fun onMediaError(error: MediaError) {

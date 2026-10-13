@@ -411,7 +411,10 @@ class EpisodeActivity : AppCompatActivity() {
                 if (castMedia != null) {
                     val episodeId = (castMedia.get("episodeId") as? Number)?.toInt()
                     val currentEpisodeId = currentEpisode?.id?.toInt()
-                    if (currentEpisodeId != null && episodeId != null && episodeId != currentEpisodeId) {
+                    // Not when the cast media is the new episode: the phone followed a switch made from the TV
+                    if (currentEpisodeId != null && episodeId != null && episodeId != currentEpisodeId &&
+                        episodeId != episode?.id?.toInt()
+                    ) {
                         stopCastEpisode()
                     }
                 }

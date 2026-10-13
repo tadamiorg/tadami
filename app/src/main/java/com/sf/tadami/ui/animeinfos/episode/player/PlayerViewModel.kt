@@ -275,6 +275,25 @@ class PlayerViewModel(
         }
     }
 
+    /**
+     * The cast receiver switched episode on its own (from the TV or the notification): follow it
+     * without fetching the sources or loading the cast again.
+     */
+    fun followCastEpisode(
+        episode: Episode,
+        rawUrl: String,
+        selectedSource: StreamSource,
+        availableSources: List<StreamSource>,
+        selectedTrack: Long?
+    ) {
+        fetchEpisodeDisposable?.dispose()
+        _isFetchingSources.update { false }
+        // The episode first: the cast load guard compares it with the cast media when the sources change
+        isResumedFromCast = true
+        _currentEpisode.update { episode }
+        setResumeFromCastSession(rawUrl, selectedSource, availableSources, selectedTrack)
+    }
+
     fun setIdleLock(locked: Boolean) {
         _idleLock.update { locked }
     }
