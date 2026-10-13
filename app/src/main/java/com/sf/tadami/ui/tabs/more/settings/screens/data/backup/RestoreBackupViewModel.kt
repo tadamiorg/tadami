@@ -6,9 +6,11 @@ import androidx.compose.runtime.Immutable
 import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.sf.tadami.data.backup.RestoreOptions
 import com.sf.tadami.notifications.backup.BackupFileValidator
 import com.sf.tadami.notifications.backup.BackupRestoreWorker
+import com.sf.tadami.utils.launchIO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +28,10 @@ class RestoreBackupViewModel(
     val uiState: StateFlow<RestoreBackupUiState> = _uiState.asStateFlow()
 
     init {
-        validate(uri.toUri())
+        // Decodes the whole backup file: too slow for the main thread
+        viewModelScope.launchIO {
+            validate(uri.toUri())
+        }
     }
 
 
