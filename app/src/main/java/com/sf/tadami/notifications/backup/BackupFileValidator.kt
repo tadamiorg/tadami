@@ -16,7 +16,7 @@ class BackupFileValidator(
     /**
      * Checks for critical backup file data.
      *
-     * @throws Exception if anime cannot be found.
+     * @throws Exception if the backup has no library entries, no settings and no source settings.
      * @return List of missing sources or missing trackers.
      */
     @OptIn(ExperimentalSerializationApi::class)
@@ -36,8 +36,9 @@ class BackupFileValidator(
             .distinct()
             .sorted()
 
-        if (backup.backupAnime.isEmpty()) {
-            throw IllegalStateException(context.getString(R.string.invalid_backup_file_missing_anime))
+        // A settings only backup, or one of an empty library, is valid too
+        if (backup.backupAnime.isEmpty() && backup.backupPreferences.isEmpty() && backup.backupSourcePreferences.isEmpty()) {
+            throw IllegalStateException(context.getString(R.string.invalid_backup_file_empty))
         }
         return Results(missingSources)
     }

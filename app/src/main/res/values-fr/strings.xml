@@ -145,7 +145,7 @@
     </plurals>
     <string name="create_backup_file_error">Échec de la création du fichier de sauvegarde</string>
     <string name="empty_backup_error">Aucune entrée de bibliothèque à sauvegarder</string>
-    <string name="invalid_backup_file_missing_anime">La sauvegarde ne contient pas d\'entrées de bibliothèque.</string>
+    <string name="invalid_backup_file_empty">La sauvegarde ne contient aucune donnée.</string>
     <string name="app_settings">Paramètres de l\'application</string>
     <string name="backup_in_progress">Sauvegarde déjà en cours</string>
     <string name="file_picker_error">L’application de sélection de fichier est introuvable</string>

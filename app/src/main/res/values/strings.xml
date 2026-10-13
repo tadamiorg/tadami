@@ -184,7 +184,7 @@
     </plurals>
     <string name="create_backup_file_error">Couldn\\\'t create a backup file</string>
     <string name="empty_backup_error">No library entries to back up</string>
-    <string name="invalid_backup_file_missing_anime">Backup does not contain any library entries.</string>
+    <string name="invalid_backup_file_empty">Backup does not contain any data.</string>
     <string name="app_settings">App settings</string>
     <string name="backup_in_progress">Backup is already in progress</string>
     <string name="file_picker_error">No file picker app found</string>
