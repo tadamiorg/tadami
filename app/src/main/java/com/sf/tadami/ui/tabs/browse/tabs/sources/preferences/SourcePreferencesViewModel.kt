@@ -15,9 +15,12 @@ class SourcePreferencesViewModel(
     private val sourcesManager: SourceManager = Injekt.get()
     private val sourceId: Long = checkNotNull(stateHandle["sourceId"])
 
-    private val source = sourcesManager.getOrStub(sourceId) as ConfigurableParsedHttpAnimeSource<*>
-    private var _uiState = MutableStateFlow(SourcePreferencesUiState(source.name,source.getPreferenceScreen().preferences))
+    // Null when its extension was uninstalled, while the app was in background for instance
+    private val source = sourcesManager.get(sourceId) as? ConfigurableParsedHttpAnimeSource<*>
+    private var _uiState = MutableStateFlow(
+        SourcePreferencesUiState(source?.name.orEmpty(), source?.getPreferenceScreen()?.preferences.orEmpty())
+    )
     val uiState = _uiState.asStateFlow()
 
-    val dataStore = source.dataStore
+    val dataStore = source?.dataStore
 }

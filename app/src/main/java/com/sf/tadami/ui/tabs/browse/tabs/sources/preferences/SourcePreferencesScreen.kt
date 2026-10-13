@@ -10,6 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -28,7 +29,12 @@ fun SourcePreferencesScreen(
     sourcePreferencesViewModel: SourcePreferencesViewModel = viewModel()
 ){
     val uiState by sourcePreferencesViewModel.uiState.collectAsState()
-    val datastoreState = rememberUnknownDataStoreState(unknownDataStore = sourcePreferencesViewModel.dataStore)
+    val dataStore = sourcePreferencesViewModel.dataStore ?: run {
+        // The source is gone, there is nothing to configure
+        LaunchedEffect(Unit) { navController.navigateUp() }
+        return
+    }
+    val datastoreState = rememberUnknownDataStoreState(unknownDataStore = dataStore)
     val sourcePreferences by datastoreState.value.collectAsState()
 
     Scaffold(
