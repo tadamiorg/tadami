@@ -68,6 +68,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionErrorDialog
 import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionState
 import com.sf.tadami.ui.animeinfos.episode.cast.CastSessionState
 import com.sf.tadami.ui.animeinfos.episode.cast.CastWebReceiverNoticeDialog
+import com.sf.tadami.ui.animeinfos.episode.cast.activeCastSubtitleTrackId
 import com.sf.tadami.ui.animeinfos.episode.cast.buildCastLoadRequest
 import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.CrashChannel
@@ -167,9 +168,10 @@ class EpisodeActivity : AppCompatActivity() {
         isCasting.value = castSession?.isConnected ?: false
         if (castSession?.remoteMediaClient?.mediaInfo?.customData != null) {
             try {
-                val selectedTracks =
-                    castSession?.remoteMediaClient?.mediaStatus?.activeTrackIds?.takeIf { it.isNotEmpty() }
-                        ?.get(0)
+                val selectedTracks = activeCastSubtitleTrackId(
+                    castSession?.remoteMediaClient?.mediaStatus?.activeTrackIds,
+                    castSession?.remoteMediaClient?.mediaInfo?.mediaTracks,
+                )
                 val customDataSources =
                     castSession?.remoteMediaClient?.mediaInfo?.customData!!.get("availableSources") as String
                 val selectedSource =

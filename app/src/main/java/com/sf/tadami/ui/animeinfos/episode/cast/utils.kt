@@ -7,6 +7,7 @@ import android.net.NetworkCapabilities
 import android.util.Log
 import com.google.android.gms.cast.CastStatusCodes
 import com.google.android.gms.cast.MediaStatus
+import com.google.android.gms.cast.MediaTrack
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.common.ConnectionResult
@@ -43,6 +44,12 @@ fun isCastMediaFinished(playerState : Int?): Boolean {
 @SuppressLint("VisibleForTests")
 fun isCastMediaEnded(playerState : Int?): Boolean {
     return isCastMediaFinished(playerState) || playerState == MediaStatus.IDLE_REASON_ERROR
+}
+
+/** The cast media's active subtitle track id: the first active id that is one of its text tracks. */
+fun activeCastSubtitleTrackId(activeTrackIds: LongArray?, mediaTracks: List<MediaTrack>?): Long? {
+    val textTrackIds = mediaTracks.orEmpty().filter { it.type == MediaTrack.TYPE_TEXT }.map { it.id }
+    return activeTrackIds?.firstOrNull { it in textTrackIds }
 }
 
 /**
