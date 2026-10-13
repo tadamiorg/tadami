@@ -21,9 +21,9 @@ import androidx.work.workDataOf
 import com.hippo.unifile.UniFile
 import com.sf.tadami.data.backup.BackupCreator
 import com.sf.tadami.data.backup.BackupOptions
+import com.sf.tadami.domain.storage.StorageManager
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.backup.BackupPreferences
-import com.sf.tadami.preferences.storage.StoragePreferences
 import com.sf.tadami.utils.cancelNotification
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.isRunning
@@ -42,13 +42,13 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
 
     override suspend fun doWork(): Result {
         val isAutoBackup = inputData.getBoolean(IS_AUTO_BACKUP_KEY, true)
-        val dataStore : DataStore<Preferences> = Injekt.get()
-        val storagePreferences = dataStore.getPreferencesGroup(StoragePreferences)
 
         if (isAutoBackup && BackupRestoreWorker.isRunning(context)) return Result.retry()
 
+        // Auto backups have their own folder, so their rotation never deletes the manual backups
         val uri = inputData.getString(LOCATION_URI_KEY)?.toUri()
-            ?: storagePreferences.storageDir.toUri()
+            ?: Injekt.get<StorageManager>().getAutomaticBackupsDirectory()?.uri
+            ?: return Result.failure()
         val options = inputData.getBooleanArray(OPTIONS_KEY)?.let { BackupOptions.fromBooleanArray(it) }
             ?: BackupOptions()
 
