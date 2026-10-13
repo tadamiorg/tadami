@@ -685,6 +685,24 @@ class EpisodeActivity : AppCompatActivity() {
         }
     }
 
+    // singleTask: another episode opened while this one is still alive (e.g. in PiP) lands here, not in onCreate.
+    // Save the outgoing episode, then restart on the new intent so the view model and source match it.
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (isFinishing) return
+        val episodeId = intent.extras?.getLong("episode") ?: return
+        if (episodeId == playerViewModel.currentEpisode.value?.id) return
+        val restart = {
+            // The finishing instance may not get its PiP exit callback before the new one starts.
+            PipState.mode = PipState.OFF
+            finish()
+            startActivity(intent)
+        }
+        // While casting the cast service saves the watch time.
+        val saveJob = if (isCasting.value) null else saveLocalProgress()
+        if (saveJob == null) restart() else saveJob.invokeOnCompletion { runOnUiThread(restart) }
+    }
+
     override fun finish() {
         super.finish()
         overridePendingTransition(R.anim.shared_axis_x_pop_enter, R.anim.shared_axis_x_pop_exit)
