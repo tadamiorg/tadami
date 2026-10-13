@@ -144,6 +144,15 @@ class CastControlService : Service() {
             stopNow()
             return START_NOT_STICKY
         }
+        // A sticky restart (null intent) after the process died: give the SDK time to resume the
+        // session, and stop if none comes back, instead of staying in the foreground with the proxy open.
+        if (intent == null) {
+            scope.launch {
+                delay(STICKY_RESTART_SESSION_WAIT_MS)
+                val session = castContext?.sessionManager?.currentCastSession
+                if (session == null || !(session.isConnected || session.isConnecting || session.isResuming)) stopNow()
+            }
+        }
         // Media-notification skip buttons (via CastMediaIntentReceiver) arrive here as actions.
         when (intent?.action) {
             ACTION_SKIP_NEXT -> skip(forward = true)
@@ -344,6 +353,7 @@ class CastControlService : Service() {
     companion object {
         private const val ACTION_SKIP_NEXT = "com.sf.tadami.cast.SKIP_NEXT"
         private const val ACTION_SKIP_PREV = "com.sf.tadami.cast.SKIP_PREV"
+        private const val STICKY_RESTART_SESSION_WAIT_MS = 15_000L
 
         /** Called from the media-notification skip buttons to switch episode forward/back. */
         fun skipEpisode(context: Context, forward: Boolean) {
