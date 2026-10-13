@@ -7,7 +7,6 @@ import com.sf.tadami.domain.anime.UpdateAnime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.UpdateEpisode
 import com.sf.tadami.domain.episode.copyFromSEpisode
-import com.sf.tadami.domain.episode.toUpdateEpisode
 import com.sf.tadami.source.Source
 import com.sf.tadami.source.model.SAnime
 import com.sf.tadami.source.model.SEpisode
@@ -150,7 +149,10 @@ class UpdateAnimeInteractor(
                     if (episode.dateUpload != 0L) {
                         toChangeEpisode = toChangeEpisode.copy(dateUpload = episode.dateUpload)
                     }
-                    updatedEpisodes.add(toChangeEpisode)
+                    // Only the episodes the source changed, else every refresh bumps the last update
+                    if (toChangeEpisode != dbEpisode) {
+                        updatedEpisodes.add(toChangeEpisode)
+                    }
 
             }
         }
@@ -212,7 +214,17 @@ class UpdateAnimeInteractor(
         }
 
         if (updatedEpisodes.isNotEmpty()) {
-            val episodeUpdates = updatedEpisodes.map { it.toUpdateEpisode() }
+            // Only the fields from the source: the seen state and progress read above may be stale by now
+            val episodeUpdates = updatedEpisodes.map {
+                UpdateEpisode(
+                    id = it.id,
+                    name = it.name,
+                    episodeNumber = it.episodeNumber,
+                    dateUpload = it.dateUpload,
+                    sourceOrder = it.sourceOrder,
+                    languages = it.languages,
+                )
+            }
             episodeRepository.updateAll(episodeUpdates)
         }
         awaitUpdateFetchInterval(anime, now, fetchWindow)
