@@ -2,6 +2,7 @@ package com.sf.tadami.ui.tabs.more.settings.screens.data.backup
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
@@ -61,11 +62,16 @@ class CreateBackupScreen(
             contract = ActivityResultContracts.CreateDocument("application/*"),
         ) {
             if (it != null) {
-                context.contentResolver.takePersistableUriPermission(
-                    it,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-                )
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        it,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                                Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+                    )
+                } catch (e: SecurityException) {
+                    // Some file pickers can't grant it: the access the picker gave still writes the backup now
+                    Log.d("CreateBackupScreen", e.stackTraceToString())
+                }
                 createBackupViewModel.createBackup(context, it)
                 navController.popBackStack()
             }
