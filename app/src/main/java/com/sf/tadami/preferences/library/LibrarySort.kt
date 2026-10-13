@@ -24,7 +24,8 @@ data class LibrarySort(
         }
     }
     companion object {
-        const val DEFAULT_SORT = 0x000000001L
+        // A to Z: ALPHABETICALLY with the ascending SORT_DIRECTION bit
+        const val DEFAULT_SORT = 0x80000001L
 
         const val ALPHABETICALLY = 0x00000001L
         const val UNSEEN_COUNT = 0x00000002L

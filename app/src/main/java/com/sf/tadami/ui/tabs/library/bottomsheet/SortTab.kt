@@ -16,19 +16,19 @@ fun SortTab(
     Column {
         SortItem(
             label = stringResource(id = R.string.filter_sort_alphabet),
-            sortDescending = sort.isAscending.takeIf { sort.sortType is SortType.Alphabetical }
+            sortDescending = (!sort.isAscending).takeIf { sort.sortType is SortType.Alphabetical }
         ) {
             onItemSelected(SortType.Alphabetical.flag)
         }
         SortItem(
             label = stringResource(id = R.string.filter_sort_unseen_count),
-            sortDescending = sort.isAscending.takeIf { sort.sortType is SortType.UnseenCount }
+            sortDescending = (!sort.isAscending).takeIf { sort.sortType is SortType.UnseenCount }
         ) {
             onItemSelected(SortType.UnseenCount.flag)
         }
         SortItem(
             label = stringResource(id = R.string.filter_sort_episode_count),
-            sortDescending = sort.isAscending.takeIf { sort.sortType is SortType.EpisodeCount }
+            sortDescending = (!sort.isAscending).takeIf { sort.sortType is SortType.EpisodeCount }
         ) {
             onItemSelected(SortType.EpisodeCount.flag)
         }

@@ -7,9 +7,9 @@ fun sortComparator(sort: LibrarySort): (LibraryItem, LibraryItem) -> Int {
     return when (sort.sortType) {
         is LibrarySort.SortType.Alphabetical -> {
             if (sort.isAscending) {
-                { a1, a2 -> a1.anime.title.compareTo(a2.anime.title) }
+                { a1, a2 -> a1.anime.title.compareTo(a2.anime.title, ignoreCase = true) }
             } else {
-                { a1, a2 -> a2.anime.title.compareTo(a1.anime.title) }
+                { a1, a2 -> a2.anime.title.compareTo(a1.anime.title, ignoreCase = true) }
             }
         }
         is LibrarySort.SortType.UnseenCount -> {
