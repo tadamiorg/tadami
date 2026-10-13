@@ -44,7 +44,7 @@ fun MigrateSearchScreen(
                     total = uiState.total,
                     onSearchChange = migrateViewModel::updateSearchQuery,
                     onSearch = {
-                        migrateViewModel.search()
+                        migrateViewModel.search(retryFailed = true)
                     },
                     onSearchCancel = {
                         navController.navigateUp()

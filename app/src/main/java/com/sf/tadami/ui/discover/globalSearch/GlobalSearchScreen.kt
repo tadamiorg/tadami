@@ -31,7 +31,7 @@ fun GlobalSearchScreen(
         topBar = {
             GlobalSearchToolbar(
                 onSearch = {
-                    globalSearchViewModel.search()
+                    globalSearchViewModel.search(retryFailed = true)
                 },
                 onSearchChange = {
                     globalSearchViewModel.updateSearchQuery(it)

@@ -64,9 +64,11 @@ open class GlobalSearchViewModelBase(
             )
     }
 
-    fun search() {
+    // retryFailed: a search the user asked for runs the same query again when a source failed it
+    fun search(retryFailed: Boolean = false) {
         val query = uiState.value.searchQuery
-        if(lastQuery == query) return
+        val hasFailed = uiState.value.items.values.any { it is GlobalSearchItemResult.Error }
+        if(lastQuery == query && !(retryFailed && hasFailed)) return
 
         lastQuery = query
 
