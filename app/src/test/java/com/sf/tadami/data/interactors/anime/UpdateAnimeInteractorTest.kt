@@ -97,6 +97,19 @@ class UpdateAnimeInteractorTest {
         assertTrue(episodes.updated.isEmpty())
     }
 
+    @Test
+    fun episodesWithAnUnknownNumberAreNotMatched() = runBlocking {
+        val unknown = dbEpisode.copy(episodeNumber = -1f)
+        val episodes = FakeEpisodeRepository(listOf(unknown))
+        val animes = FakeAnimeRepository()
+
+        val added = sync(episodes, animes, sEpisode("/special", "Special", -1f))
+
+        assertEquals(listOf(unknown.id), episodes.deleted)
+        assertEquals("/special", added.single().url)
+        assertEquals(false, added.single().seen)
+    }
+
     private suspend fun sync(
         episodes: FakeEpisodeRepository,
         animes: FakeAnimeRepository,

@@ -127,9 +127,9 @@ class UpdateAnimeInteractor(
             episode = episode.copy(episodeNumber = episodeNumber)
 
             // An episode the source moved to another url is matched by number to a removed one,
-            // updated in place to keep its seen state, progress and history
+            // updated in place to keep its seen state, progress and history. A negative number is unknown
             val dbEpisode = dbEpisodes.find { it.url == episode.url }
-                ?: removedEpisodes.find { it.episodeNumber == episode.episodeNumber }
+                ?: removedEpisodes.find { it.episodeNumber >= 0f && it.episodeNumber == episode.episodeNumber }
                     ?.also { removedEpisodes.remove(it) }
 
             if (dbEpisode == null) {
