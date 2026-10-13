@@ -101,6 +101,7 @@ import com.sf.tadami.utils.editPreferences
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import com.sf.tadami.utils.powerManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
@@ -473,11 +474,15 @@ class EpisodeActivity : AppCompatActivity() {
     }
 
     private fun checkUpdateTimeJobEnded(callback: () -> Unit) {
-        if (this.updateTimeJob == null) return callback()
-        this.updateTimeJob!!.invokeOnCompletion { cancellation ->
-            if (cancellation == null) {
+        val job = this.updateTimeJob ?: return callback()
+        job.invokeOnCompletion { cancellation ->
+            if (cancellation is CancellationException) {
+                // A newer save replaced this one (setUpdateTimeJob): wait for that one instead. Posted, as
+                // the cancel completes this job before setUpdateTimeJob stores the newer one.
+                lifecycleScope.launch(Dispatchers.Main) { checkUpdateTimeJobEnded(callback) }
+            } else if (cancellation == null) {
                 callback()
-                this@EpisodeActivity.updateTimeJob = null
+                if (this@EpisodeActivity.updateTimeJob === job) this@EpisodeActivity.updateTimeJob = null
             } else {
                 Log.w(TAG, "Error while updating episode time", cancellation)
             }
