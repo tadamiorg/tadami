@@ -39,7 +39,7 @@ data class ExtensionsPreferences(
             val context = Injekt.get<Application>()
             return ExtensionsPreferences(
                 extensionInstallerEnum = preferences[EXTENSION_INSTALLER]?.let{
-                    ExtensionInstallerEnum.valueOf(it)
+                    ExtensionInstallerEnum.nullableValueOf(it)
                 } ?: getDefaultInstaller(context)
             )
         }

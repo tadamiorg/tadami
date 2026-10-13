@@ -38,13 +38,13 @@ data class AppearancePreferences(
         private val THEME_DARK_AMOLED = booleanPreferencesKey("theme_dark_amoled")
 
         override fun transform(preferences: Preferences): AppearancePreferences {
+            // An unknown stored name (backup from a newer build, downgrade) falls back to the default
+            // instead of throwing: this runs at startup in every process, the crash handler one included
             return AppearancePreferences(
-                themeMode = ThemeMode.valueOf(
-                    preferences[THEME_MODE] ?: ThemeMode.SYSTEM.name
-                ),
-                appTheme = AppTheme.valueOf(
-                    preferences[APP_THEME] ?: AppTheme.DEFAULT.name
-                ),
+                themeMode = ThemeMode.entries.find { it.name == preferences[THEME_MODE] }
+                    ?: ThemeMode.SYSTEM,
+                appTheme = AppTheme.entries.find { it.name == preferences[APP_THEME] }
+                    ?: AppTheme.DEFAULT,
                 themeDarkAmoled = preferences[THEME_DARK_AMOLED] ?: false
             )
         }
