@@ -1,6 +1,7 @@
 package com.sf.tadami.ui.animeinfos.details
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -245,7 +246,8 @@ fun DetailsScreen(
                     showFiltersSheet = true
                 },
                 onTitleSearch = { query ->
-                    navHostController.navigate("${DiscoverRoutes.GLOBAL_SEARCH}?initialQuery=$query")
+                    // Encoded so a '&', '#' or '%' in the title can't break the route, navigation decodes it
+                    navHostController.navigate("${DiscoverRoutes.GLOBAL_SEARCH}?initialQuery=${Uri.encode(query)}")
                 }
             )
         }

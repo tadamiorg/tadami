@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.discover.migrate
 
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -64,7 +65,7 @@ fun MigrateSearchScreen(
                     navController.navigate("${AnimeInfosRoutes.DETAILS}/${it.source}/${it.id}?migrationId=${migrateViewModel.animeId}")
                 },
                 onSourceClicked = {
-                    navController.navigate("${DiscoverRoutes.SEARCH}/${it.id}?initialQuery=${uiState.searchQuery}&migrationId=${migrateViewModel.animeId}")
+                    navController.navigate("${DiscoverRoutes.SEARCH}/${it.id}?initialQuery=${Uri.encode(uiState.searchQuery)}&migrationId=${migrateViewModel.animeId}")
                 }
             )
         }
