@@ -605,16 +605,17 @@ class EpisodeActivity : AppCompatActivity() {
                     userAgent = userAgent,
                     subtitlePrefLanguages = playerPreferences?.subtitlePrefLanguages
                         ?.split(",")?.filter { it.isNotBlank() } ?: emptyList(),
+                    subtitlesEnabled = playerPreferences?.subtitlesEnabled ?: true,
                     resumeTimeMs = localResumeTimeMs ?: time,
                     proxyBaseUrl = proxy?.baseUrl(),
                     subtitleStyle = playerPreferences?.toCastSubtitleStyle(),
                 )
-                // Mirror the auto-selected subtitle into the phone player state.
-                request.activeTrackIds?.takeIf { it.isNotEmpty() }?.let { trackIds ->
-                    playerViewModel.selectedSubtitleTrack(
-                        selectedSource?.subtitleTracks?.getOrNull((trackIds[0] - 1L).toInt())
-                    )
-                }
+                // Mirror the auto-selected subtitle (or none, subtitles off) into the phone player state.
+                playerViewModel.selectedSubtitleTrack(
+                    request.activeTrackIds?.firstOrNull()?.let { trackId ->
+                        selectedSource?.subtitleTracks?.getOrNull((trackId - 1L).toInt())
+                    }
+                )
                 remoteMediaClient.load(request).setResultCallback { result ->
                     if (result.status == Status.RESULT_SUCCESS) {
                         playerViewModel.setIdleLock(false)

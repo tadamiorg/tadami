@@ -301,6 +301,7 @@ class CastControlService : Service() {
                     themeJson = themeJson,
                     userAgent = userAgent,
                     subtitlePrefLanguages = subtitlePrefs,
+                    subtitlesEnabled = playerPrefs.subtitlesEnabled,
                     resumeTimeMs = resume,
                     proxyBaseUrl = proxyServer.baseUrl(),
                     subtitleStyle = playerPrefs.toCastSubtitleStyle(),

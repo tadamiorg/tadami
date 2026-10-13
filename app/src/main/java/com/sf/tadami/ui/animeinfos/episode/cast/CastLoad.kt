@@ -11,6 +11,7 @@ import com.google.android.gms.common.images.WebImage
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.source.model.Track
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.CastSubtitleStyle
 import com.sf.tadami.ui.animeinfos.episode.cast.proxy.proxiedImageUrl
 import com.sf.tadami.ui.utils.convertToIetfLanguageTag
@@ -41,6 +42,7 @@ fun buildCastLoadRequest(
     themeJson: String?,
     userAgent: String,
     subtitlePrefLanguages: List<String>,
+    subtitlesEnabled: Boolean,
     resumeTimeMs: Long,
     proxyBaseUrl: String? = null,
     subtitleStyle: CastSubtitleStyle? = null,
@@ -116,15 +118,8 @@ fun buildCastLoadRequest(
             )
         }
         if (mediaTracks.isNotEmpty()) {
-            var selectedTrackId: Long? = null
-            for (lang in subtitlePrefLanguages) {
-                val matchIndex = subtitleTracks.indexOfFirst { it.lang.convertToIetfLanguageTag() == lang }
-                if (matchIndex >= 0) {
-                    selectedTrackId = matchIndex + 1L
-                    break
-                }
-            }
-            activeTrackIds = longArrayOf(selectedTrackId ?: 1L)
+            castSubtitleTrackId(subtitleTracks, subtitlePrefLanguages, subtitlesEnabled)
+                ?.let { activeTrackIds = longArrayOf(it) }
             mediaInfosBuilder.setMediaTracks(mediaTracks)
         }
     }
@@ -145,4 +140,22 @@ fun buildCastLoadRequest(
         .setCurrentTime(resumeTimeMs)
     activeTrackIds?.let { mediaLoadRequestBuilder.setActiveTrackIds(it) }
     return mediaLoadRequestBuilder.build()
+}
+
+/**
+ * The subtitle MediaTrack id (track index + 1) the load turns on, or null for none (subtitles turned
+ * off in the settings, or no tracks): the first track matching the ordered language preference,
+ * compared case-insensitively like the local player does, else the first track.
+ */
+internal fun castSubtitleTrackId(
+    subtitleTracks: List<Track.SubtitleTrack>,
+    subtitlePrefLanguages: List<String>,
+    subtitlesEnabled: Boolean,
+): Long? {
+    if (!subtitlesEnabled || subtitleTracks.isEmpty()) return null
+    val matchIndex = subtitlePrefLanguages.firstNotNullOfOrNull { lang ->
+        subtitleTracks.indexOfFirst { it.lang.convertToIetfLanguageTag().equals(lang, ignoreCase = true) }
+            .takeIf { it >= 0 }
+    }
+    return (matchIndex ?: 0) + 1L
 }
