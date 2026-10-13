@@ -117,11 +117,8 @@ class MigrateDialogViewModel : ViewModel() {
             }
         }*/
 
-        if (replace) {
-            animeRepository.updateAnime(UpdateAnime(oldAnime.id, favorite = false, dateAdded = 0))
-        }
-
-        animeRepository.updateAnime(
+        // The new entry first: stopped or failing halfway, the anime stays in the library
+        val favorited = animeRepository.updateAnime(
             UpdateAnime(
                 id = newAnime.id,
                 favorite = true,
@@ -129,6 +126,11 @@ class MigrateDialogViewModel : ViewModel() {
                 dateAdded = if (replace) oldAnime.dateAdded else Instant.now().toEpochMilli(),
             ),
         )
+        check(favorited) { "Couldn't add the new anime to the library" }
+
+        if (replace) {
+            animeRepository.updateAnime(UpdateAnime(oldAnime.id, favorite = false, dateAdded = 0))
+        }
     }
 }
 

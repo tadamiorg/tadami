@@ -13,6 +13,7 @@ import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.source.model.AnimeFilterList
 import com.sf.tadami.source.model.SAnime
 import com.sf.tadami.ui.tabs.browse.SourceManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 
 interface AnimeRepository {
@@ -157,6 +158,9 @@ class AnimeRepositoryImpl(
                 )
             }
             true
+        } catch (e: CancellationException) {
+            // A cancelled caller must stop, not go on as if the update had only failed
+            throw e
         } catch (e: Exception) {
             false
         }
