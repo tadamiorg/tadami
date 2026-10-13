@@ -82,7 +82,7 @@ class DetailsViewModel(
                         details = anime,
                         episodes = episodes.sortedBy {
                             it.sourceOrder
-                        }.toEpisodeItems()
+                        }.toEpisodeItems(anime.unseenFilterRaw)
                     )
                 }
             }
@@ -212,33 +212,45 @@ class DetailsViewModel(
 
 
     fun inverseSelectedEpisodes() {
-        _uiState.update { currentState ->
-            currentState.copy(
-                episodes = currentState.episodes.map {
-                    selectedEpisodesIds.addOrRemove(it.episode.id, !it.selected)
-                    it.copy(selected = !it.selected)
-                }
-            )
-        }
+        updateDisplayedSelection { !it.selected }
     }
 
     fun toggleAllSelectedEpisodes(selected: Boolean) {
+        updateDisplayedSelection { selected }
+    }
+
+    private fun updateDisplayedSelection(selected: (EpisodeItem) -> Boolean) {
         _uiState.update { currentState ->
             currentState.copy(
-                episodes = currentState.episodes.map {
-                    selectedEpisodesIds.addOrRemove(it.episode.id, selected)
-                    it.copy(selected = selected)
-                }
+                episodes = currentState.episodes
+                    .selectDisplayed(currentState.details?.unseenFilterRaw, selected)
+                    .also { syncSelectedEpisodesIds(it) }
             )
         }
     }
 
-    private fun List<Episode>.toEpisodeItems(): List<EpisodeItem> {
+    private fun syncSelectedEpisodesIds(episodes: List<EpisodeItem>) {
+        selectedEpisodesIds.clear()
+        episodes.filter { it.selected }.mapTo(selectedEpisodesIds) { it.episode.id }
+    }
+
+    private fun List<Episode>.toEpisodeItems(unseenFilter: Long?): List<EpisodeItem> {
         return this.map {
             EpisodeItem(
                 it,
                 it.id in selectedEpisodesIds
             )
         }
+            // An episode the seen filter now hides doesn't stay selected
+            .selectDisplayed(unseenFilter) { it.selected }
+            .also { syncSelectedEpisodesIds(it) }
     }
+}
+
+// Select all and invert act on the displayed episodes only, the hidden ones end up unselected
+internal fun List<EpisodeItem>.selectDisplayed(
+    unseenFilter: Long?,
+    selected: (EpisodeItem) -> Boolean
+): List<EpisodeItem> {
+    return map { it.copy(selected = it.isDisplayed(unseenFilter) && selected(it)) }
 }

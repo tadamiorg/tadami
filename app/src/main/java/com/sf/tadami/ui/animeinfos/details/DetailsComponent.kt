@@ -136,11 +136,13 @@ fun DetailsComponent(
 }
 
 private fun List<EpisodeItem>.addFilters(unseenFilter: Long?): List<EpisodeItem> {
-    return this.filter {
-        when(unseenFilter){
-            Anime.EPISODE_SHOW_SEEN -> it.episode.seen
-            Anime.EPISODE_SHOW_UNSEEN -> !it.episode.seen
-            else -> true
-        }
+    return this.filter { it.isDisplayed(unseenFilter) }
+}
+
+internal fun EpisodeItem.isDisplayed(unseenFilter: Long?): Boolean {
+    return when(unseenFilter){
+        Anime.EPISODE_SHOW_SEEN -> episode.seen
+        Anime.EPISODE_SHOW_UNSEEN -> !episode.seen
+        else -> true
     }
 }
