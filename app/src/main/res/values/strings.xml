@@ -363,7 +363,7 @@
     <string name="onboarding_permission_notifications_description">Get notified for library updates and more.</string>
     <string name="onboarding_permission_ignore_battery_opts">Background battery usage</string>
     <string name="onboarding_permission_action_grant">Grant</string>
-    <string name="file_picker_uri_permission_unsupported">Failed to acquire persistent folder access. The app may behave unexpectedly.</string>
+    <string name="file_picker_uri_permission_unsupported">Failed to acquire persistent folder access. Choose another folder.</string>
     <string name="invalid_location">Invalid location: %s</string>
     <string name="onboarding_permission_ignore_battery_opts_description">Avoid interruptions to long-running library updates, downloads, and backup restores.</string>
 

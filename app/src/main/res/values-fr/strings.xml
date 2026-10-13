@@ -363,7 +363,7 @@
     <string name="onboarding_permission_notifications_description">Soyez notifié des mises à jour de la bibliothèque et autre.</string>
     <string name="onboarding_permission_ignore_battery_opts">Utilisation de la batterie en arrière-plan</string>
     <string name="onboarding_permission_action_grant">Accorder</string>
-    <string name="file_picker_uri_permission_unsupported">Impossible d\'obtenir un accès persistant au dossier. L\'application pourrait avoir un comportement inattendu.</string>
+    <string name="file_picker_uri_permission_unsupported">Impossible d\'obtenir un accès persistant au dossier. Choisissez un autre dossier.</string>
     <string name="invalid_location">Emplacement invalide : %s</string>
     <string name="onboarding_permission_ignore_battery_opts_description">Évite l\&apos;interruption des mises à jour de bibliothèque, des téléchargements de chapitres, et des restaurations de sauvegardes.</string>
 

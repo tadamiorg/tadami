@@ -315,6 +315,8 @@ class DataPreferencesScreen(
                     } catch (e: SecurityException) {
                         Log.d("StorageLocationPicker", e.stackTraceToString())
                         UiToasts.showToast(R.string.file_picker_uri_permission_unsupported)
+                        // The folder would be out of reach after a restart: keep the current one
+                        return@rememberLauncherForActivityResult
                     }
 
                     UniFile.fromUri(context, uri)?.let {
