@@ -32,6 +32,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.CastProtocol
 import com.sf.tadami.ui.animeinfos.episode.cast.CastRemoteState
 import com.sf.tadami.ui.animeinfos.episode.cast.CastSessionState
 import com.sf.tadami.ui.animeinfos.episode.cast.buildCastLoadRequest
+import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ControlChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.HandshakeChannel
@@ -73,7 +74,8 @@ class CastControlService : Service() {
     private val dataStore: DataStore<Preferences> = Injekt.get()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    private lateinit var castContext: CastContext
+    // Null without working Google Play services: the service then stops right away
+    private var castContext: CastContext? = null
     private lateinit var notifier: CastNotifier
     private val controlChannel = ControlChannel { msg -> onControl(msg) }
     private val handshakeChannel = HandshakeChannel { reply -> onHandshakeReply(reply) }
@@ -101,7 +103,7 @@ class CastControlService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        castContext = CastContext.getSharedInstance(applicationContext)
+        castContext = castContextOrNull(applicationContext)
         notifier = CastNotifier(applicationContext)
         // The proxy lives and dies with this service (which spans the whole cast session). Started
         // for every session: it idles for free, and having proxyBaseUrl known before the first load
@@ -116,8 +118,8 @@ class CastControlService : Service() {
                 CastSessionState.proxyBaseUrl.value = proxyServer.baseUrl()
             }
         }
-        castContext.sessionManager.addSessionManagerListener(sessionListener, CastSession::class.java)
-        castContext.sessionManager.currentCastSession?.let { bind(it) }
+        castContext?.sessionManager?.addSessionManagerListener(sessionListener, CastSession::class.java)
+        castContext?.sessionManager?.currentCastSession?.let { bind(it) }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -138,6 +140,10 @@ class CastControlService : Service() {
             Log.e("CastControlService", "startForeground failed", e)
             stopSelf()
         }
+        if (castContext == null) {
+            stopNow()
+            return START_NOT_STICKY
+        }
         // Media-notification skip buttons (via CastMediaIntentReceiver) arrive here as actions.
         when (intent?.action) {
             ACTION_SKIP_NEXT -> skip(forward = true)
@@ -148,7 +154,7 @@ class CastControlService : Service() {
 
     override fun onDestroy() {
         fetchDisposable?.dispose()
-        castContext.sessionManager.removeSessionManagerListener(sessionListener, CastSession::class.java)
+        castContext?.sessionManager?.removeSessionManagerListener(sessionListener, CastSession::class.java)
         CastProxyHolder.server = null
         proxyServer.stop()
         CastSessionState.clear()
@@ -205,7 +211,7 @@ class CastControlService : Service() {
     }
 
     private val remoteMediaClient: RemoteMediaClient?
-        get() = castContext.sessionManager.currentCastSession?.remoteMediaClient
+        get() = castContext?.sessionManager?.currentCastSession?.remoteMediaClient
 
     /** Control messages from the TV: persist watch time, switch episodes, or mirror TV-local track selection. */
     private fun onControl(msg: TvControlMessage) {

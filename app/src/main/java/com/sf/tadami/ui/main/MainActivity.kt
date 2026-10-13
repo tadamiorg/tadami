@@ -46,6 +46,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionErrorDialog
 import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionState
 import com.sf.tadami.ui.animeinfos.episode.cast.CastSessionState
 import com.sf.tadami.ui.animeinfos.episode.cast.CastWebReceiverNoticeDialog
+import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.logCastConnectionError
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
@@ -67,7 +68,8 @@ class MainActivity : AppCompatActivity() {
 
     private var castSession: CastSession? = null
     private var castSessionManagerListener: SessionManagerListener<CastSession>? = null
-    private lateinit var castContext: CastContext
+    // Null without working Google Play services: cast is unavailable
+    private var castContext: CastContext? = null
     private val errorChannel = ErrorChannel()
     private var ready = false
     private val dataStore: DataStore<Preferences> = Injekt.get()
@@ -120,8 +122,8 @@ class MainActivity : AppCompatActivity() {
             openExtensionsRequests.trySend(Unit)
         }
 
-        castContext = CastContext.getSharedInstance(this)
-        castSession = castContext.sessionManager.currentCastSession
+        castContext = castContextOrNull(this)
+        castSession = castContext?.sessionManager?.currentCastSession
 
         setupCastListener()
 
@@ -228,13 +230,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-        castContext.sessionManager.addSessionManagerListener(
+        castContext?.sessionManager?.addSessionManagerListener(
             castSessionManagerListener!!,
             CastSession::class.java
         )
         // addSessionManagerListener doesn't replay for an already-live session, so cover the case of
         // resuming onto an existing cast session.
-        if (castContext.sessionManager.currentCastSession?.isConnected == true) {
+        if (castContext?.sessionManager?.currentCastSession?.isConnected == true) {
             CastControlService.startNow(this)
         }
         super.onResume()
@@ -242,7 +244,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        castContext.sessionManager.removeSessionManagerListener(
+        castContext?.sessionManager?.removeSessionManagerListener(
             castSessionManagerListener!!,
             CastSession::class.java
         )

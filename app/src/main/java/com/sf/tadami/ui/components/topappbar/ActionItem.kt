@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.mediarouter.app.MediaRouteButton
 import com.google.android.gms.cast.framework.CastButtonFactory
+import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.material.DropdownMenu
 
@@ -68,7 +69,8 @@ fun ActionItem(
             }
         }
 
-        is Action.CastButton -> {
+        // No cast button without working Google Play services
+        is Action.CastButton -> if (remember { castContextOrNull(context) != null }) {
             IconButton(
                 enabled = enabled,
                 onClick = {

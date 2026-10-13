@@ -11,6 +11,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,6 +24,7 @@ import com.google.android.gms.cast.framework.CastButtonFactory
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.about.AboutRoutes
 import com.sf.tadami.navigation.graphs.more.MORE_ROUTES
+import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
 import com.sf.tadami.ui.components.widgets.LogoHeader
 import com.sf.tadami.ui.components.widgets.ScrollbarLazyColumn
 import com.sf.tadami.ui.tabs.more.settings.widget.TextPreference
@@ -42,7 +44,8 @@ fun MoreScreen(
         ) {
             item {
                 Box {
-                    IconButton(
+                    // No cast button without working Google Play services
+                    if (remember { castContextOrNull(context) != null }) IconButton(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(

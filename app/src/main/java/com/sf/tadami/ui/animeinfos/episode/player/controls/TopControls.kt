@@ -27,6 +27,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.util.UnstableApi
 import androidx.mediarouter.app.MediaRouteButton
 import com.google.android.gms.cast.framework.CastButtonFactory
+import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
 import com.sf.tadami.R
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.components.material.IconButton
@@ -107,7 +108,8 @@ fun TopControl(
                 tint = MaterialTheme.colorScheme.onSurface)
         }
 
-        AndroidView(
+        // No cast button without working Google Play services
+        if (remember { castContextOrNull(context) != null }) AndroidView(
             modifier = Modifier.size(36.dp + MaterialTheme.padding.medium),
             factory = {
                 MediaRouteButton(context)

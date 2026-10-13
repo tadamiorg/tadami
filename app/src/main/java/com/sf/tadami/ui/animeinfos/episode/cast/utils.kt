@@ -7,11 +7,31 @@ import android.net.NetworkCapabilities
 import android.util.Log
 import com.google.android.gms.cast.CastStatusCodes
 import com.google.android.gms.cast.MediaStatus
+import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.CustomCastChannel
 import okio.IOException
 import java.net.Inet4Address
 import java.net.NetworkInterface
+
+/**
+ * The shared CastContext, or null when Google Play services can't provide it (missing, disabled or
+ * outdated, e.g. Huawei devices or de-Googled ROMs): cast is then unavailable instead of crashing.
+ * Main thread only, like CastContext.getSharedInstance.
+ */
+fun castContextOrNull(context: Context): CastContext? {
+    if (GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context) != ConnectionResult.SUCCESS) {
+        return null
+    }
+    return try {
+        CastContext.getSharedInstance(context)
+    } catch (e: Exception) {
+        Log.w("CastContext", "Cast is unavailable", e)
+        null
+    }
+}
 
 @SuppressLint("VisibleForTests")
 fun isCastMediaFinished(playerState : Int?): Boolean {

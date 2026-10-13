@@ -4,17 +4,16 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.google.android.gms.cast.framework.CastContext
 import com.sf.tadami.notifications.Notifications
+import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
 import com.sf.tadami.utils.notificationManager
 
 class CastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         when(intent?.action){
             ACTION_DISMISS_NOTIFICATION -> {
-                val castContext = CastContext.getSharedInstance(context)
                 context.notificationManager.cancel(Notifications.CAST_PROXY_STATUS_ID)
-                castContext.sessionManager.endCurrentSession(true)
+                castContextOrNull(context)?.sessionManager?.endCurrentSession(true)
             }
         }
     }

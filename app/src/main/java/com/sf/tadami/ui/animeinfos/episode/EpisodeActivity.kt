@@ -69,6 +69,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionState
 import com.sf.tadami.ui.animeinfos.episode.cast.CastSessionState
 import com.sf.tadami.ui.animeinfos.episode.cast.CastWebReceiverNoticeDialog
 import com.sf.tadami.ui.animeinfos.episode.cast.buildCastLoadRequest
+import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.CrashChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvCrashLog
@@ -123,7 +124,8 @@ class EpisodeActivity : AppCompatActivity() {
     private val json: Json = Json
     private var castSession: CastSession? = null
     private val isCasting = mutableStateOf(false)
-    private lateinit var castContext: CastContext
+    // Null without working Google Play services: cast is unavailable
+    private var castContext: CastContext? = null
     private var castSessionManagerListener: SessionManagerListener<CastSession>? = null
     private var castStateListener: CastStateListener? = null
     private var availableSources: List<StreamSource>? = null
@@ -160,8 +162,8 @@ class EpisodeActivity : AppCompatActivity() {
         overridePendingTransition(R.anim.shared_axis_x_push_enter, R.anim.shared_axis_x_push_exit)
         super.onCreate(savedInstanceState)
 
-        castContext = CastContext.getSharedInstance(this)
-        castSession = castContext.sessionManager.currentCastSession
+        castContext = castContextOrNull(this)
+        castSession = castContext?.sessionManager?.currentCastSession
         isCasting.value = castSession?.isConnected ?: false
         if (castSession?.remoteMediaClient?.mediaInfo?.customData != null) {
             try {
@@ -417,7 +419,7 @@ class EpisodeActivity : AppCompatActivity() {
 
     override fun onResume() {
         castSessionManagerListener?.let { listener ->
-            castContext.sessionManager.addSessionManagerListener(
+            castContext?.sessionManager?.addSessionManagerListener(
                 listener,
                 CastSession::class.java
             )
@@ -426,26 +428,26 @@ class EpisodeActivity : AppCompatActivity() {
         // already live, so when we open onto an existing cast session register the (activity-scoped)
         // error/crash channels here and make sure the control service is running (it owns the control
         // channel + episode switching, which must survive the activity being locked/exited).
-        isCasting.value =  castContext.sessionManager.currentCastSession?.isConnected ?: false
-        castContext.sessionManager.currentCastSession?.takeIf { it.isConnected }?.let { session ->
+        isCasting.value =  castContext?.sessionManager?.currentCastSession?.isConnected ?: false
+        castContext?.sessionManager?.currentCastSession?.takeIf { it.isConnected }?.let { session ->
             castSession = session
             setCastCustomChannel(session, errorChannel)
             setCastCustomChannel(session, crashChannel)
             CastControlService.startNow(this)
         }
-        castStateListener?.let { castContext.addCastStateListener(it) }
+        castStateListener?.let { castContext?.addCastStateListener(it) }
         super.onResume()
     }
 
     override fun onPause() {
         super.onPause()
         castSessionManagerListener?.let { listener ->
-            castContext.sessionManager.removeSessionManagerListener(
+            castContext?.sessionManager?.removeSessionManagerListener(
                 listener,
                 CastSession::class.java
             )
         }
-        castStateListener?.let { castContext.removeCastStateListener(it) }
+        castStateListener?.let { castContext?.removeCastStateListener(it) }
         castSession = null
     }
 
