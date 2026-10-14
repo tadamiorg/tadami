@@ -25,6 +25,7 @@ object CrashReporter {
     @Serializable
     data class CrashLog(
         val stacktrace: String,
+        val logs: String = "",
         val versionName: String,
         val versionCode: Int,
         val buildDate: String,
@@ -45,6 +46,11 @@ object CrashReporter {
             }
             appendLine()
             appendLine(stacktrace)
+            if (logs.isNotBlank()) {
+                appendLine()
+                appendLine("--- Recent logs ---")
+                appendLine(logs)
+            }
         }
     }
 
@@ -55,6 +61,7 @@ object CrashReporter {
         runCatching {
             val log = CrashLog(
                 stacktrace = throwable.stackTraceToString().take(MAX_STACKTRACE_LENGTH),
+                logs = CrashLogBuffer.snapshot(),
                 versionName = BuildConfig.VERSION_NAME,
                 versionCode = BuildConfig.VERSION_CODE,
                 buildDate = BuildConfig.BUILD_DATE,

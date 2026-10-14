@@ -13,6 +13,7 @@ import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import coil.request.CachePolicy
 import com.sf.tadami.crash.CrashActivity
+import com.sf.tadami.crash.CrashLogBuffer
 import com.sf.tadami.crash.GlobalExceptionHandler
 import com.sf.tadami.network.HttpException
 import com.sf.tadami.network.NetworkHelper
@@ -69,6 +70,7 @@ open class App : Application(), ImageLoaderFactory {
     /**
      * `logcat {}` is a no-op until a logger is installed. Installed in release too, at WARN and
      * above: [AndroidLogcatLogger] writes through `Log.println`, which ProGuard doesn't strip.
+     * [CrashLogBuffer] keeps the last lines for the crash report.
      */
     private fun installLogging() {
         if (LogcatLogger.isInstalled) return
@@ -76,6 +78,7 @@ open class App : Application(), ImageLoaderFactory {
         LogcatLogger.loggers += AndroidLogcatLogger(
             minPriority = if (BuildConfig.DEBUG) LogPriority.DEBUG else LogPriority.WARN,
         )
+        LogcatLogger.loggers += CrashLogBuffer
     }
 
     private fun setupRxJavaErrorHandler() {
