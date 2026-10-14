@@ -65,9 +65,14 @@ internal object ExtensionsStorage {
     /** Deletes the APK of [pkgName] and what ART compiled of it. */
     fun delete(dir: File, pkgName: String): Boolean {
         val deleted = apkFile(dir, pkgName).delete()
-        File(dir, OAT_DIR_NAME).listFiles().orEmpty()
+        val oatFiles = File(dir, OAT_DIR_NAME).listFiles().orEmpty()
+        oatFiles
             .flatMap { it.listFiles().orEmpty().asList() }
             .filter { it.nameWithoutExtension == pkgName }
+            .forEach { it.delete() }
+        // The profiles ART records of it, next to the ISA folders: `oat/<pkgName>.apk.cur.prof`...
+        oatFiles
+            .filter { it.isFile && it.name.startsWith(pkgName + APK_SUFFIX + ".") }
             .forEach { it.delete() }
         return deleted
     }

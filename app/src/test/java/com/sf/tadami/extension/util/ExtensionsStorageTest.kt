@@ -78,9 +78,14 @@ class ExtensionsStorageTest {
         val dir = tmpFolder.root
         val other = "$pkgName.other"
         val isaDir = File(dir, "oat/arm64").apply { mkdirs() }
-        val files = listOf("$pkgName.apk", "oat/arm64/$pkgName.odex", "oat/arm64/$pkgName.vdex")
-            .map { File(dir, it).apply { writeText("") } }
-        val kept = listOf(File(dir, "$other.apk"), File(isaDir, "$other.odex")).onEach { it.writeText("") }
+        val files = listOf(
+            "$pkgName.apk",
+            "oat/arm64/$pkgName.odex",
+            "oat/arm64/$pkgName.vdex",
+            "oat/$pkgName.apk.cur.prof",
+        ).map { File(dir, it).apply { writeText("") } }
+        val kept = listOf(File(dir, "$other.apk"), File(isaDir, "$other.odex"), File(dir, "oat/$other.apk.cur.prof"))
+            .onEach { it.writeText("") }
 
         assertTrue(ExtensionsStorage.delete(dir, pkgName))
 
