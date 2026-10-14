@@ -2,17 +2,13 @@ package com.sf.tadami.ui.utils
 
 import android.app.Application
 import android.util.Log
-import com.sf.tadami.R
-import com.sf.tadami.data.anime.NoResultException
-import com.sf.tadami.network.HttpException
-import com.sf.tadami.source.StubSource.SourceNotInstalledException
-import com.sf.tadami.utils.isOnline
+import com.sf.tadami.utils.logcat
 import io.reactivex.rxjava3.core.Observable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.rx3.await
+import logcat.LogPriority
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import java.net.UnknownHostException
 
 suspend fun <T : Any> Observable<T>.awaitSingleOrNull(
     printErrors: Boolean = true,
@@ -23,67 +19,11 @@ suspend fun <T : Any> Observable<T>.awaitSingleOrNull(
     } catch (e: Exception) {
         onError?.invoke()
         if (printErrors) {
-            when (e) {
-
-                is HttpException -> {
-                    Injekt.get<Application>().let {
-                        UiToasts.showToast(
-                            stringRes = R.string.request_error_response,
-                            args = arrayOf("${e.code}")
-                        )
-                    }
-                }
-
-                is UnknownHostException -> {
-                    Injekt.get<Application>().let {
-                        val actualError = if (!it.isOnline()) {
-                            it.getString(R.string.exception_offline)
-                        } else {
-                            it.getString(R.string.exception_unknown_host, e.message ?: "")
-                        }
-                        UiToasts.showToast(
-                            msg = actualError
-                        )
-                    }
-                }
-
-                is SourceNotInstalledException -> {
-                    Injekt.get<Application>().let {
-                        UiToasts.showToast(
-                            stringRes = R.string.source_not_installed,
-                            args = arrayOf("${e.message}")
-                        )
-                    }
-                }
-
-                is NoResultException -> {
-                    Injekt.get<Application>().let {
-                        UiToasts.showToast(
-                            msg = it.getString(R.string.pager_no_results)
-                        )
-                    }
-                }
-
-                is CancellationException -> {
-                    Log.d("AwaitSingleOrNull", "Cancellation : ${e.message}")
-                }
-
-                else -> {
-
-                    Injekt.get<Application>().let {
-                        val unknownError = when (val className = e::class.simpleName) {
-                            "Exception", "IOException" -> e.message ?: className
-                            else -> "$className: ${e.message}"
-                        }
-                        UiToasts.showToast(
-                            msg = unknownError
-                        )
-                    }
-
-                    e.printStackTrace()
-                }
-
-
+            if (e is CancellationException) {
+                Log.d("AwaitSingleOrNull", "Cancellation : ${e.message}")
+            } else {
+                UiToasts.showToast(msg = with(Injekt.get<Application>()) { e.formattedMessage })
+                if (!e.isKnownError()) logcat(LogPriority.ERROR, e)
             }
         }
         null

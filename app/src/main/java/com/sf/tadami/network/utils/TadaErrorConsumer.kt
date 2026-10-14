@@ -1,20 +1,17 @@
 package com.sf.tadami.network.utils
 
 import android.app.Application
+import android.os.Handler
 import android.os.Looper
-import com.sf.tadami.R
-import com.sf.tadami.data.anime.NoResultException
 import com.sf.tadami.network.HttpException
-import com.sf.tadami.source.StubSource.SourceNotInstalledException
 import com.sf.tadami.ui.utils.UiToasts
-import com.sf.tadami.utils.isOnline
+import com.sf.tadami.ui.utils.formattedMessage
+import com.sf.tadami.ui.utils.isKnownError
+import com.sf.tadami.utils.logcat
 import io.reactivex.rxjava3.functions.Consumer
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import logcat.LogPriority
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import java.net.UnknownHostException
 
 
 class TadaErrorConsumer(
@@ -22,76 +19,20 @@ class TadaErrorConsumer(
     private val callback: ((error : Throwable,message: String?, errorCode: Int?) -> Unit)? = null
 ) : Consumer<Throwable> {
     override fun accept(e: Throwable) {
-        // Already on the main thread: runBlocking { withContext(Dispatchers.Main) } would deadlock
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            handleError(e)
-        } else {
-            runBlocking {
-                withContext(Dispatchers.Main) {
-                    handleError(e)
-                }
-            }
+        val isKnownError = e.isKnownError()
+        // UiToasts already posts to the main thread
+        if (showUnknownError || isKnownError) {
+            UiToasts.showToast(msg = with(Injekt.get<Application>()) { e.formattedMessage })
         }
-    }
+        if (!isKnownError) logcat(LogPriority.ERROR, e)
 
-    private fun handleError(e: Throwable) {
-        when (e) {
-            is HttpException -> {
-                Injekt.get<Application>().let {
-                    UiToasts.showToast(
-                        stringRes = R.string.request_error_response,
-                        args = arrayOf("${e.code}")
-                    )
-                }
-                callback?.invoke(e,e.message, e.code)
-            }
-            is UnknownHostException -> {
-                Injekt.get<Application>().let {
-                    val actualError =  if (!it.isOnline()) {
-                        it.getString(R.string.exception_offline)
-                    } else {
-                        it.getString(R.string.exception_unknown_host, e.message ?: "")
-                    }
-                    UiToasts.showToast(
-                        msg = actualError
-                    )
-                }
-                callback?.invoke(e,e.message, null)
-            }
-            is SourceNotInstalledException -> {
-                Injekt.get<Application>().let {
-                    UiToasts.showToast(
-                        stringRes = R.string.source_not_installed,
-                        args = arrayOf("${e.message}")
-                    )
-                }
-                callback?.invoke(e,e.message, null)
-            }
-
-            is NoResultException -> {
-                Injekt.get<Application>().let {
-                    UiToasts.showToast(
-                        msg = it.getString(R.string.pager_no_results)
-                    )
-                }
-                callback?.invoke(e,e.message, null)
-            }
-
-            else -> {
-                if (showUnknownError) {
-                    Injekt.get<Application>().let {
-                        val unknownError = when (val className = e::class.simpleName) {
-                            "Exception", "IOException" -> e.message ?: className
-                            else -> "$className: ${e.message}"
-                        }
-                        UiToasts.showToast(
-                            msg = unknownError
-                        )
-                    }
-                }
-                callback?.invoke(e,e.message, null)
-                e.printStackTrace()
-            }
+        val callback = callback ?: return
+        val errorCode = (e as? HttpException)?.code
+        // The callback still runs on the main thread, without blocking the calling one
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            callback(e, e.message, errorCode)
+        } else {
+            Handler(Looper.getMainLooper()).post { callback(e, e.message, errorCode) }
         }
     }
 }

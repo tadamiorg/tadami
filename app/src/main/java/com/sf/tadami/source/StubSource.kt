@@ -59,5 +59,9 @@ class StubSource(
         }
     }
 
-    inner class SourceNotInstalledException : Exception("Id: $id - Name: $name")
+    inner class SourceNotInstalledException : Exception("Id: $id - Name: $name") {
+        /** The name of the missing source, or its id when unknown */
+        val sourceName: String
+            get() = name.takeIf { it.isNotBlank() && it != "Unknown" } ?: id.toString()
+    }
 }

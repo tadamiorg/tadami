@@ -9,6 +9,16 @@ import com.sf.tadami.source.StubSource.SourceNotInstalledException
 import com.sf.tadami.utils.isOnline
 import java.net.UnknownHostException
 
+/** Whether [formattedMessage] is worth showing even when unknown errors are not shown. */
+fun Throwable.isKnownError(): Boolean = when (this) {
+    is HttpException,
+    is UnknownHostException,
+    is NoResultException,
+    is SourceNotInstalledException -> true
+
+    else -> false
+}
+
 context(context: Context)
 val Throwable.formattedMessage: String
     get() {
@@ -24,7 +34,7 @@ val Throwable.formattedMessage: String
 
             is CloudflareChallengeException -> return message ?: context.getString(R.string.request_bypass_cloudflare_failure)
             is NoResultException -> return context.getString(R.string.pager_no_results)
-            is SourceNotInstalledException -> return context.getString(R.string.source_not_installed)
+            is SourceNotInstalledException -> return context.getString(R.string.source_not_installed, sourceName)
         }
         return when (val className = this::class.simpleName) {
             "Exception", "IOException" -> message ?: className
