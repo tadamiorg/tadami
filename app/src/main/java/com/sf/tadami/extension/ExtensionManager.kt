@@ -1,13 +1,18 @@
 package com.sf.tadami.extension
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.drawable.Drawable
 import android.util.Log
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import com.sf.tadami.BuildConfig
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.api.ExtensionsApi
@@ -107,6 +112,7 @@ class ExtensionManager(
 
     init {
         initExtensions()
+        if (BuildConfig.DEBUG) registerDebugPackageReceiver()
         instance = this
     }
 
@@ -145,6 +151,32 @@ class ExtensionManager(
         }
 
         isInitialized = true
+    }
+
+    /** Debug builds: copies an extension as soon as it's installed with adb, then loads it. */
+    private fun registerDebugPackageReceiver() {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                // The update of an app is also given as PACKAGE_REPLACED
+                if (intent.action == Intent.ACTION_PACKAGE_ADDED &&
+                    intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
+                ) {
+                    return
+                }
+                val pkgName = intent.data?.encodedSchemeSpecificPart ?: return
+                scope.launch {
+                    if (!ExtensionsMigration.adoptPackage(context, pkgName)) return@launch
+                    ExtensionsStorage.withLock(pkgName) { reloadExtension(pkgName) }
+                    updatePendingUpdatesCount()
+                }
+            }
+        }
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addDataScheme("package")
+        }
+        ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
     }
 
     /** Registers an extension that finished loading after its time limit. */
