@@ -29,7 +29,9 @@ import io.reactivex.rxjava3.plugins.RxJavaPlugins
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import logcat.AndroidLogcatLogger
 import logcat.LogPriority
+import logcat.LogcatLogger
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.IOException
@@ -38,6 +40,7 @@ open class App : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
+        installLogging()
         setupRxJavaErrorHandler()
 
         // The crash screen runs in its own process, which runs this too
@@ -63,6 +66,18 @@ open class App : Application(), ImageLoaderFactory {
 
         setAppCompatDelegateThemeMode(appearancePreferences.themeMode)
     }
+    /**
+     * `logcat {}` is a no-op until a logger is installed. Installed in release too, at WARN and
+     * above: [AndroidLogcatLogger] writes through `Log.println`, which ProGuard doesn't strip.
+     */
+    private fun installLogging() {
+        if (LogcatLogger.isInstalled) return
+        LogcatLogger.install()
+        LogcatLogger.loggers += AndroidLogcatLogger(
+            minPriority = if (BuildConfig.DEBUG) LogPriority.DEBUG else LogPriority.WARN,
+        )
+    }
+
     private fun setupRxJavaErrorHandler() {
         RxJavaPlugins.setErrorHandler { error ->
             // An error nobody is subscribed to anymore, e.g. a request failing after its screen
