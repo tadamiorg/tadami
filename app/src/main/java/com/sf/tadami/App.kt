@@ -25,6 +25,7 @@ import com.sf.tadami.preferences.appearance.setAppCompatDelegateThemeMode
 import com.sf.tadami.utils.animatorDurationScale
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.logcat
+import dev.mihon.injekt.patchInjekt
 import io.reactivex.rxjava3.exceptions.UndeliverableException
 import io.reactivex.rxjava3.plugins.RxJavaPlugins
 import kotlinx.coroutines.Dispatchers
@@ -56,6 +57,9 @@ open class App : Application(), ImageLoaderFactory {
             WebView.setDataDirectorySuffix(getProcessName().substringAfterLast(':'))
         }
 
+        // Builds each singleton once, even when several threads first ask for it at the same time:
+        // the warm up of AppModule runs on its own thread
+        patchInjekt()
         Injekt.importModule(AppModule(this, warmUp = isMainProcess))
         Injekt.importModule(PreferencesModule(this))
         createNotificationChannels()

@@ -75,7 +75,8 @@ class MainActivity : AppCompatActivity() {
     private val errorChannel = ErrorChannel()
     private var ready = false
     private val dataStore: DataStore<Preferences> = Injekt.get()
-    private val sourcesManager: SourceManager = Injekt.get()
+    // Only built when used, so creating the activity doesn't wait for the extensions
+    private val sourcesManager: SourceManager by lazy { Injekt.get() }
     private val openExtensionsRequests = Channel<Unit>(Channel.CONFLATED)
     private val openBackupSettingsRequests = Channel<Unit>(Channel.CONFLATED)
 

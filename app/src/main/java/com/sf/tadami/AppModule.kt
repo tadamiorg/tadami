@@ -1,7 +1,6 @@
 package com.sf.tadami
 
 import android.app.Application
-import androidx.core.content.ContextCompat
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
@@ -56,6 +55,7 @@ import uy.kohesive.injekt.api.InjektRegistrar
 import uy.kohesive.injekt.api.addSingleton
 import uy.kohesive.injekt.api.addSingletonFactory
 import uy.kohesive.injekt.api.get
+import kotlin.concurrent.thread
 
 class AppModule(private val app: Application, private val warmUp: Boolean = true) : InjektModule {
 
@@ -256,8 +256,9 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
         addSingletonFactory { PlayerNetworkHelper(app) }
 
 
-        // Asynchronously init expensive components for a faster cold start
-        if (warmUp) ContextCompat.getMainExecutor(app).execute {
+        // Init expensive components off the main thread for a faster cold start. A caller asking
+        // for one meanwhile waits for it, the singletons are thread safe (patchInjekt)
+        if (warmUp) thread(name = "AppModuleWarmUp") {
             get<NetworkHelper>()
             get<SourceManager>()
             get<Database>()
