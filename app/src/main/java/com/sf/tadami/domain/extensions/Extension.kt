@@ -28,7 +28,6 @@ sealed class Extension {
         val icon: Drawable?,
         val hasUpdate: Boolean = false,
         val isObsolete: Boolean = false,
-        val isShared: Boolean,
         val repoUrl: String? = null,
         /** Set when the extension can't be used, [sources] is empty then. */
         val loadIssue: ExtensionLoadIssue? = null,

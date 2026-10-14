@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.Log
+import android.widget.Toast
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -16,8 +17,9 @@ import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.extension.model.LoadResult
 import com.sf.tadami.extension.util.ExtensionsInstaller
 import com.sf.tadami.extension.util.ExtensionsLoader
+import com.sf.tadami.extension.util.ExtensionsMigration
+import com.sf.tadami.extension.util.ExtensionsStorage
 import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerNotifier
-import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerReceiver
 import com.sf.tadami.preferences.extensions.TrustedExtensionsPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.source.StubSource
@@ -25,16 +27,24 @@ import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 class ExtensionManager(
@@ -52,33 +62,33 @@ class ExtensionManager(
         }
 
     /**
-     * The installer which installs, updates and uninstalls the extensions.
+     * The installer which installs and updates the extensions.
      */
     private val installer by lazy { ExtensionsInstaller(context) }
-    private val iconMap = ConcurrentHashMap<String, Drawable>()
+
+    private val storageDir: File = ExtensionsStorage.dir(context)
+
+    /** Runs the installs and uninstalls, which go on without the screen that started them. */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /** The installs running, by package name. */
+    private val installs = ConcurrentHashMap<String, Install>()
+
+    private class Install(val job: Job, val steps: MutableStateFlow<InstallStep>)
 
     private val _installedExtensionsFlow = MutableStateFlow(emptyList<Extension.Installed>())
     val installedExtensionsFlow = _installedExtensionsFlow.asStateFlow()
 
+    private val _legacyPackagesFlow = MutableStateFlow(emptyList<String>())
+
+    /** The extensions still installed as apps, as they were before, that are copied, so not needed. */
+    val legacyPackagesFlow = _legacyPackagesFlow.asStateFlow()
+
+    /** The icon loaded with the extension of the source [sourceId]. */
     fun getAppIconForSource(sourceId: Long): Drawable? {
-        val extension = _installedExtensionsFlow.value
-            .find { ext ->
-                ext.sources.any { it.id == sourceId }
-            }
-            ?: return null
-
-        // Prefer the icon already loaded with the extension
-        extension.icon?.let { return it }
-
-        val pkgName = extension.pkgName
-        iconMap[pkgName]?.let { return it }
-        // The package may have just been uninstalled without PACKAGE_REMOVED being processed yet
-        val icon = ExtensionsLoader.getExtensionPackageInfoFromPkgName(context, pkgName)
-            ?.applicationInfo
-            ?.loadIcon(context.packageManager)
-            ?: return null
-        iconMap[pkgName] = icon
-        return icon
+        return _installedExtensionsFlow.value
+            .find { ext -> ext.sources.any { it.id == sourceId } }
+            ?.icon
     }
 
     private val _availableExtensionsFlow = MutableStateFlow(emptyList<Extension.Available>())
@@ -97,7 +107,6 @@ class ExtensionManager(
 
     init {
         initExtensions()
-        ExtensionInstallerReceiver(InstallationListener()).register(context)
         instance = this
     }
 
@@ -114,6 +123,13 @@ class ExtensionManager(
     }
 
     private fun initExtensions() {
+        ExtensionsStorage.cleanTmp(storageDir)
+        // Before the extensions are loaded, so that the ones still installed as apps are loaded
+        // from their copy. A failure must not prevent the others from loading: retried next launch
+        _legacyPackagesFlow.value = runCatching { runBlocking { ExtensionsMigration.migrate(context, dataStore) } }
+            .onFailure { Log.d("ExtensionsMigration", it.stackTraceToString()) }
+            .getOrDefault(emptyList())
+
         val extensions = ExtensionsLoader.loadExtensions(context, ::onLateExtensionLoaded)
 
         val loadedExtensions = extensions
@@ -136,8 +152,10 @@ class ExtensionManager(
         val extension = (result as? LoadResult.Success)?.extension ?: return
         _installedExtensionsFlow.update { installedExtensions ->
             val current = installedExtensions.find { it.pkgName == extension.pkgName }
-            // Already replaced, by an update for instance
-            if (current != null && current.loadIssue != ExtensionLoadIssue.TIMED_OUT) {
+            // Already replaced, by an update for instance, or uninstalled
+            if (current != null && current.loadIssue != ExtensionLoadIssue.TIMED_OUT ||
+                !ExtensionsStorage.apkFile(storageDir, extension.pkgName).isFile
+            ) {
                 installedExtensions
             } else {
                 installedExtensions.filterNot { it.pkgName == extension.pkgName } + extension.withUpdateCheck()
@@ -211,19 +229,23 @@ class ExtensionManager(
 
     /**
      * Returns a flow of the installation process for the given extension. It will complete
-     * once the extension is installed or throws an error. The process will be canceled if
-     * unsubscribed before its completion.
+     * once the extension is installed or fails, or the install is cancelled. The install goes on
+     * if unsubscribed before its completion.
      *
      * @param extension The extension to be installed.
      */
     fun installExtension(extension: Extension.Available): Flow<InstallStep> {
-        return installer.downloadAndInstall(api.getApkUrl(extension), extension)
+        val listed = listedExtension(extension) ?: return emptyFlow()
+        return startInstall(listed).transformWhile {
+            emit(it)
+            !it.isCompleted()
+        }
     }
 
     /**
      * Returns a flow of the installation process for the given extension. It will complete
-     * once the extension is updated or throws an error. The process will be canceled if
-     * unsubscribed before its completion.
+     * once the extension is updated or fails, or the update is cancelled. The update goes on
+     * if unsubscribed before its completion.
      *
      * @param extension The extension to be updated.
      */
@@ -234,29 +256,106 @@ class ExtensionManager(
     }
 
     fun cancelInstallUpdateExtension(extension: Extension) {
-        installer.cancelInstall(extension.pkgName)
+        val pkgName = when (extension) {
+            is Extension.Available -> listedExtension(extension)?.pkgName
+            is Extension.Installed -> extension.pkgName
+        }
+        installs[pkgName ?: return]?.job?.cancel()
     }
 
     /**
-     * Sets to "installing" status of an extension installation.
-     *
-     * @param downloadId The id of the download.
+     * The repo entry of [extension]: the extensions list has a copy of it per source, with its own
+     * package name.
      */
-    fun setInstalling(downloadId: Long) {
-        installer.updateInstallStep(downloadId, InstallStep.Installing)
+    private fun listedExtension(extension: Extension.Available): Extension.Available? {
+        return _availableExtensionsFlow.value.find {
+            it.repoUrl == extension.repoUrl && it.apkName == extension.apkName
+        }
     }
 
-    fun updateInstallStep(downloadId: Long, step: InstallStep) {
-        installer.updateInstallStep(downloadId, step)
+    /** Starts the install of [listed], or returns the steps of the one running for its package. */
+    private fun startInstall(listed: Extension.Available): StateFlow<InstallStep> {
+        val pkgName = listed.pkgName
+        val steps = MutableStateFlow(InstallStep.Pending)
+        val job = scope.launch(start = CoroutineStart.LAZY) { steps.value = install(listed, steps) }
+        val install = Install(job, steps)
+        installs.putIfAbsent(pkgName, install)?.let { running ->
+            job.cancel()
+            return running.steps
+        }
+        job.invokeOnCompletion {
+            // Cancelled, it still ends with a step for the screens that wait for it
+            if (!steps.value.isCompleted()) steps.value = InstallStep.Idle
+            installs.remove(pkgName, install)
+        }
+        job.start()
+        return steps
     }
 
     /**
-     * Uninstalls the extension that matches the given package name.
+     * Downloads [listed] and verifies it, then loads it in place of the installed one.
+     *
+     * @return The last step of the install.
+     */
+    private suspend fun install(listed: Extension.Available, steps: MutableStateFlow<InstallStep>): InstallStep {
+        val pkgName = listed.pkgName
+        var tmp: File? = null
+        try {
+            val file = installer.newTmpFile(pkgName).also { tmp = it }
+            steps.value = InstallStep.Downloading
+            installer.download(api.getApkUrl(listed), file)
+
+            steps.value = InstallStep.Installing
+            val rejection = ExtensionsStorage.withLock(pkgName) {
+                val installed = _installedExtensionsFlow.value.find { it.pkgName == pkgName }
+                // The same version can fix one that can't be used
+                val allowSameVersion = installed == null || installed.loadIssue != null
+                installer.verifyAndCommit(file, pkgName, listed, allowSameVersion).also {
+                    if (it == null) reloadExtension(pkgName)
+                }
+            }
+            if (rejection != null) {
+                Log.d("InstallExtension", "$pkgName refused: $rejection")
+                UiToasts.showToast(rejection.messageRes, Toast.LENGTH_LONG, listed.name)
+                return InstallStep.Error
+            }
+            updatePendingUpdatesCount()
+            return InstallStep.Installed
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.d("InstallExtension", "Couldn't install $pkgName: ${e.stackTraceToString()}")
+            UiToasts.showToast(R.string.ext_install_error_download, Toast.LENGTH_LONG, listed.name)
+            return InstallStep.Error
+        } finally {
+            tmp?.delete()
+        }
+    }
+
+    /**
+     * Uninstalls the given extension.
      *
      * @param extension The extension to uninstall.
      */
-    fun uninstallExtension(extension: Extension) {
-        installer.uninstallApk(extension.pkgName)
+    fun uninstallExtension(extension: Extension.Installed) {
+        scope.launch {
+            ExtensionsStorage.withLock(extension.pkgName) {
+                ExtensionsStorage.delete(storageDir, extension.pkgName)
+                unregisterExtension(extension.pkgName)
+            }
+            updatePendingUpdatesCount()
+        }
+    }
+
+    /** Updates the list of the extension apps not needed anymore, see [legacyPackagesFlow]. */
+    suspend fun refreshLegacyPackages(): List<String> {
+        return withContext(Dispatchers.IO) { ExtensionsMigration.legacyPackages(context) }
+            .also { _legacyPackagesFlow.value = it }
+    }
+
+    /** Asks the system to uninstall the extension app [pkgName], see [legacyPackagesFlow]. */
+    fun requestUninstallLegacyPackage(pkgName: String) {
+        ExtensionsMigration.requestUninstall(context, pkgName)
     }
 
     /**
@@ -274,23 +373,20 @@ class ExtensionManager(
         withContext(Dispatchers.IO) {
             _installedExtensionsFlow.value
                 .filter { it.loadIssue == ExtensionLoadIssue.UNTRUSTED && it.signatureHash == signatureHash }
-                .forEach {
-                    val result = ExtensionsLoader.loadExtensionFromPkgName(context, it.pkgName)
-                    if (result is LoadResult.Success) {
-                        registerUpdatedExtension(result.extension.withUpdateCheck())
-                    }
-                }
+                .forEach { ExtensionsStorage.withLock(it.pkgName) { reloadExtension(it.pkgName) } }
             updatePendingUpdatesCount()
         }
     }
 
     /**
-     * Registers the given extension in this and the source managers.
-     *
-     * @param extension The extension to be registered.
+     * Loads the extension [pkgName] from its file, in place of the registered one. To run under its
+     * lock, see [ExtensionsStorage.withLock].
      */
-    private fun registerNewExtension(extension: Extension.Installed) {
-        _installedExtensionsFlow.update { it + extension }
+    private fun reloadExtension(pkgName: String) {
+        when (val result = ExtensionsLoader.loadExtensionFromPkgName(context, pkgName)) {
+            is LoadResult.Success -> registerUpdatedExtension(result.extension.withUpdateCheck())
+            LoadResult.Error -> unregisterExtension(pkgName)
+        }
     }
 
     /**
@@ -300,7 +396,6 @@ class ExtensionManager(
      * @param extension The extension to be registered.
      */
     private fun registerUpdatedExtension(extension: Extension.Installed) {
-        iconMap.remove(extension.pkgName)
         _installedExtensionsFlow.update { installedExtensions ->
             val mutInstalledExtensions = installedExtensions.toMutableList()
             val oldExtension = mutInstalledExtensions.find { it.pkgName == extension.pkgName }
@@ -313,65 +408,14 @@ class ExtensionManager(
     }
 
     /**
-     * Unregisters the extension in this and the source managers given its package name. Note this
-     * method is called for every uninstalled application in the system.
+     * Unregisters the extension in this and the source managers given its package name.
      *
-     * @param pkgName The package name of the uninstalled application.
+     * @param pkgName The package name of the uninstalled extension.
      */
     private fun unregisterExtension(pkgName: String) {
-        iconMap.remove(pkgName)
         _installedExtensionsFlow.update { installedExtensions ->
             val installedExtension = installedExtensions.find { it.pkgName == pkgName }
             if (installedExtension != null) installedExtensions - installedExtension else installedExtensions
-        }
-    }
-
-    /**
-     * Checks if an extension with the given package name and version is already loaded.
-     * Returns true if the extension exists and has the same or newer version.
-     */
-    private fun isExtensionAlreadyLoaded(pkgName: String, versionCode: Long): Boolean {
-        val existing = _installedExtensionsFlow.value.find { it.pkgName == pkgName }
-        return existing != null && existing.versionCode >= versionCode
-    }
-
-    /**
-     * Listener which receives events of the extensions being installed, updated or removed.
-     */
-    private inner class InstallationListener : ExtensionInstallerReceiver.Listener {
-
-        override fun onExtensionInstalled(extension: Extension.Installed) {
-            // Check if already loaded to prevent duplicate instantiation
-            if (isExtensionAlreadyLoaded(extension.pkgName, extension.versionCode)) {
-                Log.d("ExtensionManager", "Extension ${extension.pkgName} already loaded, skipping")
-                return
-            }
-            Log.d("ExtensionManager", "Registering new extension ${extension.pkgName}")
-            registerNewExtension(extension.withUpdateCheck())
-            updatePendingUpdatesCount()
-        }
-
-        override fun onExtensionUpdated(extension: Extension.Installed) {
-            Log.d("ExtensionManager", "onExtensionUpdated called for ${extension.pkgName} version ${extension.versionCode}")
-            val existing = _installedExtensionsFlow.value.find { it.pkgName == extension.pkgName }
-            Log.d("ExtensionManager", "Existing version: ${existing?.versionCode}")
-
-            // Only update if version is actually newer, or if the loaded one can't be used: a
-            // reinstall of the same version may fix it
-            if (existing != null && existing.loadIssue == null && existing.versionCode >= extension.versionCode) {
-                Log.d("ExtensionManager", "Extension ${extension.pkgName} version ${extension.versionCode} not newer than ${existing.versionCode}, skipping")
-                return
-            }
-            Log.d("ExtensionManager", "Registering updated extension ${extension.pkgName}")
-            registerUpdatedExtension(extension.withUpdateCheck())
-            updatePendingUpdatesCount()
-        }
-
-        override fun onPackageUninstalled(pkgName: String) {
-            // Called for any app, only an extension can change the count
-            if (_installedExtensionsFlow.value.none { it.pkgName == pkgName }) return
-            unregisterExtension(pkgName)
-            updatePendingUpdatesCount()
         }
     }
 
@@ -398,7 +442,9 @@ class ExtensionManager(
         // The update statuses aren't known before the available extensions are, keep the count
         // the startup check stored
         if (_availableExtensionsFlow.value.isEmpty()) return
-        val pendingUpdateCount = _installedExtensionsFlow.value.count { it.hasUpdate }
+        // An untrusted one is trusted first, then updated
+        val pendingUpdateCount = _installedExtensionsFlow.value
+            .count { it.hasUpdate && it.loadIssue != ExtensionLoadIssue.UNTRUSTED }
         runBlocking {
             dataStore.editPreference(pendingUpdateCount,SourcesPreferences.EXT_UPDATES_COUNT)
         }

@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.domain.extensions.Extensions
 import com.sf.tadami.extension.ExtensionManager
+import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +30,8 @@ class GetExtensionsByType(
                         .thenBy { it.isObsolete.not() }
                         .thenBy(String.CASE_INSENSITIVE_ORDER) { it.name },
                 )
-                .partition { it.hasUpdate }
+                // An untrusted one is trusted first, then updated
+                .partition { it.hasUpdate && it.loadIssue != ExtensionLoadIssue.UNTRUSTED }
             val available = _available
                 .filter { extension ->
                     _installed.none { it.pkgName == extension.pkgName }

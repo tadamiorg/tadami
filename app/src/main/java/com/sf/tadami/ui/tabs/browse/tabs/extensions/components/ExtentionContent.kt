@@ -11,7 +11,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
@@ -21,8 +20,6 @@ import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.ExtensionUiModel
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.ExtensionsUiState
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.item.ExtensionItem
-import com.sf.tadami.utils.launchRequestPackageInstallsPermission
-import com.sf.tadami.utils.rememberRequestPackageInstallsPermissionState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -33,25 +30,21 @@ fun ExtensionContent(
     onClickItemCancel: (Extension) -> Unit,
     onOpenWebView: (Extension.Available) -> Unit,
     onInstallExtension: (Extension.Available) -> Unit,
-    onUninstallExtension: (Extension) -> Unit,
+    onUninstallExtension: (Extension.Installed) -> Unit,
     onTrustExtension: (Extension.Installed) -> Unit,
     onUpdateExtension: (Extension.Installed) -> Unit,
     onOpenExtension: (Extension.Installed) -> Unit,
     onClickUpdateAll: () -> Unit,
+    onRemoveLegacyPackages: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val installGranted = rememberRequestPackageInstallsPermissionState(initialValue = true)
-
     FastScrollLazyColumn(
         contentPadding = contentPadding,
     ) {
-        if (!installGranted && state.installer?.requiresSystemPermission == true) {
-            item(key = "extension-permissions-warning") {
+        if (state.legacyPackages.isNotEmpty()) {
+            item(key = "extension-legacy-packages") {
                 WarningBanner(
-                    textRes = R.string.ext_permission_install_apps_warning,
-                    modifier = Modifier.clickable {
-                        context.launchRequestPackageInstallsPermission()
-                    },
+                    textRes = R.string.ext_legacy_packages_banner,
+                    modifier = Modifier.clickable { onRemoveLegacyPackages() },
                 )
             }
         }

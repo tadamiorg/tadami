@@ -4,7 +4,6 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import androidx.core.content.IntentCompat
 import com.sf.tadami.R
 
 fun Uri.toShareIntent(context: Context, type: String = "image/*", message: String? = null): Intent {
@@ -28,7 +27,4 @@ fun Uri.toShareIntent(context: Context, type: String = "image/*", message: Strin
     return Intent.createChooser(shareIntent, context.getString(R.string.action_share)).apply {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK
     }
-}
-inline fun <reified T> Intent.getParcelableExtraCompat(name: String): T? {
-    return IntentCompat.getParcelableExtra(this, name, T::class.java)
 }

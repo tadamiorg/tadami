@@ -29,6 +29,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import java.io.File
 import java.security.MessageDigest
 import java.util.concurrent.Executors
 
@@ -63,52 +64,39 @@ internal object ExtensionsLoader {
         }.asCoroutineDispatcher(),
     )
 
+    // GET_SIGNATURES as well: getPackageArchiveInfo of API 28 and 29 only reads the certificates
+    // with it, even for signingInfo
     @Suppress("DEPRECATION")
-    private val PACKAGE_FLAGS = PackageManager.GET_CONFIGURATIONS or
+    private const val PACKAGE_FLAGS = PackageManager.GET_CONFIGURATIONS or
             PackageManager.GET_META_DATA or
             PackageManager.GET_SIGNATURES or
             PackageManager.GET_SIGNING_CERTIFICATES
 
     /**
-     * Return a list of all the available extensions initialized concurrently.
+     * Return a list of all the extensions of [ExtensionsStorage] initialized concurrently.
      *
      * @param context The application context.
      * @param onLateResult Gets the result of an extension listed as [ExtensionLoadIssue.TIMED_OUT]
      * once it finishes loading.
      */
     fun loadExtensions(context: Context, onLateResult: (LoadResult) -> Unit = {}): List<LoadResult> {
-        val pkgManager = context.packageManager
-
-        val installedPkgs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            pkgManager.getInstalledPackages(PackageManager.PackageInfoFlags.of(PACKAGE_FLAGS.toLong()))
-        } else {
-            pkgManager.getInstalledPackages(PACKAGE_FLAGS)
-        }
-
-        val sharedExtPkgs = installedPkgs
-            .asSequence()
-            .filter { isPackageAnExtension(it) }
-            .map { ExtensionInfo(packageInfo = it, isShared = true) }
-
-
-        val extPkgs = (sharedExtPkgs)
-            // Remove duplicates. Shared takes priority than private by default
-            .distinctBy { it.packageInfo.packageName }
-            .toList()
-
-        if (extPkgs.isEmpty()) return emptyList()
+        val pkgNames = ExtensionsStorage.pkgNames(ExtensionsStorage.dir(context))
+        if (pkgNames.isEmpty()) return emptyList()
 
         val trustedSignatures = trustedSignatures()
 
         // Load each extension concurrently and wait for completion
         return loadAll(
-            items = extPkgs,
+            items = pkgNames,
             timeoutMillis = LOAD_TIMEOUT_MS,
             // One malformed package must not prevent the others from loading
-            load = { runCatching { loadExtension(context, it, trustedSignatures) }.getOrDefault(LoadResult.Error) },
-            timedOut = {
-                Log.d("LoadExtension", "Extension ${it.packageInfo.packageName} timed out after ${LOAD_TIMEOUT_MS}ms")
-                runCatching { unusableResult(context, it, ExtensionLoadIssue.TIMED_OUT) }.getOrDefault(LoadResult.Error)
+            load = { runCatching { loadExtensionFromPkgName(context, it, trustedSignatures) }.getOrDefault(LoadResult.Error) },
+            timedOut = { pkgName ->
+                Log.d("LoadExtension", "Extension $pkgName timed out after ${LOAD_TIMEOUT_MS}ms")
+                runCatching {
+                    getExtensionPackageInfo(context, pkgName)
+                        ?.let { unusableResult(context, it, ExtensionLoadIssue.TIMED_OUT) }
+                }.getOrNull() ?: LoadResult.Error
             },
             onLateResult = onLateResult,
         )
@@ -143,56 +131,57 @@ internal object ExtensionsLoader {
     }
 
     /**
-     * Attempts to load an extension from the given package name. It checks if the extension
+     * Attempts to load the extension [pkgName] of [ExtensionsStorage]. It checks if the extension
      * contains the required feature flag before trying to load it.
      */
-    fun loadExtensionFromPkgName(context: Context, pkgName: String): LoadResult {
-        Log.d("ExtensionsLoader", "loadExtensionFromPkgName called for: $pkgName")
-        val extensionPackage = getExtensionInfoFromPkgName(context, pkgName)
-        if (extensionPackage == null) {
+    fun loadExtensionFromPkgName(
+        context: Context,
+        pkgName: String,
+        trustedSignatures: Set<String> = trustedSignatures(),
+    ): LoadResult {
+        val pkgInfo = getExtensionPackageInfo(context, pkgName)
+        if (pkgInfo == null) {
             Log.d("LoadExtensionFromPkgName","Extension package is not found ($pkgName)")
             return LoadResult.Error
         }
-        return loadExtension(context, extensionPackage, trustedSignatures())
+        return loadExtension(context, pkgInfo, trustedSignatures)
     }
 
-    fun getExtensionPackageInfoFromPkgName(context: Context, pkgName: String): PackageInfo? {
-        return getExtensionInfoFromPkgName(context, pkgName)?.packageInfo
+    /** The package of the extension [pkgName] of [ExtensionsStorage], null when it has none. */
+    private fun getExtensionPackageInfo(context: Context, pkgName: String): PackageInfo? {
+        val file = ExtensionsStorage.apkFile(ExtensionsStorage.dir(context), pkgName)
+        if (!file.isFile) return null
+        return getArchivePackageInfo(context, file)
+            ?.takeIf { it.packageName == pkgName && isPackageAnExtension(it) }
     }
 
-    private fun getExtensionInfoFromPkgName(context: Context, pkgName: String): ExtensionInfo? {
-        val sharedPkg = try {
-            context.packageManager.getPackageInfo(pkgName, PACKAGE_FLAGS)
-                .takeIf { isPackageAnExtension(it) }
-                ?.let {
-                    ExtensionInfo(
-                        packageInfo = it,
-                        isShared = true,
-                    )
-                }
-        } catch (error: PackageManager.NameNotFoundException) {
-            null
+    /** The package of the APK [file], its resources readable, or null when it isn't a valid one. */
+    fun getArchivePackageInfo(context: Context, file: File): PackageInfo? {
+        val pkgManager = context.packageManager
+        val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pkgManager.getPackageArchiveInfo(file.path, PackageManager.PackageInfoFlags.of(PACKAGE_FLAGS.toLong()))
+        } else {
+            pkgManager.getPackageArchiveInfo(file.path, PACKAGE_FLAGS)
         }
-
-        return sharedPkg
+        return pkgInfo?.apply { applicationInfo?.fixBasePaths(file.path) }
     }
 
     /**
      * Loads an extension
      *
      * @param context The application context.
-     * @param extensionInfo The extension to load.
+     * @param pkgInfo The package of the extension to load.
      * @param trustedSignatures The signing keys the user trusted, see [isTrusted].
      */
     private fun loadExtension(
         context: Context,
-        extensionInfo: ExtensionInfo,
+        pkgInfo: PackageInfo,
         trustedSignatures: Set<String>,
     ): LoadResult {
         return try {
-            loadExtensionUnsafe(context, extensionInfo, trustedSignatures)
+            loadExtensionUnsafe(context, pkgInfo, trustedSignatures)
         } catch (e: Throwable) {
-            Log.d("LoadExtension","Extension load error: ${extensionInfo.packageInfo.packageName}")
+            Log.d("LoadExtension","Extension load error: ${pkgInfo.packageName}")
             Log.d("LoadExtension Error",e.stackTraceToString())
             LoadResult.Error
         }
@@ -200,11 +189,10 @@ internal object ExtensionsLoader {
 
     private fun loadExtensionUnsafe(
         context: Context,
-        extensionInfo: ExtensionInfo,
+        pkgInfo: PackageInfo,
         trustedSignatures: Set<String>,
     ): LoadResult {
         val pkgManager = context.packageManager
-        val pkgInfo = extensionInfo.packageInfo
         val appInfo = pkgInfo.applicationInfo ?: return LoadResult.Error
         val pkgName = pkgInfo.packageName
 
@@ -214,7 +202,7 @@ internal object ExtensionsLoader {
         val apiVersion = versionName?.let { LibVersion.fromVersionName(it) }
         val signatureHashes = signatureHashes(pkgInfo)
 
-        fun unusable(issue: ExtensionLoadIssue) = unusableResult(context, extensionInfo, issue)
+        fun unusable(issue: ExtensionLoadIssue) = unusableResult(context, pkgInfo, issue)
 
         // Before anything of the package is loaded: the code of an untrusted one must never run
         if (!isTrusted(signatureHashes, trustedSignatures)) {
@@ -234,6 +222,7 @@ internal object ExtensionsLoader {
         }
 
         val classLoader = try {
+            // Parent first: the classes of the app win over any of the extension
             PathClassLoader(appInfo.sourceDir, null, context.classLoader)
         } catch (e: Exception) {
             Log.d("ClassLoader","Extension load error: $extName ($pkgName)")
@@ -278,7 +267,6 @@ internal object ExtensionsLoader {
             sources = sources,
             pkgFactory = null,
             icon = appInfo.loadIcon(pkgManager),
-            isShared = extensionInfo.isShared,
             signatureHash = signatureHashes.lastOrNull(),
         )
         return LoadResult.Success(extension)
@@ -287,11 +275,10 @@ internal object ExtensionsLoader {
     /** Still listed, without its sources, so that the user sees why it can't be used */
     private fun unusableResult(
         context: Context,
-        extensionInfo: ExtensionInfo,
+        pkgInfo: PackageInfo,
         issue: ExtensionLoadIssue,
     ): LoadResult {
         val pkgManager = context.packageManager
-        val pkgInfo = extensionInfo.packageInfo
         val appInfo = pkgInfo.applicationInfo ?: return LoadResult.Error
         val pkgName = pkgInfo.packageName
         val extName = pkgManager.getApplicationLabel(appInfo).toString().substringAfter("Tadami: ")
@@ -309,7 +296,6 @@ internal object ExtensionsLoader {
                 sources = emptyList(),
                 pkgFactory = null,
                 icon = appInfo.loadIcon(pkgManager),
-                isShared = extensionInfo.isShared,
                 loadIssue = issue,
                 signatureHash = signatureHashes(pkgInfo).lastOrNull(),
             ),
@@ -326,7 +312,7 @@ internal object ExtensionsLoader {
      * SHA-256 fingerprints of the certificates [pkgInfo] is signed with, the current one last.
      * With a rotated key, the older ones the platform verified come first.
      */
-    private fun signatureHashes(pkgInfo: PackageInfo): List<String> {
+    internal fun signatureHashes(pkgInfo: PackageInfo): List<String> {
         // signingInfo is there from API 28, the minSdk: no need for the legacy signatures
         val signingInfo = pkgInfo.signingInfo ?: return emptyList()
         val signatures = if (signingInfo.hasMultipleSigners()) {
@@ -368,7 +354,7 @@ internal object ExtensionsLoader {
      *
      * @param pkgInfo The package info of the application.
      */
-    private fun isPackageAnExtension(pkgInfo: PackageInfo): Boolean {
+    internal fun isPackageAnExtension(pkgInfo: PackageInfo): Boolean {
         return pkgInfo.reqFeatures.orEmpty().any { it.name == EXTENSION_FEATURE }
     }
 
@@ -384,9 +370,4 @@ internal object ExtensionsLoader {
             publicSourceDir = apkPath
         }
     }
-
-    private data class ExtensionInfo(
-        val packageInfo: PackageInfo,
-        val isShared: Boolean,
-    )
 }

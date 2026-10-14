@@ -313,7 +313,6 @@
     <string name="pref_subtitle_letter_spacing">Spacing</string>
 
     <!-- Extensions -->
-    <string name="ext_install_service_notif">Installing extension…</string>
     <string name="notification_extensions_group">Extensions</string>
     <string name="channel_ext_updates">Extension updates</string>
     <string name="extension_api_error">Failed to fetch available extensions</string>
@@ -343,12 +342,18 @@
     <string name="ext_pending">Pending</string>
     <string name="ext_downloading">Downloading</string>
     <string name="ext_installing">Installing</string>
-    <string name="ext_permission_install_apps_warning">Permissions are needed to install extensions. Tap here to grant.</string>
     <string name="ext_update_all">Update all</string>
     <string name="ext_info_version">Version</string>
     <string name="ext_info_language">Language</string>
-    <string name="ext_app_info">App info</string>
     <string name="ext_uninstall">Uninstall</string>
+    <string name="ext_uninstall_confirm">Uninstall %1$s?</string>
+    <string name="ext_install_error_download">Couldn\'t download %1$s</string>
+    <string name="ext_install_error_invalid">%1$s: the downloaded file isn\'t the expected extension, nothing was changed</string>
+    <string name="ext_install_error_not_newer">%1$s: the downloaded version isn\'t newer than the installed one</string>
+    <string name="ext_install_error_signer">%1$s is signed with another key than the installed one: uninstall it first</string>
+    <string name="ext_legacy_packages_banner">Extensions installed as apps are no longer needed. Tap to uninstall them.</string>
+    <string name="ext_legacy_packages_title">Uninstall the extension apps</string>
+    <string name="ext_legacy_packages_message">Tadami now keeps the extensions in its own storage, the apps they were installed as are no longer used. Android asks to confirm each uninstall.</string>
     <string name="display_anime">Show anime</string>
     <string name="action_copy">Copy</string>
     <string name="action_move">Move</string>
@@ -364,7 +369,7 @@
     <string name="no_location_set">No storage location set</string>
     <string name="onboarding_storage_info">Select a folder where %1$s will store episodes downloads, backups, and more.\n\nA dedicated folder is recommended.\n\nSelected folder: %2$s</string>
     <string name="onboarding_permission_install_apps">Install apps permission</string>
-    <string name="onboarding_permission_install_apps_description">To install source extensions.</string>
+    <string name="onboarding_permission_install_apps_description">To install the updates of Tadami.</string>
     <string name="onboarding_permission_notifications">Notification permission</string>
     <string name="onboarding_permission_notifications_description">Get notified for library updates and more.</string>
     <string name="onboarding_permission_ignore_battery_opts">Background battery usage</string>

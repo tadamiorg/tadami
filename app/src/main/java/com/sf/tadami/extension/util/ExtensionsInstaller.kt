@@ -1,332 +1,182 @@
 package com.sf.tadami.extension.util
 
-import android.app.DownloadManager
-import android.content.ActivityNotFoundException
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.net.Uri
-import android.os.Environment
-import android.util.Log
-import androidx.core.content.ContextCompat
-import androidx.core.content.getSystemService
-import androidx.core.net.toUri
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
+import androidx.annotation.StringRes
+import androidx.core.content.pm.PackageInfoCompat
+import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
-import com.sf.tadami.extension.installer.Installer
-import com.sf.tadami.extension.model.InstallStep
-import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallService
-import com.sf.tadami.preferences.extensions.ExtensionInstallerEnum
-import com.sf.tadami.preferences.extensions.ExtensionsPreferences
-import com.sf.tadami.ui.utils.getUriCompat
-import com.sf.tadami.utils.getPreferencesGroup
-import com.sf.tadami.utils.isPackageInstalled
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.transformWhile
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import com.sf.tadami.extension.model.LibVersion
+import com.sf.tadami.network.GET
+import com.sf.tadami.network.NetworkHelper
+import com.sf.tadami.network.awaitSuccess
+import kotlinx.coroutines.runInterruptible
+import okhttp3.CacheControl
+import uy.kohesive.injekt.injectLazy
 import java.io.File
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.time.Duration.Companion.seconds
+import java.io.IOException
+import java.io.InputStream
+import java.util.zip.ZipFile
 
 /**
- * The installer which installs, updates and uninstalls the extensions.
+ * Installs the extensions into [ExtensionsStorage]: their APK is downloaded or copied into a
+ * temporary file, then verified before it replaces the installed one.
  *
  * @param context The application context.
  */
 internal class ExtensionsInstaller(private val context: Context) {
 
-    private val dataStore : DataStore<Preferences> = Injekt.get()
-    /**
-     * The system's download manager
-     */
-    private val downloadManager = context.getSystemService<DownloadManager>()!!
+    private val network: NetworkHelper by injectLazy()
 
-    /**
-     * The broadcast receiver which listens to download completion events.
-     */
-    private val downloadReceiver = DownloadCompletionReceiver()
+    private val dir = ExtensionsStorage.dir(context)
 
-    /**
-     * The currently requested downloads, with the package name (unique id) as key, and the id
-     * returned by the download manager.
-     */
-    private val activeDownloads = ConcurrentHashMap<String, Long>()
+    fun newTmpFile(pkgName: String): File = ExtensionsStorage.newTmpFile(dir, pkgName)
 
-    private val downloadsStateFlows = ConcurrentHashMap<Long, MutableStateFlow<InstallStep>>()
+    /** Downloads the APK at [url] into [tmp]. Cancelling the coroutine stops the download. */
+    suspend fun download(url: String, tmp: File) {
+        // Neither from nor into the HTTP cache, the file is kept here
+        val request = GET(url, cache = CacheControl.Builder().noStore().build())
+        network.client.newCall(request).awaitSuccess().use { response ->
+            // The reads block, the cancellation interrupts them
+            runInterruptible { copyAtMost(response.body.byteStream(), tmp, MAX_APK_SIZE) }
+        }
+    }
 
-    /**
-     * Guards the changes of [activeDownloads] made together with the receiver registration, as
-     * downloads are started from several IO threads while completions are handled on main.
-     */
-    private val lock = Any()
-
-    private val extensionInstaller = runBlocking {
-        dataStore.getPreferencesGroup(ExtensionsPreferences).extensionInstallerEnum
+    /** The version code of the installed extension [pkgName], null when there is none. */
+    fun installedVersionCode(pkgName: String): Long? {
+        val file = ExtensionsStorage.apkFile(dir, pkgName).takeIf { it.isFile } ?: return null
+        return ExtensionsLoader.getArchivePackageInfo(context, file)
+            ?.let { PackageInfoCompat.getLongVersionCode(it) }
     }
 
     /**
-     * Adds the given extension to the downloads queue and returns an observable containing its
-     * step in the installation process.
+     * Verifies [tmp], then makes it the APK of [pkgName]. To run under the lock of the package,
+     * see [ExtensionsStorage.withLock].
      *
-     * @param url The url of the apk.
-     * @param extension The extension to install.
+     * @param listed The repo entry [tmp] was downloaded from, null for a copied package.
+     * @param allowSameVersion Whether the installed version can be replaced by the same one.
+     * @return Why [tmp] was refused, the installed APK being kept, or null once it replaced it.
      */
-    fun downloadAndInstall(url: String, extension: Extension): Flow<InstallStep> {
-        val pkgName = extension.pkgName
-
-        val downloadUri = url.toUri()
-        val request = DownloadManager.Request(downloadUri)
-            .setTitle(extension.name)
-            .setMimeType(APK_MIME)
-            .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, downloadUri.lastPathSegment)
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-
-        val downloadStateFlow = MutableStateFlow(InstallStep.Pending)
-
-        val id = synchronized(lock) {
-            val oldDownload = activeDownloads[pkgName]
-            if (oldDownload != null) {
-                deleteDownload(pkgName)
-            }
-
-            // Register the receiver after removing (and unregistering) the previous download
-            downloadReceiver.register()
-
-            downloadManager.enqueue(request).also {
-                activeDownloads[pkgName] = it
-                downloadsStateFlows[it] = downloadStateFlow
-            }
-        }
-
-        // Poll download status
-        val pollStatusFlow = downloadStatusFlow(id).mapNotNull { downloadStatus ->
-            // Map to our model
-            when (downloadStatus) {
-                DownloadManager.STATUS_PENDING -> InstallStep.Pending
-                DownloadManager.STATUS_RUNNING -> InstallStep.Downloading
-                else -> null
-            }
-        }
-
-        return merge(downloadStateFlow, pollStatusFlow).transformWhile {
-            emit(it)
-            // Stop when the application is installed or errors
-            !it.isCompleted()
-        }.onCompletion {
-            // Always notify on main thread
-            withContext(Dispatchers.Main) {
-                // Always remove the download when unsubscribed
-                deleteDownload(pkgName, id)
-            }
-        }
+    fun verifyAndCommit(
+        tmp: File,
+        pkgName: String,
+        listed: Extension.Available?,
+        allowSameVersion: Boolean,
+    ): ApkRejection? {
+        val apk = readApk(tmp) ?: return ApkRejection.INVALID_APK
+        // One that can't be read can't be used either: nothing to keep
+        val installed = ExtensionsStorage.apkFile(dir, pkgName).takeIf { it.isFile }?.let { readApk(it) }
+        rejectionOf(apk, pkgName, listed, installed, allowSameVersion)?.let { return it }
+        ExtensionsStorage.commit(dir, pkgName, tmp)
+        return null
     }
 
-    /**
-     * Returns a flow that polls the given download id for its status every second, as the
-     * manager doesn't have any notification system. It'll stop once the download finishes.
-     *
-     * @param id The id of the download to poll.
-     */
-    private fun downloadStatusFlow(id: Long): Flow<Int> = flow {
-        val query = DownloadManager.Query().setFilterById(id)
-        while (true) {
-            // Get the current download status
-            val downloadStatus = downloadManager.query(query).use { cursor ->
-                if (!cursor.moveToFirst()) return@flow
-                cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-            }
-
-            emit(downloadStatus)
-
-            // Stop polling when the download fails or finishes
-            if (
-                downloadStatus == DownloadManager.STATUS_SUCCESSFUL ||
-                downloadStatus == DownloadManager.STATUS_FAILED
-            ) {
-                return@flow
-            }
-
-            delay(1.seconds)
-        }
-    }
-        // Ignore duplicate results
-        .distinctUntilChanged()
-
-    /**
-     * Starts an intent to install the extension at the given uri.
-     *
-     * @param uri The uri of the extension to install.
-     */
-    fun installApk(downloadId: Long, uri: Uri) {
-        when (val installer = extensionInstaller) {
-            ExtensionInstallerEnum.LEGACY -> {
-                val intent = Intent(context, ExtensionInstallActivity::class.java)
-                    .setDataAndType(uri, APK_MIME)
-                    .putExtra(EXTRA_DOWNLOAD_ID, downloadId)
-                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
-                try {
-                    context.startActivity(intent)
-                } catch (e: ActivityNotFoundException) {
-                    Log.d("ExtensionsInstaller - installApk","Couldn't start the install activity")
-                    updateInstallStep(downloadId, InstallStep.Error)
-                }
-            }
-            else -> {
-                val intent = ExtensionInstallService.getIntent(context, downloadId, uri, installer)
-                try {
-                    ContextCompat.startForegroundService(context, intent)
-                } catch (e: IllegalStateException) {
-                    // ForegroundServiceStartNotAllowedException when the app is in the background
-                    Log.d("ExtensionsInstaller - installApk","Couldn't start the install service")
-                    updateInstallStep(downloadId, InstallStep.Error)
-                }
-            }
-        }
-    }
-
-    /**
-     * Cancels extension install and remove from download manager and installer.
-     */
-    fun cancelInstall(pkgName: String) {
-        val downloadId = synchronized(lock) {
-            val id = activeDownloads.remove(pkgName) ?: return
-            downloadManager.remove(id)
-            if (activeDownloads.isEmpty()) {
-                downloadReceiver.unregister()
-            }
-            id
-        }
-        // Emit a terminal step so the install flow completes and cleans up
-        downloadsStateFlows.remove(downloadId)?.value = InstallStep.Idle
-        Installer.cancelInstallQueue(downloadId)
-    }
-
-    /**
-     * Starts an intent to uninstall the extension by the given package name.
-     *
-     * @param pkgName The package name of the extension to uninstall
-     */
-    fun uninstallApk(pkgName: String) {
-        if (context.isPackageInstalled(pkgName)) {
-            @Suppress("DEPRECATION")
-            val intent = Intent(Intent.ACTION_UNINSTALL_PACKAGE, "package:$pkgName".toUri())
-                .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
-        }
-    }
-
-    /**
-     * Sets the step of the installation of an extension.
-     *
-     * @param downloadId The id of the download.
-     * @param step New install step.
-     */
-    fun updateInstallStep(downloadId: Long, step: InstallStep) {
-        downloadsStateFlows[downloadId]?.let { it.value = step }
-    }
-
-    /**
-     * Deletes the download for the given package name.
-     *
-     * @param pkgName The package name of the download to delete.
-     * @param downloadId If set, only deletes the download if it is still the active one for this
-     * package (it may have been cancelled and requested again since).
-     */
-    private fun deleteDownload(pkgName: String, downloadId: Long? = null) {
-        synchronized(lock) {
-            val removedId = if (downloadId == null) {
-                activeDownloads.remove(pkgName)
-            } else {
-                downloadId.takeIf { activeDownloads.remove(pkgName, it) }
-            }
-            if (removedId != null) {
-                downloadManager.remove(removedId)
-                downloadsStateFlows.remove(removedId)
-            }
-            if (activeDownloads.isEmpty()) {
-                downloadReceiver.unregister()
-            }
-        }
-    }
-
-    /**
-     * Receiver that listens to download status events.
-     */
-    private inner class DownloadCompletionReceiver : BroadcastReceiver() {
-
-        /**
-         * Whether this receiver is currently registered. Only changed while holding [lock].
-         */
-        private var isRegistered = false
-
-        /**
-         * Registers this receiver if it's not already.
-         */
-        fun register() {
-            if (isRegistered) return
-            isRegistered = true
-
-            val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-            ContextCompat.registerReceiver(context, this, filter, ContextCompat.RECEIVER_EXPORTED)
-        }
-
-        /**
-         * Unregisters this receiver if it's not already.
-         */
-        fun unregister() {
-            if (!isRegistered) return
-            isRegistered = false
-
-            context.unregisterReceiver(this)
-        }
-
-        /**
-         * Called when a download event is received. It looks for the download in the current active
-         * downloads and notifies its installation step.
-         */
-        override fun onReceive(context: Context, intent: Intent?) {
-            val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0) ?: return
-            // Avoid events for downloads we didn't request
-            if (synchronized(lock) { id !in activeDownloads.values }) return
-
-            val uri = downloadManager.getUriForDownloadedFile(id)
-
-            // Set next installation step
-            if (uri == null) {
-                Log.d("DownloadCompletionReceiver - onReceive","Couldn't locate downloaded APK")
-                updateInstallStep(id, InstallStep.Error)
-                return
-            }
-
-            val query = DownloadManager.Query().setFilterById(id)
-            downloadManager.query(query).use { cursor ->
-                if (cursor.moveToFirst()) {
-                    val localUri = cursor.getString(
-                        cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI),
-                    ).removePrefix(FILE_SCHEME)
-                    installApk(id, File(localUri).getUriCompat(context))
-                }
-            }
-        }
+    private fun readApk(file: File): ApkInfo? {
+        val pkgInfo = ExtensionsLoader.getArchivePackageInfo(context, file) ?: return null
+        return ApkInfo(
+            pkgName = pkgInfo.packageName,
+            versionCode = PackageInfoCompat.getLongVersionCode(pkgInfo),
+            versionName = pkgInfo.versionName,
+            isExtension = ExtensionsLoader.isPackageAnExtension(pkgInfo),
+            hasNativeLibs = hasNativeLibs(file),
+            signatureHashes = ExtensionsLoader.signatureHashes(pkgInfo),
+            multipleSigners = pkgInfo.signingInfo?.hasMultipleSigners() == true,
+        )
     }
 
     companion object {
-        const val APK_MIME = "application/vnd.android.package-archive"
-        const val EXTRA_DOWNLOAD_ID = "ExtensionInstaller.extra.DOWNLOAD_ID"
-        const val FILE_SCHEME = "file://"
+        private const val MAX_APK_SIZE = 20L * 1024 * 1024
+
+        /** Copies [input] into [file], failing past [maxBytes]. */
+        internal fun copyAtMost(input: InputStream, file: File, maxBytes: Long) {
+            file.outputStream().use { output ->
+                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                var total = 0L
+                while (true) {
+                    val read = input.read(buffer)
+                    if (read == -1) break
+                    total += read
+                    if (total > maxBytes) throw IOException("Larger than $maxBytes bytes")
+                    output.write(buffer, 0, read)
+                }
+            }
+        }
+
+        /** Whether the APK [file] has native libraries: they can't be loaded, there is no library path. */
+        internal fun hasNativeLibs(file: File): Boolean {
+            return ZipFile(file).use { zip -> zip.entries().asSequence().any { it.name.startsWith("lib/") } }
+        }
+
+        /**
+         * Why [apk] can't become the APK of [pkgName], or null when it can.
+         *
+         * @param listed The repo entry it was downloaded from, null for a copied package.
+         * @param installed The APK it would replace, null when there is none.
+         * @param allowSameVersion Whether the version of [installed] can be replaced by the same one.
+         */
+        internal fun rejectionOf(
+            apk: ApkInfo,
+            pkgName: String,
+            listed: Extension.Available?,
+            installed: ApkInfo?,
+            allowSameVersion: Boolean,
+        ): ApkRejection? = when {
+            apk.pkgName != pkgName || !ExtensionsStorage.isValidPkgName(apk.pkgName) -> ApkRejection.WRONG_PACKAGE
+            !apk.isExtension -> ApkRejection.NOT_AN_EXTENSION
+            // A rollback or another file than the listed one
+            listed != null && (apk.versionCode != listed.versionCode || apk.versionName != listed.versionName) ->
+                ApkRejection.WRONG_VERSION
+            ExtensionsLoader.libVersionIssue(apk.versionName?.let { LibVersion.fromVersionName(it) }) != null ->
+                ApkRejection.UNSUPPORTED_LIB
+            apk.hasNativeLibs -> ApkRejection.NATIVE_LIBS
+            installed == null -> null
+            !canReplaceSigners(installed, apk) -> ApkRejection.SIGNER_CHANGED
+            apk.versionCode < installed.versionCode -> ApkRejection.NOT_NEWER
+            apk.versionCode == installed.versionCode && !allowSameVersion -> ApkRejection.NOT_NEWER
+            else -> null
+        }
+
+        /**
+         * Whether an APK signed as [new] can replace one signed as [old], Android's own update rule:
+         * the same signers, or a key rotated from the old one, in the history the platform verified.
+         */
+        internal fun canReplaceSigners(old: ApkInfo, new: ApkInfo): Boolean = when {
+            old.signatureHashes.isEmpty() || new.signatureHashes.isEmpty() -> false
+            // No key rotation with several signers
+            old.multipleSigners || new.multipleSigners ->
+                old.multipleSigners == new.multipleSigners && old.signatureHashes.toSet() == new.signatureHashes.toSet()
+            else -> old.signatureHashes.last() in new.signatureHashes
+        }
     }
+}
+
+/** What the verification of an extension APK reads of it. */
+internal data class ApkInfo(
+    val pkgName: String,
+    val versionCode: Long,
+    val versionName: String?,
+    /** Whether it declares the extension feature. */
+    val isExtension: Boolean,
+    val hasNativeLibs: Boolean,
+    /** See [ExtensionsLoader.signatureHashes]. */
+    val signatureHashes: List<String>,
+    val multipleSigners: Boolean,
+)
+
+/** Why an extension APK is refused, the installed one being kept. */
+internal enum class ApkRejection(@StringRes val messageRes: Int) {
+    /** Not an APK that can be read. */
+    INVALID_APK(R.string.ext_install_error_invalid),
+    WRONG_PACKAGE(R.string.ext_install_error_invalid),
+    NOT_AN_EXTENSION(R.string.ext_install_error_invalid),
+
+    /** Its version isn't the listed one. */
+    WRONG_VERSION(R.string.ext_install_error_invalid),
+    UNSUPPORTED_LIB(R.string.ext_install_error_invalid),
+    NATIVE_LIBS(R.string.ext_install_error_invalid),
+
+    /** Not newer than the installed one. */
+    NOT_NEWER(R.string.ext_install_error_not_newer),
+
+    /** Not signed with the key of the installed one. */
+    SIGNER_CHANGED(R.string.ext_install_error_signer),
 }

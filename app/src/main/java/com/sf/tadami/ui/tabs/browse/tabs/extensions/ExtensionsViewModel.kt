@@ -8,8 +8,8 @@ import com.sf.tadami.R
 import com.sf.tadami.data.interactors.extension.GetExtensionsByType
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.ExtensionManager
+import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.extension.model.InstallStep
-import com.sf.tadami.preferences.extensions.ExtensionsPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import kotlin.time.Duration.Companion.seconds
@@ -135,8 +136,8 @@ class ExtensionsViewModel : ViewModel() {
             _uiState.update { state -> state.copy(updates = it.extensionUpdatesCount) }
         }.launchIn(viewModelScope)
 
-        dataStore.getPreferencesGroupAsFlow(ExtensionsPreferences).onEach {
-            _uiState.update { state -> state.copy(installer = it.extensionInstallerEnum) }
+        extensionManager.legacyPackagesFlow.onEach {
+            _uiState.update { state -> state.copy(legacyPackages = it) }
         }.launchIn(viewModelScope)
 
     }
@@ -152,7 +153,8 @@ class ExtensionsViewModel : ViewModel() {
             _uiState.value.items.values.flatten()
                 .map { it.extension }
                 .filterIsInstance<Extension.Installed>()
-                .filter { it.hasUpdate }
+                // An untrusted one is trusted first, then updated
+                .filter { it.hasUpdate && it.loadIssue != ExtensionLoadIssue.UNTRUSTED }
                 .forEach(::updateExtension)
         }
     }
@@ -187,8 +189,42 @@ class ExtensionsViewModel : ViewModel() {
             .onCompletion { removeDownloadState(extension) }
             .collect()
 
-    fun uninstallExtension(extension: Extension) {
+    fun uninstallExtension(extension: Extension.Installed) {
         extensionManager.uninstallExtension(extension)
+    }
+
+    /** Whether the extension apps are being uninstalled, one after the other. */
+    private var isRemovingLegacyPackages = false
+
+    /** The last extension app whose uninstall was asked. */
+    private var lastLegacyPackageRemoved: String? = null
+
+    /** Asks the system to uninstall each extension app not needed anymore, the user confirming each. */
+    fun removeLegacyPackages() {
+        isRemovingLegacyPackages = true
+        lastLegacyPackageRemoved = null
+        viewModelScope.launch { removeNextLegacyPackage() }
+    }
+
+    /** Called when the screen resumes, back from the uninstall dialog of the system for instance. */
+    fun onResume() {
+        viewModelScope.launch {
+            when {
+                isRemovingLegacyPackages -> removeNextLegacyPackage()
+                _uiState.value.legacyPackages.isNotEmpty() -> extensionManager.refreshLegacyPackages()
+            }
+        }
+    }
+
+    private suspend fun removeNextLegacyPackage() {
+        val next = extensionManager.refreshLegacyPackages().firstOrNull()
+        // Still installed once back from its dialog: the user kept it
+        if (next == null || next == lastLegacyPackageRemoved) {
+            isRemovingLegacyPackages = false
+            return
+        }
+        lastLegacyPackageRemoved = next
+        extensionManager.requestUninstallLegacyPackage(next)
     }
 
     fun trustExtension(extension: Extension.Installed) {

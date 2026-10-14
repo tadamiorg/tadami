@@ -48,7 +48,6 @@ object Notifications {
     const val EXTENSIONS_GROUP= "extensions_group"
     const val EXTENSIONS_UPDATES_CHANNEL = "ext_apk_update_channel"
     const val EXTENSIONS_UPDATES_ID = 500
-    const val EXTENSIONS_INSTALLER_ID = 501
 
 
     fun setupNotificationsChannels(context: Context) {

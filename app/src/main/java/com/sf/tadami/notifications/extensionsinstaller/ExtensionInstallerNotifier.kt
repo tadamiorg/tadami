@@ -1,26 +1,16 @@
 package com.sf.tadami.notifications.extensionsinstaller
 
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.sf.tadami.R
 import com.sf.tadami.notifications.Notifications
-import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerReceiver.Companion.openExtensionsPendingActivity
-import com.sf.tadami.ui.themes.getNotificationsColor
+import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.utils.cancelNotification
 import com.sf.tadami.utils.notify
 
 class ExtensionInstallerNotifier(private val context: Context) {
-
-    val updateNotification =
-            NotificationCompat.Builder(context, Notifications.EXTENSIONS_UPDATES_CHANNEL).apply {
-                setSmallIcon(R.drawable.ic_tada)
-                setAutoCancel(false)
-                setOngoing(true)
-                setShowWhen(false)
-                setContentTitle(context.getString(R.string.ext_install_service_notif))
-                setProgress(100, 100, true)
-                color = getNotificationsColor(context)
-            }
 
     fun promptUpdates(names: List<String>) {
         context.notify(
@@ -38,7 +28,7 @@ class ExtensionInstallerNotifier(private val context: Context) {
                     setContentText(extNames)
                     setStyle(NotificationCompat.BigTextStyle().bigText(extNames))
                     setSmallIcon(R.drawable.ic_extension)
-                    setContentIntent(openExtensionsPendingActivity(context))
+                    setContentIntent(openExtensionsPendingActivity())
                     setAutoCancel(true)
                 }.build()
         )
@@ -46,5 +36,19 @@ class ExtensionInstallerNotifier(private val context: Context) {
 
     fun dismiss() {
         context.cancelNotification(Notifications.EXTENSIONS_UPDATES_ID)
+    }
+
+    private fun openExtensionsPendingActivity(): PendingIntent {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            action = MainActivity.ACTION_OPEN_EXTENSIONS
+            // Single top: the running activity gets the intent instead of being recreated
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
+        return PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
     }
 }

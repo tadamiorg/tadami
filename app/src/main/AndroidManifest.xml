@@ -18,12 +18,12 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
-    <!-- For managing updates -->
+    <!-- For the app updates. The extensions are installed into the app's own storage -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- To uninstall the extensions installed as apps, once copied into the app's storage -->
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
-    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
 
-    <!-- To view extension packages in API 30+ -->
+    <!-- To find the extensions installed as apps in API 30+, to copy them into the app's storage -->
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
@@ -87,19 +87,9 @@
             android:configChanges="uiMode|orientation|screenSize"
             android:exported="false" />
 
-        <activity
-            android:name=".extension.util.ExtensionInstallActivity"
-            android:exported="false"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-
         <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
             android:value="com.sf.tadami.ui.animeinfos.episode.cast.CastOptionsProvider" />
-
-        <service
-            android:name=".notifications.extensionsinstaller.ExtensionInstallService"
-            android:exported="false"
-            android:foregroundServiceType="shortService" />
 
         <service
             android:name=".notifications.cast.CastControlService"

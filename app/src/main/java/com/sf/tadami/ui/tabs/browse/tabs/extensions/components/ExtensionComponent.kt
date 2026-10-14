@@ -21,11 +21,12 @@ fun ExtensionComponent(
     onClickItemCancel: (Extension) -> Unit,
     onOpenWebView: (Extension.Available) -> Unit,
     onInstallExtension: (Extension.Available) -> Unit,
-    onUninstallExtension: (Extension) -> Unit,
+    onUninstallExtension: (Extension.Installed) -> Unit,
     onTrustExtension: (Extension.Installed) -> Unit,
     onUpdateExtension: (Extension.Installed) -> Unit,
     onOpenExtension: (Extension.Installed) -> Unit,
     onClickUpdateAll: () -> Unit,
+    onRemoveLegacyPackages: () -> Unit,
     onRefresh: () -> Unit,
 ) {
 
@@ -58,6 +59,7 @@ fun ExtensionComponent(
                     onUpdateExtension = onUpdateExtension,
                     onOpenExtension = onOpenExtension,
                     onClickUpdateAll = onClickUpdateAll,
+                    onRemoveLegacyPackages = onRemoveLegacyPackages,
                 )
             }
         }

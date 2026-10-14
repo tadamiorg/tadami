@@ -1,11 +1,7 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions.details
 
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.model.ExtensionLoadIssue
@@ -19,7 +15,6 @@ fun ExtensionDetailsComponent(
     onClickTrust: () -> Unit,
     extension : Extension.Installed
 ) {
-    val context = LocalContext.current
     ScrollbarLazyColumn(
         contentPadding = contentPadding,
     ) {
@@ -40,13 +35,6 @@ fun ExtensionDetailsComponent(
                 extension = extension,
                 onClickUninstall = onClickUninstall,
                 onClickTrust = onClickTrust.takeIf { extension.loadIssue == ExtensionLoadIssue.UNTRUSTED },
-                onClickAppInfo = {
-                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = Uri.fromParts("package", extension.pkgName, null)
-                        context.startActivity(this)
-                    }
-                    Unit
-                }.takeIf { extension.isShared },
             )
         }
     }

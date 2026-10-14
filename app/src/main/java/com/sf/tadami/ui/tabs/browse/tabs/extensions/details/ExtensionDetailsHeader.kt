@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions.details
 
-import android.util.DisplayMetrics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,7 +25,6 @@ import com.sf.tadami.ui.utils.padding
 fun ExtensionDetailsHeader(
     extension: Extension,
     onClickUninstall: () -> Unit,
-    onClickAppInfo: (() -> Unit)?,
     onClickTrust: (() -> Unit)? = null,
 ) {
     Column {
@@ -45,7 +43,6 @@ fun ExtensionDetailsHeader(
                 modifier = Modifier
                     .size(112.dp),
                 extension = extension,
-                density = DisplayMetrics.DENSITY_XXXHIGH,
             )
 
             Text(
@@ -103,17 +100,6 @@ fun ExtensionDetailsHeader(
                 ) {
                     Text(
                         text = stringResource(R.string.ext_trust),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    )
-                }
-            }
-            if (onClickAppInfo != null) {
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onClickAppInfo,
-                ) {
-                    Text(
-                        text = stringResource(R.string.ext_app_info),
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 }

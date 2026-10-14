@@ -13,7 +13,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -28,6 +30,7 @@ import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.grid.EmptyScreen
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 import com.sf.tadami.ui.components.widgets.ContentLoader
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.UninstallExtensionDialog
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -39,6 +42,7 @@ fun ExtensionDetailsScreen(
     extensionDetailsViewModel: ExtensionDetailsViewModel = viewModel()
 ) {
     val uiState by extensionDetailsViewModel.uiState.collectAsState()
+    var showUninstallDialog by remember { mutableStateOf(false) }
 
     ContentLoader(isLoading = uiState.isLoading) {
         val uriHandler = LocalUriHandler.current
@@ -119,10 +123,21 @@ fun ExtensionDetailsScreen(
             }
             ExtensionDetailsComponent(
                 contentPadding = it,
-                onClickUninstall = extensionDetailsViewModel::uninstallExtension,
+                onClickUninstall = { showUninstallDialog = true },
                 onClickTrust = extensionDetailsViewModel::trustExtension,
                 extension = uiState.extension!!
             )
+
+            if (showUninstallDialog) {
+                UninstallExtensionDialog(
+                    extensionName = uiState.extension!!.name,
+                    onDismissRequest = { showUninstallDialog = false },
+                    onConfirm = {
+                        extensionDetailsViewModel.uninstallExtension()
+                        navController.navigateUp()
+                    },
+                )
+            }
         }
     }
 }

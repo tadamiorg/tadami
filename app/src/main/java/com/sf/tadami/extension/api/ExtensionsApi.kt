@@ -6,6 +6,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.ExtensionManager
+import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.extension.model.LibVersion
 import com.sf.tadami.extension.util.ExtensionsLoader
 import com.sf.tadami.network.GET
@@ -94,6 +95,8 @@ internal class ExtensionsApi {
 
         val extensionsWithUpdate = mutableListOf<Extension.Installed>()
         for (installedExt in installedExtensions) {
+            // Trusted first, then updated
+            if (installedExt.loadIssue == ExtensionLoadIssue.UNTRUSTED) continue
             val pkgName = installedExt.pkgName
             val availableExt = extensions.find { it.pkgName == pkgName } ?: continue
             val hasUpdatedVer = availableExt.versionCode > installedExt.versionCode
