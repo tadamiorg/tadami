@@ -16,12 +16,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
 import com.sf.tadami.ui.main.onboarding.InfoScreen
+import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.padding
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun CrashScreen(
-    exception: Throwable?,
+    report: String,
     onRestartClick: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -34,7 +37,11 @@ fun CrashScreen(
         acceptText = stringResource(R.string.pref_dump_crash_logs),
         onAcceptClick = {
             scope.launch {
-                CrashLogUtil(context).dumpLogs()
+                // Not CrashLogUtil: building the extension manager in this process would load the
+                // extensions again, maybe the one that crashed
+                if (!withContext(Dispatchers.IO) { CrashReporter.shareReport(context, report) }) {
+                    UiToasts.showToast(R.string.crash_logs_dump_failed)
+                }
             }
         },
         rejectText = stringResource(R.string.crash_screen_restart_application),
@@ -48,7 +55,7 @@ fun CrashScreen(
                 .background(MaterialTheme.colorScheme.surfaceVariant),
         ) {
             Text(
-                text = exception.toString(),
+                text = report,
                 modifier = Modifier
                     .padding(all = MaterialTheme.padding.small),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

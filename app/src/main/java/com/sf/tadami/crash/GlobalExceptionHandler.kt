@@ -31,9 +31,11 @@ class GlobalExceptionHandler private constructor(
     }
 
     override fun uncaughtException(thread: Thread, exception: Throwable) {
+        val timestamp = System.currentTimeMillis()
+        CrashReporter.writeCrash(applicationContext, exception, timestamp)
         try {
             logcat(priority = LogPriority.ERROR, throwable = exception)
-            launchActivity(applicationContext, activityToBeLaunched, exception)
+            launchActivity(applicationContext, activityToBeLaunched, exception, timestamp)
             exitProcess(0)
         } catch (_: Exception) {
             defaultHandler.uncaughtException(thread, exception)
@@ -44,9 +46,11 @@ class GlobalExceptionHandler private constructor(
         applicationContext: Context,
         activity: Class<*>,
         exception: Throwable,
+        timestamp: Long,
     ) {
         val intent = Intent(applicationContext, activity).apply {
             putExtra(INTENT_EXTRA, Json.encodeToString(ThrowableSerializer, exception))
+            putExtra(TIMESTAMP_EXTRA, timestamp)
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
@@ -55,6 +59,7 @@ class GlobalExceptionHandler private constructor(
 
     companion object {
         private const val INTENT_EXTRA = "Throwable"
+        private const val TIMESTAMP_EXTRA = "Timestamp"
 
         fun initialize(
             applicationContext: Context,
@@ -67,6 +72,9 @@ class GlobalExceptionHandler private constructor(
             )
             Thread.setDefaultUncaughtExceptionHandler(handler)
         }
+
+        /** When the crash of [intent] happened, to tell its report from an older one. */
+        fun getTimestampFromIntent(intent: Intent): Long = intent.getLongExtra(TIMESTAMP_EXTRA, -1L)
 
         fun getThrowableFromIntent(intent: Intent): Throwable? {
             return try {

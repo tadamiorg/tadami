@@ -9,6 +9,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.luminance
+import com.sf.tadami.R
 import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.ui.utils.setComposeContent
 
@@ -18,7 +19,11 @@ class CrashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val exception = GlobalExceptionHandler.getThrowableFromIntent(intent)
+        // The report written for this crash, not an older one left on disk
+        val timestamp = GlobalExceptionHandler.getTimestampFromIntent(intent)
+        val report = CrashReporter.readPending(this)?.takeIf { it.timestamp == timestamp }?.format()
+            ?: GlobalExceptionHandler.getThrowableFromIntent(intent)?.message
+            ?: getString(R.string.crash_screen_no_details)
         setComposeContent {
             val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
             val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -36,7 +41,7 @@ class CrashActivity : AppCompatActivity() {
                 )
             }
             CrashScreen(
-                exception = exception,
+                report = report,
                 onRestartClick = {
                     finishAffinity()
                     startActivity(Intent(this@CrashActivity, MainActivity::class.java))

@@ -46,30 +46,5 @@ class CrashLogUtil(
         """.trimIndent()
     }
 
-    private fun getExtensionsInfo(): String? {
-        val availableExtensions = extensionManager.availableExtensionsFlow.value.associateBy { it.pkgName }
-
-        val extensionInfoList = extensionManager.installedExtensionsFlow.value
-            .sortedBy { it.name }
-            .mapNotNull {
-                val availableExtension = availableExtensions[it.pkgName]
-                val hasUpdate = (availableExtension?.versionCode ?: 0) > it.versionCode
-
-                if (!hasUpdate && !it.isObsolete && it.loadIssue == null) return@mapNotNull null
-
-                """
-                    - ${it.name}
-                      Installed: ${it.versionName} / Available: ${availableExtension?.versionName ?: "?"}
-                      Obsolete: ${it.isObsolete}
-                      Load issue: ${it.loadIssue ?: "none"}
-                """.trimIndent()
-            }
-
-        return if (extensionInfoList.isNotEmpty()) {
-            (listOf("Problematic extensions:") + extensionInfoList)
-                .joinToString("\n")
-        } else {
-            null
-        }
-    }
+    private fun getExtensionsInfo(): String? = CrashReporter.getExtensionsInfo(extensionManager)
 }

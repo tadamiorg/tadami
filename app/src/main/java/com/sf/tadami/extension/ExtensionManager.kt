@@ -1,5 +1,6 @@
 package com.sf.tadami.extension
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.Log
@@ -97,6 +98,19 @@ class ExtensionManager(
     init {
         initExtensions()
         ExtensionInstallerReceiver(InstallationListener()).register(context)
+        instance = this
+    }
+
+    companion object {
+        /**
+         * The manager once built, for the crash report: getting it from Injekt would build it, and
+         * load the extensions again, from the uncaught exception handler.
+         */
+        // Built with the application context, it lives as long as the app anyway
+        @SuppressLint("StaticFieldLeak")
+        @Volatile
+        var instance: ExtensionManager? = null
+            private set
     }
 
     private fun initExtensions() {
