@@ -1,6 +1,7 @@
 package com.sf.tadami.extension
 
 import android.annotation.SuppressLint
+import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -129,7 +130,11 @@ class ExtensionManager(
     }
 
     private fun initExtensions() {
-        ExtensionsStorage.cleanTmp(storageDir)
+        // Not from another process, the crash screen's for instance: it would delete the downloads
+        // the main process is running
+        if (Application.getProcessName() == context.packageName) {
+            ExtensionsStorage.cleanTmp(storageDir)
+        }
         // Before the extensions are loaded, so that the ones still installed as apps are loaded
         // from their copy. A failure must not prevent the others from loading: retried next launch
         _legacyPackagesFlow.value = runCatching { runBlocking { ExtensionsMigration.migrate(context, dataStore) } }

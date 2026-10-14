@@ -97,6 +97,23 @@ class ExtensionsInstallerTest {
     }
 
     @Test
+    fun anUpdateCanOnlyRaiseTheLibVersion() {
+        val installed = apk(versionName = "1.5.2")
+
+        assertNull(rejection(apk(versionName = "1.6.2"), listed(versionName = "1.6.2"), installed))
+        // One whose version name can't be parsed can't be used: replaced by a valid one
+        assertNull(rejection(apk(versionName = "1.6.2"), listed(versionName = "1.6.2"), apk(versionName = "2")))
+
+        assertEquals(ApkRejection.NOT_NEWER, rejection(apk(), listed(), installed))
+        assertEquals(ApkRejection.NOT_NEWER, rejection(apk(), listed(), apk(versionName = "1.6.2")))
+        // A higher lib doesn't make up for a lower version code
+        assertEquals(
+            ApkRejection.NOT_NEWER,
+            rejection(apk(versionCode = 1, versionName = "1.6.1"), listed(versionCode = 1, versionName = "1.6.1"), installed),
+        )
+    }
+
+    @Test
     fun signersFollowTheAndroidUpdateRule() {
         fun canReplace(old: ApkInfo, new: ApkInfo) = ExtensionsInstaller.canReplaceSigners(old, new)
 

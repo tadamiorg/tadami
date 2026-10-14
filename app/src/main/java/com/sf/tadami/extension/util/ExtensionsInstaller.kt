@@ -131,8 +131,19 @@ internal class ExtensionsInstaller(private val context: Context) {
             installed == null -> null
             !canReplaceSigners(installed, apk) -> ApkRejection.SIGNER_CHANGED
             apk.versionCode < installed.versionCode -> ApkRejection.NOT_NEWER
-            apk.versionCode == installed.versionCode && !allowSameVersion -> ApkRejection.NOT_NEWER
+            apk.versionCode == installed.versionCode && !allowSameVersion && !raisesLibVersion(installed, apk) ->
+                ApkRejection.NOT_NEWER
             else -> null
+        }
+
+        /**
+         * Whether [new] is built against a newer extensions lib than [old]: with the same version
+         * code, an update as well, as the extension manager counts it.
+         */
+        private fun raisesLibVersion(old: ApkInfo, new: ApkInfo): Boolean {
+            val newLib = new.versionName?.let { LibVersion.fromVersionName(it) } ?: return false
+            val oldLib = old.versionName?.let { LibVersion.fromVersionName(it) } ?: return true
+            return newLib > oldLib
         }
 
         /**
