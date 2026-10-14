@@ -77,6 +77,23 @@ class AppUpdateNotifier(private val context: Context) {
         )
     }
 
+    fun showUpdateError(error: String?) {
+        val message = error ?: context.getString(R.string.notification_unknown_error)
+        context.notificationManager.notify(
+            Notifications.APP_UPDATE_DOWNLOAD_ERROR_ID,
+            NotificationCompat.Builder(context, Notifications.APP_UPDATE_DOWNLOAD_ERROR_CHANNEL)
+                .apply {
+                    setContentTitle(context.getString(R.string.notification_app_update_error))
+                    setContentText(message)
+                    setStyle(NotificationCompat.BigTextStyle().bigText(message))
+                    setSmallIcon(R.drawable.ic_tada)
+                    setLargeIcon(notificationBitmap)
+                    color = getNotificationsColor(context)
+                    setAutoCancel(true)
+                }.build()
+        )
+    }
+
     fun cancelProgressNotification() {
         context.notificationManager.cancel(Notifications.APP_UPDATE_DOWNLOAD_PROGRESS_ID)
     }

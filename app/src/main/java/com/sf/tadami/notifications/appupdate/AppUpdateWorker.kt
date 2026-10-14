@@ -56,11 +56,13 @@ class AppUpdateWorker(
                 downloadAppUpdate(inputData.getString(UPDATE_LINK)!!)
                 Result.success()
             } catch (e: Exception) {
-                if (e is CancellationException) {
+                // Stopping the work cancels the call, which fails the copy with an IOException
+                if (e is CancellationException || isStopped) {
                     // Assume success although cancelled
                     Result.success()
                 } else {
                     Log.d("Worker error performing task", "error", e)
+                    notifier.showUpdateError(e.message)
                     Result.failure()
                 }
             } finally {

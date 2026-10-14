@@ -86,6 +86,8 @@
     <string name="notification_app_group">Application</string>
     <string name="notification_app_update_progress">Progression du téléchargement de la MAJ</string>
     <string name="notification_app_update_success">Installation de la mise à jour</string>
+    <string name="notification_app_update_error">Échec du téléchargement de la mise à jour</string>
+    <string name="notification_unknown_error">Une erreur inconnue est survenue</string>
     <string name="notification_downloading_app_update">Téléchargement de la mise à jour…</string>
     <string name="notification_app_update_tap_install"> Appuyez pour installer</string>
     <string name="download">Télécharger</string>

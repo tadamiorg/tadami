@@ -113,6 +113,8 @@
     <string name="notification_app_group">Application</string>
     <string name="notification_app_update_progress">Update download progress</string>
     <string name="notification_app_update_success">Update install</string>
+    <string name="notification_app_update_error">Update download failed</string>
+    <string name="notification_unknown_error">An unknown error occurred</string>
     <string name="notification_downloading_app_update">Downloading update…</string>
     <string name="notification_app_update_tap_install">Tap to install</string>
     <string name="download">Download</string>
