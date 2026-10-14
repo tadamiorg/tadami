@@ -39,6 +39,8 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -374,6 +376,8 @@ class ExtensionManager(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
+            // A download cancelled while reading fails with an interrupted read, not a cancellation
+            currentCoroutineContext().ensureActive()
             Log.d("InstallExtension", "Couldn't install $pkgName: ${e.stackTraceToString()}")
             UiToasts.showToast(R.string.ext_install_error_download, Toast.LENGTH_LONG, listed.name)
             return InstallStep.Error
