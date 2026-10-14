@@ -40,6 +40,9 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -216,7 +219,8 @@ class ExtensionManager(
         _installedExtensionsFlow.update { installedExtensions ->
             val current = installedExtensions.find { it.pkgName == extension.pkgName }
             // Already replaced, by an update for instance, or uninstalled
-            if (current != null && current.loadIssue != ExtensionLoadIssue.TIMED_OUT ||
+            if (current != null &&
+                (current.loadIssue != ExtensionLoadIssue.TIMED_OUT || current.versionCode != extension.versionCode) ||
                 !ExtensionsStorage.apkFile(storageDir, extension.pkgName).isFile
             ) {
                 installedExtensions
@@ -439,9 +443,11 @@ class ExtensionManager(
                 preferences[TrustedExtensionsPreferences.TRUSTED_SIGNATURES].orEmpty() + signatureHash
         }
         withContext(Dispatchers.IO) {
-            _installedExtensionsFlow.value
-                .filter { it.loadIssue == ExtensionLoadIssue.UNTRUSTED && it.signatureHash == signatureHash }
-                .forEach { ExtensionsStorage.withLock(it.pkgName) { reloadExtension(it.pkgName) } }
+            reloadExtensions(
+                _installedExtensionsFlow.value
+                    .filter { it.loadIssue == ExtensionLoadIssue.UNTRUSTED && it.signatureHash == signatureHash }
+                    .map { it.pkgName },
+            )
             updatePendingUpdatesCount()
         }
     }
@@ -466,19 +472,33 @@ class ExtensionManager(
         withContext(Dispatchers.IO) {
             ExtensionsGuard.setSafeMode(context, false)
             _safeModeFlow.value = false
-            _installedExtensionsFlow.value
-                .filter { it.loadIssue == ExtensionLoadIssue.SAFE_MODE }
-                .forEach { ExtensionsStorage.withLock(it.pkgName) { reloadExtension(it.pkgName) } }
+            reloadExtensions(
+                _installedExtensionsFlow.value
+                    .filter { it.loadIssue == ExtensionLoadIssue.SAFE_MODE }
+                    .map { it.pkgName },
+            )
             updatePendingUpdatesCount()
         }
     }
 
     /**
+     * Loads the extensions [pkgNames] from their files in parallel, each under its lock, see
+     * [reloadExtension]: one that hangs doesn't hold back the others.
+     */
+    private suspend fun reloadExtensions(pkgNames: List<String>) = coroutineScope {
+        pkgNames
+            .map { pkgName -> async(Dispatchers.IO) { ExtensionsStorage.withLock(pkgName) { reloadExtension(pkgName) } } }
+            .awaitAll()
+    }
+
+    /**
      * Loads the extension [pkgName] from its file, in place of the registered one. To run under its
-     * lock, see [ExtensionsStorage.withLock].
+     * lock, see [ExtensionsStorage.withLock]. Waits for it a few seconds at most, see
+     * [ExtensionsLoader.reloadExtension]: registered as timed out then, it is registered again once
+     * loaded, see [onLateExtensionLoaded].
      */
     private fun reloadExtension(pkgName: String) {
-        when (val result = ExtensionsLoader.loadExtensionFromPkgName(context, pkgName)) {
+        when (val result = ExtensionsLoader.reloadExtension(context, pkgName, ::onLateExtensionLoaded)) {
             is LoadResult.Success -> registerUpdatedExtension(result.extension.withUpdateCheck())
             LoadResult.Error -> unregisterExtension(pkgName)
         }

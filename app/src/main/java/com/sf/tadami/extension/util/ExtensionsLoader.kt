@@ -99,6 +99,15 @@ internal object ExtensionsLoader {
     }
 
     /**
+     * Loads the extension [pkgName] of [ExtensionsStorage] again: installed, updated, trusted or
+     * retried. Listed as [ExtensionLoadIssue.TIMED_OUT] after [LOAD_TIMEOUT_MS], its result is then
+     * given to [onLateResult] once it finishes loading, see [loadAll].
+     */
+    fun reloadExtension(context: Context, pkgName: String, onLateResult: (LoadResult) -> Unit): LoadResult {
+        return loadInParallel(context, listOf(pkgName), trustedSignatures(), safeMode = false, onLateResult).single()
+    }
+
+    /**
      * Loads the extensions [pkgNames] of [ExtensionsStorage] in parallel, each listed as
      * [ExtensionLoadIssue.TIMED_OUT] after [LOAD_TIMEOUT_MS], see [loadAll].
      */
@@ -160,11 +169,11 @@ internal object ExtensionsLoader {
      *
      * @param safeMode Whether none of its code is loaded, see [ExtensionLoadIssue.SAFE_MODE].
      */
-    fun loadExtensionFromPkgName(
+    private fun loadExtensionFromPkgName(
         context: Context,
         pkgName: String,
-        trustedSignatures: Set<String> = trustedSignatures(),
-        safeMode: Boolean = false,
+        trustedSignatures: Set<String>,
+        safeMode: Boolean,
     ): LoadResult {
         val pkgInfo = getExtensionPackageInfo(context, pkgName)
         if (pkgInfo == null) {
