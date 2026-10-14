@@ -42,4 +42,16 @@ class CrashReporterTest {
         assertTrue(report.indexOf("java.lang.IllegalStateException") < report.indexOf("--- Recent logs ---"))
         assertTrue(report.contains("W/Tag: line"))
     }
+
+    @Test
+    fun `starts with the extensions the crash comes from`() {
+        val report = log.copy(culprits = listOf(CrashReporter.Culprit("AnimePahe", "1.6.12"))).format()
+
+        assertTrue(
+            report.startsWith(
+                "Caused by the AnimePahe extension (1.6.12). It has been disabled; retry it in Extensions.\n",
+            ),
+        )
+        assertFalse(log.format().contains("Caused by"))
+    }
 }

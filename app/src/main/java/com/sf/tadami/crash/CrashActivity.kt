@@ -28,6 +28,7 @@ class CrashActivity : AppCompatActivity() {
         val report = crashLog?.format()
             ?: GlobalExceptionHandler.getThrowableFromIntent(intent)?.message
             ?: getString(R.string.crash_screen_no_details)
+        val culprits = crashLog?.culprits ?: GlobalExceptionHandler.getCulpritsFromIntent(intent)
         setComposeContent {
             val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
             val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -46,6 +47,7 @@ class CrashActivity : AppCompatActivity() {
             }
             CrashScreen(
                 report = report,
+                culprits = culprits,
                 onReportShared = {
                     if (crashLog != null) CrashReporter.clearPending(this@CrashActivity)
                 },

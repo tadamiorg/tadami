@@ -52,7 +52,12 @@ internal object ExtensionsGuard {
     /** The code of the extensions this process loaded, to find the ones a crash comes from. */
     private val loadedCode = ConcurrentLinkedQueue<ExtensionCode>()
 
-    private class ExtensionCode(val pkgName: String, val name: String, classLoader: ClassLoader) {
+    private class ExtensionCode(
+        val pkgName: String,
+        val name: String,
+        val versionName: String,
+        classLoader: ClassLoader,
+    ) {
         // Not kept by this: the code of an extension replaced since then can be collected
         private val classLoader = WeakReference(classLoader)
 
@@ -99,14 +104,20 @@ internal object ExtensionsGuard {
         clearSuspect(dir(context), pkgName)
     }
 
-    /** Records that [classLoader] loads the code of [pkgName], named [name], see [culpritsOf]. */
-    fun registerClassLoader(pkgName: String, name: String, classLoader: ClassLoader) {
+    /**
+     * Records that [classLoader] loads the code of [pkgName], named [name] in its version
+     * [versionName], see [culpritsOf].
+     */
+    fun registerClassLoader(pkgName: String, name: String, versionName: String, classLoader: ClassLoader) {
         loadedCode.removeAll { it.isCollected }
-        loadedCode += ExtensionCode(pkgName, name, classLoader)
+        loadedCode += ExtensionCode(pkgName, name, versionName, classLoader)
     }
 
     /** The name of the extension [pkgName] whose code was loaded last, its package name if none was. */
     fun nameOf(pkgName: String): String = loadedCode.lastOrNull { it.pkgName == pkgName }?.name ?: pkgName
+
+    /** The version name of the extension [pkgName] whose code was loaded last, empty if none was. */
+    fun versionNameOf(pkgName: String): String = loadedCode.lastOrNull { it.pkgName == pkgName }?.versionName.orEmpty()
 
     /** Forgets the code of [pkgName], uninstalled. */
     fun forgetClassLoaders(pkgName: String) {

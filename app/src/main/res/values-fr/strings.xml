@@ -409,6 +409,7 @@
     <string name="crash_screen_restart_application">Redémarrer l\'application</string>
     <string name="crash_screen_restart_without_extensions">Redémarrer sans les extensions</string>
     <string name="crash_screen_no_details">Aucun détail sur cette erreur</string>
+    <string name="crash_screen_caused_by_extension">Causé par l\'extension %1$s (%2$s). Elle a été désactivée ; réessayez-la dans Extensions.</string>
     <string name="crash_logs_dump_failed">Impossible de partager les rapports de plantage</string>
     <string name="pref_dump_crash_logs_summary">Partager le dernier rapport de plantage, ou les journaux de cette session</string>
     <string name="crash_pending_title">%s a planté la dernière fois</string>

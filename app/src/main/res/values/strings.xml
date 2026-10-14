@@ -402,6 +402,7 @@
     <string name="crash_screen_restart_application">Restart the application</string>
     <string name="crash_screen_restart_without_extensions">Restart without extensions</string>
     <string name="crash_screen_no_details">No details about this error</string>
+    <string name="crash_screen_caused_by_extension">Caused by the %1$s extension (%2$s). It has been disabled; retry it in Extensions.</string>
     <string name="crash_logs_dump_failed">Failed to share the crash logs</string>
     <string name="pref_dump_crash_logs_summary">Share the last crash report, or the logs of this session</string>
     <string name="crash_pending_title">%s crashed last time</string>

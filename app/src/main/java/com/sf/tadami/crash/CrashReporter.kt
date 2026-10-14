@@ -25,6 +25,10 @@ object CrashReporter {
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    /** An extension a crash comes from, see [com.sf.tadami.extension.util.ExtensionsGuard.culpritsOf]. */
+    @Serializable
+    data class Culprit(val name: String, val versionName: String)
+
     @Serializable
     data class CrashLog(
         val stacktrace: String,
@@ -39,8 +43,14 @@ object CrashReporter {
         val timestamp: Long,
         /** Whether the crash screen or the next launch already offered it */
         val offered: Boolean = false,
+        /** The extensions it comes from, quarantined */
+        val culprits: List<Culprit> = emptyList(),
     ) {
         fun format(): String = buildString {
+            culprits.forEach {
+                appendLine("Caused by the ${it.name} extension (${it.versionName}). It has been disabled; retry it in Extensions.")
+            }
+            if (culprits.isNotEmpty()) appendLine()
             appendLine("App version: $versionName ($versionCode, $buildDate)")
             appendLine("Android version: $androidVersion")
             appendLine("Device: $device")
@@ -65,8 +75,15 @@ object CrashReporter {
      * Never throws: a failure here would replace the crash being reported.
      *
      * @param offered Whether the user was already told about it, see [CrashLog.offered].
+     * @param culprits The extensions it comes from, see [CrashLog.culprits].
      */
-    fun writeCrash(context: Context, throwable: Throwable, timestamp: Long, offered: Boolean = false) {
+    fun writeCrash(
+        context: Context,
+        throwable: Throwable,
+        timestamp: Long,
+        offered: Boolean = false,
+        culprits: List<Culprit> = emptyList(),
+    ) {
         runCatching {
             val log = CrashLog(
                 stacktrace = throwable.stackTraceToString().take(MAX_STACKTRACE_LENGTH),
@@ -83,6 +100,7 @@ object CrashReporter {
                 }.getOrNull().orEmpty(),
                 timestamp = timestamp,
                 offered = offered,
+                culprits = culprits,
             )
             write(context, log)
         }

@@ -25,6 +25,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun CrashScreen(
     report: String,
+    culprits: List<CrashReporter.Culprit>,
     onReportShared: () -> Unit,
     onRestartClick: () -> Unit,
     onRestartWithoutExtensionsClick: () -> Unit,
@@ -53,6 +54,14 @@ fun CrashScreen(
         neutralText = stringResource(R.string.crash_screen_restart_without_extensions),
         onNeutralClick = onRestartWithoutExtensionsClick,
     ) {
+        culprits.forEach {
+            Text(
+                text = stringResource(R.string.crash_screen_caused_by_extension, it.name, it.versionName),
+                modifier = Modifier.padding(top = MaterialTheme.padding.small),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
         Box(
             modifier = Modifier
                 .padding(vertical = MaterialTheme.padding.small)
