@@ -12,6 +12,8 @@ data class ExtensionsUiState(
     val updates: Int = 0,
     /** The extensions installed as apps that are copied into the app's storage, so not needed. */
     val legacyPackages: List<String> = emptyList(),
+    /** Whether the extensions weren't loaded at startup, after crashes. */
+    val safeMode: Boolean = false,
     val searchQuery: String = "",
 ) {
     val isEmpty = items.isEmpty()

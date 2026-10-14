@@ -18,6 +18,7 @@ import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -39,6 +40,8 @@ fun InfoScreen(
     canAccept: Boolean = true,
     rejectText: String? = null,
     onRejectClick: (() -> Unit)? = null,
+    neutralText: String? = null,
+    onNeutralClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Scaffold(
@@ -75,6 +78,14 @@ fun InfoScreen(
                         onClick = onRejectClick,
                     ) {
                         Text(text = rejectText)
+                    }
+                }
+                if (neutralText != null && onNeutralClick != null) {
+                    TextButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onNeutralClick,
+                    ) {
+                        Text(text = neutralText)
                     }
                 }
             }

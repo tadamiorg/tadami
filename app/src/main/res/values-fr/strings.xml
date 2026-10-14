@@ -338,6 +338,12 @@
     <string name="ext_issue_timed_out_message">Elle met trop de temps à se charger, elle sera utilisable une fois chargée. Si cela persiste, mettez à jour ou réinstallez l\'extension.</string>
     <string name="ext_issue_untrusted">Non approuvée</string>
     <string name="ext_issue_untrusted_message">Non signée par Tadami, son code s\'exécuterait dans l\'application : approuvez-la seulement si vous savez d\'où elle vient.</string>
+    <string name="ext_issue_quarantined">A fait planter l\'app</string>
+    <string name="ext_issue_quarantined_message">Tadami a planté pendant son chargement, elle n\'est donc plus chargée. Réessayez, ou mettez à jour ou désinstallez l\'extension.</string>
+    <string name="ext_issue_safe_mode">Non chargée</string>
+    <string name="ext_issue_safe_mode_message">Tadami a démarré sans extensions après avoir planté : chargez-les à nouveau depuis l\'onglet Extensions.</string>
+    <string name="ext_safe_mode_banner">Mode sans échec : Tadami a démarré sans extensions après avoir planté. Elles restent non chargées jusqu\'à ce que vous les chargiez à nouveau.</string>
+    <string name="ext_safe_mode_load">Charger à nouveau les extensions</string>
     <string name="ext_trust">Approuver</string>
     <string name="ext_install">Installer</string>
     <string name="ext_pending">En attente</string>
@@ -396,6 +402,7 @@
     <string name="crash_screen_description">%s a rencontré une erreur inattendue.</string>
     <string name="pref_dump_crash_logs">Partager les rapports de plantage</string>
     <string name="crash_screen_restart_application">Redémarrer l\'application</string>
+    <string name="crash_screen_restart_without_extensions">Redémarrer sans les extensions</string>
     <string name="crash_screen_no_details">Aucun détail sur cette erreur</string>
     <string name="crash_logs_dump_failed">Impossible de partager les rapports de plantage</string>
     <string name="pref_dump_crash_logs_summary">Partager le dernier rapport de plantage, ou les journaux de cette session</string>

@@ -21,6 +21,7 @@ import com.sf.tadami.extension.api.RepoExtensions
 import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.extension.model.LoadResult
+import com.sf.tadami.extension.util.ExtensionsGuard
 import com.sf.tadami.extension.util.ExtensionsInstaller
 import com.sf.tadami.extension.util.ExtensionsLoader
 import com.sf.tadami.extension.util.ExtensionsMigration
@@ -90,6 +91,14 @@ class ExtensionManager(
     /** The extensions still installed as apps, as they were before, that are copied, so not needed. */
     val legacyPackagesFlow = _legacyPackagesFlow.asStateFlow()
 
+    private val _safeModeFlow = MutableStateFlow(false)
+
+    /**
+     * Whether the extensions weren't loaded at startup, after crashes, see [ExtensionsGuard], until
+     * [loadExtensionsAgain].
+     */
+    val safeModeFlow = _safeModeFlow.asStateFlow()
+
     /** The icon loaded with the extension of the source [sourceId]. */
     fun getAppIconForSource(sourceId: Long): Drawable? {
         return _installedExtensionsFlow.value
@@ -134,14 +143,17 @@ class ExtensionManager(
         // the main process is running
         if (Application.getProcessName() == context.packageName) {
             ExtensionsStorage.cleanTmp(storageDir)
+            ExtensionsGuard.checkPreviousExit(context)
         }
+        val safeMode = ExtensionsGuard.isSafeMode(context)
+        _safeModeFlow.value = safeMode
         // Before the extensions are loaded, so that the ones still installed as apps are loaded
         // from their copy. A failure must not prevent the others from loading: retried next launch
         _legacyPackagesFlow.value = runCatching { runBlocking { ExtensionsMigration.migrate(context, dataStore) } }
             .onFailure { Log.d("ExtensionsMigration", it.stackTraceToString()) }
             .getOrDefault(emptyList())
 
-        val extensions = ExtensionsLoader.loadExtensions(context, ::onLateExtensionLoaded)
+        val extensions = ExtensionsLoader.loadExtensions(context, safeMode, ::onLateExtensionLoaded)
 
         val loadedExtensions = extensions
             .filterIsInstance<LoadResult.Success>()
@@ -156,6 +168,7 @@ class ExtensionManager(
         }
 
         isInitialized = true
+        ExtensionsGuard.onExtensionsLoaded(context)
     }
 
     /** Debug builds: copies an extension as soon as it's installed with adb, then loads it. */
@@ -378,6 +391,7 @@ class ExtensionManager(
         scope.launch {
             ExtensionsStorage.withLock(extension.pkgName) {
                 ExtensionsStorage.delete(storageDir, extension.pkgName)
+                ExtensionsGuard.clearQuarantine(context, extension.pkgName)
                 unregisterExtension(extension.pkgName)
             }
             updatePendingUpdatesCount()
@@ -410,6 +424,33 @@ class ExtensionManager(
         withContext(Dispatchers.IO) {
             _installedExtensionsFlow.value
                 .filter { it.loadIssue == ExtensionLoadIssue.UNTRUSTED && it.signatureHash == signatureHash }
+                .forEach { ExtensionsStorage.withLock(it.pkgName) { reloadExtension(it.pkgName) } }
+            updatePendingUpdatesCount()
+        }
+    }
+
+    /**
+     * Lets the given extension, quarantined after a crash, be loaded again, then loads it.
+     *
+     * @param extension The extension to retry, see [ExtensionLoadIssue.QUARANTINED].
+     */
+    suspend fun retryExtension(extension: Extension.Installed) {
+        withContext(Dispatchers.IO) {
+            ExtensionsStorage.withLock(extension.pkgName) {
+                ExtensionsGuard.clearQuarantine(context, extension.pkgName)
+                reloadExtension(extension.pkgName)
+            }
+            updatePendingUpdatesCount()
+        }
+    }
+
+    /** Leaves the safe mode, see [safeModeFlow]: loads the extensions it didn't load. */
+    suspend fun loadExtensionsAgain() {
+        withContext(Dispatchers.IO) {
+            ExtensionsGuard.setSafeMode(context, false)
+            _safeModeFlow.value = false
+            _installedExtensionsFlow.value
+                .filter { it.loadIssue == ExtensionLoadIssue.SAFE_MODE }
                 .forEach { ExtensionsStorage.withLock(it.pkgName) { reloadExtension(it.pkgName) } }
             updatePendingUpdatesCount()
         }

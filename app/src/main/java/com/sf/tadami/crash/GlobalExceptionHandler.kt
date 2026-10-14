@@ -2,6 +2,7 @@ package com.sf.tadami.crash
 
 import android.content.Context
 import android.content.Intent
+import com.sf.tadami.extension.util.ExtensionsGuard
 import com.sf.tadami.utils.logcat
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -32,6 +33,8 @@ class GlobalExceptionHandler private constructor(
 
     override fun uncaughtException(thread: Thread, exception: Throwable) {
         val timestamp = System.currentTimeMillis()
+        // First, so that the next launch doesn't crash the same way
+        ExtensionsGuard.onUncaughtException(applicationContext)
         CrashReporter.writeCrash(applicationContext, exception, timestamp)
         try {
             logcat(priority = LogPriority.ERROR, throwable = exception)

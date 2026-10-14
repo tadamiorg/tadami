@@ -31,6 +31,7 @@ import com.sf.tadami.Migrations
 import com.sf.tadami.R
 import com.sf.tadami.crash.PendingCrashDialog
 import com.sf.tadami.extension.api.ExtensionsApi
+import com.sf.tadami.extension.util.ExtensionsGuard
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.navigation.graphs.onboarding.OnboardingRoutes
@@ -249,6 +250,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
+        ExtensionsGuard.onActivityResumed(applicationContext)
         castContext?.sessionManager?.addSessionManagerListener(
             castSessionManagerListener!!,
             CastSession::class.java

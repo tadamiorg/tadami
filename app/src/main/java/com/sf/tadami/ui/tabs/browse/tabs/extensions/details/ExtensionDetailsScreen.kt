@@ -125,6 +125,7 @@ fun ExtensionDetailsScreen(
                 contentPadding = it,
                 onClickUninstall = { showUninstallDialog = true },
                 onClickTrust = extensionDetailsViewModel::trustExtension,
+                onClickRetry = extensionDetailsViewModel::retryExtension,
                 extension = uiState.extension!!
             )
 

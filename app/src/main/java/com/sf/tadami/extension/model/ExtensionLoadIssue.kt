@@ -30,4 +30,10 @@ enum class ExtensionLoadIssue(
 
     /** Its sources took too long to build: listed as is until they are, if ever. */
     TIMED_OUT(R.string.ext_issue_timed_out, R.string.ext_issue_timed_out_message),
+
+    /** The app crashed while it was loading: not loaded again until the user retries it, or it's replaced. */
+    QUARANTINED(R.string.ext_issue_quarantined, R.string.ext_issue_quarantined_message),
+
+    /** Not loaded: the app started in safe mode after crashing at startup, until the user loads them again. */
+    SAFE_MODE(R.string.ext_issue_safe_mode, R.string.ext_issue_safe_mode_message),
 }

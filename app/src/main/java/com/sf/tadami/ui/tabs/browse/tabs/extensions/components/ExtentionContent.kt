@@ -2,8 +2,11 @@ package com.sf.tadami.ui.tabs.browse.tabs.extensions.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.LocalTextStyle
@@ -20,6 +23,7 @@ import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.ExtensionUiModel
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.ExtensionsUiState
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.item.ExtensionItem
+import com.sf.tadami.ui.utils.padding
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -32,14 +36,38 @@ fun ExtensionContent(
     onInstallExtension: (Extension.Available) -> Unit,
     onUninstallExtension: (Extension.Installed) -> Unit,
     onTrustExtension: (Extension.Installed) -> Unit,
+    onRetryExtension: (Extension.Installed) -> Unit,
     onUpdateExtension: (Extension.Installed) -> Unit,
     onOpenExtension: (Extension.Installed) -> Unit,
     onClickUpdateAll: () -> Unit,
     onRemoveLegacyPackages: () -> Unit,
+    onLoadExtensionsAgain: () -> Unit,
 ) {
     FastScrollLazyColumn(
         contentPadding = contentPadding,
     ) {
+        if (state.safeMode) {
+            item(key = "extension-safe-mode") {
+                Column {
+                    WarningBanner(textRes = R.string.ext_safe_mode_banner)
+                    Button(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                horizontal = MaterialTheme.padding.medium,
+                                vertical = MaterialTheme.padding.small,
+                            ),
+                        onClick = onLoadExtensionsAgain,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.ext_safe_mode_load),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                    }
+                }
+            }
+        }
+
         if (state.legacyPackages.isNotEmpty()) {
             item(key = "extension-legacy-packages") {
                 WarningBanner(
@@ -115,6 +143,8 @@ fun ExtensionContent(
                                     onTrustExtension(it)
                                 } else if (it.hasUpdate) {
                                     onUpdateExtension(it)
+                                } else if (it.loadIssue == ExtensionLoadIssue.QUARANTINED) {
+                                    onRetryExtension(it)
                                 } else {
                                     onOpenExtension(it)
                                 }

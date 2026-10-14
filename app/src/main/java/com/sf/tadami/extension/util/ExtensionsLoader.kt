@@ -76,10 +76,15 @@ internal object ExtensionsLoader {
      * Return a list of all the extensions of [ExtensionsStorage] initialized concurrently.
      *
      * @param context The application context.
+     * @param safeMode Whether none of their code is loaded, see [ExtensionLoadIssue.SAFE_MODE].
      * @param onLateResult Gets the result of an extension listed as [ExtensionLoadIssue.TIMED_OUT]
      * once it finishes loading.
      */
-    fun loadExtensions(context: Context, onLateResult: (LoadResult) -> Unit = {}): List<LoadResult> {
+    fun loadExtensions(
+        context: Context,
+        safeMode: Boolean = false,
+        onLateResult: (LoadResult) -> Unit = {},
+    ): List<LoadResult> {
         val pkgNames = ExtensionsStorage.pkgNames(ExtensionsStorage.dir(context))
         if (pkgNames.isEmpty()) return emptyList()
 
@@ -90,7 +95,7 @@ internal object ExtensionsLoader {
             items = pkgNames,
             timeoutMillis = LOAD_TIMEOUT_MS,
             // One malformed package must not prevent the others from loading
-            load = { runCatching { loadExtensionFromPkgName(context, it, trustedSignatures) }.getOrDefault(LoadResult.Error) },
+            load = { runCatching { loadExtensionFromPkgName(context, it, trustedSignatures, safeMode) }.getOrDefault(LoadResult.Error) },
             timedOut = { pkgName ->
                 Log.d("LoadExtension", "Extension $pkgName timed out after ${LOAD_TIMEOUT_MS}ms")
                 runCatching {
@@ -133,18 +138,21 @@ internal object ExtensionsLoader {
     /**
      * Attempts to load the extension [pkgName] of [ExtensionsStorage]. It checks if the extension
      * contains the required feature flag before trying to load it.
+     *
+     * @param safeMode Whether none of its code is loaded, see [ExtensionLoadIssue.SAFE_MODE].
      */
     fun loadExtensionFromPkgName(
         context: Context,
         pkgName: String,
         trustedSignatures: Set<String> = trustedSignatures(),
+        safeMode: Boolean = false,
     ): LoadResult {
         val pkgInfo = getExtensionPackageInfo(context, pkgName)
         if (pkgInfo == null) {
             Log.d("LoadExtensionFromPkgName","Extension package is not found ($pkgName)")
             return LoadResult.Error
         }
-        return loadExtension(context, pkgInfo, trustedSignatures)
+        return loadExtension(context, pkgInfo, trustedSignatures, safeMode)
     }
 
     /** The package of the extension [pkgName] of [ExtensionsStorage], null when it has none. */
@@ -172,14 +180,16 @@ internal object ExtensionsLoader {
      * @param context The application context.
      * @param pkgInfo The package of the extension to load.
      * @param trustedSignatures The signing keys the user trusted, see [isTrusted].
+     * @param safeMode Whether none of its code is loaded, see [ExtensionLoadIssue.SAFE_MODE].
      */
     private fun loadExtension(
         context: Context,
         pkgInfo: PackageInfo,
         trustedSignatures: Set<String>,
+        safeMode: Boolean,
     ): LoadResult {
         return try {
-            loadExtensionUnsafe(context, pkgInfo, trustedSignatures)
+            loadExtensionUnsafe(context, pkgInfo, trustedSignatures, safeMode)
         } catch (e: Throwable) {
             Log.d("LoadExtension","Extension load error: ${pkgInfo.packageName}")
             Log.d("LoadExtension Error",e.stackTraceToString())
@@ -191,6 +201,7 @@ internal object ExtensionsLoader {
         context: Context,
         pkgInfo: PackageInfo,
         trustedSignatures: Set<String>,
+        safeMode: Boolean,
     ): LoadResult {
         val pkgManager = context.packageManager
         val appInfo = pkgInfo.applicationInfo ?: return LoadResult.Error
@@ -215,43 +226,57 @@ internal object ExtensionsLoader {
             return unusable(it)
         }
 
+        // Neither runs any of its code
+        if (ExtensionsGuard.isQuarantined(context, pkgName)) {
+            return unusable(ExtensionLoadIssue.QUARANTINED)
+        }
+        if (safeMode) {
+            return unusable(ExtensionLoadIssue.SAFE_MODE)
+        }
+
         val sourceClasses = appInfo.metaData?.getString(METADATA_SOURCE_CLASS)
         if (sourceClasses.isNullOrBlank()) {
             Log.d("LoadExtension","Missing $METADATA_SOURCE_CLASS meta-data for extension $extName")
             return unusable(ExtensionLoadIssue.LOAD_FAILED)
         }
 
-        val classLoader = try {
-            // Parent first: the classes of the app win over any of the extension
-            PathClassLoader(appInfo.sourceDir, null, context.classLoader)
-        } catch (e: Exception) {
-            Log.d("ClassLoader","Extension load error: $extName ($pkgName)")
-            Log.d("ClassLoader",e.stackTraceToString())
-            return unusable(ExtensionLoadIssue.LOAD_FAILED)
-        }
+        // Its code runs until its sources are built: quarantined if the app crashes meanwhile
+        ExtensionsGuard.markInFlight(context, pkgName)
+        val sources = try {
+            val classLoader = try {
+                // Parent first: the classes of the app win over any of the extension
+                PathClassLoader(appInfo.sourceDir, null, context.classLoader)
+            } catch (e: Exception) {
+                Log.d("ClassLoader","Extension load error: $extName ($pkgName)")
+                Log.d("ClassLoader",e.stackTraceToString())
+                return unusable(ExtensionLoadIssue.LOAD_FAILED)
+            }
 
-        val sources = sourceClasses
-            .split(";")
-            .map {
-                val sourceClass = it.trim()
-                if (sourceClass.startsWith(".")) {
-                    pkgInfo.packageName + sourceClass
-                } else {
-                    sourceClass
-                }
-            }
-            .flatMap {
-                try {
-                    when (val obj = Class.forName(it, false, classLoader).getDeclaredConstructor().newInstance()) {
-                        is Source -> listOf(obj)
-                        else -> throw Exception("Unknown source class type: ${obj.javaClass}")
+            sourceClasses
+                .split(";")
+                .map {
+                    val sourceClass = it.trim()
+                    if (sourceClass.startsWith(".")) {
+                        pkgInfo.packageName + sourceClass
+                    } else {
+                        sourceClass
                     }
-                } catch (e: Throwable) {
-                    Log.d("LoadExtension","Extension load error: $extName ($it)")
-                    Log.d("LoadExtension Error",e.stackTraceToString())
-                    return unusable(ExtensionLoadIssue.LOAD_FAILED)
                 }
-            }
+                .flatMap {
+                    try {
+                        when (val obj = Class.forName(it, false, classLoader).getDeclaredConstructor().newInstance()) {
+                            is Source -> listOf(obj)
+                            else -> throw Exception("Unknown source class type: ${obj.javaClass}")
+                        }
+                    } catch (e: Throwable) {
+                        Log.d("LoadExtension","Extension load error: $extName ($it)")
+                        Log.d("LoadExtension Error",e.stackTraceToString())
+                        return unusable(ExtensionLoadIssue.LOAD_FAILED)
+                    }
+                }
+        } finally {
+            ExtensionsGuard.clearInFlight(context, pkgName)
+        }
 
         val langs = sources.filterIsInstance<AnimeCatalogueSource>()
             .map { it.lang }

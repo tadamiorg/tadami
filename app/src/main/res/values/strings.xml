@@ -337,6 +337,12 @@
     <string name="ext_issue_timed_out_message">It is taking too long to load, it will be usable once loaded. If it stays this way, update or reinstall the extension.</string>
     <string name="ext_issue_untrusted">Untrusted</string>
     <string name="ext_issue_untrusted_message">Not signed by Tadami, its code would run in the app: trust it only if you know where it comes from.</string>
+    <string name="ext_issue_quarantined">Crashed the app</string>
+    <string name="ext_issue_quarantined_message">Tadami crashed while loading it, so it is no longer loaded. Retry it, or update or uninstall the extension.</string>
+    <string name="ext_issue_safe_mode">Not loaded</string>
+    <string name="ext_issue_safe_mode_message">Tadami started without extensions after crashing: load them again from the Extensions tab.</string>
+    <string name="ext_safe_mode_banner">Safe mode: Tadami started without extensions after crashing. They stay unloaded until you load them again.</string>
+    <string name="ext_safe_mode_load">Load extensions again</string>
     <string name="ext_trust">Trust</string>
     <string name="ext_install">Install</string>
     <string name="ext_pending">Pending</string>
@@ -389,6 +395,7 @@
     <string name="crash_screen_description">%s ran into an unexpected error.</string>
     <string name="pref_dump_crash_logs">Share crash logs</string>
     <string name="crash_screen_restart_application">Restart the application</string>
+    <string name="crash_screen_restart_without_extensions">Restart without extensions</string>
     <string name="crash_screen_no_details">No details about this error</string>
     <string name="crash_logs_dump_failed">Failed to share the crash logs</string>
     <string name="pref_dump_crash_logs_summary">Share the last crash report, or the logs of this session</string>

@@ -67,6 +67,8 @@ internal class ExtensionsInstaller(private val context: Context) {
         val installed = ExtensionsStorage.apkFile(dir, pkgName).takeIf { it.isFile }?.let { readApk(it) }
         rejectionOf(apk, pkgName, listed, installed, allowSameVersion)?.let { return it }
         ExtensionsStorage.commit(dir, pkgName, tmp)
+        // Another APK, maybe the fix of the crash it was quarantined for
+        ExtensionsGuard.clearQuarantine(context, pkgName)
         return null
     }
 

@@ -74,6 +74,10 @@ fun ExtensionItemActions(
                                     contentDescription = stringResource(R.string.stub_text),
                                 )
                             }
+                        } else if (extension.loadIssue == ExtensionLoadIssue.QUARANTINED) {
+                            TextButton(onClick = { onClickItemAction(extension) }) {
+                                Text(text = stringResource(R.string.retry))
+                            }
                         }
                     }
                     is Extension.Available -> {

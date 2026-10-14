@@ -27,6 +27,7 @@ fun CrashScreen(
     report: String,
     onReportShared: () -> Unit,
     onRestartClick: () -> Unit,
+    onRestartWithoutExtensionsClick: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -49,6 +50,8 @@ fun CrashScreen(
         },
         rejectText = stringResource(R.string.crash_screen_restart_application),
         onRejectClick = onRestartClick,
+        neutralText = stringResource(R.string.crash_screen_restart_without_extensions),
+        onNeutralClick = onRestartWithoutExtensionsClick,
     ) {
         Box(
             modifier = Modifier

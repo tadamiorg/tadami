@@ -75,4 +75,9 @@ class ExtensionDetailsViewModel(
         val extension = _uiState.value.extension ?: return
         viewModelScope.launchIO { extensionManager.trustExtension(extension) }
     }
+
+    fun retryExtension() {
+        val extension = _uiState.value.extension ?: return
+        viewModelScope.launchIO { extensionManager.retryExtension(extension) }
+    }
 }

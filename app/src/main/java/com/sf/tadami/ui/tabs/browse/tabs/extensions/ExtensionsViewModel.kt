@@ -140,6 +140,10 @@ class ExtensionsViewModel : ViewModel() {
             _uiState.update { state -> state.copy(legacyPackages = it) }
         }.launchIn(viewModelScope)
 
+        extensionManager.safeModeFlow.onEach {
+            _uiState.update { state -> state.copy(safeMode = it) }
+        }.launchIn(viewModelScope)
+
     }
 
     fun search(query: String?) {
@@ -229,6 +233,14 @@ class ExtensionsViewModel : ViewModel() {
 
     fun trustExtension(extension: Extension.Installed) {
         viewModelScope.launchIO { extensionManager.trustExtension(extension) }
+    }
+
+    fun retryExtension(extension: Extension.Installed) {
+        viewModelScope.launchIO { extensionManager.retryExtension(extension) }
+    }
+
+    fun loadExtensionsAgain() {
+        viewModelScope.launchIO { extensionManager.loadExtensionsAgain() }
     }
 
     fun findAvailableExtensions() {

@@ -26,6 +26,7 @@ fun ExtensionDetailsHeader(
     extension: Extension,
     onClickUninstall: () -> Unit,
     onClickTrust: (() -> Unit)? = null,
+    onClickRetry: (() -> Unit)? = null,
 ) {
     Column {
         Column(
@@ -100,6 +101,17 @@ fun ExtensionDetailsHeader(
                 ) {
                     Text(
                         text = stringResource(R.string.ext_trust),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                }
+            }
+            if (onClickRetry != null) {
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onClickRetry,
+                ) {
+                    Text(
+                        text = stringResource(R.string.retry),
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 }

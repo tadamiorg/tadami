@@ -23,10 +23,12 @@ fun ExtensionComponent(
     onInstallExtension: (Extension.Available) -> Unit,
     onUninstallExtension: (Extension.Installed) -> Unit,
     onTrustExtension: (Extension.Installed) -> Unit,
+    onRetryExtension: (Extension.Installed) -> Unit,
     onUpdateExtension: (Extension.Installed) -> Unit,
     onOpenExtension: (Extension.Installed) -> Unit,
     onClickUpdateAll: () -> Unit,
     onRemoveLegacyPackages: () -> Unit,
+    onLoadExtensionsAgain: () -> Unit,
     onRefresh: () -> Unit,
 ) {
 
@@ -56,10 +58,12 @@ fun ExtensionComponent(
                     onInstallExtension = onInstallExtension,
                     onUninstallExtension = onUninstallExtension,
                     onTrustExtension = onTrustExtension,
+                    onRetryExtension = onRetryExtension,
                     onUpdateExtension = onUpdateExtension,
                     onOpenExtension = onOpenExtension,
                     onClickUpdateAll = onClickUpdateAll,
                     onRemoveLegacyPackages = onRemoveLegacyPackages,
+                    onLoadExtensionsAgain = onLoadExtensionsAgain,
                 )
             }
         }

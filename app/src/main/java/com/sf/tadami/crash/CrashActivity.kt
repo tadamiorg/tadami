@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.luminance
 import com.sf.tadami.R
+import com.sf.tadami.extension.util.ExtensionsGuard
 import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.ui.utils.setComposeContent
 
@@ -49,6 +50,13 @@ class CrashActivity : AppCompatActivity() {
                     if (crashLog != null) CrashReporter.clearPending(this@CrashActivity)
                 },
                 onRestartClick = {
+                    CrashReporter.clearPending(this@CrashActivity)
+                    finishAffinity()
+                    startActivity(Intent(this@CrashActivity, MainActivity::class.java))
+                },
+                onRestartWithoutExtensionsClick = {
+                    // Read by the next launch, nothing of the extensions is built in this process
+                    runCatching { ExtensionsGuard.setSafeMode(this@CrashActivity, true) }
                     CrashReporter.clearPending(this@CrashActivity)
                     finishAffinity()
                     startActivity(Intent(this@CrashActivity, MainActivity::class.java))

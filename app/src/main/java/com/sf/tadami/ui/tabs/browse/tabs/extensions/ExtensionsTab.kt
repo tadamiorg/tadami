@@ -103,8 +103,10 @@ fun extensionsTab(
             },
             onUninstallExtension = { uninstallDialog = it },
             onTrustExtension = extensionsViewModel::trustExtension,
+            onRetryExtension = extensionsViewModel::retryExtension,
             onUpdateExtension = extensionsViewModel::updateExtension,
             onRemoveLegacyPackages = { showLegacyPackagesDialog = true },
+            onLoadExtensionsAgain = extensionsViewModel::loadExtensionsAgain,
             onRefresh = extensionsViewModel::findAvailableExtensions,
         )
 
