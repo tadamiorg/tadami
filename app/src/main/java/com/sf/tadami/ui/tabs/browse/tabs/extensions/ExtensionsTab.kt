@@ -28,6 +28,7 @@ import com.sf.tadami.ui.components.screens.ScreenTabContent
 import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.ExtensionComponent
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.RemoveLegacyPackagesDialog
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.TrustExtensionDialog
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.UninstallExtensionDialog
 import com.sf.tadami.ui.themes.colorschemes.active
 import com.sf.tadami.utils.Lang
@@ -60,6 +61,7 @@ fun extensionsTab(
         )
     ) { contentPadding, _ ->
         var uninstallDialog by remember { mutableStateOf<Extension.Installed?>(null) }
+        var trustDialog by remember { mutableStateOf<Extension.Installed?>(null) }
         var showLegacyPackagesDialog by remember { mutableStateOf(false) }
 
         // Back from the uninstall dialog of the system for instance
@@ -102,7 +104,7 @@ fun extensionsTab(
                 navController.navigate("${DiscoverRoutes.EXTENSION_DETAILS}/${it.pkgName}")
             },
             onUninstallExtension = { uninstallDialog = it },
-            onTrustExtension = extensionsViewModel::trustExtension,
+            onTrustExtension = { trustDialog = it },
             onRetryExtension = extensionsViewModel::retryExtension,
             onUpdateExtension = extensionsViewModel::updateExtension,
             onRemoveLegacyPackages = { showLegacyPackagesDialog = true },
@@ -115,6 +117,14 @@ fun extensionsTab(
                 extensionName = extension.name,
                 onDismissRequest = { uninstallDialog = null },
                 onConfirm = { extensionsViewModel.uninstallExtension(extension) },
+            )
+        }
+
+        trustDialog?.let { extension ->
+            TrustExtensionDialog(
+                extension = extension,
+                onDismissRequest = { trustDialog = null },
+                onConfirm = { extensionsViewModel.trustExtension(extension) },
             )
         }
 

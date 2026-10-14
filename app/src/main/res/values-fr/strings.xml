@@ -345,6 +345,9 @@
     <string name="ext_safe_mode_banner">Mode sans échec : Tadami a démarré sans extensions après avoir planté. Elles restent non chargées jusqu\'à ce que vous les chargiez à nouveau.</string>
     <string name="ext_safe_mode_load">Charger à nouveau les extensions</string>
     <string name="ext_trust">Approuver</string>
+    <string name="ext_trust_title">Approuver cette extension ?</string>
+    <string name="ext_trust_fingerprint">Empreinte de la clé de signature (SHA-256)</string>
+    <string name="ext_trust_warning">Une extension approuvée exécute son code dans Tadami. Toutes les extensions signées avec cette clé seront aussi approuvées.</string>
     <string name="ext_install">Installer</string>
     <string name="ext_pending">En attente</string>
     <string name="ext_downloading">En cours de téléchargement</string>

@@ -30,6 +30,7 @@ import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.grid.EmptyScreen
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 import com.sf.tadami.ui.components.widgets.ContentLoader
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.TrustExtensionDialog
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.UninstallExtensionDialog
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -43,6 +44,7 @@ fun ExtensionDetailsScreen(
 ) {
     val uiState by extensionDetailsViewModel.uiState.collectAsState()
     var showUninstallDialog by remember { mutableStateOf(false) }
+    var showTrustDialog by remember { mutableStateOf(false) }
 
     ContentLoader(isLoading = uiState.isLoading) {
         val uriHandler = LocalUriHandler.current
@@ -124,7 +126,7 @@ fun ExtensionDetailsScreen(
             ExtensionDetailsComponent(
                 contentPadding = it,
                 onClickUninstall = { showUninstallDialog = true },
-                onClickTrust = extensionDetailsViewModel::trustExtension,
+                onClickTrust = { showTrustDialog = true },
                 onClickRetry = extensionDetailsViewModel::retryExtension,
                 extension = uiState.extension!!
             )
@@ -137,6 +139,14 @@ fun ExtensionDetailsScreen(
                         extensionDetailsViewModel.uninstallExtension()
                         navController.navigateUp()
                     },
+                )
+            }
+
+            if (showTrustDialog) {
+                TrustExtensionDialog(
+                    extension = uiState.extension!!,
+                    onDismissRequest = { showTrustDialog = false },
+                    onConfirm = extensionDetailsViewModel::trustExtension,
                 )
             }
         }
