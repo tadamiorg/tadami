@@ -42,7 +42,7 @@ fun CrashScreen(
             scope.launch {
                 // Not CrashLogUtil: building the extension manager in this process would load the
                 // extensions again, maybe the one that crashed
-                if (withContext(Dispatchers.IO) { CrashReporter.shareReport(context, report) }) {
+                if (withContext(Dispatchers.IO) { CrashReporter.shareReport(context, report, fromCrashScreen = true) }) {
                     onReportShared()
                 } else {
                     UiToasts.showToast(R.string.crash_logs_dump_failed)

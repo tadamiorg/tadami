@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Where CrashReporter.shareReport writes the report -->
+    <external-cache-path
+        name="crash_report"
+        path="." />
+</paths>

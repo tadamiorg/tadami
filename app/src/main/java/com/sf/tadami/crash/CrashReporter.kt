@@ -137,11 +137,17 @@ object CrashReporter {
         runCatching { crashFile(context).delete() }
     }
 
-    /** Shares [report] as a text file. */
-    fun shareReport(context: Context, report: String): Boolean = runCatching {
+    /**
+     * Shares [report] as a text file.
+     *
+     * @param fromCrashScreen Whether it's shared from the crash screen, given by its process then,
+     * see [CrashReportProvider].
+     */
+    fun shareReport(context: Context, report: String, fromCrashScreen: Boolean = false): Boolean = runCatching {
         val file = context.createFileInCacheDir("tadami_crash_logs.txt")
         file.writeText(report)
-        context.startActivity(file.getUriCompat(context).toShareIntent(context, "text/plain"))
+        val uri = if (fromCrashScreen) CrashReportProvider.getUri(context, file) else file.getUriCompat(context)
+        context.startActivity(uri.toShareIntent(context, "text/plain"))
         true
     }.getOrDefault(false)
 

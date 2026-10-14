@@ -117,6 +117,17 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>
+        <!-- Shares the crash report from the crash screen's process, without starting the main one -->
+        <provider
+            android:name=".crash.CrashReportProvider"
+            android:authorities="${applicationId}.crashreport"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            android:process=":error_handler">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/crash_report_paths" />
+        </provider>
     </application>
 
 </manifest>
