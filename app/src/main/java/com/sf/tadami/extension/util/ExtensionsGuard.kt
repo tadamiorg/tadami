@@ -52,7 +52,7 @@ internal object ExtensionsGuard {
     /** The code of the extensions this process loaded, to find the ones a crash comes from. */
     private val loadedCode = ConcurrentLinkedQueue<ExtensionCode>()
 
-    private class ExtensionCode(val pkgName: String, classLoader: ClassLoader) {
+    private class ExtensionCode(val pkgName: String, val name: String, classLoader: ClassLoader) {
         // Not kept by this: the code of an extension replaced since then can be collected
         private val classLoader = WeakReference(classLoader)
 
@@ -99,11 +99,14 @@ internal object ExtensionsGuard {
         clearSuspect(dir(context), pkgName)
     }
 
-    /** Records that [classLoader] loads the code of [pkgName], see [culpritsOf]. */
-    fun registerClassLoader(pkgName: String, classLoader: ClassLoader) {
+    /** Records that [classLoader] loads the code of [pkgName], named [name], see [culpritsOf]. */
+    fun registerClassLoader(pkgName: String, name: String, classLoader: ClassLoader) {
         loadedCode.removeAll { it.isCollected }
-        loadedCode += ExtensionCode(pkgName, classLoader)
+        loadedCode += ExtensionCode(pkgName, name, classLoader)
     }
+
+    /** The name of the extension [pkgName] whose code was loaded last, its package name if none was. */
+    fun nameOf(pkgName: String): String = loadedCode.lastOrNull { it.pkgName == pkgName }?.name ?: pkgName
 
     /** Forgets the code of [pkgName], uninstalled. */
     fun forgetClassLoaders(pkgName: String) {
@@ -136,12 +139,21 @@ internal object ExtensionsGuard {
     fun setSafeMode(context: Context, enabled: Boolean) = setSafeMode(dir(context), enabled)
 
     /**
-     * Called by the uncaught exception handler before the process dies: quarantines the extensions
-     * [throwable] comes from, or makes suspects of the ones being loaded, see [recordCrash]. Counts
-     * the crash when it happened before the startup completed. Never throws.
+     * Called by the uncaught exception handler before the process dies: quarantines the [culprits],
+     * the extensions the crash comes from, see [culpritsOf], or makes suspects of the ones being
+     * loaded, see [recordCrash]. Counts the crash when it happened before the startup completed.
+     * Never throws.
      */
-    fun onUncaughtException(context: Context, throwable: Throwable) {
-        runCatching { recordCrash(dir(context), culpritsOf(throwable), inFlight.toSet(), startupCompleted) }
+    fun onUncaughtException(context: Context, culprits: Set<String>) {
+        runCatching { recordCrash(dir(context), culprits, inFlight.toSet(), startupCompleted) }
+    }
+
+    /**
+     * Quarantines the extensions [pkgNames] a crash the app survived comes from, see [culpritsOf]:
+     * a thread other than the main one ended, the process goes on.
+     */
+    fun quarantine(context: Context, pkgNames: Set<String>) {
+        pkgNames.forEach { quarantine(dir(context), it) }
     }
 
     /**

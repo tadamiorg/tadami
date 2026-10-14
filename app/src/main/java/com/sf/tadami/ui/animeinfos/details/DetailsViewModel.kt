@@ -8,6 +8,7 @@ import com.sf.tadami.data.interactors.anime.GetAnime
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.extension.util.fetchGuarded
 import com.sf.tadami.ui.components.data.EpisodeItem
 import com.sf.tadami.ui.discover.migrate.MigrateHelperState
 import com.sf.tadami.ui.tabs.browse.SourceManager
@@ -112,7 +113,7 @@ class DetailsViewModel(
     // Update anime details functions
 
     private suspend fun fetchAnimeDetailsFromSource(anime: Anime) {
-        val networkDetails = source.fetchAnimeDetails(anime)
+        val networkDetails = source.fetchGuarded { fetchAnimeDetails(anime) }
             .awaitSingleOrNull { _detailsRefreshing.update { false } }
         networkDetails?.let {
             updateAnimeInteractor.awaitUpdateFromSource(anime, it)
@@ -121,7 +122,7 @@ class DetailsViewModel(
     }
 
     private suspend fun fetchEpisodesFromSource(anime: Anime, manualFetch : Boolean = false) {
-        val networkEpisodes = source.fetchEpisodesList(anime)
+        val networkEpisodes = source.fetchGuarded { fetchEpisodesList(anime) }
             .awaitSingleOrNull { _episodesRefreshing.update { false } }
         networkEpisodes?.let {
             updateAnimeInteractor.awaitEpisodesSyncFromSource(anime, networkEpisodes,source,manualFetch)

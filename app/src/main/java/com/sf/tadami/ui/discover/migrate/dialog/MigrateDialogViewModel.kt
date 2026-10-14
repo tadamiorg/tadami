@@ -8,6 +8,7 @@ import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.UpdateAnime
 import com.sf.tadami.domain.episode.toUpdateEpisode
+import com.sf.tadami.extension.util.fetchGuarded
 import com.sf.tadami.source.Source
 import com.sf.tadami.source.model.SEpisode
 import com.sf.tadami.ui.tabs.browse.SourceManager
@@ -40,7 +41,7 @@ class MigrateDialogViewModel : ViewModel() {
         _state.update { it.copy(migrationState = MigrationState.RUNNING) }
 
         try {
-            val episodes = source.fetchEpisodesList(newAnime).awaitSingleOrError()
+            val episodes = source.fetchGuarded { fetchEpisodesList(newAnime) }.awaitSingleOrError()
 
             migrateAnimeInternal(
                 oldSource = prevSource,

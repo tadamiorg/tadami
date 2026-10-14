@@ -3,6 +3,8 @@ package com.sf.tadami.ui.utils
 import android.content.Context
 import com.sf.tadami.R
 import com.sf.tadami.data.anime.NoResultException
+import com.sf.tadami.extension.util.ExtensionCodeException
+import com.sf.tadami.extension.util.ExtensionDisabledException
 import com.sf.tadami.network.CloudflareChallengeException
 import com.sf.tadami.network.HttpException
 import com.sf.tadami.source.StubSource.SourceNotInstalledException
@@ -14,7 +16,8 @@ fun Throwable.isKnownError(): Boolean = when (this) {
     is HttpException,
     is UnknownHostException,
     is NoResultException,
-    is SourceNotInstalledException -> true
+    is SourceNotInstalledException,
+    is ExtensionDisabledException -> true
 
     else -> false
 }
@@ -35,6 +38,9 @@ val Throwable.formattedMessage: String
             is CloudflareChallengeException -> return message ?: context.getString(R.string.request_bypass_cloudflare_failure)
             is NoResultException -> return context.getString(R.string.pager_no_results)
             is SourceNotInstalledException -> return context.getString(R.string.source_not_installed, sourceName)
+            is ExtensionDisabledException -> return context.getString(R.string.ext_crashed_disabled, sourceName)
+            // The error of the extension itself
+            is ExtensionCodeException -> return message.orEmpty()
         }
         return when (val className = this::class.simpleName) {
             "Exception", "IOException" -> message ?: className

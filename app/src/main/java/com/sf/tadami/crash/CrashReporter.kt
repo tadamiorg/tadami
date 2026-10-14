@@ -61,8 +61,12 @@ object CrashReporter {
 
     private fun crashFile(context: Context) = File(context.filesDir, "crash/last_crash.json")
 
-    /** Never throws: a failure here would replace the crash being reported. */
-    fun writeCrash(context: Context, throwable: Throwable, timestamp: Long) {
+    /**
+     * Never throws: a failure here would replace the crash being reported.
+     *
+     * @param offered Whether the user was already told about it, see [CrashLog.offered].
+     */
+    fun writeCrash(context: Context, throwable: Throwable, timestamp: Long, offered: Boolean = false) {
         runCatching {
             val log = CrashLog(
                 stacktrace = throwable.stackTraceToString().take(MAX_STACKTRACE_LENGTH),
@@ -78,6 +82,7 @@ object CrashReporter {
                     ExtensionManager.instance?.let { getExtensionsInfo(it) }
                 }.getOrNull().orEmpty(),
                 timestamp = timestamp,
+                offered = offered,
             )
             write(context, log)
         }

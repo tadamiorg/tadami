@@ -14,6 +14,8 @@ import com.sf.tadami.data.interactors.history.UpdateHistoryInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.isEpisodeWatched
+import com.sf.tadami.extension.util.ExtensionDisabledException
+import com.sf.tadami.extension.util.fetchGuarded
 import com.sf.tadami.network.utils.TadaErrorConsumer
 import com.sf.tadami.preferences.CommonKeys
 import com.sf.tadami.source.StubSource
@@ -326,7 +328,7 @@ class PlayerViewModel(
         _isFetchingSources.update { true }
         fetchEpisodeDisposable?.dispose()
 
-        fetchEpisodeDisposable = source.fetchEpisodeSources(episode.url).subscribe(
+        fetchEpisodeDisposable = source.fetchGuarded { fetchEpisodeSources(episode.url) }.subscribe(
             { data ->
                 _uiState.updateAndGet { currentState ->
                     currentState.copy(
@@ -344,7 +346,7 @@ class PlayerViewModel(
             },
             TadaErrorConsumer {error, _, _ ->
                 _isFetchingSources.update { false }
-                if(error is StubSource.SourceNotInstalledException){
+                if(error is StubSource.SourceNotInstalledException || error is ExtensionDisabledException){
                     _uiState.update {
                         it.copy(loadError = true)
                     }

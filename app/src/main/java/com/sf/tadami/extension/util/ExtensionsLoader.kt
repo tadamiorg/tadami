@@ -271,7 +271,7 @@ internal object ExtensionsLoader {
                 return unusable(ExtensionLoadIssue.LOAD_FAILED)
             }
             // Before any of its code runs: a crash coming from it, even later, quarantines it
-            ExtensionsGuard.registerClassLoader(pkgName, classLoader)
+            ExtensionsGuard.registerClassLoader(pkgName, extName, classLoader)
 
             sourceClasses
                 .split(";")

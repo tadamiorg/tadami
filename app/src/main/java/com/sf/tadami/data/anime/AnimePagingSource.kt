@@ -2,6 +2,7 @@ package com.sf.tadami.data.anime
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.sf.tadami.extension.util.fetchGuarded
 import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.source.AnimesPage
 import com.sf.tadami.source.model.AnimeFilterList
@@ -48,14 +49,14 @@ abstract class AnimePagingSource(
 
 class LatestPagingSource(source: AnimeCatalogueSource) : AnimePagingSource(source) {
     override suspend fun requestNextPage(currentPage: Int): AnimesPage {
-        return source.fetchLatest(currentPage).singleOrError().await()
+        return source.fetchGuarded { fetchLatest(currentPage) }.singleOrError().await()
     }
 }
 
 class SearchPagingSource(source: AnimeCatalogueSource, private val query: String, private val filters: AnimeFilterList) :
     AnimePagingSource(source) {
     override suspend fun requestNextPage(currentPage: Int): AnimesPage {
-        return source.fetchSearch(currentPage, query, filters).singleOrError().await()
+        return source.fetchGuarded { fetchSearch(currentPage, query, filters) }.singleOrError().await()
     }
 }
 

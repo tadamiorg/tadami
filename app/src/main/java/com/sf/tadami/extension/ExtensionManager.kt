@@ -29,6 +29,7 @@ import com.sf.tadami.extension.util.ExtensionsStorage
 import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerNotifier
 import com.sf.tadami.preferences.extensions.TrustedExtensionsPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
+import com.sf.tadami.source.Source
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.utils.editPreference
@@ -101,6 +102,14 @@ class ExtensionManager(
      */
     val safeModeFlow = _safeModeFlow.asStateFlow()
 
+    private val _crashedSourcesFlow = MutableStateFlow(emptyList<Source>())
+
+    /**
+     * The sources of the extensions unloaded after a crash of their code the app survived, see
+     * [disableCrashedExtensions]: the calls still waiting for them won't get any answer.
+     */
+    val crashedSourcesFlow = _crashedSourcesFlow.asStateFlow()
+
     /** The icon loaded with the extension of the source [sourceId]. */
     fun getAppIconForSource(sourceId: Long): Drawable? {
         return _installedExtensionsFlow.value
@@ -123,15 +132,16 @@ class ExtensionManager(
     fun getSourceData(id: Long) = availableExtensionsSourcesData[id]
 
     init {
+        // Before the extensions are loaded: a crash of their code the app survives disables them
+        instance = this
         initExtensions()
         if (BuildConfig.DEBUG) registerDebugPackageReceiver()
-        instance = this
     }
 
     companion object {
         /**
-         * The manager once built, for the crash report: getting it from Injekt would build it, and
-         * load the extensions again, from the uncaught exception handler.
+         * The manager once its building started, for the uncaught exception handler: getting it
+         * from Injekt would build it, and load the extensions again.
          */
         // Built with the application context, it lives as long as the app anyway
         @SuppressLint("StaticFieldLeak")
@@ -163,9 +173,10 @@ class ExtensionManager(
         _installedExtensionsFlow.update { lateExtensions ->
             // One that timed out may have finished loading already
             loadedExtensions.map { extension ->
-                lateExtensions.find { it.pkgName == extension.pkgName }
+                val loaded = lateExtensions.find { it.pkgName == extension.pkgName }
                     ?.takeIf { extension.loadIssue == ExtensionLoadIssue.TIMED_OUT }
                     ?: extension
+                loaded.withoutQuarantinedCode()
             }
         }
 
@@ -210,7 +221,8 @@ class ExtensionManager(
             ) {
                 installedExtensions
             } else {
-                installedExtensions.filterNot { it.pkgName == extension.pkgName } + extension.withUpdateCheck()
+                installedExtensions.filterNot { it.pkgName == extension.pkgName } +
+                    extension.withUpdateCheck().withoutQuarantinedCode()
             }
         }
         updatePendingUpdatesCount()
@@ -485,9 +497,33 @@ class ExtensionManager(
             if (oldExtension != null) {
                 mutInstalledExtensions -= oldExtension
             }
-            mutInstalledExtensions += extension
+            mutInstalledExtensions += extension.withoutQuarantinedCode()
             mutInstalledExtensions
         }
+    }
+
+    /**
+     * Unloads the extensions [pkgNames], quarantined after a crash of their code the app survived:
+     * they're listed as [ExtensionLoadIssue.QUARANTINED], and their sources added to
+     * [crashedSourcesFlow].
+     */
+    fun disableCrashedExtensions(pkgNames: Set<String>) {
+        val crashedSources = _installedExtensionsFlow.value
+            .filter { it.pkgName in pkgNames }
+            .flatMap { it.sources }
+        _crashedSourcesFlow.update { it + crashedSources }
+        _installedExtensionsFlow.update { installedExtensions ->
+            installedExtensions.map { it.withoutQuarantinedCode() }
+        }
+    }
+
+    /**
+     * This extension without its sources when a crash of its code quarantined it while it was
+     * loading, or since then, see [disableCrashedExtensions].
+     */
+    private fun Extension.Installed.withoutQuarantinedCode(): Extension.Installed {
+        if (sources.isEmpty() || !ExtensionsGuard.isQuarantined(context, pkgName)) return this
+        return copy(sources = emptyList(), loadIssue = ExtensionLoadIssue.QUARANTINED)
     }
 
     /**

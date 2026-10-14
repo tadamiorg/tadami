@@ -23,6 +23,7 @@ import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.isEpisodeWatched
+import com.sf.tadami.extension.util.fetchGuarded
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
 import com.sf.tadami.preferences.cast.CastPreferences
@@ -296,7 +297,7 @@ class CastControlService : Service() {
         val source = sourcesManager.getOrStub(anime.source)
 
         fetchDisposable?.dispose()
-        fetchDisposable = source.fetchEpisodeSources(fresh.url).subscribe(
+        fetchDisposable = source.fetchGuarded { fetchEpisodeSources(fresh.url) }.subscribe(
             { sources: List<StreamSource> ->
                 val selected = sources.firstOrNull() ?: return@subscribe
                 val request = buildCastLoadRequest(

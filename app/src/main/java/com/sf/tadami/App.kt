@@ -88,8 +88,9 @@ open class App : Application(), ImageLoaderFactory {
     private fun setupRxJavaErrorHandler() {
         RxJavaPlugins.setErrorHandler { error ->
             // An error nobody is subscribed to anymore, e.g. a request failing after its screen
-            // closed: not worth a crash
-            if (error is UndeliverableException || error is IOException ||
+            // closed: not worth a crash. Unless it's a fatal error, a LinkageError of an extension
+            // for instance: the uncaught exception handler disables the extension it comes from
+            if (error is UndeliverableException && error.cause !is Error || error is IOException ||
                 error is InterruptedException || error is HttpException
             ) {
                 logcat(LogPriority.WARN, error) { "Undeliverable RxJava error" }

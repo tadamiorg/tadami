@@ -2,7 +2,12 @@ package com.sf.tadami.crash
 
 import android.content.Context
 import android.content.Intent
+import android.os.Looper
+import android.widget.Toast
+import com.sf.tadami.R
+import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.extension.util.ExtensionsGuard
+import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.utils.logcat
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -33,8 +38,15 @@ class GlobalExceptionHandler private constructor(
 
     override fun uncaughtException(thread: Thread, exception: Throwable) {
         val timestamp = System.currentTimeMillis()
+        val culprits = ExtensionsGuard.culpritsOf(exception)
+        // The main thread can't go on without its looper, another one can end alone
+        if (culprits.isNotEmpty() && thread !== Looper.getMainLooper().thread &&
+            disableCrashedExtensions(culprits, exception, timestamp)
+        ) {
+            return
+        }
         // First, so that the next launch doesn't crash the same way
-        ExtensionsGuard.onUncaughtException(applicationContext, exception)
+        ExtensionsGuard.onUncaughtException(applicationContext, culprits)
         CrashReporter.writeCrash(applicationContext, exception, timestamp)
         try {
             logcat(priority = LogPriority.ERROR, throwable = exception)
@@ -43,6 +55,26 @@ class GlobalExceptionHandler private constructor(
         } catch (_: Exception) {
             defaultHandler.uncaughtException(thread, exception)
         }
+    }
+
+    /**
+     * Lets the app go on after [exception], coming from the code of the [culprits] extensions, ended
+     * a thread other than the main one: they're quarantined and their sources unloaded, the report
+     * saved, and the user told. False when that failed: the app crashes as usual.
+     */
+    private fun disableCrashedExtensions(culprits: Set<String>, exception: Throwable, timestamp: Long): Boolean {
+        return runCatching {
+            ExtensionsGuard.quarantine(applicationContext, culprits)
+            // Not built yet while its startup loads them: it leaves the quarantined ones out then
+            ExtensionManager.instance?.disableCrashedExtensions(culprits)
+            logcat(LogPriority.ERROR, exception) { "Extensions disabled after a crash: $culprits" }
+            // Shareable from the advanced settings: no need to offer it on the next launch, the
+            // user is told now
+            CrashReporter.writeCrash(applicationContext, exception, timestamp, offered = true)
+            val names = culprits.joinToString { ExtensionsGuard.nameOf(it) }
+            UiToasts.showToast(R.string.ext_crashed_disabled, Toast.LENGTH_LONG, names)
+            true
+        }.getOrDefault(false)
     }
 
     private fun launchActivity(
