@@ -42,6 +42,7 @@ object Notifications {
     const val BACKUP_RESTORE_COMPLETE_CHANNEL="backup_restore_complete"
     const val RESTORE_COMPLETE_ID=401
     const val BACKUP_COMPLETE_ID=403
+    const val AUTO_BACKUP_ERROR_ID=404
 
     // Extensions installs and updates
     const val EXTENSIONS_GROUP= "extensions_group"

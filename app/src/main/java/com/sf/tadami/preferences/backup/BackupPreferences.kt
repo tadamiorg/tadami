@@ -4,6 +4,7 @@ import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
 
@@ -23,6 +24,8 @@ data class BackupPreferences(
     companion object : CustomPreferences<BackupPreferences> {
         private val AUTO_BACKUP_INTERVAL = intPreferencesKey("auto_backup_interval")
         val AUTO_BACKUP_LAST_TIMESTAMP = longPreferencesKey("auto_backup_last_timestamp")
+        /** The error of the last automatic backup, if it failed, to notify each error only once */
+        val AUTO_BACKUP_LAST_ERROR = stringPreferencesKey(CustomPreferences.appStateKey("auto_backup_last_error"))
 
         override fun transform(preferences: Preferences): BackupPreferences {
             return BackupPreferences(

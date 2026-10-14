@@ -134,6 +134,7 @@
     <string name="notification_backup_progress">Progression de la sauvegarde/restauration</string>
     <string name="creating_backup">Création de sauvegarde en cours</string>
     <string name="creating_backup_error">Échec de la sauvegarde</string>
+    <string name="creating_auto_backup_error">Échec de la sauvegarde automatique</string>
     <string name="backup_created">Sauvegarde créée</string>
     <string name="action_share">Partager</string>
     <string name="restoring_backup">Restauration de sauvegarde en cours</string>

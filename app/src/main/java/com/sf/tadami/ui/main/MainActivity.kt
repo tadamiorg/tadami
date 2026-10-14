@@ -34,6 +34,7 @@ import com.sf.tadami.extension.api.ExtensionsApi
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.navigation.graphs.onboarding.OnboardingRoutes
+import com.sf.tadami.navigation.graphs.settings.DataSettingsRoutes
 import com.sf.tadami.notifications.cast.CastControlService
 import com.sf.tadami.preferences.app.BasePreferences
 import com.sf.tadami.preferences.appearance.AppearancePreferences
@@ -76,6 +77,7 @@ class MainActivity : AppCompatActivity() {
     private val dataStore: DataStore<Preferences> = Injekt.get()
     private val sourcesManager: SourceManager = Injekt.get()
     private val openExtensionsRequests = Channel<Unit>(Channel.CONFLATED)
+    private val openBackupSettingsRequests = Channel<Unit>(Channel.CONFLATED)
 
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -121,6 +123,9 @@ class MainActivity : AppCompatActivity() {
 
         if (isLaunch && intent?.action == ACTION_OPEN_EXTENSIONS) {
             openExtensionsRequests.trySend(Unit)
+        }
+        if (isLaunch && intent?.action == ACTION_OPEN_BACKUP_SETTINGS) {
+            openBackupSettingsRequests.trySend(Unit)
         }
 
         castContext = castContextOrNull(this)
@@ -194,6 +199,14 @@ class MainActivity : AppCompatActivity() {
                         .savedStateHandle[BROWSE_TAB_KEY] = EXTENSIONS_TAB
                 }
             }
+            LaunchedEffect(navController) {
+                for (request in openBackupSettingsRequests) {
+                    if (!basePreferences.onboardingComplete) continue
+                    navController.navigate(DataSettingsRoutes.HOME) {
+                        launchSingleTop = true
+                    }
+                }
+            }
         }
 
         val startTime = System.currentTimeMillis()
@@ -207,6 +220,9 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         if (intent.action == ACTION_OPEN_EXTENSIONS) {
             openExtensionsRequests.trySend(Unit)
+        }
+        if (intent.action == ACTION_OPEN_BACKUP_SETTINGS) {
+            openBackupSettingsRequests.trySend(Unit)
         }
     }
 
@@ -306,5 +322,8 @@ class MainActivity : AppCompatActivity() {
 
         /** Opens the extensions tab, from the extension updates notification. */
         const val ACTION_OPEN_EXTENSIONS = "com.sf.tadami.EXTENSIONS"
+
+        /** Opens the backup settings, from the automatic backup error notification. */
+        const val ACTION_OPEN_BACKUP_SETTINGS = "com.sf.tadami.BACKUP_SETTINGS"
     }
 }

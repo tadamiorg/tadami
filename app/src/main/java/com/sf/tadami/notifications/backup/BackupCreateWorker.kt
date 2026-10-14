@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -19,15 +20,19 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.hippo.unifile.UniFile
+import com.sf.tadami.R
 import com.sf.tadami.data.backup.BackupCreator
 import com.sf.tadami.data.backup.BackupOptions
 import com.sf.tadami.domain.storage.StorageManager
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.utils.cancelNotification
+import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.isRunning
 import com.sf.tadami.utils.workManager
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -48,7 +53,10 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
         // Auto backups have their own folder, so their rotation never deletes the manual backups
         val uri = inputData.getString(LOCATION_URI_KEY)?.toUri()
             ?: Injekt.get<StorageManager>().getAutomaticBackupsDirectory()?.uri
-            ?: return Result.failure()
+            ?: run {
+                notifyAutoBackupError(context.getString(R.string.no_location_set))
+                return Result.failure()
+            }
         val options = inputData.getBooleanArray(OPTIONS_KEY)?.let { BackupOptions.fromBooleanArray(it) }
             ?: BackupOptions()
 
@@ -61,16 +69,31 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
             val location = BackupCreator(context,isAutoBackup).createBackup(uri, options)
             if (!isAutoBackup) {
                 notifier.showBackupComplete(UniFile.fromUri(context,location.toUri())!!)
+            } else {
+                // The next failure is worth notifying again
+                Injekt.get<DataStore<Preferences>>().edit { it.remove(BackupPreferences.AUTO_BACKUP_LAST_ERROR) }
             }
             Result.success()
         } catch (e: Exception) {
             Log.d("BackupCreateWorker",e.stackTraceToString())
-            if (!isAutoBackup) notifier.showBackupError(e.message)
+            if (!isAutoBackup) {
+                notifier.showBackupError(e.message)
+            } else if (e !is CancellationException && !isStopped) {
+                notifyAutoBackupError(e.message ?: e::class.simpleName.orEmpty())
+            }
             Result.failure()
         }
         finally {
             context.cancelNotification(Notifications.BACKUP_PROGRESS_ID)
         }
+    }
+
+    /** Once per distinct error: the same one at every run would just be noise. */
+    private suspend fun notifyAutoBackupError(error: String) {
+        val dataStore: DataStore<Preferences> = Injekt.get()
+        if (dataStore.data.first()[BackupPreferences.AUTO_BACKUP_LAST_ERROR] == error) return
+        notifier.showAutoBackupError(error)
+        dataStore.editPreference(error, BackupPreferences.AUTO_BACKUP_LAST_ERROR)
     }
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
