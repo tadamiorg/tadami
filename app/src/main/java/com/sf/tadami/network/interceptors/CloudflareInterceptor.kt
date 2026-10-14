@@ -31,9 +31,17 @@ import java.util.concurrent.locks.ReentrantLock
 class CloudflareInterceptor @JvmOverloads constructor(
     private val context: Context,
     private val cookieManager: AndroidCookieJar,
-    userAgent: String,
+    userAgent: () -> String,
     private val timeoutSeconds: Long = DEFAULT_TIMEOUT_SECONDS,
 ) : WebViewInterceptor(context, userAgent) {
+
+    @JvmOverloads
+    constructor(
+        context: Context,
+        cookieManager: AndroidCookieJar,
+        userAgent: String,
+        timeoutSeconds: Long = DEFAULT_TIMEOUT_SECONDS,
+    ) : this(context, cookieManager, { userAgent }, timeoutSeconds)
 
     private val mainHandler = Handler(Looper.getMainLooper())
 

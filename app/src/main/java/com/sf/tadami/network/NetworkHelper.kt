@@ -10,6 +10,11 @@ import com.sf.tadami.network.interceptors.UserAgentInterceptor
 import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
 import com.sf.tadami.utils.getPreferencesGroup
+import com.sf.tadami.utils.getPreferencesGroupAsFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.Cache
 import okhttp3.OkHttpClient
@@ -17,6 +22,7 @@ import okhttp3.brotli.BrotliInterceptor
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 class NetworkHelper(private val context : Context) {
@@ -29,9 +35,38 @@ class NetworkHelper(private val context : Context) {
 
     private val dataStore : DataStore<Preferences> = Injekt.get()
 
-    val advancedPreferences = runBlocking {
+    /**
+     * Read once synchronously, so the first requests already send the user's user agent: Cloudflare
+     * ties its clearance to it. Then follows the settings, so a change applies without a restart.
+     */
+    @Volatile
+    var advancedPreferences: AdvancedPreferences = runBlocking {
         dataStore.getPreferencesGroup(AdvancedPreferences)
     }
+        private set
+
+    /** User agents the settings replaced, still in the headers of the sources built before */
+    private val replacedUserAgents: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
+    init {
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            dataStore.getPreferencesGroupAsFlow(AdvancedPreferences).collect { preferences ->
+                val previous = userAgent()
+                advancedPreferences = preferences
+                val current = userAgent()
+                if (previous != current) {
+                    replacedUserAgents += previous
+                    replacedUserAgents -= current
+                }
+            }
+        }
+    }
+
+    private fun userAgent() = advancedPreferences.userAgent.trim()
+
+    /** The user agent to send for a request asking for [requested]: the current one instead of a replaced one. */
+    fun resolveUserAgent(requested: String?): String =
+        requested?.trim()?.takeIf { it.isNotEmpty() && it !in replacedUserAgents } ?: userAgent()
 
     private val clientBuilder: OkHttpClient.Builder = OkHttpClient.Builder()
         .cookieJar(cookieManager)
@@ -45,7 +80,12 @@ class NetworkHelper(private val context : Context) {
             ),
         )
         .addInterceptor(UncaughtExceptionInterceptor())
-        .addInterceptor(UserAgentInterceptor(advancedPreferences.userAgent.trim()))
+        .addInterceptor(
+            UserAgentInterceptor(
+                userAgent = ::userAgent,
+                replaces = { it.trim() in replacedUserAgents },
+            ),
+        )
         .addNetworkInterceptor(IgnoreGzipInterceptor())
         .addNetworkInterceptor(BrotliInterceptor)
 
@@ -53,7 +93,7 @@ class NetworkHelper(private val context : Context) {
 
     val client = clientBuilder
         .addInterceptor(
-            CloudflareInterceptor(context, cookieManager, advancedPreferences.userAgent.trim()),
+            CloudflareInterceptor(context, cookieManager, ::userAgent),
         )
         .build()
 
@@ -71,7 +111,7 @@ class NetworkHelper(private val context : Context) {
      * @since extensions-lib 1.6
      */
     val webViewResolver: WebViewResolver by lazy {
-        WebViewResolver(context, cookieManager) { advancedPreferences.userAgent.trim() }
+        WebViewResolver(context, cookieManager, ::userAgent)
     }
 
     companion object{

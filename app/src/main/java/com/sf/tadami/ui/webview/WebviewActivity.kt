@@ -60,8 +60,7 @@ class WebViewActivity : AppCompatActivity() {
             }
         }
         // Must match what OkHttp sends: Cloudflare binds its clearance to the user agent
-        val userAgent = headers["user-agent"]?.takeIf { it.isNotBlank() }
-            ?: network.advancedPreferences.userAgent.trim()
+        val userAgent = network.resolveUserAgent(headers["user-agent"])
 
         setComposeContent {
             val statusBarBackgroundColor = MaterialTheme.colorScheme.surface

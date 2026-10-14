@@ -129,7 +129,7 @@ fun OkHttpClient.Builder.setUserAgent(
     userAgent: String?,
     client: NetworkHelper
 ) = apply {
-    interceptors().add(0, UserAgentInterceptor(userAgent ?: client.advancedPreferences.userAgent))
+    interceptors().add(0, UserAgentInterceptor({ userAgent ?: client.advancedPreferences.userAgent }))
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)

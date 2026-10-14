@@ -154,7 +154,6 @@ class AdvancedPreferencesScreen(
                                 userAgent = it
                             )
                         )
-                        UiToasts.showToast(R.string.requires_app_restart)
                         true
                     },
                 ),
@@ -168,7 +167,6 @@ class AdvancedPreferencesScreen(
                                 userAgent = NetworkHelper.defaultUserAgent
                             )
                         )
-                        UiToasts.showToast(R.string.requires_app_restart)
                     },
                 ),
             )
