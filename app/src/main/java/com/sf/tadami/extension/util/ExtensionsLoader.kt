@@ -73,7 +73,8 @@ internal object ExtensionsLoader {
             PackageManager.GET_SIGNING_CERTIFICATES
 
     /**
-     * Return a list of all the extensions of [ExtensionsStorage] initialized concurrently.
+     * Return a list of all the extensions of [ExtensionsStorage] initialized concurrently. The
+     * suspects of a crash are loaded one at a time after the others, see [ExtensionsGuard.isSuspect].
      *
      * @param context The application context.
      * @param safeMode Whether none of their code is loaded, see [ExtensionLoadIssue.SAFE_MODE].
@@ -89,8 +90,26 @@ internal object ExtensionsLoader {
         if (pkgNames.isEmpty()) return emptyList()
 
         val trustedSignatures = trustedSignatures()
+        val (suspects, others) = pkgNames.partition { ExtensionsGuard.isSuspect(context, it) }
 
-        // Load each extension concurrently and wait for completion
+        // Load each extension concurrently and wait for completion. Then each suspect alone: a
+        // repeat crash comes from the one loading
+        return loadInParallel(context, others, trustedSignatures, safeMode, onLateResult) +
+            suspects.flatMap { loadInParallel(context, listOf(it), trustedSignatures, safeMode, onLateResult) }
+    }
+
+    /**
+     * Loads the extensions [pkgNames] of [ExtensionsStorage] in parallel, each listed as
+     * [ExtensionLoadIssue.TIMED_OUT] after [LOAD_TIMEOUT_MS], see [loadAll].
+     */
+    private fun loadInParallel(
+        context: Context,
+        pkgNames: List<String>,
+        trustedSignatures: Set<String>,
+        safeMode: Boolean,
+        onLateResult: (LoadResult) -> Unit,
+    ): List<LoadResult> {
+        if (pkgNames.isEmpty()) return emptyList()
         return loadAll(
             items = pkgNames,
             timeoutMillis = LOAD_TIMEOUT_MS,
@@ -240,7 +259,7 @@ internal object ExtensionsLoader {
             return unusable(ExtensionLoadIssue.LOAD_FAILED)
         }
 
-        // Its code runs until its sources are built: quarantined if the app crashes meanwhile
+        // Its code runs until its sources are built: a suspect if the app crashes meanwhile
         ExtensionsGuard.markInFlight(context, pkgName)
         val sources = try {
             val classLoader = try {
@@ -251,6 +270,8 @@ internal object ExtensionsLoader {
                 Log.d("ClassLoader",e.stackTraceToString())
                 return unusable(ExtensionLoadIssue.LOAD_FAILED)
             }
+            // Before any of its code runs: a crash coming from it, even later, quarantines it
+            ExtensionsGuard.registerClassLoader(pkgName, classLoader)
 
             sourceClasses
                 .split(";")
@@ -275,6 +296,7 @@ internal object ExtensionsLoader {
                     }
                 }
         } finally {
+            // Built or failed, without crashing the app
             ExtensionsGuard.clearInFlight(context, pkgName)
         }
 

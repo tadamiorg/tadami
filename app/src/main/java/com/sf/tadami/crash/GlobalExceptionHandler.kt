@@ -34,7 +34,7 @@ class GlobalExceptionHandler private constructor(
     override fun uncaughtException(thread: Thread, exception: Throwable) {
         val timestamp = System.currentTimeMillis()
         // First, so that the next launch doesn't crash the same way
-        ExtensionsGuard.onUncaughtException(applicationContext)
+        ExtensionsGuard.onUncaughtException(applicationContext, exception)
         CrashReporter.writeCrash(applicationContext, exception, timestamp)
         try {
             logcat(priority = LogPriority.ERROR, throwable = exception)

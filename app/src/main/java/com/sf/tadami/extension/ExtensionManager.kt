@@ -396,6 +396,7 @@ class ExtensionManager(
             ExtensionsStorage.withLock(extension.pkgName) {
                 ExtensionsStorage.delete(storageDir, extension.pkgName)
                 ExtensionsGuard.clearQuarantine(context, extension.pkgName)
+                ExtensionsGuard.forgetClassLoaders(extension.pkgName)
                 unregisterExtension(extension.pkgName)
             }
             updatePendingUpdatesCount()

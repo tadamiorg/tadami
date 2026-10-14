@@ -339,7 +339,7 @@
     <string name="ext_issue_untrusted">Non approuvée</string>
     <string name="ext_issue_untrusted_message">Non signée par Tadami, son code s\'exécuterait dans l\'application : approuvez-la seulement si vous savez d\'où elle vient.</string>
     <string name="ext_issue_quarantined">A fait planter l\'app</string>
-    <string name="ext_issue_quarantined_message">Tadami a planté pendant son chargement, elle n\'est donc plus chargée. Réessayez, ou mettez à jour ou désinstallez l\'extension.</string>
+    <string name="ext_issue_quarantined_message">Elle a fait planter Tadami, elle n\'est donc plus chargée. Réessayez, ou mettez à jour ou désinstallez l\'extension.</string>
     <string name="ext_issue_safe_mode">Non chargée</string>
     <string name="ext_issue_safe_mode_message">Tadami a démarré sans extensions après avoir planté : chargez-les à nouveau depuis l\'onglet Extensions.</string>
     <string name="ext_safe_mode_banner">Mode sans échec : Tadami a démarré sans extensions après avoir planté. Elles restent non chargées jusqu\'à ce que vous les chargiez à nouveau.</string>

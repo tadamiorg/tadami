@@ -338,7 +338,7 @@
     <string name="ext_issue_untrusted">Untrusted</string>
     <string name="ext_issue_untrusted_message">Not signed by Tadami, its code would run in the app: trust it only if you know where it comes from.</string>
     <string name="ext_issue_quarantined">Crashed the app</string>
-    <string name="ext_issue_quarantined_message">Tadami crashed while loading it, so it is no longer loaded. Retry it, or update or uninstall the extension.</string>
+    <string name="ext_issue_quarantined_message">It crashed Tadami, so it is no longer loaded. Retry it, or update or uninstall the extension.</string>
     <string name="ext_issue_safe_mode">Not loaded</string>
     <string name="ext_issue_safe_mode_message">Tadami started without extensions after crashing: load them again from the Extensions tab.</string>
     <string name="ext_safe_mode_banner">Safe mode: Tadami started without extensions after crashing. They stay unloaded until you load them again.</string>
