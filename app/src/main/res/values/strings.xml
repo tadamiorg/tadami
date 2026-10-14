@@ -382,6 +382,11 @@
     <string name="crash_screen_restart_application">Restart the application</string>
     <string name="crash_screen_no_details">No details about this error</string>
     <string name="crash_logs_dump_failed">Failed to share the crash logs</string>
+    <string name="pref_dump_crash_logs_summary">Share the last crash report, or the logs of this session</string>
+    <string name="crash_pending_title">%s crashed last time</string>
+    <string name="crash_pending_message">A crash report was saved. Sharing it helps get the problem fixed.</string>
+    <string name="crash_pending_share">Share report</string>
+    <string name="crash_pending_dismiss">Dismiss</string>
     <string name="webview_challenge_pending">Complete the verification below. The source will use it once you go back.</string>
     <string name="webview_challenge_solved">Verification complete, you can go back to the app.</string>
     <string name="webview_challenge_done">Done</string>

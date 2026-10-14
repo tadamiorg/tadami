@@ -20,6 +20,9 @@ object CrashReporter {
 
     private const val MAX_STACKTRACE_LENGTH = 24_000
 
+    // An older report is unlikely to still be useful
+    private const val MAX_REPORT_AGE_MS = 7L * 24 * 60 * 60 * 1000
+
     private val json = Json { ignoreUnknownKeys = true }
 
     @Serializable
@@ -34,6 +37,8 @@ object CrashReporter {
         val webView: String,
         val extensions: String,
         val timestamp: Long,
+        /** Whether the crash screen or the next launch already offered it */
+        val offered: Boolean = false,
     ) {
         fun format(): String = buildString {
             appendLine("App version: $versionName ($versionCode, $buildDate)")
@@ -74,16 +79,36 @@ object CrashReporter {
                 }.getOrNull().orEmpty(),
                 timestamp = timestamp,
             )
-            val file = crashFile(context)
-            file.parentFile?.mkdirs()
-            file.writeText(json.encodeToString(CrashLog.serializer(), log))
+            write(context, log)
         }
     }
 
+    private fun write(context: Context, log: CrashLog) {
+        val file = crashFile(context)
+        file.parentFile?.mkdirs()
+        file.writeText(json.encodeToString(CrashLog.serializer(), log))
+    }
+
+    /** The report not shared yet, if not expired. */
     fun readPending(context: Context): CrashLog? = runCatching {
         val file = crashFile(context).takeIf { it.exists() } ?: return null
-        json.decodeFromString(CrashLog.serializer(), file.readText())
+        val log = json.decodeFromString(CrashLog.serializer(), file.readText())
+        if (isExpired(log, System.currentTimeMillis(), BuildConfig.VERSION_CODE)) {
+            file.delete()
+            return null
+        }
+        log
     }.getOrNull()
+
+    /** Stops offering [log] on the next launch, it stays shareable from the advanced settings. */
+    fun markOffered(context: Context, log: CrashLog) {
+        if (log.offered) return
+        runCatching { write(context, log.copy(offered = true)) }
+    }
+
+    /** Too old, or from another version of the app, whose code may have changed since. */
+    internal fun isExpired(log: CrashLog, now: Long, versionCode: Int): Boolean =
+        log.versionCode != versionCode || now - log.timestamp > MAX_REPORT_AGE_MS
 
     fun clearPending(context: Context) {
         runCatching { crashFile(context).delete() }

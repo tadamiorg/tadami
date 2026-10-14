@@ -389,6 +389,11 @@
     <string name="crash_screen_restart_application">Redémarrer l\'application</string>
     <string name="crash_screen_no_details">Aucun détail sur cette erreur</string>
     <string name="crash_logs_dump_failed">Impossible de partager les rapports de plantage</string>
+    <string name="pref_dump_crash_logs_summary">Partager le dernier rapport de plantage, ou les journaux de cette session</string>
+    <string name="crash_pending_title">%s a planté la dernière fois</string>
+    <string name="crash_pending_message">Un rapport de plantage a été enregistré. Le partager aide à corriger le problème.</string>
+    <string name="crash_pending_share">Partager le rapport</string>
+    <string name="crash_pending_dismiss">Ignorer</string>
     <string name="webview_challenge_pending">Validez la vérification ci-dessous. La source l\'utilisera une fois revenu dans l\'application.</string>
     <string name="webview_challenge_solved">Vérification terminée, vous pouvez revenir à l\'application.</string>
     <string name="webview_challenge_done">Terminé</string>

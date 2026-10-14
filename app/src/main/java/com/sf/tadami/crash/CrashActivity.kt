@@ -21,7 +21,10 @@ class CrashActivity : AppCompatActivity() {
 
         // The report written for this crash, not an older one left on disk
         val timestamp = GlobalExceptionHandler.getTimestampFromIntent(intent)
-        val report = CrashReporter.readPending(this)?.takeIf { it.timestamp == timestamp }?.format()
+        val crashLog = CrashReporter.readPending(this)?.takeIf { it.timestamp == timestamp }
+        // Shown here, no need to offer it again on the next launch
+        crashLog?.let { CrashReporter.markOffered(this, it) }
+        val report = crashLog?.format()
             ?: GlobalExceptionHandler.getThrowableFromIntent(intent)?.message
             ?: getString(R.string.crash_screen_no_details)
         setComposeContent {
@@ -42,7 +45,11 @@ class CrashActivity : AppCompatActivity() {
             }
             CrashScreen(
                 report = report,
+                onReportShared = {
+                    if (crashLog != null) CrashReporter.clearPending(this@CrashActivity)
+                },
                 onRestartClick = {
+                    CrashReporter.clearPending(this@CrashActivity)
                     finishAffinity()
                     startActivity(Intent(this@CrashActivity, MainActivity::class.java))
                 },
