@@ -66,7 +66,7 @@ class DetailsViewModel(
         val migrateId : Long? = migrateIdString?.toLongOrNull()
         if(migrateId != null){
             viewModelScope.launch {
-                val anime = getAnime.await(migrateId)!!
+                val anime = getAnime.await(migrateId) ?: return@launch
                 _migrateHelperState.update {
                     it.copy(
                         oldAnime = anime

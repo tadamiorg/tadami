@@ -24,7 +24,7 @@ class MigrateViewModel(
 
     init {
         viewModelScope.launch {
-            val anime = getAnime.await(animeId)!!
+            val anime = getAnime.await(animeId) ?: return@launch
             _helperState.update { it.copy(oldAnime = anime) }
             _uiState.update {
                 it.copy(
