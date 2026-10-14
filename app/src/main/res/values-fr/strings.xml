@@ -335,6 +335,8 @@
     <string name="ext_issue_invalid_version_message">Son numéro de version est invalide : mettez à jour ou réinstallez l\'extension.</string>
     <string name="ext_issue_load_failed">Échec du chargement</string>
     <string name="ext_issue_load_failed_message">Elle n\'a pas pu être chargée : mettez à jour ou réinstallez l\'extension.</string>
+    <string name="ext_issue_timed_out">Chargement trop long</string>
+    <string name="ext_issue_timed_out_message">Elle met trop de temps à se charger, elle sera utilisable une fois chargée. Si cela persiste, mettez à jour ou réinstallez l\'extension.</string>
     <string name="ext_issue_untrusted">Non approuvée</string>
     <string name="ext_issue_untrusted_message">Non signée par Tadami, son code s\'exécuterait dans l\'application : approuvez-la seulement si vous savez d\'où elle vient.</string>
     <string name="ext_trust">Approuver</string>

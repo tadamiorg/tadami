@@ -19,12 +19,18 @@ import com.sf.tadami.source.Source
 import com.sf.tadami.utils.Lang
 import com.sf.tadami.utils.getPreferencesGroup
 import dalvik.system.PathClassLoader
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.security.MessageDigest
+import java.util.concurrent.Executors
 
 internal object ExtensionsLoader {
 
@@ -44,6 +50,19 @@ internal object ExtensionsLoader {
     private const val OFFICIAL_SIGNATURE_HASH =
         "11dec208a209773efdc5348af5de709ca9af067e9154d1dd3c6abdb0fa3cc200"
 
+    /** How long an extension gets to build its sources before it is listed as timed out. */
+    private const val LOAD_TIMEOUT_MS = 5_000L
+
+    /**
+     * Runs the code of the extensions, which may block: a timed out one keeps its thread, here
+     * rather than in a pool the rest of the app shares. Threads are created as needed, then reused.
+     */
+    private val loaderScope = CoroutineScope(
+        SupervisorJob() + Executors.newCachedThreadPool { runnable ->
+            Thread(runnable, "ExtensionLoader").apply { isDaemon = true }
+        }.asCoroutineDispatcher(),
+    )
+
     @Suppress("DEPRECATION")
     private val PACKAGE_FLAGS = PackageManager.GET_CONFIGURATIONS or
             PackageManager.GET_META_DATA or
@@ -54,8 +73,10 @@ internal object ExtensionsLoader {
      * Return a list of all the available extensions initialized concurrently.
      *
      * @param context The application context.
+     * @param onLateResult Gets the result of an extension listed as [ExtensionLoadIssue.TIMED_OUT]
+     * once it finishes loading.
      */
-    fun loadExtensions(context: Context): List<LoadResult> {
+    fun loadExtensions(context: Context, onLateResult: (LoadResult) -> Unit = {}): List<LoadResult> {
         val pkgManager = context.packageManager
 
         val installedPkgs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -80,13 +101,45 @@ internal object ExtensionsLoader {
         val trustedSignatures = trustedSignatures()
 
         // Load each extension concurrently and wait for completion
-        return runBlocking {
-            val deferred = extPkgs.map {
-                // One malformed package must not prevent the others from loading
-                async { runCatching { loadExtension(context, it, trustedSignatures) }.getOrDefault(LoadResult.Error) }
+        return loadAll(
+            items = extPkgs,
+            timeoutMillis = LOAD_TIMEOUT_MS,
+            // One malformed package must not prevent the others from loading
+            load = { runCatching { loadExtension(context, it, trustedSignatures) }.getOrDefault(LoadResult.Error) },
+            timedOut = {
+                Log.d("LoadExtension", "Extension ${it.packageInfo.packageName} timed out after ${LOAD_TIMEOUT_MS}ms")
+                runCatching { unusableResult(context, it, ExtensionLoadIssue.TIMED_OUT) }.getOrDefault(LoadResult.Error)
+            },
+            onLateResult = onLateResult,
+        )
+    }
+
+    /**
+     * Runs [load] on each of [items] in parallel, each in its own thread of the loader pool, and
+     * waits [timeoutMillis] at most for each. A load still running then gives [timedOut], and goes
+     * on: its result is given to [onLateResult] once done. [load] must not throw.
+     */
+    internal fun <T, R : Any> loadAll(
+        items: List<T>,
+        timeoutMillis: Long,
+        load: (T) -> R,
+        timedOut: (T) -> R,
+        onLateResult: (R) -> Unit,
+    ): List<R> = runBlocking {
+        items.map { item ->
+            // Not a child of runBlocking, which would wait for it after its timeout
+            val loading = loaderScope.async { load(item) }
+            async {
+                withTimeoutOrNull(timeoutMillis) { loading.await() } ?: run {
+                    loaderScope.launch {
+                        // Nothing to crash the app for: it stays listed as timed out
+                        runCatching { onLateResult(loading.await()) }
+                            .onFailure { Log.d("LoadExtension", it.stackTraceToString()) }
+                    }
+                    timedOut(item)
+                }
             }
-            deferred.awaitAll()
-        }
+        }.awaitAll()
     }
 
     /**
@@ -161,26 +214,7 @@ internal object ExtensionsLoader {
         val apiVersion = versionName?.let { LibVersion.fromVersionName(it) }
         val signatureHashes = signatureHashes(pkgInfo)
 
-        // Still listed, without its sources, so that the user sees why it can't be used
-        fun unusable(issue: ExtensionLoadIssue): LoadResult {
-            Log.d("LoadExtension", "Extension $extName ($pkgName $versionName) can't be used: $issue")
-            return LoadResult.Success(
-                Extension.Installed(
-                    name = extName,
-                    pkgName = pkgName,
-                    versionName = versionName.orEmpty(),
-                    versionCode = versionCode,
-                    apiVersion = apiVersion ?: UNKNOWN_LIB_VERSION,
-                    lang = langFromPackageName(pkgName),
-                    sources = emptyList(),
-                    pkgFactory = null,
-                    icon = appInfo.loadIcon(pkgManager),
-                    isShared = extensionInfo.isShared,
-                    loadIssue = issue,
-                    signatureHash = signatureHashes.lastOrNull(),
-                ),
-            )
-        }
+        fun unusable(issue: ExtensionLoadIssue) = unusableResult(context, extensionInfo, issue)
 
         // Before anything of the package is loaded: the code of an untrusted one must never run
         if (!isTrusted(signatureHashes, trustedSignatures)) {
@@ -248,6 +282,38 @@ internal object ExtensionsLoader {
             signatureHash = signatureHashes.lastOrNull(),
         )
         return LoadResult.Success(extension)
+    }
+
+    /** Still listed, without its sources, so that the user sees why it can't be used */
+    private fun unusableResult(
+        context: Context,
+        extensionInfo: ExtensionInfo,
+        issue: ExtensionLoadIssue,
+    ): LoadResult {
+        val pkgManager = context.packageManager
+        val pkgInfo = extensionInfo.packageInfo
+        val appInfo = pkgInfo.applicationInfo ?: return LoadResult.Error
+        val pkgName = pkgInfo.packageName
+        val extName = pkgManager.getApplicationLabel(appInfo).toString().substringAfter("Tadami: ")
+        val versionName = pkgInfo.versionName
+
+        Log.d("LoadExtension", "Extension $extName ($pkgName $versionName) can't be used: $issue")
+        return LoadResult.Success(
+            Extension.Installed(
+                name = extName,
+                pkgName = pkgName,
+                versionName = versionName.orEmpty(),
+                versionCode = PackageInfoCompat.getLongVersionCode(pkgInfo),
+                apiVersion = versionName?.let { LibVersion.fromVersionName(it) } ?: UNKNOWN_LIB_VERSION,
+                lang = langFromPackageName(pkgName),
+                sources = emptyList(),
+                pkgFactory = null,
+                icon = appInfo.loadIcon(pkgManager),
+                isShared = extensionInfo.isShared,
+                loadIssue = issue,
+                signatureHash = signatureHashes(pkgInfo).lastOrNull(),
+            ),
+        )
     }
 
     private fun trustedSignatures(): Set<String> = runBlocking {

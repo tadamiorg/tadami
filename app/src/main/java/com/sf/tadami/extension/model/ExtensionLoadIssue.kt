@@ -27,4 +27,7 @@ enum class ExtensionLoadIssue(
 
     /** Signed with a key that isn't the official one nor trusted by the user: none of it is loaded. */
     UNTRUSTED(R.string.ext_issue_untrusted, R.string.ext_issue_untrusted_message),
+
+    /** Its sources took too long to build: listed as is until they are, if ever. */
+    TIMED_OUT(R.string.ext_issue_timed_out, R.string.ext_issue_timed_out_message),
 }

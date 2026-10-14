@@ -8,6 +8,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 
 class ExtensionsLoaderTest {
 
@@ -59,5 +62,43 @@ class ExtensionsLoaderTest {
         assertEquals(Lang.FRENCH, ExtensionsLoader.langFromPackageName("com.sf.tadami.extension.fr.franime"))
         assertEquals(Lang.UNKNOWN, ExtensionsLoader.langFromPackageName("com.sf.tadami.extension.all.foo"))
         assertEquals(Lang.UNKNOWN, ExtensionsLoader.langFromPackageName("org.example.fr.other"))
+    }
+
+    @Test
+    fun extensionsLoadInParallel() {
+        val started = CountDownLatch(3)
+        val results = ExtensionsLoader.loadAll(
+            items = listOf(1, 2, 3),
+            timeoutMillis = 5_000,
+            load = {
+                started.countDown()
+                // Only returns once all of them run at the same time
+                check(started.await(4, TimeUnit.SECONDS))
+                "loaded $it"
+            },
+            timedOut = { "timed out $it" },
+            onLateResult = {},
+        )
+        assertEquals(listOf("loaded 1", "loaded 2", "loaded 3"), results)
+    }
+
+    @Test
+    fun aSlowExtensionTimesOutThenGivesItsLateResult() {
+        val release = CountDownLatch(1)
+        val lateResults = LinkedBlockingQueue<String>()
+        val results = ExtensionsLoader.loadAll(
+            items = listOf("fast", "slow"),
+            timeoutMillis = 200,
+            load = {
+                if (it == "slow") release.await(5, TimeUnit.SECONDS)
+                "loaded $it"
+            },
+            timedOut = { "timed out $it" },
+            onLateResult = { lateResults.add(it) },
+        )
+        assertEquals(listOf("loaded fast", "timed out slow"), results)
+
+        release.countDown()
+        assertEquals("loaded slow", lateResults.poll(5, TimeUnit.SECONDS))
     }
 }

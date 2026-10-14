@@ -19,7 +19,6 @@ import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -35,17 +34,12 @@ internal class ExtensionsApi {
     private val extensionManager: ExtensionManager by injectLazy()
     private val json: Json by injectLazy()
 
-    private val sourcePreferences = runBlocking {
-        dataStore.getPreferencesGroup(SourcesPreferences)
-    }
-
-    private val lastExtCheck: Long by lazy {
-        sourcePreferences.lastExtCheck
-    }
+    // Read when needed: built with the extension manager, it would block whatever thread builds it
+    private suspend fun sourcePreferences() = dataStore.getPreferencesGroup(SourcesPreferences)
 
     suspend fun findExtensions(): RepoExtensions {
         return withContext(Dispatchers.IO) {
-            RepoExtensions(sourcePreferences.extensionsRepos.flatMap { getExtensions(it) })
+            RepoExtensions(sourcePreferences().extensionsRepos.flatMap { getExtensions(it) })
         }
     }
 
@@ -83,7 +77,7 @@ internal class ExtensionsApi {
     ): List<Extension.Installed>? {
         // Limit checks to once a day at most
         if (!fromAvailableExtensionList &&
-            Instant.now().toEpochMilli() < lastExtCheck + 1.days.inWholeMilliseconds
+            Instant.now().toEpochMilli() < sourcePreferences().lastExtCheck + 1.days.inWholeMilliseconds
         ) {
             return null
         }

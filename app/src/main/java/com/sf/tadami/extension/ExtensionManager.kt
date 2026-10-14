@@ -114,13 +114,36 @@ class ExtensionManager(
     }
 
     private fun initExtensions() {
-        val extensions = ExtensionsLoader.loadExtensions(context)
+        val extensions = ExtensionsLoader.loadExtensions(context, ::onLateExtensionLoaded)
 
-        _installedExtensionsFlow.value = extensions
+        val loadedExtensions = extensions
             .filterIsInstance<LoadResult.Success>()
             .map { it.extension }
+        _installedExtensionsFlow.update { lateExtensions ->
+            // One that timed out may have finished loading already
+            loadedExtensions.map { extension ->
+                lateExtensions.find { it.pkgName == extension.pkgName }
+                    ?.takeIf { extension.loadIssue == ExtensionLoadIssue.TIMED_OUT }
+                    ?: extension
+            }
+        }
 
         isInitialized = true
+    }
+
+    /** Registers an extension that finished loading after its time limit. */
+    private fun onLateExtensionLoaded(result: LoadResult) {
+        val extension = (result as? LoadResult.Success)?.extension ?: return
+        _installedExtensionsFlow.update { installedExtensions ->
+            val current = installedExtensions.find { it.pkgName == extension.pkgName }
+            // Already replaced, by an update for instance
+            if (current != null && current.loadIssue != ExtensionLoadIssue.TIMED_OUT) {
+                installedExtensions
+            } else {
+                installedExtensions.filterNot { it.pkgName == extension.pkgName } + extension.withUpdateCheck()
+            }
+        }
+        updatePendingUpdatesCount()
     }
 
     suspend fun findAvailableExtensions() {

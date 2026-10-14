@@ -334,6 +334,8 @@
     <string name="ext_issue_invalid_version_message">Its version number is invalid: update or reinstall the extension.</string>
     <string name="ext_issue_load_failed">Loading failed</string>
     <string name="ext_issue_load_failed_message">It could not be loaded: update or reinstall the extension.</string>
+    <string name="ext_issue_timed_out">Too slow to load</string>
+    <string name="ext_issue_timed_out_message">It is taking too long to load, it will be usable once loaded. If it stays this way, update or reinstall the extension.</string>
     <string name="ext_issue_untrusted">Untrusted</string>
     <string name="ext_issue_untrusted_message">Not signed by Tadami, its code would run in the app: trust it only if you know where it comes from.</string>
     <string name="ext_trust">Trust</string>
