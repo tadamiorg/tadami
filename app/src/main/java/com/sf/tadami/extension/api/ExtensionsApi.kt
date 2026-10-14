@@ -129,6 +129,8 @@ internal class ExtensionsApi {
                     apkName = it.apk,
                     iconUrl = "$repoUrl/icon/${it.pkg}.png",
                     repoUrl = repoUrl,
+                    size = it.size,
+                    sha256 = it.sha256,
                 )
             }
     }
@@ -158,6 +160,10 @@ private data class ExtensionJsonObject(
     val code: Long,
     val version: String,
     val sources: List<ExtensionSourceJsonObject>?,
+    /** The hex SHA-256 of the APK, absent from older indexes. */
+    val sha256: String? = null,
+    /** The size in bytes of the APK, absent from older indexes. */
+    val size: Long? = null,
 )
 
 @Serializable

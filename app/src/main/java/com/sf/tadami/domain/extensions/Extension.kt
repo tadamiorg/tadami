@@ -46,6 +46,10 @@ sealed class Extension {
         val apkName: String,
         val iconUrl: String,
         val repoUrl: String,
+        /** The size in bytes of its APK the repo lists, null when it doesn't. */
+        val size: Long? = null,
+        /** The hex SHA-256 of its APK the repo lists, null when it doesn't. */
+        val sha256: String? = null,
     ) : Extension() {
 
         data class Source(

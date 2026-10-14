@@ -15,6 +15,7 @@ import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import java.security.MessageDigest
 import java.util.zip.ZipFile
 
 /**
@@ -31,13 +32,24 @@ internal class ExtensionsInstaller(private val context: Context) {
 
     fun newTmpFile(pkgName: String): File = ExtensionsStorage.newTmpFile(dir, pkgName)
 
-    /** Downloads the APK at [url] into [tmp]. Cancelling the coroutine stops the download. */
-    suspend fun download(url: String, tmp: File) {
+    /**
+     * Downloads the APK of [listed] at [url] into [tmp], checking it against the size and SHA-256 the
+     * repo lists for it, if any. Cancelling the coroutine stops the download.
+     *
+     * @return Why it isn't the listed file, or null when it is.
+     */
+    suspend fun download(url: String, tmp: File, listed: Extension.Available): ApkRejection? {
         // Neither from nor into the HTTP cache, the file is kept here
         val request = GET(url, cache = CacheControl.Builder().noStore().build())
-        network.client.newCall(request).awaitSuccess().use { response ->
+        return network.client.newCall(request).awaitSuccess().use { response ->
+            val body = response.body
+            listedFileRejection(listed.size, listed.sha256, body.contentLength(), sha256 = null)
+                ?.let { return@use it }
+            // Past the listed size, it isn't the listed file
+            val maxBytes = minOf(listed.size ?: MAX_APK_SIZE, MAX_APK_SIZE)
             // The reads block, the cancellation interrupts them
-            runInterruptible { copyAtMost(response.body.byteStream(), tmp, MAX_APK_SIZE) }
+            val sha256 = runInterruptible { copyAtMost(body.byteStream(), tmp, maxBytes) }
+            listedFileRejection(listed.size, listed.sha256, tmp.length(), sha256)
         }
     }
 
@@ -88,8 +100,13 @@ internal class ExtensionsInstaller(private val context: Context) {
     companion object {
         private const val MAX_APK_SIZE = 20L * 1024 * 1024
 
-        /** Copies [input] into [file], failing past [maxBytes]. */
-        internal fun copyAtMost(input: InputStream, file: File, maxBytes: Long) {
+        /**
+         * Copies [input] into [file], failing past [maxBytes].
+         *
+         * @return The lowercase hex SHA-256 of what was copied.
+         */
+        internal fun copyAtMost(input: InputStream, file: File, maxBytes: Long): String {
+            val digest = MessageDigest.getInstance("SHA-256")
             file.outputStream().use { output ->
                 val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                 var total = 0L
@@ -98,9 +115,30 @@ internal class ExtensionsInstaller(private val context: Context) {
                     if (read == -1) break
                     total += read
                     if (total > maxBytes) throw IOException("Larger than $maxBytes bytes")
+                    digest.update(buffer, 0, read)
                     output.write(buffer, 0, read)
                 }
             }
+            return digest.digest().joinToString("") { "%02x".format(it) }
+        }
+
+        /**
+         * Why a download isn't the file the repo lists with [listedSize] and [listedSha256], or null
+         * when it is, or they aren't listed (older repos).
+         *
+         * @param length Its length in bytes, -1 when unknown.
+         * @param sha256 Its hex SHA-256, null until it is downloaded.
+         */
+        internal fun listedFileRejection(
+            listedSize: Long?,
+            listedSha256: String?,
+            length: Long,
+            sha256: String?,
+        ): ApkRejection? = when {
+            listedSize != null && length != -1L && length != listedSize -> ApkRejection.NOT_LISTED_FILE
+            listedSha256 != null && sha256 != null && !sha256.equals(listedSha256, ignoreCase = true) ->
+                ApkRejection.NOT_LISTED_FILE
+            else -> null
         }
 
         /** Whether the APK [file] has native libraries: they can't be loaded, there is no library path. */
@@ -186,6 +224,9 @@ internal enum class ApkRejection(@StringRes val messageRes: Int) {
     WRONG_VERSION(R.string.ext_install_error_invalid),
     UNSUPPORTED_LIB(R.string.ext_install_error_invalid),
     NATIVE_LIBS(R.string.ext_install_error_invalid),
+
+    /** Not the size or SHA-256 the repo lists for it. */
+    NOT_LISTED_FILE(R.string.ext_install_error_checksum),
 
     /** Not newer than the installed one. */
     NOT_NEWER(R.string.ext_install_error_not_newer),

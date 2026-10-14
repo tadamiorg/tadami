@@ -353,15 +353,15 @@ class ExtensionManager(
         try {
             val file = installer.newTmpFile(pkgName).also { tmp = it }
             steps.value = InstallStep.Downloading
-            installer.download(api.getApkUrl(listed), file)
-
-            steps.value = InstallStep.Installing
-            val rejection = ExtensionsStorage.withLock(pkgName) {
-                val installed = _installedExtensionsFlow.value.find { it.pkgName == pkgName }
-                // The same version can fix one that can't be used
-                val allowSameVersion = installed == null || installed.loadIssue != null
-                installer.verifyAndCommit(file, pkgName, listed, allowSameVersion).also {
-                    if (it == null) reloadExtension(pkgName)
+            val rejection = installer.download(api.getApkUrl(listed), file, listed) ?: run {
+                steps.value = InstallStep.Installing
+                ExtensionsStorage.withLock(pkgName) {
+                    val installed = _installedExtensionsFlow.value.find { it.pkgName == pkgName }
+                    // The same version can fix one that can't be used
+                    val allowSameVersion = installed == null || installed.loadIssue != null
+                    installer.verifyAndCommit(file, pkgName, listed, allowSameVersion).also {
+                        if (it == null) reloadExtension(pkgName)
+                    }
                 }
             }
             if (rejection != null) {

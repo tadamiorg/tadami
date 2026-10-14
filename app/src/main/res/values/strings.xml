@@ -358,6 +358,7 @@
     <string name="ext_uninstall_confirm">Uninstall %1$s?</string>
     <string name="ext_install_error_download">Couldn\'t download %1$s</string>
     <string name="ext_install_error_invalid">%1$s: the downloaded file isn\'t the expected extension, nothing was changed</string>
+    <string name="ext_install_error_checksum">%1$s: the downloaded file doesn\'t match the size or SHA-256 the repository lists, nothing was changed</string>
     <string name="ext_install_error_not_newer">%1$s: the downloaded version isn\'t newer than the installed one</string>
     <string name="ext_install_error_signer">%1$s is signed with another key than the installed one: uninstall it first</string>
     <string name="ext_legacy_packages_banner">Extensions installed as apps are no longer needed. Tap to uninstall them.</string>

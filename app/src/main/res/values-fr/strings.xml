@@ -359,6 +359,7 @@
     <string name="ext_uninstall_confirm">Désinstaller %1$s ?</string>
     <string name="ext_install_error_download">Impossible de télécharger %1$s</string>
     <string name="ext_install_error_invalid">%1$s : le fichier téléchargé n\'est pas l\'extension attendue, rien n\'a été modifié</string>
+    <string name="ext_install_error_checksum">%1$s : le fichier téléchargé ne correspond pas à la taille ou au SHA-256 indiqués par le dépôt, rien n\'a été modifié</string>
     <string name="ext_install_error_not_newer">%1$s : la version téléchargée n\'est pas plus récente que celle installée</string>
     <string name="ext_install_error_signer">%1$s est signée avec une autre clé que celle installée : désinstallez-la d\'abord</string>
     <string name="ext_legacy_packages_banner">Les extensions installées comme applications ne sont plus nécessaires. Appuyez pour les désinstaller.</string>

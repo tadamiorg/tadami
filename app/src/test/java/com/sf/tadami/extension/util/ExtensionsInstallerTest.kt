@@ -139,12 +139,38 @@ class ExtensionsInstallerTest {
         val file = tmpFolder.newFile()
         val bytes = ByteArray(10_000) { it.toByte() }
 
-        ExtensionsInstaller.copyAtMost(bytes.inputStream(), file, maxBytes = 10_000)
+        val sha256 = ExtensionsInstaller.copyAtMost(bytes.inputStream(), file, maxBytes = 10_000)
         assertArrayEquals(bytes, file.readBytes())
+        assertEquals(ExtensionsLoader.sha256(bytes), sha256)
 
         assertThrows(IOException::class.java) {
             ExtensionsInstaller.copyAtMost(bytes.inputStream(), file, maxBytes = 9_999)
         }
+    }
+
+    @Test
+    fun aDownloadMustBeTheSizeAndHashTheRepoLists() {
+        fun rejection(listedSize: Long?, listedSha256: String?, length: Long, sha256: String?) =
+            ExtensionsInstaller.listedFileRejection(listedSize, listedSha256, length, sha256)
+        val sha256 = "ab".repeat(32)
+
+        // Older repos list neither
+        assertNull(rejection(null, null, length = 1_000, sha256 = sha256))
+        assertNull(rejection(null, null, length = -1, sha256 = null))
+
+        // Before the download: its Content-Length, unknown for a chunked response
+        assertNull(rejection(1_000, sha256, length = 1_000, sha256 = null))
+        assertNull(rejection(1_000, sha256, length = -1, sha256 = null))
+        assertEquals(ApkRejection.NOT_LISTED_FILE, rejection(1_000, sha256, length = 999, sha256 = null))
+        assertEquals(ApkRejection.NOT_LISTED_FILE, rejection(1_000, null, length = 1_001, sha256 = null))
+
+        // Once downloaded
+        assertNull(rejection(1_000, sha256, length = 1_000, sha256 = sha256))
+        assertNull(rejection(1_000, sha256.uppercase(), length = 1_000, sha256 = sha256))
+        assertNull(rejection(null, sha256, length = 1_000, sha256 = sha256))
+        assertEquals(ApkRejection.NOT_LISTED_FILE, rejection(1_000, sha256, length = 1_000, sha256 = "cd".repeat(32)))
+        assertEquals(ApkRejection.NOT_LISTED_FILE, rejection(null, sha256, length = 1_000, sha256 = "cd".repeat(32)))
+        assertEquals(ApkRejection.NOT_LISTED_FILE, rejection(1_000, sha256, length = 500, sha256 = sha256))
     }
 
     @Test
