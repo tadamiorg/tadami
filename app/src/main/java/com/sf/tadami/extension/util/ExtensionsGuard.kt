@@ -31,7 +31,8 @@ import java.util.concurrent.ConcurrentLinkedQueue
  *   alone, after the others, see [isSuspect]: a repeat crash then comes from it. Cleared once it
  *   loaded without crashing the app.
  * - `startup_crashes`: the uncaught crashes in a row before the startup completed, see
- *   [onActivityResumed]. The [SAFE_MODE_CRASHES]th one turns the safe mode on.
+ *   [onActivityResumed], but the ones that quarantined an extension. The [SAFE_MODE_CRASHES]th one
+ *   turns the safe mode on.
  * - `safe_mode`: the startup loads no extension, until the user loads them again.
  */
 internal object ExtensionsGuard {
@@ -252,18 +253,20 @@ internal object ExtensionsGuard {
     /**
      * Records an uncaught crash: quarantines the [culprits], the extensions it comes from. When it
      * comes from none of them, the [inFlight] extensions become suspects, see [suspect]. Counts the
-     * crash unless the [startupCompleted]: the [SAFE_MODE_CRASHES]th one in a row turns the safe
-     * mode on.
+     * crash unless the [startupCompleted] or it quarantined an extension, its cause being dealt
+     * with: the [SAFE_MODE_CRASHES]th one in a row turns the safe mode on.
      */
     internal fun recordCrash(dir: File, culprits: Set<String>, inFlight: Set<String>, startupCompleted: Boolean) {
-        if (culprits.isNotEmpty()) {
+        val quarantined = if (culprits.isNotEmpty()) {
             culprits.forEach { quarantine(dir, it) }
+            true
         } else {
-            inFlight.forEach { suspect(dir, it) }
+            // Each one, not only up to the first quarantined
+            inFlight.map { suspect(dir, it) }.any { it }
         }
         // Already dealt with, the next launch doesn't look at them
         inFlight.forEach { clearInFlight(dir, it) }
-        if (startupCompleted) return
+        if (startupCompleted || quarantined) return
         val crashes = startupCrashes(dir) + 1
         dir.mkdirs()
         File(dir, STARTUP_CRASHES_FILE).writeText(crashes.toString())
@@ -346,15 +349,18 @@ internal object ExtensionsGuard {
     /**
      * Makes a suspect of [pkgName], loading when the app crashed. Quarantines it when it was one
      * already: loaded alone, the crash came from it.
+     *
+     * @return Whether it was quarantined.
      */
-    private fun suspect(dir: File, pkgName: String) {
+    private fun suspect(dir: File, pkgName: String): Boolean {
         if (isSuspect(dir, pkgName)) {
             quarantine(dir, pkgName)
-            return
+            return true
         }
         val file = file(dir, SUSPECTS_DIR, pkgName)
         file.parentFile?.mkdirs()
         file.createNewFile()
+        return false
     }
 
     private fun file(dir: File, subDir: String, pkgName: String): File {

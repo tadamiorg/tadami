@@ -112,13 +112,37 @@ class ExtensionsGuardTest {
         assertEquals(1, ExtensionsGuard.startupCrashes(dir))
         assertFalse(ExtensionsGuard.isSafeMode(dir))
 
-        // Counted even when it comes from an extension
-        ExtensionsGuard.recordCrash(dir, culprits = setOf(pkgName), inFlight = emptySet(), startupCompleted = false)
+        ExtensionsGuard.recordCrash(dir, culprits = emptySet(), inFlight = emptySet(), startupCompleted = false)
         assertEquals(ExtensionsGuard.SAFE_MODE_CRASHES, ExtensionsGuard.startupCrashes(dir))
         assertTrue(ExtensionsGuard.isSafeMode(dir))
 
         ExtensionsGuard.setSafeMode(dir, false)
         assertFalse(ExtensionsGuard.isSafeMode(dir))
+    }
+
+    @Test
+    fun aCrashBeforeTheStartupCompletedThatQuarantinesAnExtensionIsNotCounted() {
+        // Unattributed: counted, the extensions loading become suspects
+        ExtensionsGuard.recordCrash(dir, culprits = emptySet(), inFlight = setOf(pkgName, other), startupCompleted = false)
+        assertEquals(1, ExtensionsGuard.startupCrashes(dir))
+
+        // The repeat, attributed: the extension is quarantined, the cause dealt with
+        ExtensionsGuard.recordCrash(dir, culprits = setOf(pkgName), inFlight = setOf(pkgName), startupCompleted = false)
+        assertTrue(ExtensionsGuard.isQuarantined(dir, pkgName))
+        assertEquals(1, ExtensionsGuard.startupCrashes(dir))
+        assertFalse(ExtensionsGuard.isSafeMode(dir))
+
+        // The repeat, unattributed, of the suspect loading alone: quarantined as well
+        ExtensionsGuard.recordCrash(dir, culprits = emptySet(), inFlight = setOf(other), startupCompleted = false)
+        assertTrue(ExtensionsGuard.isQuarantined(dir, other))
+        assertEquals(1, ExtensionsGuard.startupCrashes(dir))
+        assertFalse(ExtensionsGuard.isSafeMode(dir))
+
+        // Unattributed, nothing quarantined: counted
+        ExtensionsGuard.recordCrash(dir, culprits = emptySet(), inFlight = setOf(third), startupCompleted = false)
+        assertTrue(ExtensionsGuard.isSuspect(dir, third))
+        assertEquals(ExtensionsGuard.SAFE_MODE_CRASHES, ExtensionsGuard.startupCrashes(dir))
+        assertTrue(ExtensionsGuard.isSafeMode(dir))
     }
 
     @Test
