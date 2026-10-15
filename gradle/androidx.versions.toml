@@ -10,7 +10,7 @@ webkit_version = "1.17.1"
 datastore_version = "1.2.1"
 cast_mediarouter_version = "1.8.1"
 cast_framework_version="22.3.1"
-navigation-version = "2.9.8"
+navigation-version = "2.10.2"
 exoplayer_version = "1.10.1"
 
 # Test
