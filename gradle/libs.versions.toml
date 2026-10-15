@@ -53,7 +53,7 @@ sqldelight-gradle = { module = "app.cash.sqldelight:gradle-plugin", version.ref 
 sqldelight-android-paging = { module = "app.cash.sqldelight:androidx-paging3-extensions", version.ref = "sqldelight-version" }
 
 # Wheel Picker
-wheel-picker = "com.github.commandiron:WheelPickerCompose:1.1.10"
+wheel-picker = "com.github.commandiron:WheelPickerCompose:1.1.11"
 
 # Markdown parser
 richtext-commonmark = { module = "com.halilibo.compose-richtext:richtext-commonmark", version.ref = "richtext" }
@@ -61,7 +61,7 @@ richtext-m3 = { module = "com.halilibo.compose-richtext:richtext-ui-material3", 
 
 # JSUnpacker
 jsunpacker = "dev.datlag.jsunpacker:jsunpacker:1.0.2"
-unifile = "com.github.tachiyomiorg:unifile:e0def6b3dc"
+unifile = "com.github.tachiyomiorg:unifile:a9de196cc7"
 
 # Logcat
 logcat = { group = "com.squareup.logcat", name = "logcat", version.ref = "logcat-version" }
