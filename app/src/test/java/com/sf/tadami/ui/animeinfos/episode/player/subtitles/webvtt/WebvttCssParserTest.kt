@@ -3,10 +3,17 @@ package com.sf.tadami.ui.animeinfos.episode.player.subtitles.webvtt
 import androidx.media3.common.util.ParsableByteArray
 import androidx.media3.common.util.UnstableApi
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Test
 
 @UnstableApi
 class WebvttCssParserTest {
+
+    @Before
+    fun setUp() {
+        // Media3 1.11 detects tests through Build.FINGERPRINT, which is null on the JVM and makes it throw
+        ParsableByteArray.setShouldEnforceLimitOnLegacyMethods(true)
+    }
 
     @Test
     fun styleBlockEndingAfterTheLastRuleIsParsed() {
