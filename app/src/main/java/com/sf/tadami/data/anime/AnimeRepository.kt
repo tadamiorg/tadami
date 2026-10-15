@@ -4,8 +4,6 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.sf.tadami.data.DataBaseHandler
-import com.sf.tadami.data.animeStatusAdapter
-import com.sf.tadami.data.listOfStringsAdapter
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.UpdateAnime
@@ -140,9 +138,9 @@ class AnimeRepositoryImpl(
                     title = anime.title,
                     thumbnailUrl = anime.thumbnailUrl,
                     release = anime.release,
-                    status = anime.status?.let(animeStatusAdapter::encode),
+                    status = anime.status,
                     description = anime.description,
-                    genres = anime.genres?.let(listOfStringsAdapter::encode),
+                    genres = anime.genres,
                     favorite = anime.favorite,
                     initialized = anime.initialized,
                     animeId = anime.id,
@@ -175,9 +173,9 @@ class AnimeRepositoryImpl(
                     title = anime.title,
                     thumbnailUrl = anime.thumbnailUrl,
                     release = anime.release,
-                    status = anime.status?.let(animeStatusAdapter::encode),
+                    status = anime.status,
                     description = anime.description,
-                    genres = anime.genres?.let(listOfStringsAdapter::encode),
+                    genres = anime.genres,
                     favorite = anime.favorite,
                     initialized = anime.initialized,
                     animeId = anime.id,

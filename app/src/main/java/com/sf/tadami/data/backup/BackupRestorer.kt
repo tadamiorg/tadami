@@ -13,7 +13,6 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.sf.tadami.DataStoresHandler
 import com.sf.tadami.R
 import com.sf.tadami.data.DataBaseHandler
-import com.sf.tadami.data.animeStatusAdapter
 import com.sf.tadami.data.backup.models.BackupAnime
 import com.sf.tadami.data.backup.models.BackupHistory
 import com.sf.tadami.data.backup.models.BackupPreference
@@ -208,9 +207,9 @@ class BackupRestorer(
                 url = anime.url,
                 description = anime.description,
                 release = anime.release,
-                genres = anime.genres?.joinToString(separator = ", "),
+                genres = anime.genres,
                 title = anime.title,
-                status = animeStatusAdapter.encode(anime.status),
+                status = anime.status,
                 thumbnailUrl = anime.thumbnailUrl,
                 favorite = anime.favorite,
                 initialized = anime.initialized,
