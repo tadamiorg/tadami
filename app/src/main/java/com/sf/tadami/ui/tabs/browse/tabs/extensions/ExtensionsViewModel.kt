@@ -200,13 +200,13 @@ class ExtensionsViewModel : ViewModel() {
     /** Whether the extension apps are being uninstalled, one after the other. */
     private var isRemovingLegacyPackages = false
 
-    /** The last extension app whose uninstall was asked. */
-    private var lastLegacyPackageRemoved: String? = null
+    /** The extension apps whose uninstall was asked during this walk, see [removeNextLegacyPackage]. */
+    private val legacyPackagesAsked = mutableSetOf<String>()
 
     /** Asks the system to uninstall each extension app not needed anymore, the user confirming each. */
     fun removeLegacyPackages() {
         isRemovingLegacyPackages = true
-        lastLegacyPackageRemoved = null
+        legacyPackagesAsked.clear()
         viewModelScope.launch { removeNextLegacyPackage() }
     }
 
@@ -221,13 +221,13 @@ class ExtensionsViewModel : ViewModel() {
     }
 
     private suspend fun removeNextLegacyPackage() {
-        val next = extensionManager.refreshLegacyPackages().firstOrNull()
-        // Still installed once back from its dialog: the user kept it
-        if (next == null || next == lastLegacyPackageRemoved) {
+        // One still installed once back from its dialog was kept by the user: the next one is asked
+        val next = extensionManager.refreshLegacyPackages().firstOrNull { it !in legacyPackagesAsked }
+        if (next == null) {
             isRemovingLegacyPackages = false
             return
         }
-        lastLegacyPackageRemoved = next
+        legacyPackagesAsked += next
         extensionManager.requestUninstallLegacyPackage(next)
     }
 
