@@ -1,5 +1,5 @@
 [versions]
-agp = "9.2.1"
+agp = "9.4.1"
 core-ktx = "1.19.0"
 lifecycle_version = "2.11.0"
 worker_version = "2.11.2"
