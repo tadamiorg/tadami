@@ -352,6 +352,7 @@
     <string name="ext_pending">Pending</string>
     <string name="ext_downloading">Downloading</string>
     <string name="ext_installing">Installing</string>
+    <string name="ext_loading">Loading</string>
     <string name="ext_update_all">Update all</string>
     <string name="ext_info_version">Version</string>
     <string name="ext_info_language">Language</string>

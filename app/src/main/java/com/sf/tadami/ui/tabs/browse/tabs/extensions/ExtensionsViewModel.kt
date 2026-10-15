@@ -46,10 +46,11 @@ class ExtensionsViewModel : ViewModel() {
     private var _currentDownloads = MutableStateFlow<Map<String, InstallStep>>(hashMapOf())
 
     init {
-        val extensionMapper: (Map<String, InstallStep>) -> ((Extension) -> ExtensionUiModel.Item) =
-            { map ->
+        val extensionMapper: (Map<String, InstallStep>, Set<String>) -> ((Extension) -> ExtensionUiModel.Item) =
+            { map, reloading ->
                 {
-                    ExtensionUiModel.Item(it, map[it.pkgName] ?: InstallStep.Idle)
+                    val loading = it is Extension.Installed && it.pkgName in reloading
+                    ExtensionUiModel.Item(it, map[it.pkgName] ?: if (loading) InstallStep.Loading else InstallStep.Idle)
                 }
             }
         val queryFilter: (String) -> ((Extension) -> Boolean) = { query ->
@@ -85,20 +86,21 @@ class ExtensionsViewModel : ViewModel() {
             combine(
                 uiState.map { it.searchQuery }.distinctUntilChanged().debounce(250L),
                 _currentDownloads,
+                extensionManager.reloadingFlow,
                 getExtensions.subscribe(),
-            ) { query, downloads, (_updates, _installed, _available) ->
+            ) { query, downloads, reloading, (_updates, _installed, _available) ->
 
                 val itemsGroups: ItemGroups = mutableMapOf()
 
                 val updates =
-                    _updates.filter(queryFilter(query)).map(extensionMapper(downloads))
+                    _updates.filter(queryFilter(query)).map(extensionMapper(downloads, reloading))
                 if (updates.isNotEmpty()) {
                     itemsGroups[ExtensionUiModel.Header.Resource(R.string.ext_updates_pending)] =
                         updates
                 }
 
                 val installed =
-                    _installed.filter(queryFilter(query)).map(extensionMapper(downloads))
+                    _installed.filter(queryFilter(query)).map(extensionMapper(downloads, reloading))
                 if (installed.isNotEmpty()) {
                     itemsGroups[ExtensionUiModel.Header.Resource(R.string.ext_installed)] =
                         installed
@@ -111,7 +113,8 @@ class ExtensionsViewModel : ViewModel() {
                     .map { (lang, exts) ->
                         ExtensionUiModel.Header.Text(lang.getRes()) to exts.map(
                             extensionMapper(
-                                downloads
+                                downloads,
+                                reloading,
                             )
                         )
                     }

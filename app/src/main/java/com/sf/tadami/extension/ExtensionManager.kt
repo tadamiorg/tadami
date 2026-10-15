@@ -105,6 +105,11 @@ class ExtensionManager(
      */
     val safeModeFlow = _safeModeFlow.asStateFlow()
 
+    private val _reloadingFlow = MutableStateFlow(emptySet<String>())
+
+    /** The installed extensions being loaded again, once trusted for instance, see [reloadExtensions]. */
+    val reloadingFlow = _reloadingFlow.asStateFlow()
+
     private val _crashedSourcesFlow = MutableStateFlow(emptyList<Source>())
 
     /**
@@ -488,9 +493,14 @@ class ExtensionManager(
      * [reloadExtension]: one that hangs doesn't hold back the others.
      */
     private suspend fun reloadExtensions(pkgNames: List<String>) = coroutineScope {
-        pkgNames
-            .map { pkgName -> async(Dispatchers.IO) { ExtensionsStorage.withLock(pkgName) { reloadExtension(pkgName) } } }
-            .awaitAll()
+        _reloadingFlow.update { it + pkgNames }
+        try {
+            pkgNames
+                .map { pkgName -> async(Dispatchers.IO) { ExtensionsStorage.withLock(pkgName) { reloadExtension(pkgName) } } }
+                .awaitAll()
+        } finally {
+            _reloadingFlow.update { it - pkgNames.toSet() }
+        }
     }
 
     /**

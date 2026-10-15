@@ -353,6 +353,7 @@
     <string name="ext_pending">En attente</string>
     <string name="ext_downloading">En cours de téléchargement</string>
     <string name="ext_installing">En cours d\'installation</string>
+    <string name="ext_loading">Chargement</string>
     <string name="ext_update_all">Tout mettre à jour</string>
     <string name="ext_info_version">Version</string>
     <string name="ext_info_language">Langue</string>

@@ -37,6 +37,7 @@ fun ExtensionItemActions(
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
     ) {
         when {
+            installStep == InstallStep.Loading -> {}
             !isIdle -> {
                 IconButton(onClick = { onClickItemCancel(extension) }) {
                     Icon(

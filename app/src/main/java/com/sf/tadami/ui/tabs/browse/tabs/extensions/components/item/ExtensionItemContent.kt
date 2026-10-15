@@ -76,6 +76,7 @@ fun ExtensionItemContent(
                             InstallStep.Pending -> stringResource(R.string.ext_pending)
                             InstallStep.Downloading -> stringResource(R.string.ext_downloading)
                             InstallStep.Installing -> stringResource(R.string.ext_installing)
+                            InstallStep.Loading -> stringResource(R.string.ext_loading)
                             else -> error("Must not show non-install process text")
                         },
                     )

@@ -128,7 +128,8 @@ fun ExtensionDetailsScreen(
                 onClickUninstall = { showUninstallDialog = true },
                 onClickTrust = { showTrustDialog = true },
                 onClickRetry = extensionDetailsViewModel::retryExtension,
-                extension = uiState.extension!!
+                extension = uiState.extension!!,
+                isReloading = uiState.isReloading,
             )
 
             if (showUninstallDialog) {

@@ -43,6 +43,13 @@ class ExtensionDetailsViewModel(
                         }
                     }
             }
+            launch {
+                extensionManager.reloadingFlow
+                    .map { pkgName in it }
+                    .collectLatest { isReloading ->
+                        _uiState.update { state -> state.copy(isReloading = isReloading) }
+                    }
+            }
         }
     }
 

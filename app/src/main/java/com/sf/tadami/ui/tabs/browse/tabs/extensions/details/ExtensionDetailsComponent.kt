@@ -14,7 +14,8 @@ fun ExtensionDetailsComponent(
     onClickUninstall: () -> Unit,
     onClickTrust: () -> Unit,
     onClickRetry: () -> Unit,
-    extension : Extension.Installed
+    extension : Extension.Installed,
+    isReloading: Boolean = false,
 ) {
     ScrollbarLazyColumn(
         contentPadding = contentPadding,
@@ -35,7 +36,8 @@ fun ExtensionDetailsComponent(
             ExtensionDetailsHeader(
                 extension = extension,
                 onClickUninstall = onClickUninstall,
-                onClickTrust = onClickTrust.takeIf { extension.loadIssue == ExtensionLoadIssue.UNTRUSTED },
+                // Not while it's loaded again, once trusted
+                onClickTrust = onClickTrust.takeIf { extension.loadIssue == ExtensionLoadIssue.UNTRUSTED && !isReloading },
                 onClickRetry = onClickRetry.takeIf { extension.loadIssue == ExtensionLoadIssue.QUARANTINED },
             )
         }
