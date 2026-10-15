@@ -1,7 +1,7 @@
 [versions]
 coil-version = "2.7.0"
-jsoup-version = "1.22.2"
-okhttp-version = "5.4.0"
+jsoup-version = "1.23.2"
+okhttp-version = "5.5.0"
 sqldelight-version = "2.3.2"
 sqlite = "2.7.1"
 dotenv_version = "4.0.0"
@@ -32,7 +32,7 @@ okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-i
 okhttp-dnsoverhttps = { group = "com.squareup.okhttp3", name = "okhttp-dnsoverhttps", version.ref = "okhttp-version" }
 okhttp-brotli = { group = "com.squareup.okhttp3", name = "okhttp-brotli", version.ref = "okhttp-version" }
 okhttp-mockwebserver3 = { group = "com.squareup.okhttp3", name = "mockwebserver3", version.ref = "okhttp-version" }
-okio = "com.squareup.okio:okio:3.17.0"
+okio = "com.squareup.okio:okio:3.18.2"
 
 # Local HTTP proxy for the web cast receiver
 nanohttpd = "org.nanohttpd:nanohttpd:2.3.1"
