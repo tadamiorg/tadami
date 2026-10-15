@@ -1,9 +1,11 @@
 package com.sf.tadami.crash
 
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.os.Looper
 import android.widget.Toast
+import androidx.core.content.getSystemService
 import com.sf.tadami.R
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.extension.util.ExtensionsGuard
@@ -91,6 +93,11 @@ class GlobalExceptionHandler private constructor(
         timestamp: Long,
         culprits: List<CrashReporter.Culprit>,
     ) {
+        // The task of the app, its activities gone with this process, and the one of a previous
+        // crash screen: the crash screen starts a new task, and is the only one left in recents
+        runCatching {
+            applicationContext.getSystemService<ActivityManager>()?.appTasks?.forEach { it.finishAndRemoveTask() }
+        }
         val intent = Intent(applicationContext, activity).apply {
             putExtra(INTENT_EXTRA, Json.encodeToString(ThrowableSerializer, exception))
             putExtra(TIMESTAMP_EXTRA, timestamp)

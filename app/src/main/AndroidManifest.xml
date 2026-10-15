@@ -51,10 +51,13 @@
         android:theme="@style/Theme.Tadami"
         android:usesCleartextTraffic="true">
 
+        <!-- In its own task, whose base intent is its own: back from the recent apps after leaving
+             it, the task starts it again, not the main screen -->
         <activity
             android:name=".crash.CrashActivity"
             android:exported="false"
-            android:process=":error_handler" />
+            android:process=":error_handler"
+            android:taskAffinity="${applicationId}.crash" />
 
         <activity
             android:name=".ui.main.MainActivity"

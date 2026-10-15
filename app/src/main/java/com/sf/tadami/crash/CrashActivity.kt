@@ -56,17 +56,21 @@ class CrashActivity : AppCompatActivity() {
                 },
                 onRestartClick = {
                     CrashReporter.clearPending(this@CrashActivity)
-                    finishAffinity()
-                    startActivity(Intent(this@CrashActivity, MainActivity::class.java))
+                    restart()
                 },
                 onRestartWithoutExtensionsClick = {
                     // Read by the next launch, nothing of the extensions is built in this process
                     runCatching { ExtensionsGuard.setSafeMode(this@CrashActivity, true) }
                     CrashReporter.clearPending(this@CrashActivity)
-                    finishAffinity()
-                    startActivity(Intent(this@CrashActivity, MainActivity::class.java))
+                    restart()
                 },
             )
         }
+    }
+
+    /** Starts the app in its own task, this one being removed from the recent apps. */
+    private fun restart() {
+        finishAndRemoveTask()
+        startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 }
