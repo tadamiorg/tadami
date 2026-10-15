@@ -234,7 +234,7 @@ class ExtensionManager(
 
     suspend fun findAvailableExtensions() {
         val extensions: RepoExtensions = try {
-            api.findExtensions()
+            api.findExtensions(_availableExtensionsFlow.value)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -269,7 +269,8 @@ class ExtensionManager(
                 val availableExt = availableExtensions.find { it.pkgName == pkgName }
 
                 if (availableExt == null) {
-                    val isObsolete = pkgName !in repoExtensions.listedPkgNames
+                    // Unknown when its repo may have failed: kept as it was
+                    val isObsolete = repoExtensions.isObsolete(pkgName, installedExt.repoUrl) ?: installedExt.isObsolete
                     if (installedExt.isObsolete != isObsolete) {
                         mutInstalledExtensions[index] = installedExt.copy(isObsolete = isObsolete)
                         changed = true

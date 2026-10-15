@@ -38,14 +38,32 @@ internal class ExtensionsApi {
     // Read when needed: built with the extension manager, it would block whatever thread builds it
     private suspend fun sourcePreferences() = dataStore.getPreferencesGroup(SourcesPreferences)
 
-    suspend fun findExtensions(): RepoExtensions {
+    /**
+     * The extensions of each repo. One that fails keeps its entries of [previous], the extensions
+     * found before: it doesn't hide the others. When all of them fail, the error is propagated so
+     * the caller can keep its previous state.
+     */
+    suspend fun findExtensions(previous: List<Extension.Available>): RepoExtensions {
         return withContext(Dispatchers.IO) {
-            RepoExtensions(sourcePreferences().extensionsRepos.flatMap { getExtensions(it) })
+            val repos = sourcePreferences().extensionsRepos
+            val results = repos.associateWith { repo ->
+                try {
+                    Result.success(getExtensions(repo))
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Result.failure(e)
+                }
+            }
+            if (results.isNotEmpty() && results.values.all { it.isFailure }) {
+                throw results.values.first().exceptionOrNull()!!
+            }
+            RepoExtensions.of(results.mapValues { it.value.getOrNull() }, previous)
         }
     }
 
     /**
-     * Network, HTTP and index format errors are propagated so the caller can keep its previous state.
+     * Network, HTTP and index format errors are propagated so the caller can tell the repo failed.
      */
     private suspend fun getExtensions(repoBaseUrl: String): List<Extension.Available> {
         return try {
@@ -86,7 +104,7 @@ internal class ExtensionsApi {
         val extensions = if (fromAvailableExtensionList) {
             extensionManager.availableExtensionsFlow.value
         } else {
-            findExtensions().available.also {
+            findExtensions(extensionManager.availableExtensionsFlow.value).available.also {
                 dataStore.editPreference(Instant.now().toEpochMilli(), SourcesPreferences.LAST_EXT_CHECK)
             }
         }
@@ -142,13 +160,42 @@ internal class ExtensionsApi {
     }
 }
 
-/** The extensions the repos list. */
-internal class RepoExtensions(listed: List<Extension.Available>) {
+/**
+ * The extensions the repos list.
+ *
+ * @param failedRepos The repos that couldn't be read, see [isObsolete].
+ */
+internal class RepoExtensions(
+    listed: List<Extension.Available>,
+    private val failedRepos: Set<String> = emptySet(),
+) {
     /** The ones this app can load, the others can't be installed nor be an update. */
     val available = listed.filter { ExtensionsLoader.libVersionIssue(it.apiVersion) == null }
 
     /** All of them: one made for a lib version this app can't load is still in the repo, not removed. */
     val listedPkgNames = listed.mapTo(HashSet()) { it.pkgName }
+
+    /**
+     * Whether the installed extension [pkgName], from the repo [repoUrl] (null when unknown), was
+     * removed from the repos. Null when it can't be told: it may come from a repo that failed.
+     */
+    fun isObsolete(pkgName: String, repoUrl: String?): Boolean? = when {
+        pkgName in listedPkgNames -> false
+        failedRepos.isEmpty() -> true
+        repoUrl != null && repoUrl !in failedRepos -> true
+        else -> null
+    }
+
+    companion object {
+        /**
+         * @param byRepo The extensions of each repo, null for one that failed: it keeps its entries
+         * of [previous], none on a cold start.
+         */
+        fun of(byRepo: Map<String, List<Extension.Available>?>, previous: List<Extension.Available>): RepoExtensions {
+            val listed = byRepo.flatMap { (repo, extensions) -> extensions ?: previous.filter { it.repoUrl == repo } }
+            return RepoExtensions(listed, failedRepos = byRepo.filterValues { it == null }.keys)
+        }
+    }
 }
 
 @Serializable
