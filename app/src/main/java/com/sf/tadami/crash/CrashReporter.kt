@@ -46,11 +46,17 @@ object CrashReporter {
         /** The extensions it comes from, quarantined */
         val culprits: List<Culprit> = emptyList(),
     ) {
-        fun format(): String = buildString {
-            culprits.forEach {
-                appendLine("Caused by the ${it.name} extension (${it.versionName}). It has been disabled; retry it in Extensions.")
+        /**
+         * @param withCulprits Whether it starts with the [culprits], left out where they're shown
+         * already, see [CrashScreen].
+         */
+        fun format(withCulprits: Boolean = true): String = buildString {
+            if (withCulprits) {
+                culprits.forEach {
+                    appendLine("Caused by the ${it.name} extension (${it.versionName}). It has been disabled; retry it in Extensions.")
+                }
+                if (culprits.isNotEmpty()) appendLine()
             }
-            if (culprits.isNotEmpty()) appendLine()
             appendLine("App version: $versionName ($versionCode, $buildDate)")
             appendLine("Android version: $androidVersion")
             appendLine("Device: $device")

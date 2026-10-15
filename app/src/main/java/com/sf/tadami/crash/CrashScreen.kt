@@ -25,6 +25,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun CrashScreen(
     report: String,
+    sharedReport: String,
     culprits: List<CrashReporter.Culprit>,
     onReportShared: () -> Unit,
     onRestartClick: () -> Unit,
@@ -42,7 +43,7 @@ fun CrashScreen(
             scope.launch {
                 // Not CrashLogUtil: building the extension manager in this process would load the
                 // extensions again, maybe the one that crashed
-                if (withContext(Dispatchers.IO) { CrashReporter.shareReport(context, report, fromCrashScreen = true) }) {
+                if (withContext(Dispatchers.IO) { CrashReporter.shareReport(context, sharedReport, fromCrashScreen = true) }) {
                     onReportShared()
                 } else {
                     UiToasts.showToast(R.string.crash_logs_dump_failed)

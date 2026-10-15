@@ -54,4 +54,12 @@ class CrashReporterTest {
         )
         assertFalse(log.format().contains("Caused by"))
     }
+
+    @Test
+    fun `leaves out the extensions the crash comes from where they are shown already`() {
+        val withCulprits = log.copy(culprits = listOf(CrashReporter.Culprit("AnimePahe", "1.6.12")))
+
+        assertFalse(withCulprits.format(withCulprits = false).contains("Caused by"))
+        assertTrue(withCulprits.format(withCulprits = false).startsWith("App version: "))
+    }
 }
