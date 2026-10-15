@@ -576,7 +576,7 @@ class ExtensionManager(
             availableExtension ?: _availableExtensionsFlow.value.find { it.pkgName == pkgName }
             ?: return false
 
-        return (availableExt.versionCode > versionCode || availableExt.apiVersion > apiVersion)
+        return isUpdatedBy(availableExt)
     }
 
     private fun updatePendingUpdatesCount() {

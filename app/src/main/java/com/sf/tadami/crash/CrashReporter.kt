@@ -164,7 +164,7 @@ object CrashReporter {
             .sortedBy { it.name }
             .mapNotNull {
                 val availableExtension = availableExtensions[it.pkgName]
-                val hasUpdate = (availableExtension?.versionCode ?: 0) > it.versionCode
+                val hasUpdate = availableExtension != null && it.isUpdatedBy(availableExtension)
 
                 if (!hasUpdate && !it.isObsolete && it.loadIssue == null) return@mapNotNull null
 

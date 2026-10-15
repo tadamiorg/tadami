@@ -9,6 +9,25 @@ import com.sf.tadami.utils.Lang
 
 sealed class Extension {
 
+    companion object {
+        /**
+         * Whether an extension of [versionCode], built against [libVersion], updates the installed
+         * one of [installedVersionCode] and [installedLibVersion]: a greater version code, or the
+         * same one with a higher lib, the rule the install verification applies. A null lib
+         * version is unknown: one can't be an update, an installed one is replaced by a known one.
+         */
+        fun isUpdate(
+            versionCode: Long,
+            libVersion: LibVersion?,
+            installedVersionCode: Long,
+            installedLibVersion: LibVersion?,
+        ): Boolean = when {
+            versionCode != installedVersionCode -> versionCode > installedVersionCode
+            libVersion == null -> false
+            else -> installedLibVersion == null || libVersion > installedLibVersion
+        }
+    }
+
     abstract val name: String
     abstract val pkgName: String
     abstract val versionName: String
@@ -33,7 +52,12 @@ sealed class Extension {
         val loadIssue: ExtensionLoadIssue? = null,
         /** SHA-256 fingerprint of its signing key, the one stored when the user trusts it. */
         val signatureHash: String? = null,
-    ) : Extension()
+    ) : Extension() {
+
+        /** Whether [available] is an update of this one, see [isUpdate]. */
+        fun isUpdatedBy(available: Available): Boolean =
+            isUpdate(available.versionCode, available.apiVersion, versionCode, apiVersion)
+    }
 
     data class Available(
         override val name: String,

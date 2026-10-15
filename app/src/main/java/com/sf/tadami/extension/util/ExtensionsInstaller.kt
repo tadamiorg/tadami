@@ -171,19 +171,9 @@ internal class ExtensionsInstaller(private val context: Context) {
             installed == null -> null
             !canReplaceSigners(installed, apk) -> ApkRejection.SIGNER_CHANGED
             apk.versionCode < installed.versionCode -> ApkRejection.NOT_NEWER
-            apk.versionCode == installed.versionCode && !allowSameVersion && !raisesLibVersion(installed, apk) ->
+            !allowSameVersion && !Extension.isUpdate(apk.versionCode, apk.libVersion, installed.versionCode, installed.libVersion) ->
                 ApkRejection.NOT_NEWER
             else -> null
-        }
-
-        /**
-         * Whether [new] is built against a newer extensions lib than [old]: with the same version
-         * code, an update as well, as the extension manager counts it.
-         */
-        private fun raisesLibVersion(old: ApkInfo, new: ApkInfo): Boolean {
-            val newLib = new.versionName?.let { LibVersion.fromVersionName(it) } ?: return false
-            val oldLib = old.versionName?.let { LibVersion.fromVersionName(it) } ?: return true
-            return newLib > oldLib
         }
 
         /**
@@ -211,7 +201,10 @@ internal data class ApkInfo(
     /** See [ExtensionsLoader.signatureHashes]. */
     val signatureHashes: List<String>,
     val multipleSigners: Boolean,
-)
+) {
+    /** Null when its version name can't be parsed. */
+    val libVersion: LibVersion? get() = versionName?.let { LibVersion.fromVersionName(it) }
+}
 
 /** Why an extension APK is refused, the installed one being kept. */
 internal enum class ApkRejection(@StringRes val messageRes: Int) {

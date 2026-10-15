@@ -117,10 +117,7 @@ internal class ExtensionsApi {
             if (installedExt.loadIssue == ExtensionLoadIssue.UNTRUSTED) continue
             val pkgName = installedExt.pkgName
             val availableExt = extensions.find { it.pkgName == pkgName } ?: continue
-            val hasUpdatedVer = availableExt.versionCode > installedExt.versionCode
-            val hasUpdatedLib = availableExt.apiVersion > installedExt.apiVersion
-            val hasUpdate = hasUpdatedVer || hasUpdatedLib
-            if (hasUpdate) {
+            if (installedExt.isUpdatedBy(availableExt)) {
                 extensionsWithUpdate.add(installedExt)
             }
         }
