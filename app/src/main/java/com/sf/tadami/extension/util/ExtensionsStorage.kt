@@ -77,6 +77,25 @@ internal object ExtensionsStorage {
         return deleted
     }
 
+    /**
+     * Deletes what ART compiled or recorded of the extensions whose APK isn't in [dir] anymore: it
+     * can write the profile of one again a while after its deletion, see [delete].
+     */
+    fun cleanOrphanOatFiles(dir: File) {
+        File(dir, OAT_DIR_NAME).walkBottomUp()
+            .filter { it.isFile }
+            .forEach { file ->
+                val pkgName = oatFilePkgName(file.name)
+                if (isValidPkgName(pkgName) && !apkFile(dir, pkgName).exists()) file.delete()
+            }
+    }
+
+    /** The package name of an ART file: `<pkgName>.odex`, `<pkgName>.apk.cur.prof`... */
+    private fun oatFilePkgName(fileName: String): String {
+        val apkPrefix = "$APK_SUFFIX."
+        return if (apkPrefix in fileName) fileName.substringBeforeLast(apkPrefix) else fileName.substringBeforeLast('.')
+    }
+
     /** Deletes the files of the downloads and copies a process death stopped. */
     fun cleanTmp(dir: File) {
         dir.listFiles { file -> file.name.endsWith(TMP_SUFFIX) }?.forEach { it.delete() }

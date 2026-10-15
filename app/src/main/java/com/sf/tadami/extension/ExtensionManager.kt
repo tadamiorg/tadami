@@ -158,6 +158,7 @@ class ExtensionManager(
         // the main process is running
         if (Application.getProcessName() == context.packageName) {
             ExtensionsStorage.cleanTmp(storageDir)
+            ExtensionsStorage.cleanOrphanOatFiles(storageDir)
             ExtensionsGuard.checkPreviousExit(context)
         }
         val safeMode = ExtensionsGuard.isSafeMode(context)

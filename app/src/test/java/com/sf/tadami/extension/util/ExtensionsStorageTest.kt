@@ -93,4 +93,32 @@ class ExtensionsStorageTest {
         kept.forEach { assertTrue(it.path, it.exists()) }
         assertFalse(ExtensionsStorage.delete(dir, pkgName))
     }
+
+    @Test
+    fun theStartupDeletesWhatArtLeftOfTheExtensionsWithoutApk() {
+        val dir = tmpFolder.root
+        val other = "$pkgName.other"
+        File(dir, "oat/arm64").mkdirs()
+        File(dir, "oat/x86_64").mkdirs()
+        val orphans = listOf(
+            "oat/$pkgName.apk.cur.prof",
+            "oat/$pkgName.apk.prof",
+            "oat/arm64/$pkgName.odex",
+            "oat/x86_64/$pkgName.vdex",
+        ).map { File(dir, it).apply { writeText("") } }
+        val kept = listOf(
+            "$other.apk",
+            "oat/$other.apk.cur.prof",
+            "oat/arm64/$other.odex",
+            // Not of an extension
+            "oat/arm64/unknown",
+        ).map { File(dir, it).apply { writeText("") } }
+
+        ExtensionsStorage.cleanOrphanOatFiles(dir)
+
+        orphans.forEach { assertFalse(it.path, it.exists()) }
+        kept.forEach { assertTrue(it.path, it.exists()) }
+        // Nothing compiled yet
+        ExtensionsStorage.cleanOrphanOatFiles(File(tmpFolder.root, "none"))
+    }
 }
