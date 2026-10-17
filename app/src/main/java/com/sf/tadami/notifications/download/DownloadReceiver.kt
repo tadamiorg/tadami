@@ -12,22 +12,11 @@ import uy.kohesive.injekt.api.get
 class DownloadReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         val downloadManager: TadamiDownloadManager = Injekt.get()
-        val notifier = DownloadNotifier(context)
+        // The manager updates the notifications
         when (intent?.action) {
-            ACTION_PAUSE -> {
-                downloadManager.pauseDownloads()
-                notifier.dismissProgress()
-                notifier.showPaused(downloadManager.queueState.value.size)
-            }
-            ACTION_RESUME -> {
-                notifier.dismissPaused()
-                downloadManager.startDownloads()
-            }
-            ACTION_CANCEL -> {
-                downloadManager.clearQueue()
-                notifier.dismissProgress()
-                notifier.dismissPaused()
-            }
+            ACTION_PAUSE -> downloadManager.pauseDownloads()
+            ACTION_RESUME -> downloadManager.startDownloads()
+            ACTION_CANCEL -> downloadManager.clearQueue()
         }
     }
 

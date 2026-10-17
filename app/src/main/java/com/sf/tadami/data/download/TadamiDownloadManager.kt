@@ -9,6 +9,7 @@ import com.sf.tadami.data.download.model.Download
 import com.sf.tadami.data.download.model.EpisodeDownloadState
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.notifications.download.DownloadNotifier
 import com.sf.tadami.notifications.download.DownloadWorker
 import com.sf.tadami.preferences.download.DownloadPreferences
 import com.sf.tadami.source.Source
@@ -47,6 +48,8 @@ class TadamiDownloadManager(
     private val dataStore: DataStore<Preferences> by injectLazy()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    private val notifier by lazy { DownloadNotifier(context) }
 
     private val cache = DownloadCache(provider, Injekt.get(), scope)
 
@@ -106,6 +109,7 @@ class TadamiDownloadManager(
 
     /** Starts or resumes the queue. */
     fun startDownloads() {
+        notifier.dismissPaused()
         scope.launch {
             downloader.awaitRestored()
             if (queueState.value.none { it.status == Download.State.QUEUED }) return@launch
@@ -117,6 +121,9 @@ class TadamiDownloadManager(
     /** Stops the downloads where they are: they stay queued and resume from there. */
     fun pauseDownloads() {
         DownloadWorker.stop(context)
+        notifier.dismissProgress()
+        val queued = queueState.value.count { it.status == Download.State.QUEUED || it.status == Download.State.DOWNLOADING }
+        if (queued > 0) notifier.showPaused(queued)
     }
 
     /** Applies changed settings (the Wi-Fi only constraint) to a queue running or waiting for its network. */
@@ -131,6 +138,8 @@ class TadamiDownloadManager(
     fun clearQueue() {
         DownloadWorker.stop(context)
         downloader.remove(queueState.value)
+        notifier.dismissProgress()
+        notifier.dismissPaused()
     }
 
     fun cancelQueuedDownloads(downloads: List<Download>) {
