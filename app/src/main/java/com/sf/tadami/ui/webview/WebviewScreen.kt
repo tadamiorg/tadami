@@ -1,12 +1,16 @@
 package com.sf.tadami.ui.webview
 
+import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
 import android.os.Message
+import android.view.View
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,10 +43,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.kevinnzou.web.AccompanistWebChromeClient
 import com.kevinnzou.web.AccompanistWebViewClient
 import com.kevinnzou.web.LoadingState
@@ -58,6 +67,7 @@ import com.sf.tadami.network.utils.setDefaultSettings
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
+import com.sf.tadami.utils.findActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
@@ -112,6 +122,18 @@ fun WebviewScreen(
     val destroyedWebViews = remember { mutableSetOf<WebView>() }
     var screenActive by remember { mutableStateOf(true) }
 
+    // A web video player in fullscreen (HTML5 <video> or an embedded player), shown over the screen
+    var fullscreenView by remember { mutableStateOf<View?>(null) }
+    var fullscreenCallback by remember { mutableStateOf<WebChromeClient.CustomViewCallback?>(null) }
+
+    fun exitFullscreen() {
+        val callback = fullscreenCallback ?: return
+        fullscreenView = null
+        fullscreenCallback = null
+        // Tells the page, which leaves its fullscreen
+        callback.onCustomViewHidden()
+    }
+
     fun destroy(webView: WebView) {
         if (!destroyedWebViews.add(webView)) return
         // Stop media and scripts now rather than whenever the WebView is collected
@@ -122,6 +144,7 @@ fun WebviewScreen(
     fun closeWindow(window: WebViewWindow) {
         if (window === windows.first()) return
         val visible = window === windows.last()
+        if (visible) exitFullscreen()
         if (!windows.remove(window)) return
         // The visible one is destroyed when it leaves the composition, the ones below it now
         if (!visible) window.webView?.let(::destroy)
@@ -217,6 +240,22 @@ fun WebviewScreen(
                     // window.close()
                     windows.find { it.webView === view }?.let(::closeWindow)
                 }
+
+                override fun onShowCustomView(view: View, callback: WebChromeClient.CustomViewCallback) {
+                    // One at a time
+                    if (fullscreenView != null) {
+                        callback.onCustomViewHidden()
+                        return
+                    }
+                    fullscreenView = view
+                    fullscreenCallback = callback
+                }
+
+                override fun onHideCustomView() {
+                    // The player's own exit button
+                    fullscreenView = null
+                    fullscreenCallback = null
+                }
             }
         }
 
@@ -236,6 +275,7 @@ fun WebviewScreen(
     DisposableEffect(Unit) {
         onDispose {
             screenActive = false
+            exitFullscreen()
             windows.forEach { window -> window.webView?.let(::destroy) }
         }
     }
@@ -245,167 +285,176 @@ fun WebviewScreen(
         closeWindow(currentWindow)
     }
 
-    Scaffold(
-        topBar = {
-            Box {
-                Column {
-                    TadaTopAppBar(
-                        title = {
-                            Column {
-                                Text(
-                                    text = state.pageTitle ?: initialTitle,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                Text(
-                                    text = state.lastLoadedUrl ?: currentUrl,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        },
-                        navigationIcon = {
-                            IconButton(onClick = onNavigateUp) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Close,
-                                    contentDescription = null,
-                                )
-                            }
-                        },
-                        actions =
-                        listOfNotNull(
-                            // Shown while a popup is open: back to the page below it
-                            Action.Vector(
-                                title = R.string.action_webview_close_window,
-                                icon = Icons.Outlined.CancelPresentation,
-                                onClick = {
-                                    closeWindow(currentWindow)
-                                },
-                            ).takeIf { windows.size > 1 },
-                            Action.Vector(
-                                title = R.string.stub_text,
-                                icon = Icons.AutoMirrored.Outlined.ArrowBack,
-                                onClick = {
-                                    if (navigator.canGoBack) {
-                                        navigator.navigateBack()
-                                    }
-                                },
-                                enabled = navigator.canGoBack,
-                            ),
-                            Action.Vector(
-                                title = R.string.stub_text,
-                                icon = Icons.AutoMirrored.Outlined.ArrowForward,
-                                onClick = {
-                                    if (navigator.canGoForward) {
-                                        navigator.navigateForward()
-                                    }
-                                },
-                                enabled = navigator.canGoForward,
-                            ),
-                            Action.DropDownDrawable(
-                                title = R.string.stub_text,
-                                icon = R.drawable.ic_vertical_settings,
-                                items =
-                                listOf(
-                                    DropDownAction(
-                                        title = stringResource(id = R.string.refresh),
-                                        onClick = {
-                                            navigator.reload()
+    Box {
+        Scaffold(
+            topBar = {
+                Box {
+                    Column {
+                        TadaTopAppBar(
+                            title = {
+                                Column {
+                                    Text(
+                                        text = state.pageTitle ?: initialTitle,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = state.lastLoadedUrl ?: currentUrl,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            },
+                            navigationIcon = {
+                                IconButton(onClick = onNavigateUp) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Close,
+                                        contentDescription = null,
+                                    )
+                                }
+                            },
+                            actions =
+                            listOfNotNull(
+                                // Shown while a popup is open: back to the page below it
+                                Action.Vector(
+                                    title = R.string.action_webview_close_window,
+                                    icon = Icons.Outlined.CancelPresentation,
+                                    onClick = {
+                                        closeWindow(currentWindow)
+                                    },
+                                ).takeIf { windows.size > 1 },
+                                Action.Vector(
+                                    title = R.string.stub_text,
+                                    icon = Icons.AutoMirrored.Outlined.ArrowBack,
+                                    onClick = {
+                                        if (navigator.canGoBack) {
+                                            navigator.navigateBack()
                                         }
-                                    ),
-                                    DropDownAction(
-                                        title = stringResource(id = R.string.action_open_in_browser),
-                                        onClick = {
-                                            onOpenInBrowser(currentUrl)
+                                    },
+                                    enabled = navigator.canGoBack,
+                                ),
+                                Action.Vector(
+                                    title = R.string.stub_text,
+                                    icon = Icons.AutoMirrored.Outlined.ArrowForward,
+                                    onClick = {
+                                        if (navigator.canGoForward) {
+                                            navigator.navigateForward()
                                         }
-                                    ),
-                                    DropDownAction(
-                                        title = stringResource(id = R.string.pref_clear_cookies),
-                                        onClick = {
-                                            onClearCookies(currentUrl)
-                                        }
+                                    },
+                                    enabled = navigator.canGoForward,
+                                ),
+                                Action.DropDownDrawable(
+                                    title = R.string.stub_text,
+                                    icon = R.drawable.ic_vertical_settings,
+                                    items =
+                                    listOf(
+                                        DropDownAction(
+                                            title = stringResource(id = R.string.refresh),
+                                            onClick = {
+                                                navigator.reload()
+                                            }
+                                        ),
+                                        DropDownAction(
+                                            title = stringResource(id = R.string.action_open_in_browser),
+                                            onClick = {
+                                                onOpenInBrowser(currentUrl)
+                                            }
+                                        ),
+                                        DropDownAction(
+                                            title = stringResource(id = R.string.pref_clear_cookies),
+                                            onClick = {
+                                                onClearCookies(currentUrl)
+                                            }
+                                        )
                                     )
                                 )
                             )
                         )
+                    }
+                    when (val loadingState = state.loadingState) {
+                        is LoadingState.Initializing -> LinearProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter),
+                        )
+
+                        is LoadingState.Loading -> LinearProgressIndicator(
+                            progress = { loadingState.progress },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter),
+                        )
+
+                        else -> {}
+                    }
+                }
+            },
+        ) { contentPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(contentPadding),
+            ) {
+                if (challengeState != ChallengeState.NONE && currentWindow === rootWindow) {
+                    ChallengeBanner(
+                        solved = challengeState == ChallengeState.SOLVED,
+                        onDone = onNavigateUp,
                     )
                 }
-                when (val loadingState = state.loadingState) {
-                    is LoadingState.Initializing -> LinearProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.BottomCenter),
-                    )
+                // Keyed to the window: showing another window creates the composable again with its WebView
+                key(currentWindow) {
+                    WebView(
+                        state = state,
+                        modifier = Modifier.fillMaxSize(),
+                        // Once verified, back returns to the source instead of replaying the challenge pages
+                        captureBackPresses = currentWindow !== rootWindow || challengeState != ChallengeState.SOLVED,
+                        navigator = navigator,
+                        onCreated = { webView ->
+                            webView.setDefaultSettings()
+                            // Popups open in a window of their own, see onCreateWindow
+                            webView.settings.setSupportMultipleWindows(true)
+                            webView.settings.javaScriptCanOpenWindowsAutomatically = true
 
-                    is LoadingState.Loading -> LinearProgressIndicator(
-                        progress = { loadingState.progress },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.BottomCenter),
-                    )
-
-                    else -> {}
-                }
-            }
-        },
-    ) { contentPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding),
-        ) {
-            if (challengeState != ChallengeState.NONE && currentWindow === rootWindow) {
-                ChallengeBanner(
-                    solved = challengeState == ChallengeState.SOLVED,
-                    onDone = onNavigateUp,
-                )
-            }
-            // Keyed to the window: showing another window creates the composable again with its WebView
-            key(currentWindow) {
-                WebView(
-                    state = state,
-                    modifier = Modifier.fillMaxSize(),
-                    // Once verified, back returns to the source instead of replaying the challenge pages
-                    captureBackPresses = currentWindow !== rootWindow || challengeState != ChallengeState.SOLVED,
-                    navigator = navigator,
-                    onCreated = { webView ->
-                        webView.setDefaultSettings()
-                        // Popups open in a window of their own, see onCreateWindow
-                        webView.settings.setSupportMultipleWindows(true)
-                        webView.settings.javaScriptCanOpenWindowsAutomatically = true
-
-                        // Debug mode (chrome://inspect/#devices)
-                        if (BuildConfig.DEBUG &&
-                            0 != webView.context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE
-                        ) {
-                            WebView.setWebContentsDebuggingEnabled(true)
-                        }
-
-                        // Same UA as OkHttp, or the clearance obtained here would be useless to it
-                        webView.applyUserAgent(userAgent)
-                    },
-                    onDispose = { webView ->
-                        val window = windows.find { it.webView === webView }
-                        if (window == null || !screenActive) {
-                            destroy(webView)
-                        } else {
-                            // Covered by a popup: kept as it is, not loaded again when shown again
-                            window.state.content = WebContent.NavigatorOnly
-                        }
-                    },
-                    client = currentWindow.client,
-                    chromeClient = currentWindow.chromeClient,
-                    factory = { context ->
-                        currentWindow.webView ?: WebView(context).also { webView ->
-                            currentWindow.webView = webView
-                            currentWindow.popupMessage?.let { message ->
-                                (message.obj as WebView.WebViewTransport).webView = webView
-                                message.sendToTarget()
+                            // Debug mode (chrome://inspect/#devices)
+                            if (BuildConfig.DEBUG &&
+                                0 != webView.context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE
+                            ) {
+                                WebView.setWebContentsDebuggingEnabled(true)
                             }
-                        }
-                    },
-                )
+
+                            // Same UA as OkHttp, or the clearance obtained here would be useless to it
+                            webView.applyUserAgent(userAgent)
+                        },
+                        onDispose = { webView ->
+                            val window = windows.find { it.webView === webView }
+                            if (window == null || !screenActive) {
+                                destroy(webView)
+                            } else {
+                                // Covered by a popup: kept as it is, not loaded again when shown again
+                                window.state.content = WebContent.NavigatorOnly
+                            }
+                        },
+                        client = currentWindow.client,
+                        chromeClient = currentWindow.chromeClient,
+                        factory = { context ->
+                            currentWindow.webView ?: WebView(context).also { webView ->
+                                currentWindow.webView = webView
+                                currentWindow.popupMessage?.let { message ->
+                                    (message.obj as WebView.WebViewTransport).webView = webView
+                                    message.sendToTarget()
+                                }
+                            }
+                        },
+                    )
+                }
+            }
+        }
+
+        val fullscreen = fullscreenView
+        if (fullscreen != null) {
+            key(fullscreen) {
+                FullscreenView(view = fullscreen, onExit = ::exitFullscreen)
             }
         }
     }
@@ -432,6 +481,43 @@ private fun ChallengeBanner(solved: Boolean, onDone: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+/**
+ * [view] over the whole screen on a black background, the system bars hidden (a swipe shows them for
+ * a moment) and any orientation allowed. Leaving it restores the bars and the orientation.
+ */
+@Composable
+private fun FullscreenView(view: View, onExit: () -> Unit) {
+    val activity = LocalContext.current.findActivity()
+
+    DisposableEffect(view) {
+        val insetsController = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
+        val previousBehavior = insetsController.systemBarsBehavior
+        val previousOrientation = activity.requestedOrientation
+        insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        insetsController.hide(WindowInsetsCompat.Type.systemBars())
+        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+        onDispose {
+            insetsController.show(WindowInsetsCompat.Type.systemBars())
+            insetsController.systemBarsBehavior = previousBehavior
+            activity.requestedOrientation = previousOrientation
+        }
+    }
+
+    // After the WebView's own back handling: back leaves the fullscreen first
+    BackHandler(onBack = onExit)
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+    ) {
+        AndroidView(
+            factory = { view },
+            modifier = Modifier.fillMaxSize(),
+        )
     }
 }
 
