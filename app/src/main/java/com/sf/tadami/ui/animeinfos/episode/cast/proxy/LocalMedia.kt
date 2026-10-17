@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.ParcelFileDescriptor
 import com.sf.tadami.data.download.SegmentMetadata
 import fi.iki.elonen.NanoHTTPD
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.io.ByteArrayInputStream
 import java.io.FileInputStream
 import java.io.IOException
@@ -31,6 +32,10 @@ sealed interface LocalPlaylist {
     /** The video playlist [video] with the audio playlists [audios] (name to language) as renditions */
     data class Master(val video: String, val audios: List<Pair<String, String>>, val bandwidth: Long) : LocalPlaylist
 }
+
+/** Whether [url] is one of the local route's: downloaded files the proxy serves during a cast only. */
+fun isLocalMediaUrl(url: String): Boolean =
+    url.toHttpUrlOrNull()?.encodedPath?.startsWith(LocalMediaRoute.PATH_PREFIX) == true
 
 /** Opens a downloaded file for reading, null when it can't be. */
 fun interface LocalFileOpener {

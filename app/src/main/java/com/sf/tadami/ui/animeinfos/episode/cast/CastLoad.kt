@@ -30,6 +30,8 @@ private val castJson = Json
  * handshake) and routes its media requests through the phone proxy itself, at the network layer —
  * the payload stays format-agnostic and identical for both receivers (the native Terebi receiver
  * plays the raw `selectedSource` with its own header injection and ignores `proxyBaseUrl`).
+ * [contentUrl] is the URL of the whole media, the selected source's unless a downloaded episode's
+ * master playlist has its separate audio (LocalCast).
  */
 fun buildCastLoadRequest(
     episode: Episode,
@@ -46,6 +48,7 @@ fun buildCastLoadRequest(
     resumeTimeMs: Long,
     proxyBaseUrl: String? = null,
     subtitleStyle: CastSubtitleStyle? = null,
+    contentUrl: String = selectedSource.url,
 ): MediaLoadRequestData {
     val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
     movieMetadata.putString(MediaMetadata.KEY_TITLE, anime?.title ?: "Anime Title")
@@ -87,7 +90,6 @@ fun buildCastLoadRequest(
     // switch) would render with the receiver's defaults instead of the user's preferences.
     subtitleStyle?.let { customData.put("subtitleStyle", castJson.encodeToString(it)) }
 
-    val contentUrl = selectedSource.url
     val mediaInfosBuilder = MediaInfo.Builder(contentUrl)
         .setContentUrl(contentUrl)
         .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)

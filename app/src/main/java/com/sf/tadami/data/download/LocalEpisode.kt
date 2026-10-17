@@ -56,6 +56,6 @@ class LocalEpisode(
     }
 }
 
-/** A downloaded file, not a URL to fetch: casting needs the online streams instead. */
+/** A downloaded file, not a URL to fetch: a cast gets it through the cast proxy, or the online streams. */
 val StreamSource.isLocalFile: Boolean
     get() = url.startsWith("content://") || url.startsWith("file://") || url.startsWith("/")

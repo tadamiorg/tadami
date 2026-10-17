@@ -375,7 +375,7 @@ class PlayerViewModel(
 
     /**
      * The streams of the source instead of the downloaded files, for the current episode: the cast
-     * receiver can't read the phone's files.
+     * receiver can't play the files the phone would serve (LocalCast).
      */
     fun fetchOnlineSources() {
         val episode = currentEpisode.value ?: return
@@ -417,8 +417,15 @@ class PlayerViewModel(
                 localEpisodeJob = viewModelScope.launch(Dispatchers.IO) {
                     val local = downloadManager.getLocalEpisode(episode)
                         ?.toStreamSource(Injekt.get<Application>().getString(R.string.episode_downloaded))
-                        ?: return@launch
-                    if (currentEpisode.value?.id == episode.id) playLocal(local)
+                    if (currentEpisode.value?.id != episode.id) return@launch
+                    when {
+                        local != null -> playLocal(local)
+                        // Files the phone served for the cast, deleted since: the source's streams
+                        CastFallback.needsOnlineStream(_uiState.value.selectedSource) -> {
+                            _isFetchingSources.update { true }
+                            fetchOnlineSources(episode)
+                        }
+                    }
                 }
             }
         }

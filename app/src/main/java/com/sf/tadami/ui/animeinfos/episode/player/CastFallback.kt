@@ -2,10 +2,11 @@ package com.sf.tadami.ui.animeinfos.episode.player
 
 import com.sf.tadami.data.download.isLocalFile
 import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.ui.animeinfos.episode.cast.proxy.isLocalMediaUrl
 
 /**
- * A downloaded episode is cast from its source's streams (the TV can't read the phone's files).
- * Once the cast ends, the local player goes back to the downloaded files.
+ * A downloaded episode is cast from the phone (LocalCast), else from its source's streams. Once the
+ * cast ends, the local player goes back to the downloaded files.
  */
 object CastFallback {
 
@@ -41,4 +42,11 @@ object CastFallback {
         val files = listOf(kept.url) + kept.audioTracks.map { it.url } + kept.subtitleTracks.map { it.url }
         return files.all(exists)
     }
+
+    /**
+     * The episode has no downloaded files after the cast ([AfterCast.Lookup]): whether [selected], the
+     * stream the cast played, is fetched from the source again. Downloaded files the phone served stop
+     * with the cast (deleted during it); a stream of the source goes on.
+     */
+    fun needsOnlineStream(selected: StreamSource?): Boolean = selected != null && isLocalMediaUrl(selected.url)
 }

@@ -48,4 +48,15 @@ class CastFallbackTest {
         assertFalse(CastFallback.canRestore(withTracks, exists = (all - "$dir.audio.Japanese.ts")::contains))
         assertFalse(CastFallback.canRestore(withTracks, exists = (all - "$dir.sub.French.vtt")::contains))
     }
+
+    @Test
+    fun filesThePhoneServedAreReplacedByTheSourceOnceGone() {
+        // Cast from the phone, found running when the player opened or switched to from the TV
+        val served = StreamSource(url = "http://192.168.1.18:8214/local-0123abcd-video.m3u8", fullName = "Kwik - 720p")
+        assertTrue(CastFallback.needsOnlineStream(served))
+        // A stream of the source goes on
+        assertFalse(CastFallback.needsOnlineStream(online))
+        assertFalse(CastFallback.needsOnlineStream(StreamSource(url = "http://192.168.1.18:8214/proxy?url=x")))
+        assertFalse(CastFallback.needsOnlineStream(null))
+    }
 }

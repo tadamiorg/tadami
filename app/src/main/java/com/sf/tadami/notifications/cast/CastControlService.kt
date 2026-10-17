@@ -32,6 +32,7 @@ import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.ui.animeinfos.episode.cast.CastProtocol
 import com.sf.tadami.ui.animeinfos.episode.cast.CastRemoteState
 import com.sf.tadami.ui.animeinfos.episode.cast.CastSessionState
+import com.sf.tadami.ui.animeinfos.episode.cast.LocalCast
 import com.sf.tadami.ui.animeinfos.episode.cast.buildCastLoadRequest
 import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ControlChannel
@@ -295,27 +296,36 @@ class CastControlService : Service() {
         val resume = if (fresh.seen) 0L else fresh.timeSeen
         val subtitlePrefs = playerPrefs.subtitlePrefLanguages.split(",").filter { it.isNotBlank() }
         val source = sourcesManager.getOrStub(anime.source)
+        fun request(selected: StreamSource, sources: List<StreamSource>, contentUrl: String = selected.url) =
+            buildCastLoadRequest(
+                episode = fresh,
+                anime = anime,
+                availableSources = sources,
+                selectedSource = selected,
+                episodeUrl = fresh.url,
+                episodes = episodes,
+                displayMode = displayMode,
+                themeJson = themeJson,
+                userAgent = userAgent,
+                subtitlePrefLanguages = subtitlePrefs,
+                subtitlesEnabled = playerPrefs.subtitlesEnabled,
+                resumeTimeMs = resume,
+                proxyBaseUrl = proxyServer.baseUrl(),
+                subtitleStyle = playerPrefs.toCastSubtitleStyle(),
+                contentUrl = contentUrl,
+            )
 
         fetchDisposable?.dispose()
+        // A downloaded episode is served by the phone, when the receiver can play its files
+        val local = LocalCast.resolve(applicationContext, fresh, proxyServer)
+        if (local != null) {
+            remoteMediaClient?.load(request(local.source, listOf(local.source), local.contentUrl))
+            return
+        }
         fetchDisposable = source.fetchGuarded { fetchEpisodeSources(fresh.url) }.subscribe(
             { sources: List<StreamSource> ->
                 val selected = sources.firstOrNull() ?: return@subscribe
-                val request = buildCastLoadRequest(
-                    episode = fresh,
-                    anime = anime,
-                    availableSources = sources,
-                    selectedSource = selected,
-                    episodeUrl = fresh.url,
-                    episodes = episodes,
-                    displayMode = displayMode,
-                    themeJson = themeJson,
-                    userAgent = userAgent,
-                    subtitlePrefLanguages = subtitlePrefs,
-                    subtitlesEnabled = playerPrefs.subtitlesEnabled,
-                    resumeTimeMs = resume,
-                    proxyBaseUrl = proxyServer.baseUrl(),
-                    subtitleStyle = playerPrefs.toCastSubtitleStyle(),
-                )
+                val request = request(selected, sources)
                 scope.launch { remoteMediaClient?.load(request) }
             },
             { /* fetch error: leave current playback as-is */ },

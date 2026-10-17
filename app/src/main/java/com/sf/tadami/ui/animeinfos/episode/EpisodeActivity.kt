@@ -69,6 +69,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionErrorDialog
 import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionState
 import com.sf.tadami.ui.animeinfos.episode.cast.CastSessionState
 import com.sf.tadami.ui.animeinfos.episode.cast.CastWebReceiverNoticeDialog
+import com.sf.tadami.ui.animeinfos.episode.cast.LocalCast
 import com.sf.tadami.ui.animeinfos.episode.cast.activeCastSubtitleTrackId
 import com.sf.tadami.ui.animeinfos.episode.cast.buildCastLoadRequest
 import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
@@ -106,9 +107,11 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import uy.kohesive.injekt.Injekt
@@ -122,6 +125,7 @@ class EpisodeActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "EpisodeActivity"
+        private const val PROXY_START_WAIT_MS = 3_000L
     }
 
     private val json: Json = Json
@@ -135,6 +139,8 @@ class EpisodeActivity : AppCompatActivity() {
     private var selectedSource: StreamSource? = null
     // "episodeId:sourceFullName" of the media we last requested a cast load for — used to skip redundant loads.
     private var pendingCastLoadKey: String? = null
+    // Episode id and local player position of a cast that left the downloaded files for the source's streams
+    private var onlineCastResume: Pair<Long, Long>? = null
     private var selectedTextTrack: Track.SubtitleTrack? = null
     private var episodeUrl: String? = null
     private var anime: Anime? = null
@@ -533,7 +539,6 @@ class EpisodeActivity : AppCompatActivity() {
     }
 
     /** [localResumeTimeMs] overrides the saved time, for a cast started while the local player is mid-episode. */
-    @SuppressLint("VisibleForTests")
     private fun loadRemoteMedia(localResumeTimeMs: Long? = null) {
         // Use the ViewModel's current episode (the source of truth that drove the switch), not the
         // Activity mirror field which can be stale on a swap — otherwise the receiver gets the new
@@ -545,13 +550,50 @@ class EpisodeActivity : AppCompatActivity() {
         if (castSession == null || selectedSource == null || episode == null) {
             return
         }
-        // The TV can't read the phone's files: cast the source's streams, this runs again once fetched
-        if (selectedSource!!.isLocalFile) {
-            playerViewModel.fetchOnlineSources()
+        val selected = selectedSource!!
+        if (selected.isLocalFile) {
+            castLocalFiles(episode, anime, selected, localResumeTimeMs)
             return
         }
+        // Where the local player was when the cast left its files for the source's streams
+        val resumeTimeMs = localResumeTimeMs ?: onlineCastResume?.takeIf { it.first == episode.id }?.second
+        onlineCastResume = null
+        loadCastMedia(episode, anime, selected, availableSources ?: listOf(selected), selected.url, resumeTimeMs)
+    }
 
-        val remoteMediaClient = castSession!!.remoteMediaClient ?: return
+    /**
+     * Casts the downloaded files [local] of [episode] from the phone (the cast proxy serves them), else
+     * the source's streams, from [localResumeTimeMs]: loadRemoteMedia runs again once they are fetched.
+     */
+    private fun castLocalFiles(episode: Episode, anime: Anime?, local: StreamSource, localResumeTimeMs: Long?) {
+        lifecycleScope.launch {
+            // The cast service starts the proxy as the cast starts
+            withTimeoutOrNull(PROXY_START_WAIT_MS) { CastSessionState.proxyBaseUrl.first { it != null } }
+            val media = LocalCast.resolve(applicationContext, episode, CastProxyHolder.server)
+            // Moved on meanwhile: another episode or stream, or the cast ended
+            if (castSession == null || selectedSource != local || playerViewModel.currentEpisode.value?.id != episode.id) {
+                return@launch
+            }
+            if (media == null) {
+                onlineCastResume = localResumeTimeMs?.let { episode.id to it }
+                playerViewModel.fetchOnlineSources()
+            } else {
+                loadCastMedia(episode, anime, media.source, listOf(media.source), media.contentUrl, localResumeTimeMs)
+            }
+        }
+    }
+
+    /** Loads [source] of [episode] on the receiver, from [resumeTimeMs] or else the saved time. */
+    @SuppressLint("VisibleForTests")
+    private fun loadCastMedia(
+        episode: Episode,
+        anime: Anime?,
+        source: StreamSource,
+        sources: List<StreamSource>,
+        contentUrl: String,
+        resumeTimeMs: Long?,
+    ) {
+        val remoteMediaClient = castSession?.remoteMediaClient ?: return
 
         // Don't reload if the receiver is ALREADY playing this exact episode+source — e.g. re-opening the
         // currently-casting episode from the phone, or a redundant connect callback. (Compares the live cast
@@ -562,7 +604,7 @@ class EpisodeActivity : AppCompatActivity() {
             val loadedSource = runCatching {
                 json.decodeFromString<StreamSource>(liveCustomData.get("selectedSource") as String)
             }.getOrNull()
-            if (loadedEpisodeId == episode.id.toInt() && loadedSource?.fullName == selectedSource?.fullName) {
+            if (loadedEpisodeId == episode.id.toInt() && loadedSource?.fullName == source.fullName) {
                 return
             }
         }
@@ -570,14 +612,13 @@ class EpisodeActivity : AppCompatActivity() {
         // In-flight guard for the fresh-connect storm: onApplicationConnected + the uiState collector both call
         // this while the receiver hasn't broadcast its mediaInfo yet, so each would stopCastEpisode()+load() and
         // the trailing STOPs kill the just-started media. Skip a load we already requested for the same media.
-        val loadKey = "${episode.id}:${selectedSource?.fullName}"
+        val loadKey = "${episode.id}:${source.fullName}"
         if (loadKey == pendingCastLoadKey) {
             return
         }
         pendingCastLoadKey = loadKey
 
         val userAgent = runBlocking { dataStore.getPreferencesGroup(AdvancedPreferences) }.userAgent
-        val sources = availableSources ?: listOfNotNull(selectedSource)
 
         // The proxy is stateless (the receiver carries each source's headers with its requests);
         // it is only needed here for its base url. It can be briefly absent on a cold start
@@ -613,7 +654,7 @@ class EpisodeActivity : AppCompatActivity() {
                     episode = episode,
                     anime = anime,
                     availableSources = sources,
-                    selectedSource = selectedSource!!,
+                    selectedSource = source,
                     episodeUrl = episodeUrl,
                     episodes = playerViewModel.episodes.value,
                     displayMode = if (anime?.displayMode is Anime.DisplayMode.NAME) "NAME" else "NUMBER",
@@ -622,9 +663,10 @@ class EpisodeActivity : AppCompatActivity() {
                     subtitlePrefLanguages = playerPreferences?.subtitlePrefLanguages
                         ?.split(",")?.filter { it.isNotBlank() } ?: emptyList(),
                     subtitlesEnabled = playerPreferences?.subtitlesEnabled ?: true,
-                    resumeTimeMs = localResumeTimeMs ?: time,
+                    resumeTimeMs = resumeTimeMs ?: time,
                     proxyBaseUrl = proxy?.baseUrl(),
                     subtitleStyle = playerPreferences?.toCastSubtitleStyle(),
+                    contentUrl = contentUrl,
                 )
                 // Mirror the auto-selected subtitle (or none, subtitles off) into the phone player state.
                 playerViewModel.selectedSubtitleTrack(
