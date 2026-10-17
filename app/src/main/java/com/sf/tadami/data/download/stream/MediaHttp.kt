@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Headers
@@ -53,12 +54,17 @@ class MediaHttp(
             try {
                 awaitCancellation()
             } finally {
-                // A blocked socket read only ends this way
-                response.close()
+                // A blocked socket read only ends this way. Closing it during the read may throw:
+                // that is not the read's failure
+                runCatching { response.close() }
             }
         }
         try {
             withContext(Dispatchers.IO) { block(response) }
+        } catch (e: Exception) {
+            // Closed by the canceller: the read fails with "closed", but it is a cancellation
+            ensureActive()
+            throw e
         } finally {
             canceller.cancel()
         }

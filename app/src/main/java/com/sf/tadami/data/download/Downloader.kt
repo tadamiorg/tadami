@@ -35,6 +35,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -251,11 +254,12 @@ class Downloader(
             resumeStore.delete(download.episode.id)
             download.progress = 100
             download.status = Download.State.DOWNLOADED
-        } catch (e: CancellationException) {
-            // Paused or stopped: still queued, unless removed
-            if (download.status == Download.State.DOWNLOADING) download.status = Download.State.QUEUED
-            throw e
         } catch (e: Exception) {
+            // Paused or stopped, the failure coming from the stop: still queued, unless removed
+            if (e is CancellationException || !currentCoroutineContext().isActive) {
+                if (download.status == Download.State.DOWNLOADING) download.status = Download.State.QUEUED
+                throw e as? CancellationException ?: CancellationException("Stopped").apply { initCause(e) }
+            }
             logcat(LogPriority.WARN, e) { "Couldn't download ${download.anime.title} - ${download.episode.name}" }
             download.error = errorMessage(e)
             download.status = Download.State.ERROR
@@ -317,6 +321,8 @@ class Downloader(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                // Failed because it was stopped: keep the stream and its progress
+                currentCoroutineContext().ensureActive()
                 when (StreamFallback.classify(e, context.isOnline())) {
                     FailureAction.WAIT_FOR_NETWORK -> throw e as? NetworkLostException ?: NetworkLostException(e)
                     FailureAction.STOP -> throw e

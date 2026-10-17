@@ -1,6 +1,11 @@
 package com.sf.tadami.data.download.stream
 
 import com.sf.tadami.network.HttpException
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
@@ -12,6 +17,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 class MediaHttpTest {
 
@@ -63,5 +69,28 @@ class MediaHttpTest {
         assertEquals("bytes=100-", request.headers["Range"])
         // Offsets are about the raw bytes
         assertTrue(request.headers["Accept-Encoding"] == "identity")
+    }
+
+    @Test
+    fun aReadStoppedByACancellationEndsAsACancellation() = runBlocking {
+        // A pause cancels a read blocked on a slow host: it must not look like a failed stream
+        server.enqueue(
+            MockResponse.Builder()
+                .body("x".repeat(64 * 1024))
+                .throttleBody(1024, 1, TimeUnit.SECONDS)
+                .build(),
+        )
+        var thrown: Throwable? = null
+        val job = launch(Dispatchers.IO) {
+            try {
+                http.bytes(server.url("/slow.mp4").toString(), null)
+            } catch (e: Throwable) {
+                thrown = e
+            }
+        }
+        delay(500)
+        job.cancelAndJoin()
+
+        assertTrue("Got $thrown", thrown is CancellationException)
     }
 }
