@@ -451,5 +451,17 @@
     <string name="episode_download_progress">Téléchargement : %1$d%%</string>
     <string name="episode_downloaded">Téléchargé</string>
     <string name="episode_download_error">Échec du téléchargement</string>
+    <string name="label_download_queue">File de téléchargement</string>
+    <string name="download_queue_empty">Aucun téléchargement en attente</string>
+    <string name="download_queue_cancel_all">Tout annuler</string>
+    <string name="download_queue_clear_errors">Retirer les téléchargements échoués</string>
+    <string name="download_queue_waiting_wifi">En attente d\'une connexion Wi-Fi</string>
+    <string name="download_queue_waiting_network">En attente d\'une connexion réseau</string>
+    <string name="download_queue_waiting">En attente</string>
+    <string name="download_queue_progress">%1$d %%</string>
+    <string name="download_queue_progress_segments">%1$d %% · %2$d/%3$d segments</string>
+    <string name="download_queue_progress_size">%1$d %% de %2$s</string>
+    <string name="download_queue_move_to_top">Placer en premier</string>
+    <string name="download_queue_move_to_bottom">Placer en dernier</string>
 
 </resources>

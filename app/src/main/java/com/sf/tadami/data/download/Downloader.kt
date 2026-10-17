@@ -171,6 +171,7 @@ class Downloader(
         downloads.filter { it.status == Download.State.ERROR }.forEach {
             it.error = null
             it.progress = 0
+            it.videoProgress = null
             it.status = Download.State.QUEUED
         }
         wake.trySend(Unit)
@@ -304,6 +305,7 @@ class Downloader(
                     episodeDirName = download.dirName,
                     resume = resume.files,
                     onFileProgress = { role, file ->
+                        if (role == StreamDownloader.VIDEO) download.videoProgress = file
                         resume = resume.copy(files = resume.files + (role to file))
                         resumeStore.save(episodeId, resume)
                     },
@@ -325,6 +327,7 @@ class Downloader(
                         resumeStore.save(episodeId, resume)
                         clearDir(tmpDir)
                         download.progress = 0
+                        download.videoProgress = null
                     }
                 }
             }

@@ -18,7 +18,10 @@ import com.sf.tadami.utils.logcat
 import com.sf.tadami.utils.workManager
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import logcat.LogPriority
@@ -105,6 +108,13 @@ class DownloadWorker(
 
         fun stop(context: Context) {
             context.workManager.cancelUniqueWork(WORK_NAME)
+        }
+
+        /** Whether the work runs or waits for its network, each time it changes. */
+        fun isScheduledFlow(context: Context): Flow<Boolean> {
+            return context.workManager.getWorkInfosForUniqueWorkFlow(WORK_NAME)
+                .map { infos -> infos.any { it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING } }
+                .distinctUntilChanged()
         }
 
         /** Running, or waiting for its network. Blocks: not on the main thread. */

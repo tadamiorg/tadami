@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.ui.tabs.more.MoreScreen
+import com.sf.tadami.ui.tabs.more.downloads.DownloadQueueScreen
 import com.sf.tadami.ui.tabs.more.settings.SettingsScreen
 
 fun NavGraphBuilder.moreNavGraph(
@@ -25,9 +26,17 @@ fun NavGraphBuilder.moreNavGraph(
             navController = navController
         )
     }
+    composable(
+        route = MORE_ROUTES.DOWNLOAD_QUEUE,
+    ) {
+        DownloadQueueScreen(
+            navController = navController
+        )
+    }
 }
 
 object MORE_ROUTES {
     const val SETTINGS = "settings"
+    const val DOWNLOAD_QUEUE = "download_queue"
 }
 

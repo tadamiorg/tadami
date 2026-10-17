@@ -1,5 +1,6 @@
 package com.sf.tadami.data.download.model
 
+import com.sf.tadami.data.download.FileProgress
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.source.Source
@@ -39,6 +40,10 @@ class Download(
         set(value) {
             _progressFlow.value = value
         }
+
+    /** The video file's progress: its full size, or its segments for HLS. Null until known. */
+    @Volatile
+    var videoProgress: FileProgress? = null
 
     /** Why the download failed, shown to the user */
     @Volatile

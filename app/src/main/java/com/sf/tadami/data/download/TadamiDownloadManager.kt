@@ -71,6 +71,9 @@ class TadamiDownloadManager(
     val isRunning: StateFlow<Boolean>
         get() = downloader.isRunning
 
+    /** Whether the queue runs or waits for its network: false once paused. */
+    fun isScheduledFlow(): Flow<Boolean> = DownloadWorker.isScheduledFlow(context)
+
     /** Changes each time the set of downloaded episodes does */
     val cacheChanges: StateFlow<Long>
         get() = cache.changes

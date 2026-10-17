@@ -116,7 +116,9 @@ class DownloadNotifier(private val context: Context) {
 
     private fun mainActivityIntent(): PendingIntent {
         val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            action = MainActivity.ACTION_OPEN_DOWNLOADS
+            // Single top: the running activity gets the intent instead of being recreated
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }

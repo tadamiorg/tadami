@@ -4,6 +4,7 @@ import android.app.Activity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.HorizontalDivider
@@ -75,6 +76,15 @@ fun MoreScreen(
             }
             item { HorizontalDivider() }
 
+            item {
+                TextPreference(
+                    title = stringResource(R.string.label_download_queue),
+                    icon = Icons.Outlined.Download,
+                    onPreferenceClick = {
+                        navHostController.navigate(MORE_ROUTES.DOWNLOAD_QUEUE)
+                    },
+                )
+            }
             item {
                 TextPreference(
                     title = stringResource(R.string.label_settings),

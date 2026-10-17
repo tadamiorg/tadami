@@ -34,6 +34,7 @@ import com.sf.tadami.extension.api.ExtensionsApi
 import com.sf.tadami.extension.util.ExtensionsGuard
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
+import com.sf.tadami.navigation.graphs.more.MORE_ROUTES
 import com.sf.tadami.navigation.graphs.onboarding.OnboardingRoutes
 import com.sf.tadami.navigation.graphs.settings.DataSettingsRoutes
 import com.sf.tadami.notifications.cast.CastControlService
@@ -80,6 +81,7 @@ class MainActivity : AppCompatActivity() {
     private val sourcesManager: SourceManager by lazy { Injekt.get() }
     private val openExtensionsRequests = Channel<Unit>(Channel.CONFLATED)
     private val openBackupSettingsRequests = Channel<Unit>(Channel.CONFLATED)
+    private val openDownloadsRequests = Channel<Unit>(Channel.CONFLATED)
 
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -128,6 +130,9 @@ class MainActivity : AppCompatActivity() {
         }
         if (isLaunch && intent?.action == ACTION_OPEN_BACKUP_SETTINGS) {
             openBackupSettingsRequests.trySend(Unit)
+        }
+        if (isLaunch && intent?.action == ACTION_OPEN_DOWNLOADS) {
+            openDownloadsRequests.trySend(Unit)
         }
 
         castContext = castContextOrNull(this)
@@ -209,6 +214,14 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+            LaunchedEffect(navController) {
+                for (request in openDownloadsRequests) {
+                    if (!basePreferences.onboardingComplete) continue
+                    navController.navigate(MORE_ROUTES.DOWNLOAD_QUEUE) {
+                        launchSingleTop = true
+                    }
+                }
+            }
         }
 
         val startTime = System.currentTimeMillis()
@@ -225,6 +238,9 @@ class MainActivity : AppCompatActivity() {
         }
         if (intent.action == ACTION_OPEN_BACKUP_SETTINGS) {
             openBackupSettingsRequests.trySend(Unit)
+        }
+        if (intent.action == ACTION_OPEN_DOWNLOADS) {
+            openDownloadsRequests.trySend(Unit)
         }
     }
 
@@ -328,5 +344,8 @@ class MainActivity : AppCompatActivity() {
 
         /** Opens the backup settings, from the automatic backup error notification. */
         const val ACTION_OPEN_BACKUP_SETTINGS = "com.sf.tadami.BACKUP_SETTINGS"
+
+        /** Opens the download queue, from the download notifications. */
+        const val ACTION_OPEN_DOWNLOADS = "com.sf.tadami.DOWNLOADS"
     }
 }

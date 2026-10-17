@@ -442,5 +442,17 @@
     <string name="episode_download_progress">Downloading: %1$d%%</string>
     <string name="episode_downloaded">Downloaded</string>
     <string name="episode_download_error">Download failed</string>
+    <string name="label_download_queue">Download queue</string>
+    <string name="download_queue_empty">No downloads in the queue</string>
+    <string name="download_queue_cancel_all">Cancel all</string>
+    <string name="download_queue_clear_errors">Remove the failed downloads</string>
+    <string name="download_queue_waiting_wifi">Waiting for a Wi-Fi connection</string>
+    <string name="download_queue_waiting_network">Waiting for a network connection</string>
+    <string name="download_queue_waiting">Waiting</string>
+    <string name="download_queue_progress">%1$d%%</string>
+    <string name="download_queue_progress_segments">%1$d%% · %2$d/%3$d segments</string>
+    <string name="download_queue_progress_size">%1$d%% of %2$s</string>
+    <string name="download_queue_move_to_top">Move to the top</string>
+    <string name="download_queue_move_to_bottom">Move to the bottom</string>
 
 </resources>
