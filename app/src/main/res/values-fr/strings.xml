@@ -463,5 +463,16 @@
     <string name="download_queue_progress_size">%1$d %% de %2$s</string>
     <string name="download_queue_move_to_top">Placer en premier</string>
     <string name="download_queue_move_to_bottom">Placer en dernier</string>
+    <plurals name="download_next_unseen">
+        <item quantity="one">Prochain épisode non vu</item>
+        <item quantity="many">%1$d prochains épisodes non vus</item>
+        <item quantity="other">%1$d prochains épisodes non vus</item>
+    </plurals>
+    <string name="download_unseen">Épisodes non vus</string>
+    <string name="download_all">Tous les épisodes</string>
+    <string name="download_delete_all">Supprimer tous les téléchargements</string>
+    <string name="download_delete_all_confirm_title">Supprimer les téléchargements ?</string>
+    <string name="download_delete_all_confirm_text">Tous les épisodes téléchargés de %1$s seront supprimés, et ses téléchargements en attente annulés.</string>
+    <string name="episodes_download_delete">Supprimer les téléchargements</string>
 
 </resources>

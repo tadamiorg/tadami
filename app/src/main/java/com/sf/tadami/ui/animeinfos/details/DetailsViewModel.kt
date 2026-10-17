@@ -10,7 +10,9 @@ import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.extension.util.fetchGuarded
+import com.sf.tadami.ui.animeinfos.details.episodes.DetailsDownloadAction
 import com.sf.tadami.ui.animeinfos.details.episodes.EpisodeDownloadAction
+import com.sf.tadami.ui.animeinfos.details.episodes.episodesToDownload
 import com.sf.tadami.ui.components.data.EpisodeItem
 import com.sf.tadami.ui.discover.migrate.MigrateHelperState
 import com.sf.tadami.ui.tabs.browse.SourceManager
@@ -198,6 +200,31 @@ class DetailsViewModel(
             EpisodeDownloadAction.DELETE -> downloadManager.deleteEpisodes(anime, listOf(episode))
             EpisodeDownloadAction.RETRY -> download?.let { downloadManager.retryDownloads(listOf(it)) }
         }
+    }
+
+    fun runDownloadAction(action: DetailsDownloadAction) {
+        val anime = uiState.value.details ?: return
+        downloadManager.downloadEpisodes(anime, uiState.value.episodes.episodesToDownload(action, anime.unseenFilterRaw))
+    }
+
+    /** Deletes every download of the anime, after the user confirmed. */
+    fun deleteAllDownloads() {
+        val anime = uiState.value.details ?: return
+        downloadManager.deleteAnime(anime)
+    }
+
+    fun downloadSelected() {
+        val anime = uiState.value.details ?: return
+        // In watch order: the list shows the newest first
+        val episodes = uiState.value.episodes.filter { it.selected }.asReversed().map { it.episode }
+        downloadManager.downloadEpisodes(anime, episodes)
+        toggleAllSelectedEpisodes(false)
+    }
+
+    fun deleteSelectedDownloads() {
+        val anime = uiState.value.details ?: return
+        downloadManager.deleteEpisodes(anime, uiState.value.episodes.filter { it.selected }.map { it.episode })
+        toggleAllSelectedEpisodes(false)
     }
 
     private fun List<EpisodeItem>.withDownloadStates(anime: Anime): List<EpisodeItem> {

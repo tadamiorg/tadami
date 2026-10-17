@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -17,10 +18,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
+import com.sf.tadami.ui.animeinfos.details.episodes.DetailsDownloadAction
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.topappbar.ContextualTopAppBar
@@ -34,6 +37,9 @@ fun DetailsToolbar(
     onMigrateClicked : () -> Unit,
     episodesListState: LazyListState,
     migrationEnabled : Boolean = false,
+    onDownloadClicked : (DetailsDownloadAction) -> Unit,
+    onDeleteDownloadsClicked : () -> Unit,
+    hasDownloads : Boolean,
     // For Action Mode
     actionModeCounter: Int,
     onCloseClicked: () -> Unit,
@@ -67,6 +73,35 @@ fun DetailsToolbar(
         },
         actions = listOf(
             Action.CastButton(),
+            Action.DropDownVector(
+                title = R.string.download,
+                icon = Icons.Outlined.Download,
+                onClick = {},
+                items = listOf(
+                    DetailsDownloadAction.NEXT_1,
+                    DetailsDownloadAction.NEXT_5,
+                    DetailsDownloadAction.NEXT_10,
+                ).map { action ->
+                    DropDownAction(
+                        title = pluralStringResource(R.plurals.download_next_unseen, action.count!!, action.count),
+                        onClick = { onDownloadClicked(action) },
+                    )
+                } + listOf(
+                    DropDownAction(
+                        title = stringResource(id = R.string.download_unseen),
+                        onClick = { onDownloadClicked(DetailsDownloadAction.UNSEEN) },
+                    ),
+                    DropDownAction(
+                        title = stringResource(id = R.string.download_all),
+                        onClick = { onDownloadClicked(DetailsDownloadAction.ALL) },
+                    ),
+                    DropDownAction(
+                        title = stringResource(id = R.string.download_delete_all),
+                        onClick = onDeleteDownloadsClicked,
+                        enabled = hasDownloads,
+                    ),
+                )
+            ),
             Action.DropDownDrawable(
                 title = R.string.stub_text,
                 icon = R.drawable.ic_vertical_settings,

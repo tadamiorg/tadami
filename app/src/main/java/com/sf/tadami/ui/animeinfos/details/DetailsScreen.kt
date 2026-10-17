@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DoneAll
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.RemoveDone
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -35,6 +37,7 @@ import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
+import com.sf.tadami.data.download.model.Download
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
@@ -45,6 +48,9 @@ import com.sf.tadami.ui.animeinfos.details.episodes.filters.DisplayTab
 import com.sf.tadami.ui.animeinfos.details.episodes.filters.FilterTab
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
+import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
+import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
+import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 import com.sf.tadami.ui.components.dialog.sheets.TabContent
 import com.sf.tadami.ui.components.dialog.sheets.TabbedBottomSheet
 import com.sf.tadami.ui.components.filters.TadaBottomSheetScaffold
@@ -77,6 +83,8 @@ fun DetailsScreen(
     var isMigrationOpened by rememberSaveable {
         mutableStateOf(false)
     }
+
+    var showDeleteDownloadsDialog by rememberSaveable { mutableStateOf(false) }
 
     val scaffoldInsets =  WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
 
@@ -131,7 +139,10 @@ fun DetailsScreen(
                     migrationEnabled = uiState.details?.favorite == true && uiState.details?.id != null && migrateHelperState.oldAnime == null,
                     onMigrateClicked = {
                         navHostController.navigate("${MigrateRoutes.MIGRATE}/${uiState.details!!.id}")
-                    }
+                    },
+                    onDownloadClicked = detailsViewModel::runDownloadAction,
+                    onDeleteDownloadsClicked = { showDeleteDownloadsDialog = true },
+                    hasDownloads = uiState.episodes.fastAny { it.download.state != Download.State.NOT_DOWNLOADED }
                 )
             },
             floatingActionButton = {
@@ -192,6 +203,26 @@ fun DetailsScreen(
                                 detailsViewModel.setSeenStatusDown()
                             },
                             enabled = uiState.episodes.count { it.selected } == 1
+                        ),
+                        Action.Vector(
+                            title = R.string.download,
+                            icon = Icons.Outlined.Download,
+                            onClick = {
+                                detailsViewModel.downloadSelected()
+                            },
+                            enabled = uiState.episodes.fastAny {
+                                it.selected && it.download.state == Download.State.NOT_DOWNLOADED
+                            }
+                        ),
+                        Action.Vector(
+                            title = R.string.episodes_download_delete,
+                            icon = Icons.Outlined.Delete,
+                            onClick = {
+                                detailsViewModel.deleteSelectedDownloads()
+                            },
+                            enabled = uiState.episodes.fastAny {
+                                it.selected && it.download.state != Download.State.NOT_DOWNLOADED
+                            }
                         )
                     )
                 )
@@ -250,6 +281,22 @@ fun DetailsScreen(
                     // Encoded so a '&', '#' or '%' in the title can't break the route, navigation decodes it
                     navHostController.navigate("${DiscoverRoutes.GLOBAL_SEARCH}?initialQuery=${Uri.encode(query)}")
                 }
+            )
+        }
+        if (showDeleteDownloadsDialog) {
+            CustomAlertDialog(
+                onDismissRequest = { showDeleteDownloadsDialog = false },
+                title = { Text(text = stringResource(R.string.download_delete_all_confirm_title)) },
+                text = {
+                    Text(text = stringResource(R.string.download_delete_all_confirm_text, uiState.details?.title.orEmpty()))
+                },
+                dismissButton = { DefaultDialogCancelButton() },
+                confirmButton = {
+                    DefaultDialogConfirmButton(text = R.string.action_delete) {
+                        detailsViewModel.deleteAllDownloads()
+                        showDeleteDownloadsDialog = false
+                    }
+                },
             )
         }
         MigrateDialog(
