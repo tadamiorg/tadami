@@ -86,8 +86,9 @@ data class ResumeData(
 )
 
 /**
- * Progress of one file. Progressive: [bytes] is unused (the file length tells), [total] is the full
- * length. HLS: [segments] segments were written in order, [bytes] long, out of [total] segments.
+ * Progress of one file. Progressive: [bytes] written so far, every 2 MiB, only shown (a resume
+ * reads the file length), [total] is the full length. HLS: [segments] segments were written in
+ * order, [bytes] long, out of [total] segments.
  */
 @Serializable
 data class FileProgress(

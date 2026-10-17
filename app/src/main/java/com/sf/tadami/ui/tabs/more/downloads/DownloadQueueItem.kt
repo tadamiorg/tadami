@@ -116,6 +116,7 @@ private fun statusText(download: Download, status: Download.State, progress: Int
                 !video.hls && video.total > 0 -> stringResource(
                     R.string.download_queue_progress_size,
                     progress,
+                    Formatter.formatShortFileSize(LocalContext.current, video.bytes),
                     Formatter.formatShortFileSize(LocalContext.current, video.total),
                 )
                 else -> stringResource(R.string.download_queue_progress, progress)

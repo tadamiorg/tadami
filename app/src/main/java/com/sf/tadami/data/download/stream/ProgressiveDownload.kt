@@ -119,17 +119,27 @@ class ProgressiveDownload(private val context: Context, private val http: MediaH
             onFileProgress(FileProgress(name = file.name.orEmpty(), hls = false, total = total))
         }
         val target = file ?: throw StartOverException()
+        val fileProgress = { bytes: Long ->
+            onFileProgress(FileProgress(name = target.name.orEmpty(), hls = false, bytes = bytes, total = total))
+        }
+        if (position > 0) fileProgress(position)
 
         DownloadOutput.openAt(context, target, position).use { output ->
             val source = response.body.source()
             val buffer = ByteArray(BUFFER_SIZE)
             var written = position
             var reported = -1
+            var savedBytes = position
             while (true) {
                 val read = source.read(buffer)
                 if (read == -1) break
                 DownloadOutput.write(output, buffer, 0, read)
                 written += read
+                // For the progress shown; a resume reads the file length
+                if (written - savedBytes >= PROGRESS_BYTES) {
+                    savedBytes = written
+                    fileProgress(written)
+                }
                 if (total > 0) {
                     val permille = (written * 1000 / total).toInt()
                     if (permille != reported) {
@@ -145,6 +155,7 @@ class ProgressiveDownload(private val context: Context, private val http: MediaH
     companion object {
         private const val BUFFER_SIZE = 64 * 1024
         private const val MAX_RESUMES = 5
+        private const val PROGRESS_BYTES = 2L * 1024 * 1024
 
         /** The full length in "bytes 100-999/1000", null when unknown ("*"). */
         fun contentRangeTotal(header: String?): Long? {
