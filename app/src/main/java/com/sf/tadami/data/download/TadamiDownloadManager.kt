@@ -151,6 +151,11 @@ class TadamiDownloadManager(
         downloader.reorder(downloads)
     }
 
+    /** [download] first in the queue, started at once: the lowest running download waits instead. */
+    fun moveToTop(download: Download) {
+        downloader.moveToTop(download)
+    }
+
     fun retryDownloads(downloads: List<Download>) {
         downloader.retry(downloads)
         startDownloads()

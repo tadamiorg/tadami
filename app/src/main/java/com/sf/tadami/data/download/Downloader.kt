@@ -92,6 +92,10 @@ class Downloader(
     private val lock = Any()
     private val restored = CompletableDeferred<Unit>()
 
+    /** The slots of the running queue, read by the runner before it starts downloads */
+    @Volatile
+    private var parallel = 1
+
     // In order, off the caller's thread
     private val persistDispatcher = Dispatchers.IO.limitedParallelism(1)
 
@@ -169,6 +173,22 @@ class Downloader(
         }
     }
 
+    /**
+     * [download] first in the queue. When it waits for a slot or for its source, the lowest running
+     * downloads stop where they are so it starts now: they stay queued, with their stream and their
+     * progress, and resume once a slot frees up.
+     */
+    fun moveToTop(download: Download) {
+        val preempted = synchronized(lock) {
+            setQueue(QueueOrder.toTop(_queueState.value, listOf(download)))
+            if (!_isRunning.value || download.status != Download.State.QUEUED) return
+            val running = activeJobs.filterValues { it.isActive }.keys
+            QueueOrder.toPreempt(_queueState.value, running, parallel, download) { it.source.id }
+        }
+        preempted.forEach { activeJobs[it]?.cancel() }
+        wake.trySend(Unit)
+    }
+
     /** Failed [downloads] back in the queue. */
     fun retry(downloads: List<Download>) {
         downloads.filter { it.status == Download.State.ERROR }.forEach {
@@ -206,7 +226,7 @@ class Downloader(
             val running = mutableMapOf<Download, Job>()
             while (true) {
                 running.entries.removeAll { !it.value.isActive }
-                val parallel = dataStore.getPreferencesGroup(DownloadPreferences).parallelDownloads
+                parallel = dataStore.getPreferencesGroup(DownloadPreferences).parallelDownloads
                 val done = synchronized(lock) {
                     val busySources = running.keys.mapTo(HashSet()) { it.source.id }
                     for (download in _queueState.value) {

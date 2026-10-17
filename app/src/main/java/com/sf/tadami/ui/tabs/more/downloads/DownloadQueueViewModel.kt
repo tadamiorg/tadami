@@ -72,9 +72,7 @@ class DownloadQueueViewModel : ViewModel() {
 
     fun retry(download: Download) = downloadManager.retryDownloads(listOf(download))
 
-    fun moveToTop(download: Download) {
-        downloadManager.reorderQueue(QueueOrder.toTop(downloadManager.queueState.value, listOf(download)))
-    }
+    fun moveToTop(download: Download) = downloadManager.moveToTop(download)
 
     fun moveToBottom(download: Download) {
         downloadManager.reorderQueue(QueueOrder.toBottom(downloadManager.queueState.value, listOf(download)))
