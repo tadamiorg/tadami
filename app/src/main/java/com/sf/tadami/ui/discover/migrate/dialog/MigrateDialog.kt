@@ -44,8 +44,8 @@ fun MigrateDialog(
     enableShowTitle : Boolean = true,
     migrateDialogViewModel: MigrateDialogViewModel = viewModel()
 ) {
-    val flags = remember { MigrationFlags.getFlags() }
-    val selectedFlags = remember { flags.map { it.isDefaultSelected }.toMutableStateList() }
+    val flags = remember(oldAnime) { MigrationFlags.getFlags(oldAnime?.let(migrateDialogViewModel::hasDownloads) == true) }
+    val selectedFlags = remember(flags) { flags.map { it.isDefaultSelected }.toMutableStateList() }
     val state by migrateDialogViewModel.state.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 

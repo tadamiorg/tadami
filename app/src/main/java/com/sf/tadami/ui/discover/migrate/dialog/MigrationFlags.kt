@@ -33,10 +33,13 @@ object MigrationFlags {
         return value and DELETE_DOWNLOADED != 0
     }
 
-    fun getFlags() : List<MigrationFlag>{
+    /** [hasDownloads]: the old anime has downloaded episodes, deleted on a move when chosen. */
+    fun getFlags(hasDownloads: Boolean) : List<MigrationFlag>{
         val flags = mutableListOf<MigrationFlag>()
         flags += MigrationFlag.create(EPISODES, true, R.string.label_episodes)
-        // flags += MigrationFlag.create(DELETE_DOWNLOADED, false, R.string.delete_downloaded)
+        if (hasDownloads) {
+            flags += MigrationFlag.create(DELETE_DOWNLOADED, false, R.string.migration_delete_downloaded)
+        }
         return flags
     }
 

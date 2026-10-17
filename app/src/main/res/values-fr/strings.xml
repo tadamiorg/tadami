@@ -474,6 +474,7 @@
     <string name="download_queue_progress_size">%1$d %% · %2$s sur %3$s</string>
     <string name="download_queue_move_to_top">Placer en premier</string>
     <string name="download_queue_move_to_bottom">Placer en dernier</string>
+    <string name="migration_delete_downloaded">Supprimer les épisodes téléchargés (si déplacé)</string>
     <plurals name="download_next_unseen">
         <item quantity="one">Prochain épisode non vu</item>
         <item quantity="many">%1$d prochains épisodes non vus</item>

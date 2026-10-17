@@ -3,6 +3,7 @@ package com.sf.tadami.ui.discover.migrate.dialog
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.sf.tadami.data.anime.AnimeRepository
+import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
@@ -28,6 +29,9 @@ class MigrateDialogViewModel : ViewModel() {
     private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
     private val episodeRepository: EpisodeRepository = Injekt.get()
     private val animeRepository: AnimeRepository = Injekt.get()
+    private val downloadManager: TadamiDownloadManager = Injekt.get()
+
+    fun hasDownloads(anime: Anime): Boolean = downloadManager.getDownloadCount(anime) > 0
 
     suspend fun migrateAnime(
         oldAnime: Anime,
@@ -111,13 +115,6 @@ class MigrateDialogViewModel : ViewModel() {
             episodeRepository.updateAll(episodeUpdates)
         }
 
-        /*// Delete downloaded
-        if (deleteDownloaded) {
-            if (oldSource != null) {
-                downloadManager.deleteAnime(oldAnime, oldSource)
-            }
-        }*/
-
         // The new entry first: stopped or failing halfway, the anime stays in the library
         val favorited = animeRepository.updateAnime(
             UpdateAnime(
@@ -131,6 +128,15 @@ class MigrateDialogViewModel : ViewModel() {
 
         if (replace) {
             animeRepository.updateAnime(UpdateAnime(oldAnime.id, favorite = false, dateAdded = 0))
+            // Not moved to the new entry: its episodes have other urls, so other folders
+            if (deleteDownloaded) {
+                // Its queued downloads too
+                downloadManager.deleteAnime(oldAnime)
+            } else {
+                downloadManager.cancelQueuedDownloads(
+                    downloadManager.queueState.value.filter { it.anime.id == oldAnime.id },
+                )
+            }
         }
     }
 }

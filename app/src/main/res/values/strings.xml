@@ -465,6 +465,7 @@
     <string name="download_queue_progress_size">%1$d%% · %2$s of %3$s</string>
     <string name="download_queue_move_to_top">Move to the top</string>
     <string name="download_queue_move_to_bottom">Move to the bottom</string>
+    <string name="migration_delete_downloaded">Delete the downloaded episodes (when moving)</string>
     <plurals name="download_next_unseen">
         <item quantity="one">Next unseen episode</item>
         <item quantity="other">Next %1$d unseen episodes</item>
