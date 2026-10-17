@@ -154,6 +154,10 @@ class PlayerViewModel(
     private var fetchEpisodeDisposable: Disposable? = null
     private var localEpisodeJob: Job? = null
 
+    /** The downloaded files a cast replaced by the source's streams, and their episode id */
+    @Volatile
+    private var localBeforeCast: Pair<Long, StreamSource>? = null
+
     /** Downloaded episodes watched here, deleted once left when the settings say so */
     private val watchedDownloads = mutableSetOf<Episode>()
 
@@ -375,9 +379,48 @@ class PlayerViewModel(
      */
     fun fetchOnlineSources() {
         val episode = currentEpisode.value ?: return
-        if (_uiState.value.selectedSource?.isLocalFile != true) return
+        val local = _uiState.value.selectedSource?.takeIf { it.isLocalFile } ?: return
+        localBeforeCast = episode.id to local
         _isFetchingSources.update { true }
         fetchOnlineSources(episode)
+    }
+
+    /**
+     * The cast ended: the local player plays the downloaded files of the current episode again,
+     * not the streams the cast needed. The player starts them at the saved time, where the cast was.
+     */
+    fun restoreLocalSource() {
+        val episode = currentEpisode.value ?: return
+        val beforeCast = localBeforeCast
+        localBeforeCast = null
+        when (val next = CastFallback.afterCast(episode.id, _uiState.value.selectedSource, beforeCast)) {
+            CastFallback.AfterCast.Keep -> Unit
+            // At once: the player opens on the files, it doesn't start the stream first
+            is CastFallback.AfterCast.Restore -> playLocal(next.source)
+            CastFallback.AfterCast.Lookup -> {
+                localEpisodeJob?.cancel()
+                localEpisodeJob = viewModelScope.launch(Dispatchers.IO) {
+                    val local = downloadManager.getLocalEpisode(episode)
+                        ?.toStreamSource(Injekt.get<Application>().getString(R.string.episode_downloaded))
+                        ?: return@launch
+                    if (currentEpisode.value?.id == episode.id) playLocal(local)
+                }
+            }
+        }
+    }
+
+    private fun playLocal(local: StreamSource) {
+        fetchEpisodeDisposable?.dispose()
+        _isFetchingSources.update { false }
+        _uiState.update { currentState ->
+            currentState.copy(
+                selectedSource = local,
+                availableSources = listOf(local),
+                // The tracks chosen were the stream's: the files' are chosen by the preferences
+                selectedSubtitleTrack = null,
+                selectedAudioTrack = null,
+            )
+        }
     }
 
     private fun fetchOnlineSources(episode: Episode) {

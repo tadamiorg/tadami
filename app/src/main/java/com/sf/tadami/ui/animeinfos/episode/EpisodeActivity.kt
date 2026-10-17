@@ -435,7 +435,7 @@ class EpisodeActivity : AppCompatActivity() {
         // already live, so when we open onto an existing cast session register the (activity-scoped)
         // error/crash channels here and make sure the control service is running (it owns the control
         // channel + episode switching, which must survive the activity being locked/exited).
-        isCasting.value =  castContext?.sessionManager?.currentCastSession?.isConnected ?: false
+        setCasting(castContext?.sessionManager?.currentCastSession?.isConnected ?: false)
         castContext?.sessionManager?.currentCastSession?.takeIf { it.isConnected }?.let { session ->
             castSession = session
             setCastCustomChannel(session, errorChannel)
@@ -644,7 +644,7 @@ class EpisodeActivity : AppCompatActivity() {
     private fun setupCastListener() {
         castStateListener = CastStateListener { state ->
             if (state == CastState.CONNECTING || state == CastState.NOT_CONNECTED) {
-                isCasting.value = false
+                setCasting(false)
             }
         }
 
@@ -696,12 +696,18 @@ class EpisodeActivity : AppCompatActivity() {
 
             private fun onApplicationDisconnected() {
                 // The CastControlService flushes the final watch time on session end and self-stops.
-                isCasting.value = false
                 this@EpisodeActivity.castSession = null
+                setCasting(false)
                 // Allow a reconnect to load the same episode again.
                 pendingCastLoadKey = null
             }
         }
+    }
+
+    /** A cast ending gives the local player back its downloaded files, which the cast swapped for the source's streams. */
+    private fun setCasting(casting: Boolean) {
+        if (isCasting.value && !casting) playerViewModel.restoreLocalSource()
+        isCasting.value = casting
     }
 
     // singleTask: another episode opened while this one is still alive (e.g. in PiP) lands here, not in onCreate.
