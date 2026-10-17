@@ -2,6 +2,7 @@ package com.sf.tadami.data.download
 
 import android.content.Context
 import com.hippo.unifile.UniFile
+import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.storage.StorageManager
 import com.sf.tadami.source.Source
 import uy.kohesive.injekt.Injekt
@@ -25,19 +26,24 @@ class DownloadProvider(
         return downloadsDir?.findFile(getSourceDirName(source))
     }
 
-    fun findAnimeDir(source: Source, animeTitle: String): UniFile? {
-        return findSourceDir(source)?.findFile(DownloadNames.animeDirName(animeTitle))
+    /** The anime directory if it exists, found by its key when it is named after an older title. */
+    fun findAnimeDir(source: Source, anime: Anime): UniFile? {
+        val dirs = findSourceDir(source)?.listFiles() ?: return null
+        val name = DownloadNames.findAnimeDirName(dirs.mapNotNull { it.name }, getAnimeDirName(anime))
+            ?: return null
+        return dirs.find { it.name == name }
     }
 
-    fun findEpisodeDir(source: Source, animeTitle: String, episodeDirName: String): UniFile? {
-        return findAnimeDir(source, animeTitle)?.findFile(episodeDirName)
+    fun findEpisodeDir(source: Source, anime: Anime, episodeDirName: String): UniFile? {
+        return findAnimeDir(source, anime)?.findFile(episodeDirName)
     }
 
     /** The anime directory, created when missing. Null when the storage can't be reached. */
-    fun getOrCreateAnimeDir(source: Source, animeTitle: String): UniFile? {
-        return downloadsDir
-            ?.createDirectory(getSourceDirName(source))
-            ?.createDirectory(DownloadNames.animeDirName(animeTitle))
+    fun getOrCreateAnimeDir(source: Source, anime: Anime): UniFile? {
+        return findAnimeDir(source, anime)
+            ?: downloadsDir
+                ?.createDirectory(getSourceDirName(source))
+                ?.createDirectory(getAnimeDirName(anime))
     }
 
     /**
@@ -47,5 +53,10 @@ class DownloadProvider(
      */
     fun getSourceDirName(source: Source): String {
         return DownloadNames.sourceDirName(source.id, source.name, source.lang)
+    }
+
+    /** The name a new directory of [anime] gets, see [DownloadNames.animeDirName]. */
+    fun getAnimeDirName(anime: Anime): String {
+        return DownloadNames.animeDirName(anime.title, anime.url)
     }
 }

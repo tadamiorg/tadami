@@ -44,8 +44,11 @@ class DownloadCache(
             .launchIn(scope)
     }
 
-    fun isEpisodeDownloaded(sourceDir: String, animeDir: String, episodeDir: String): Boolean {
-        return tree[sourceDir]?.get(animeDir)?.contains(episodeDir) == true
+    /** The downloaded episode dirs of an anime, whose dir may be named after an older title. */
+    fun episodeDirs(sourceDir: String, animeDir: String): Set<String> {
+        val animes = tree[sourceDir] ?: return emptySet()
+        val name = DownloadNames.findAnimeDirName(animes.keys, animeDir) ?: return emptySet()
+        return animes[name].orEmpty()
     }
 
     fun addEpisode(sourceDir: String, animeDir: String, episodeDir: String) = edit { tree ->

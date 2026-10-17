@@ -93,10 +93,9 @@ class TadamiDownloadManager(
         scope.launch {
             val source = sourceManager.getOrStub(anime.source)
             val names = DownloadNames.episodeDirNames(withSiblings(anime, episodes))
-            val sourceDir = provider.getSourceDirName(source)
-            val animeDir = DownloadNames.animeDirName(anime.title)
+            val downloaded = cache.episodeDirs(provider.getSourceDirName(source), provider.getAnimeDirName(anime))
             val downloads = episodes
-                .filterNot { cache.isEpisodeDownloaded(sourceDir, animeDir, names.getValue(it.id)) }
+                .filterNot { names.getValue(it.id) in downloaded }
                 .map { Download(source, anime, it, names.getValue(it.id)) }
             downloader.add(downloads)
             if (autoStart) startDownloads()
@@ -154,9 +153,9 @@ class TadamiDownloadManager(
         scope.launch {
             try {
                 val source = sourceManager.getOrStub(anime.source)
-                val animeDir = provider.findAnimeDir(source, anime.title) ?: return@launch
+                val animeDir = provider.findAnimeDir(source, anime) ?: return@launch
                 val sourceDirName = provider.getSourceDirName(source)
-                val animeDirName = animeDir.name ?: DownloadNames.animeDirName(anime.title)
+                val animeDirName = animeDir.name ?: provider.getAnimeDirName(anime)
                 val names = DownloadNames.episodeDirNames(withSiblings(anime, episodes))
                 episodes.forEach { episode ->
                     val name = names.getValue(episode.id)
@@ -179,8 +178,8 @@ class TadamiDownloadManager(
         scope.launch {
             try {
                 val source = sourceManager.getOrStub(anime.source)
-                val animeDir = provider.findAnimeDir(source, anime.title) ?: return@launch
-                val animeDirName = animeDir.name ?: DownloadNames.animeDirName(anime.title)
+                val animeDir = provider.findAnimeDir(source, anime) ?: return@launch
+                val animeDirName = animeDir.name ?: provider.getAnimeDirName(anime)
                 animeDir.deleteRecursively()
                 cache.removeAnime(provider.getSourceDirName(source), animeDirName)
             } catch (e: Exception) {
@@ -191,26 +190,19 @@ class TadamiDownloadManager(
 
     /** From the cache: no storage access. [episodes] are all the anime's, for the names. */
     fun isEpisodeDownloaded(anime: Anime, episode: Episode, episodes: List<Episode>): Boolean {
-        val source = sourceManager.getOrStub(anime.source)
-        return cache.isEpisodeDownloaded(
-            provider.getSourceDirName(source),
-            DownloadNames.animeDirName(anime.title),
-            DownloadNames.episodeDirName(episode, episodes),
-        )
+        return DownloadNames.episodeDirName(episode, episodes) in downloadedDirs(anime)
     }
 
     /** The download state of each of [episodes], all the anime's, by episode id. No storage access. */
     fun getDownloadStates(anime: Anime, episodes: List<Episode>): Map<Long, EpisodeDownloadState> {
         val queued = queueState.value.filter { it.anime.id == anime.id }.associateBy { it.episode.id }
-        val source = sourceManager.getOrStub(anime.source)
-        val sourceDir = provider.getSourceDirName(source)
-        val animeDir = DownloadNames.animeDirName(anime.title)
+        val downloaded = downloadedDirs(anime)
         val names = DownloadNames.episodeDirNames(episodes)
         return episodes.associate { episode ->
             val download = queued[episode.id]
             episode.id to when {
                 download != null -> EpisodeDownloadState(download.status, download.progress)
-                cache.isEpisodeDownloaded(sourceDir, animeDir, names.getValue(episode.id)) ->
+                names.getValue(episode.id) in downloaded ->
                     EpisodeDownloadState(Download.State.DOWNLOADED, 100)
                 else -> EpisodeDownloadState()
             }
@@ -223,7 +215,7 @@ class TadamiDownloadManager(
             val anime = animeRepository.getAnimeById(episode.animeId)
             val source = sourceManager.getOrStub(anime.source)
             val name = DownloadNames.episodeDirName(episode, episodeRepository.getEpisodesByAnimeId(anime.id))
-            provider.findEpisodeDir(source, anime.title, name)?.let { LocalEpisode.from(it, name) }
+            provider.findEpisodeDir(source, anime, name)?.let { LocalEpisode.from(it, name) }
         } catch (e: Exception) {
             logcat(LogPriority.WARN, e, tag = TAG) { "Couldn't read the download of ${episode.name}" }
             null
@@ -232,6 +224,11 @@ class TadamiDownloadManager(
 
     /** Runs the queue, for [DownloadWorker]. */
     internal suspend fun runQueue() = downloader.runQueue()
+
+    private fun downloadedDirs(anime: Anime): Set<String> {
+        val source = sourceManager.getOrStub(anime.source)
+        return cache.episodeDirs(provider.getSourceDirName(source), provider.getAnimeDirName(anime))
+    }
 
     private suspend fun withSiblings(anime: Anime, episodes: List<Episode>): List<Episode> {
         val all = episodeRepository.getEpisodesByAnimeId(anime.id)

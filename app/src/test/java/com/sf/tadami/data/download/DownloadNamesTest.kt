@@ -48,6 +48,9 @@ class DownloadNamesTest {
         assertNotEquals(names[1]!!.lowercase(), names[2]!!.lowercase())
         // The others keep their plain name
         assertEquals("Episode 2", names[3])
+        // URLs that differ only at the end get different suffixes too
+        val numbered = DownloadNames.episodeDirNames(listOf(episode(4, "Episode", url = "/ep?id=1"), episode(5, "Episode", url = "/ep?id=2")))
+        assertNotEquals(numbered[4], numbered[5])
         // Stable: the same names every time
         assertEquals(names, DownloadNames.episodeDirNames(episodes.reversed()))
     }
@@ -67,7 +70,37 @@ class DownloadNamesTest {
         assertTrue(bytes <= DiskUtil.MAX_FILE_NAME_BYTES - 64)
         val file = DownloadNames.audioFileName(name, "Japanese", "m4a")
         assertTrue(file.toByteArray(Charsets.UTF_8).size <= DiskUtil.MAX_FILE_NAME_BYTES)
-        assertTrue(DownloadNames.animeDirName(long).toByteArray(Charsets.UTF_8).size <= DiskUtil.MAX_FILE_NAME_BYTES)
+        val animeDir = DownloadNames.animeDirName(long, "/anime/1")
+        assertTrue(animeDir.toByteArray(Charsets.UTF_8).size <= DiskUtil.MAX_FILE_NAME_BYTES)
+        // The key survives the cut
+        assertEquals(DownloadNames.animeKey("/anime/1"), DownloadNames.animeKeyOf(animeDir))
+    }
+
+    @Test
+    fun animeWithTheSameTitleGetDistinctDirs() {
+        val vostfr = DownloadNames.animeDirName("Frieren", "/catalogue/frieren/vostfr")
+        val vf = DownloadNames.animeDirName("Frieren", "/catalogue/frieren/vf")
+
+        assertTrue(vostfr.startsWith("Frieren ("))
+        assertNotEquals(vostfr.lowercase(), vf.lowercase())
+        // Stable: the same name every time
+        assertEquals(vostfr, DownloadNames.animeDirName("Frieren", "/catalogue/frieren/vostfr"))
+        assertEquals("A_B (${DownloadNames.animeKey("/a")})", DownloadNames.animeDirName("A/B", "/a"))
+    }
+
+    @Test
+    fun animeDirIsFoundByItsKeyAfterATitleChange() {
+        val url = "/anime/42"
+        val old = DownloadNames.animeDirName("Old title", url)
+        val other = DownloadNames.animeDirName("New title", "/anime/43")
+        val expected = DownloadNames.animeDirName("New title", url)
+
+        assertEquals(old, DownloadNames.findAnimeDirName(listOf(other, old), expected))
+        // Its own name first, an older one only when it is missing
+        assertEquals(expected, DownloadNames.findAnimeDirName(listOf(old, expected), expected))
+        assertNull(DownloadNames.findAnimeDirName(listOf(other, "New title"), expected))
+        assertNull(DownloadNames.animeKeyOf("New title"))
+        assertNull(DownloadNames.animeKeyOf("Season (2)"))
     }
 
     @Test

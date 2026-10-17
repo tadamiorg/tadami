@@ -3,6 +3,7 @@ package com.sf.tadami.data.download
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.utils.DiskUtil
 import com.sf.tadami.utils.Lang
+import java.security.MessageDigest
 
 /**
  * Names of the download directories and files, all valid for FAT and within
@@ -14,6 +15,10 @@ object DownloadNames {
 
     /** Kept free in an episode name for "_tmp", the collision suffix and the file suffixes */
     private const val EPISODE_SUFFIXES_BYTES = 64
+
+    /** " (<6 hex chars>)" */
+    private const val ANIME_KEY_BYTES = 9
+    private val ANIME_KEY_REGEX = Regex(""" \(([0-9a-f]{6})\)$""")
 
     private const val AUDIO_PREFIX = "audio."
     private const val UNDETERMINED_LANG = "und"
@@ -29,8 +34,29 @@ object DownloadNames {
         return validName("$name (${lang.name})", DiskUtil.MAX_FILE_NAME_BYTES)
     }
 
-    fun animeDirName(title: String): String {
-        return validName(title, DiskUtil.MAX_FILE_NAME_BYTES)
+    /**
+     * `<title> (<key>)`, the key from the anime URL: two anime of one source with the same title get
+     * their own folders, and the folder is found again by its key when the title changes. Always
+     * suffixed, not only on a collision: the anime in the database change as the user browses, a
+     * suffix added later would orphan the folder.
+     */
+    fun animeDirName(title: String, url: String): String {
+        return "${validName(title, DiskUtil.MAX_FILE_NAME_BYTES - ANIME_KEY_BYTES)} (${animeKey(url)})"
+    }
+
+    fun animeKey(url: String): String = urlHash(url)
+
+    /** The key of an anime directory name, null when it has none. */
+    fun animeKeyOf(dirName: String): String? = ANIME_KEY_REGEX.find(dirName)?.groupValues?.get(1)
+
+    /**
+     * The directory of an anime among [dirNames], one source's: [expected] itself, else the one with
+     * its key, named after an older title. Null when there is none.
+     */
+    fun findAnimeDirName(dirNames: Collection<String>, expected: String): String? {
+        if (expected in dirNames) return expected
+        val key = animeKeyOf(expected) ?: return null
+        return dirNames.firstOrNull { animeKeyOf(it) == key }
     }
 
     /**
@@ -121,8 +147,14 @@ object DownloadNames {
         return if (number % 1f == 0f) number.toLong().toString() else number.toString()
     }
 
-    // String.hashCode is specified, the same on every device and version
-    private fun urlHash(url: String): String = "%08x".format(url.hashCode()).take(6)
+    /**
+     * 6 hex chars of the URL's SHA-256: the same on every device and version. Not the first chars of
+     * `String.hashCode`, which stay the same for URLs that differ only at the end ("/ep/1", "/ep/2").
+     */
+    private fun urlHash(url: String): String {
+        val digest = MessageDigest.getInstance("SHA-256").digest(url.toByteArray(Charsets.UTF_8))
+        return digest.take(3).joinToString("") { "%02x".format(it) }
+    }
 
     private fun validName(name: String, maxBytes: Int): String {
         val valid = truncateUtf8(DiskUtil.buildValidFilename(name), maxBytes).trimEnd('.', ' ')

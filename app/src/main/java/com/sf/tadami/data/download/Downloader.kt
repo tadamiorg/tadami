@@ -261,7 +261,7 @@ class Downloader(
             throw DownloadFatalException(context.getString(R.string.source_not_installed, source.name))
         }
         val noStorage = { DownloadFatalException(context.getString(R.string.download_error_no_storage)) }
-        val animeDir = DownloadOutput.storage { provider.getOrCreateAnimeDir(source, download.anime.title) }
+        val animeDir = DownloadOutput.storage { provider.getOrCreateAnimeDir(source, download.anime) }
             ?: throw noStorage()
         val available = DiskUtil.getAvailableStorageSpace(animeDir)
         if (available in 0 until MIN_FREE_SPACE_BYTES) {
@@ -361,7 +361,7 @@ class Downloader(
         }
         cache.addEpisode(
             provider.getSourceDirName(download.source),
-            animeDir.name ?: DownloadNames.animeDirName(download.anime.title),
+            animeDir.name ?: provider.getAnimeDirName(download.anime),
             download.dirName,
         )
     }
@@ -373,7 +373,7 @@ class Downloader(
     private fun deleteTmp(download: Download) {
         resumeStore.delete(download.episode.id)
         try {
-            val animeDir = provider.findAnimeDir(download.source, download.anime.title) ?: return
+            val animeDir = provider.findAnimeDir(download.source, download.anime) ?: return
             animeDir.findFile(DownloadNames.tmpDirName(download.dirName))?.deleteRecursively()
             if (animeDir.listFiles().isNullOrEmpty()) animeDir.delete()
         } catch (e: Exception) {
