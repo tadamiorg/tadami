@@ -465,6 +465,9 @@
     <string name="episode_downloaded">Téléchargé</string>
     <string name="episode_download_error">Échec du téléchargement</string>
     <string name="label_download_queue">File de téléchargement</string>
+    <string name="label_downloaded_only">Téléchargés uniquement</string>
+    <string name="downloaded_only_summary">Filtre toutes les entrées de votre bibliothèque</string>
+    <string name="filter_downloaded">Téléchargés</string>
     <string name="download_queue_empty">Aucun téléchargement en attente</string>
     <string name="download_queue_cancel_all">Tout annuler</string>
     <string name="download_queue_clear_errors">Retirer les téléchargements échoués</string>

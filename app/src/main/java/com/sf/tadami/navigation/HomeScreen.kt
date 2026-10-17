@@ -25,11 +25,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sf.tadami.navigation.bottomnav.BottomNavBar
 import com.sf.tadami.navigation.graphs.home.HomeNavGraph
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
+import com.sf.tadami.ui.components.banners.DownloadedOnlyBanner
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(
     navController: NavHostController,
+    downloadedOnly: Boolean,
 ) {
     val items = remember {
         listOf(
@@ -56,6 +58,9 @@ fun HomeScreen(
     val scaffoldInsets = WindowInsets(0)
 
     Scaffold(
+        topBar = {
+            DownloadedOnlyBanner(visible = downloadedOnly)
+        },
         bottomBar = {
 
             AnimatedVisibility(

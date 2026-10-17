@@ -456,6 +456,9 @@
     <string name="episode_downloaded">Downloaded</string>
     <string name="episode_download_error">Download failed</string>
     <string name="label_download_queue">Download queue</string>
+    <string name="label_downloaded_only">Downloaded only</string>
+    <string name="downloaded_only_summary">Filters all entries in your library</string>
+    <string name="filter_downloaded">Downloaded</string>
     <string name="download_queue_empty">No downloads in the queue</string>
     <string name="download_queue_cancel_all">Cancel all</string>
     <string name="download_queue_clear_errors">Remove the failed downloads</string>

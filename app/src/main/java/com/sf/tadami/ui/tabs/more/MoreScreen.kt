@@ -4,6 +4,7 @@ import android.app.Activity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
@@ -12,6 +13,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,10 +28,13 @@ import com.google.android.gms.cast.framework.CastButtonFactory
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.about.AboutRoutes
 import com.sf.tadami.navigation.graphs.more.MORE_ROUTES
+import com.sf.tadami.preferences.app.BasePreferences
+import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
 import com.sf.tadami.ui.components.widgets.LogoHeader
 import com.sf.tadami.ui.components.widgets.ScrollbarLazyColumn
 import com.sf.tadami.ui.tabs.more.settings.widget.TextPreference
+import com.sf.tadami.ui.tabs.more.settings.widget.TogglePreference
 import com.sf.tadami.ui.utils.padding
 
 @Composable
@@ -37,6 +43,8 @@ fun MoreScreen(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val basePreferencesState = rememberDataStoreState(BasePreferences)
+    val basePreferences by basePreferencesState.value.collectAsState()
     Scaffold(
         modifier = modifier,
     ) { contentPadding ->
@@ -73,6 +81,19 @@ fun MoreScreen(
                     LogoHeader(modifier = Modifier.align(Alignment.Center))
                 }
 
+            }
+            item { HorizontalDivider() }
+
+            item {
+                TogglePreference(
+                    title = stringResource(R.string.label_downloaded_only),
+                    subtitle = stringResource(R.string.downloaded_only_summary),
+                    icon = Icons.Outlined.CloudOff,
+                    checked = basePreferences.downloadedOnly,
+                    onCheckedChanged = {
+                        basePreferencesState.setValue(basePreferences.copy(downloadedOnly = it))
+                    },
+                )
             }
             item { HorizontalDivider() }
 

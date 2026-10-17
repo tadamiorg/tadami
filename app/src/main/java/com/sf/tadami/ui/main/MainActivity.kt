@@ -54,6 +54,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ErrorChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.logCastConnectionError
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
+import com.sf.tadami.ui.components.banners.DownloadedOnlyBannerBackgroundColor
 import com.sf.tadami.ui.tabs.browse.BROWSE_TAB_KEY
 import com.sf.tadami.ui.tabs.browse.EXTENSIONS_TAB
 import com.sf.tadami.ui.tabs.browse.SourceManager
@@ -141,7 +142,15 @@ class MainActivity : AppCompatActivity() {
         setupCastListener()
 
         setComposeContent {
-            val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
+            val basePreferencesState = rememberDataStoreState(BasePreferences)
+            val basePreferences by basePreferencesState.value.collectAsState()
+
+            // The downloaded only banner is drawn behind the status bar
+            val statusBarBackgroundColor = if (basePreferences.downloadedOnly) {
+                DownloadedOnlyBannerBackgroundColor
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
             val isSystemInDarkTheme = isSystemInDarkTheme()
 
             LaunchedEffect(isSystemInDarkTheme, statusBarBackgroundColor) {
@@ -154,9 +163,6 @@ class MainActivity : AppCompatActivity() {
                 )
             }
             val navController = rememberNavController()
-
-            val basePreferencesState = rememberDataStoreState(BasePreferences)
-            val basePreferences by basePreferencesState.value.collectAsState()
 
             AppUpdaterScreen(navController)
             ExtensionsCheckForUpdates()
@@ -183,7 +189,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 )
             }
-            HomeScreen(navController)
+            HomeScreen(navController, downloadedOnly = basePreferences.downloadedOnly)
             LaunchedEffect(navController) {
                 if (isLaunch) {
                     if (!basePreferences.onboardingComplete) {

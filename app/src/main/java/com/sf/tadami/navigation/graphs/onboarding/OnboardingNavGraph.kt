@@ -18,11 +18,11 @@ fun NavGraphBuilder.onboardingNavGraph(
     ) {
         OnboardingScreen(
             onComplete = {
-                basePreferencesState.setValue(BasePreferences(onboardingComplete = true))
+                basePreferencesState.setValue(basePreferencesState.value.value.copy(onboardingComplete = true))
                 navController.popBackStack()
             },
             onRestoreBackup = {
-                basePreferencesState.setValue(BasePreferences(onboardingComplete = true))
+                basePreferencesState.setValue(basePreferencesState.value.value.copy(onboardingComplete = true))
                 navController.navigate(DataSettingsRoutes.HOME) {
                     popUpTo(navController.graph.findStartDestination().id)
                 }
