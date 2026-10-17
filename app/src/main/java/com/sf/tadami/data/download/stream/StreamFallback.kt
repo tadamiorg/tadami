@@ -82,6 +82,12 @@ object StreamFallback {
         }
     }
 
+    /** The network error itself, not the plain [IOException] `Call.await` wraps it in for the caller's stack trace. */
+    fun unwrap(error: Throwable): Throwable {
+        val cause = error.cause
+        return if (error.javaClass == IOException::class.java && cause != null) cause else error
+    }
+
     /** Whether one request is worth sending again: network errors, timeouts, rate limits, server errors. */
     fun isRetryable(error: Throwable): Boolean {
         return when (error) {

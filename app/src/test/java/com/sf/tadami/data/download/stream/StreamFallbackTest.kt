@@ -5,10 +5,12 @@ import com.sf.tadami.source.model.StreamSource
 import kotlinx.coroutines.CancellationException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
 import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 class StreamFallbackTest {
 
@@ -88,5 +90,20 @@ class StreamFallbackTest {
         assertFalse(StreamFallback.isRetryable(HttpException(403)))
         assertFalse(StreamFallback.isRetryable(StreamFailedException(StreamFailure.NOT_VIDEO, "Not a video")))
         assertFalse(StreamFallback.isRetryable(NetworkLostException(IOException())))
+    }
+
+    @Test
+    fun theErrorShownIsTheOneCallAwaitWrapped() {
+        val unknownHost = UnknownHostException("Unable to resolve host \"dead.invalid\"")
+        assertSame(unknownHost, StreamFallback.unwrap(IOException(unknownHost.message, unknownHost)))
+        val timeout = SocketTimeoutException("timeout")
+        assertSame(timeout, StreamFallback.unwrap(IOException(timeout.message, timeout)))
+        // Not a wrapper: kept as it is
+        val plain = IOException("Can't rename")
+        assertSame(plain, StreamFallback.unwrap(plain))
+        val lost = NetworkLostException(IOException("offline"))
+        assertSame(lost, StreamFallback.unwrap(lost))
+        val http = HttpException(404)
+        assertSame(http, StreamFallback.unwrap(http))
     }
 }

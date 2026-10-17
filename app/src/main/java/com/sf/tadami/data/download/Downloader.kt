@@ -20,6 +20,7 @@ import com.sf.tadami.data.download.stream.StreamFallback
 import com.sf.tadami.data.download.stream.StreamFailure
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.extension.util.fetchGuarded
+import com.sf.tadami.network.HttpException
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.preferences.download.DownloadPreferences
 import com.sf.tadami.source.StubSource
@@ -53,6 +54,7 @@ import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import java.io.IOException
 import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
@@ -377,13 +379,15 @@ class Downloader(
 
     // In the user's language: the exception messages stay in English, for the logs
     private fun errorMessage(error: Throwable): String {
-        return when (error) {
-            is StreamFailedException -> context.getString(error.failure.text)
+        return when (val cause = StreamFallback.unwrap(error)) {
+            is StreamFailedException -> context.getString(cause.failure.text)
             // The system's own message is in English
             is StorageException -> context.getString(R.string.download_error_storage)
             // Ours are written for the user
-            is DownloadFatalException -> error.message.orEmpty()
+            is DownloadFatalException -> cause.message.orEmpty()
             is SocketTimeoutException -> context.getString(R.string.download_error_timeout)
+            is UnknownHostException -> context.getString(R.string.download_error_unknown_host)
+            is HttpException -> context.getString(R.string.download_error_http, cause.code)
             else -> with(context) { error.formattedMessage }
         }
     }

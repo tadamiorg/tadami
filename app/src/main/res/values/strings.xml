@@ -437,6 +437,8 @@
     <string name="download_error_all_streams_failed">No video could be downloaded. Last error: %1$s</string>
     <string name="download_error_storage">Couldn\'t write to the storage folder</string>
     <string name="download_error_timeout">The server didn\'t answer in time</string>
+    <string name="download_error_unknown_host">The video server can\'t be found</string>
+    <string name="download_error_http">The video server answered with error %1$d</string>
     <string name="download_stream_error_playlist">The video playlist can\'t be read</string>
     <string name="download_stream_error_live">Live streams can\'t be downloaded</string>
     <string name="download_stream_error_drm">The video is protected (DRM)</string>

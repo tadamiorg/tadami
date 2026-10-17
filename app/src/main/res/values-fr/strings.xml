@@ -446,6 +446,8 @@
     <string name="download_error_all_streams_failed">Aucune vidéo n\'a pu être téléchargée. Dernière erreur : %1$s</string>
     <string name="download_error_storage">Impossible d\'écrire dans le dossier de stockage</string>
     <string name="download_error_timeout">Le serveur n\'a pas répondu à temps</string>
+    <string name="download_error_unknown_host">Le serveur de la vidéo est introuvable</string>
+    <string name="download_error_http">Le serveur de la vidéo a répondu par l\'erreur %1$d</string>
     <string name="download_stream_error_playlist">La playlist de la vidéo est illisible</string>
     <string name="download_stream_error_live">Les diffusions en direct ne peuvent pas être téléchargées</string>
     <string name="download_stream_error_drm">La vidéo est protégée (DRM)</string>
