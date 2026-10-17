@@ -10,13 +10,20 @@ class LocalEpisode(
     val video: UniFile,
     val audios: List<Pair<UniFile, String>>,
     val subtitles: List<Pair<UniFile, DownloadNames.TrackFile>>,
+    /** The sidecar, null for the downloads made before it */
+    val metadata: EpisodeMetadata? = null,
 ) {
 
-    /** A stream of content URIs: the player reads them without network, the separate audio merged. */
-    fun toStreamSource(name: String): StreamSource {
+    /**
+     * A stream of content URIs: the player reads them without network, the separate audio merged.
+     * Named after the stream it was downloaded from, else [fallbackName].
+     */
+    fun toStreamSource(fallbackName: String): StreamSource {
         return StreamSource(
             url = video.uri.toString(),
-            fullName = name,
+            fullName = streamName(metadata, fallbackName),
+            quality = metadata?.quality.orEmpty(),
+            server = metadata?.server.orEmpty(),
             subtitleTracks = subtitles.map { (file, track) ->
                 Track.SubtitleTrack(
                     url = file.uri.toString(),
@@ -38,7 +45,13 @@ class LocalEpisode(
                 video = video,
                 audios = parsed.audios.mapNotNull { track -> files[track.name]?.let { it to track.lang } },
                 subtitles = parsed.subtitles.mapNotNull { track -> files[track.name]?.let { it to track } },
+                metadata = parsed.metadata?.let(files::get)?.let(EpisodeMetadata::read),
             )
+        }
+
+        /** The name of the stream the episode was downloaded from, else [fallbackName] ("Downloaded"). */
+        fun streamName(metadata: EpisodeMetadata?, fallbackName: String): String {
+            return metadata?.fullName?.takeIf { it.isNotBlank() } ?: fallbackName
         }
     }
 }

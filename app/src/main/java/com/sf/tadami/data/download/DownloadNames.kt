@@ -8,8 +8,8 @@ import java.security.MessageDigest
 /**
  * Names of the download directories and files, all valid for FAT and within
  * [DiskUtil.MAX_FILE_NAME_BYTES] UTF-8 bytes:
- * `<source>/<anime>/<episode>/<episode>.<ext>`, `<episode>.<lang>.<ext>` for the subtitles and
- * `<episode>.audio.<lang>.<ext>` for a separate audio.
+ * `<source>/<anime>/<episode>/<episode>.<ext>`, `<episode>.<lang>.<ext>` for the subtitles,
+ * `<episode>.audio.<lang>.<ext>` for a separate audio and `<episode>.json` for the sidecar.
  */
 object DownloadNames {
 
@@ -24,6 +24,7 @@ object DownloadNames {
     private val EPISODE_KEY_REGEX = Regex(""" \(([0-9a-f]{8})\)$""")
 
     private const val AUDIO_PREFIX = "audio."
+    private const val METADATA_EXTENSION = "json"
     private const val UNDETERMINED_LANG = "und"
 
     val SUBTITLE_EXTENSIONS = setOf("vtt", "srt", "ass", "ssa", "ttml", "dfxp")
@@ -102,6 +103,9 @@ object DownloadNames {
     fun audioFileName(episodeDirName: String, lang: String, extension: String) =
         "$episodeDirName.$AUDIO_PREFIX$lang.$extension"
 
+    /** The sidecar, see [EpisodeMetadata] */
+    fun metadataFileName(episodeDirName: String) = "$episodeDirName.$METADATA_EXTENSION"
+
     /** The audio file name without its extension, which is only known once the content is */
     fun audioFileBase(episodeDirName: String, lang: String) = "$episodeDirName.$AUDIO_PREFIX$lang"
 
@@ -126,7 +130,9 @@ object DownloadNames {
     /** The files of a downloaded episode, from the names of its directory's files. */
     fun parseFiles(episodeDirName: String, fileNames: List<String>): EpisodeFiles {
         val prefix = "$episodeDirName."
+        val metadataName = metadataFileName(episodeDirName)
         var video: String? = null
+        var metadata: String? = null
         val audios = mutableListOf<TrackFile>()
         val subtitles = mutableListOf<TrackFile>()
         fileNames.sorted().forEach { name ->
@@ -134,6 +140,8 @@ object DownloadNames {
             val rest = name.removePrefix(prefix)
             val extension = rest.substringAfterLast('.')
             when {
+                // Not a video, though named like one
+                name == metadataName -> metadata = name
                 '.' !in rest -> if (video == null) video = name
                 extension.lowercase() in SUBTITLE_EXTENSIONS ->
                     subtitles += TrackFile(name, rest.substringBeforeLast('.'), extension)
@@ -141,13 +149,15 @@ object DownloadNames {
                     audios += TrackFile(name, rest.removePrefix(AUDIO_PREFIX).substringBeforeLast('.'), extension)
             }
         }
-        return EpisodeFiles(video, audios, subtitles)
+        return EpisodeFiles(video, audios, subtitles, metadata)
     }
 
     data class EpisodeFiles(
         val video: String?,
         val audios: List<TrackFile>,
         val subtitles: List<TrackFile>,
+        /** The sidecar, none for the downloads made before it */
+        val metadata: String? = null,
     )
 
     data class TrackFile(val name: String, val lang: String, val extension: String)

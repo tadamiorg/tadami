@@ -26,7 +26,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
      * @param resume the progress of each file of this stream, by role.
      * @param onFileProgress called with a role ("video", "audio0"...) and its file's progress, to
      * save for a resume.
-     * @return the video file.
+     * @return the video file and the separate audio files.
      */
     suspend fun download(
         stream: StreamSource,
@@ -35,7 +35,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
         resume: Map<String, FileProgress>,
         onFileProgress: (String, FileProgress) -> Unit,
         onProgress: (Float) -> Unit,
-    ): UniFile {
+    ): DownloadedStream {
         val headers = stream.headers
         val progress = Progress(onProgress)
         progress.add(VIDEO, VIDEO_WEIGHT)
@@ -64,7 +64,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
 
         val audios = stream.audioTracks.map { it.url to it.lang } + listOfNotNull(rendition?.let { it.url to it.lang })
         val audioNames = DownloadNames.trackNames(audios.map { it.second })
-        audios.forEachIndexed { index, (url, _) ->
+        val audioFiles = audios.mapIndexed { index, (url, _) ->
             media(
                 role = audioRole(index),
                 url = url,
@@ -81,7 +81,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
         }
 
         downloadSubtitles(stream, headers, dir, episodeDirName)
-        return video
+        return DownloadedStream(DownloadedFile(video), audioFiles.map(::DownloadedFile))
     }
 
     private suspend fun media(
@@ -157,6 +157,11 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
             }
         }
     }
+
+    /** The files of a downloaded stream, in the tmp dir. */
+    class DownloadedStream(val video: DownloadedFile, val audios: List<DownloadedFile>)
+
+    class DownloadedFile(val file: UniFile)
 
     /** The progress of the whole stream, each file weighted. */
     private class Progress(private val onProgress: (Float) -> Unit) {

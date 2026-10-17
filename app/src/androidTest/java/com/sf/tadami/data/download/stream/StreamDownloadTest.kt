@@ -150,7 +150,7 @@ class StreamDownloadTest {
             subtitleTracks = listOf(Track.SubtitleTrack(server.url("/sub").toString(), "English")),
         )
 
-        val video = StreamDownloader(context, client).download(stream, dir, "Ep 4", emptyMap(), { _, _ -> }, {})
+        val video = StreamDownloader(context, client).download(stream, dir, "Ep 4", emptyMap(), { _, _ -> }, {}).video.file
 
         assertEquals("Ep 4.ts", video.name)
         val files = DownloadNames.parseFiles("Ep 4", root.list()!!.toList())

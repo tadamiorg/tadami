@@ -334,7 +334,7 @@ class Downloader(
                 resumeStore.save(episodeId, resume)
             }
             try {
-                val video = streamDownloader.download(
+                val downloaded = streamDownloader.download(
                     stream = stream,
                     dir = tmpDir,
                     episodeDirName = download.dirName,
@@ -350,7 +350,14 @@ class Downloader(
                     },
                     onProgress = { download.progress = (it * 100).toInt().coerceIn(0, 99) },
                 )
-                checkDuration(video)
+                checkDuration(downloaded.video.file)
+                // In the tmp dir: the episode dir appears with its sidecar or not at all
+                EpisodeMetadata.write(
+                    context,
+                    tmpDir,
+                    download.dirName,
+                    EpisodeMetadata.of(stream, downloaded.video.file, downloaded.audios.map { it.file }),
+                )
                 finish(download, animeDir, tmpDir)
                 return
             } catch (e: CancellationException) {

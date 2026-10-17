@@ -6,9 +6,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DownloadDone
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -16,8 +20,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
+import com.sf.tadami.data.download.isLocalFile
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.ui.components.screens.ScreenTabContent
 import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
@@ -71,6 +77,18 @@ fun videoTab(
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
+                    // The downloaded files carry the name of the stream they came from: tell them apart
+                    if (source.isLocalFile) {
+                        Icon(
+                            imageVector = Icons.Outlined.DownloadDone,
+                            contentDescription = stringResource(R.string.episode_downloaded),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                                .padding(start = 8.dp)
+                                .size(16.dp)
+                        )
+                    }
                 }
             }
         }

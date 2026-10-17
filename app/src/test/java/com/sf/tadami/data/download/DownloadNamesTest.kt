@@ -177,4 +177,18 @@ class DownloadNamesTest {
     fun noVideoNoEpisode() {
         assertNull(DownloadNames.parseFiles("E", listOf("E.English.vtt")).video)
     }
+
+    @Test
+    fun theSidecarIsNeitherAVideoNorATrack() {
+        // "E.json" sorts before "E.ts": it must not be taken for the video
+        val files = DownloadNames.parseFiles("E", listOf("E.ts", "E.json", "E.English.vtt"))
+        assertEquals("E.ts", files.video)
+        assertEquals("E.json", files.metadata)
+        assertEquals(listOf("E.English.vtt"), files.subtitles.map { it.name })
+        assertTrue(files.audios.isEmpty())
+        // A sidecar alone is no episode
+        assertNull(DownloadNames.parseFiles("E", listOf("E.json")).video)
+        // Downloads made before it have none
+        assertNull(DownloadNames.parseFiles("E", listOf("E.ts")).metadata)
+    }
 }
