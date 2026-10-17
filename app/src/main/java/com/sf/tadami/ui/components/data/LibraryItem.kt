@@ -4,5 +4,6 @@ import com.sf.tadami.domain.anime.LibraryAnime
 
 data class LibraryItem(
     val anime : LibraryAnime,
-    val selected : Boolean
+    val selected : Boolean,
+    val downloadCount : Int = 0
 )

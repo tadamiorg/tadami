@@ -196,6 +196,9 @@ class TadamiDownloadManager(
         return DownloadNames.episodeDirName(episode, episodes) in downloadedDirs(anime)
     }
 
+    /** How many episodes of [anime] are downloaded, from the cache. */
+    fun getDownloadCount(anime: Anime): Int = downloadedDirs(anime).size
+
     /** The download state of each of [episodes], all the anime's, by episode id. No storage access. */
     fun getDownloadStates(anime: Anime, episodes: List<Episode>): Map<Long, EpisodeDownloadState> {
         val queued = queueState.value.filter { it.anime.id == anime.id }.associateBy { it.episode.id }
