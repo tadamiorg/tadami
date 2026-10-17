@@ -309,6 +309,10 @@ class Downloader(
                     episodeDirName = download.dirName,
                     resume = resume.files,
                     onFileProgress = { role, file ->
+                        // Each segment or 2 MiB: stop before the device is full, not at its last byte
+                        if (DiskUtil.getAvailableStorageSpace(animeDir) in 0 until MIN_FREE_SPACE_BYTES) {
+                            throw DownloadFatalException(context.getString(R.string.download_error_no_space))
+                        }
                         if (role == StreamDownloader.VIDEO) download.videoProgress = file
                         resume = resume.copy(files = resume.files + (role to file))
                         resumeStore.save(episodeId, resume)

@@ -1,10 +1,12 @@
 package com.sf.tadami.utils
 
+import android.content.ContentResolver
 import android.content.Context
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Environment
 import android.os.StatFs
+import android.provider.DocumentsContract
 import androidx.core.content.ContextCompat
 import com.hippo.unifile.UniFile
 import java.io.File
@@ -65,16 +67,33 @@ object DiskUtil {
     }
 
     /**
-     * Gets the available space for the disk that a file path points to, in bytes.
+     * Gets the available space for the disk that a file path points to, in bytes. A folder picked
+     * with the storage access framework is measured on its volume. -1 when unknown.
      */
     fun getAvailableStorageSpace(f: UniFile): Long {
         return try {
-            val stat = StatFs(f.uri.path)
+            val stat = StatFs(volumePath(f.uri) ?: return -1L)
             stat.availableBlocksLong * stat.blockSizeLong
         } catch (_: Exception) {
             -1L
         }
     }
+
+    /** A path on the volume of [uri]: its own for a file, the volume's for an external storage document. */
+    private fun volumePath(uri: Uri): String? {
+        if (uri.scheme == ContentResolver.SCHEME_FILE) return uri.path
+        if (uri.authority != EXTERNAL_STORAGE_DOCUMENTS) return null
+        val documentId = runCatching { DocumentsContract.getDocumentId(uri) }
+            .recoverCatching { DocumentsContract.getTreeDocumentId(uri) }
+            .getOrNull() ?: return null
+        // "primary:TadamiDbg/downloads", "1A2B-3C4D:Anime"
+        return when (val volume = documentId.substringBefore(':')) {
+            "primary", "home" -> Environment.getExternalStorageDirectory().path
+            else -> "/storage/$volume"
+        }
+    }
+
+    private const val EXTERNAL_STORAGE_DOCUMENTS = "com.android.externalstorage.documents"
 
     /**
      * Don't display downloaded episodes in gallery apps creating `.nomedia`.
