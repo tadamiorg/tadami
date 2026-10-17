@@ -1,5 +1,7 @@
 package com.sf.tadami.ui.animeinfos.details
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,6 +12,7 @@ import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.extension.util.fetchGuarded
+import com.sf.tadami.preferences.app.BasePreferences
 import com.sf.tadami.ui.animeinfos.details.episodes.DetailsDownloadAction
 import com.sf.tadami.ui.animeinfos.details.episodes.EpisodeDownloadAction
 import com.sf.tadami.ui.animeinfos.details.episodes.episodesToDownload
@@ -18,6 +21,7 @@ import com.sf.tadami.ui.discover.migrate.MigrateHelperState
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.addOrRemove
 import com.sf.tadami.ui.utils.awaitSingleOrNull
+import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,6 +29,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
@@ -43,6 +48,7 @@ class DetailsViewModel(
     private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
     private val getAnime: GetAnime = Injekt.get()
     private val downloadManager: TadamiDownloadManager = Injekt.get()
+    private val dataStore: DataStore<Preferences> = Injekt.get()
 
     private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
     private val sourceId: Long = checkNotNull(savedStateHandle["sourceId"])
@@ -85,13 +91,20 @@ class DetailsViewModel(
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            animeWithEpisodesInteractor.subscribe(animeId).collectLatest { (anime, episodes) ->
+            combine(
+                animeWithEpisodesInteractor.subscribe(animeId),
+                dataStore.getPreferencesGroupAsFlow(BasePreferences).map { it.downloadedOnly }.distinctUntilChanged(),
+            ) { animeWithEpisodes, downloadedOnly ->
+                animeWithEpisodes to downloadedOnly
+            }.collectLatest { (animeWithEpisodes, downloadedOnly) ->
+                val (anime, episodes) = animeWithEpisodes
                 _uiState.update { currentState ->
                     currentState.copy(
                         details = anime,
+                        downloadedOnly = downloadedOnly,
                         episodes = episodes.sortedBy {
                             it.sourceOrder
-                        }.toEpisodeItems(anime.unseenFilterRaw).withDownloadStates(anime)
+                        }.toEpisodeItems(anime, downloadedOnly)
                     )
                 }
             }
@@ -104,7 +117,12 @@ class DetailsViewModel(
             ).collect {
                 _uiState.update { currentState ->
                     val anime = currentState.details ?: return@update currentState
-                    currentState.copy(episodes = currentState.episodes.withDownloadStates(anime))
+                    currentState.copy(
+                        episodes = currentState.episodes
+                            .withDownloadStates(anime)
+                            // A deleted episode leaves the downloaded only list
+                            .keepDisplayedSelected(anime.unseenFilterRaw, currentState.downloadedOnly)
+                    )
                 }
             }
         }
@@ -302,7 +320,7 @@ class DetailsViewModel(
         _uiState.update { currentState ->
             currentState.copy(
                 episodes = currentState.episodes
-                    .selectDisplayed(currentState.details?.unseenFilterRaw, selected)
+                    .selectDisplayed(currentState.details?.unseenFilterRaw, currentState.downloadedOnly, selected)
                     .also { syncSelectedEpisodesIds(it) }
             )
         }
@@ -313,15 +331,21 @@ class DetailsViewModel(
         episodes.filter { it.selected }.mapTo(selectedEpisodesIds) { it.episode.id }
     }
 
-    private fun List<Episode>.toEpisodeItems(unseenFilter: Long?): List<EpisodeItem> {
+    private fun List<Episode>.toEpisodeItems(anime: Anime, downloadedOnly: Boolean): List<EpisodeItem> {
         return this.map {
             EpisodeItem(
                 it,
                 it.id in selectedEpisodesIds
             )
         }
-            // An episode the seen filter now hides doesn't stay selected
-            .selectDisplayed(unseenFilter) { it.selected }
+            // Before the filters: the downloaded only mode filters on the download states
+            .withDownloadStates(anime)
+            .keepDisplayedSelected(anime.unseenFilterRaw, downloadedOnly)
+    }
+
+    // An episode the filters now hide doesn't stay selected
+    private fun List<EpisodeItem>.keepDisplayedSelected(unseenFilter: Long?, downloadedOnly: Boolean): List<EpisodeItem> {
+        return selectDisplayed(unseenFilter, downloadedOnly) { it.selected }
             .also { syncSelectedEpisodesIds(it) }
     }
 }
@@ -329,7 +353,8 @@ class DetailsViewModel(
 // Select all and invert act on the displayed episodes only, the hidden ones end up unselected
 internal fun List<EpisodeItem>.selectDisplayed(
     unseenFilter: Long?,
+    downloadedOnly: Boolean,
     selected: (EpisodeItem) -> Boolean
 ): List<EpisodeItem> {
-    return map { it.copy(selected = it.isDisplayed(unseenFilter) && selected(it)) }
+    return map { it.copy(selected = it.isDisplayed(unseenFilter, downloadedOnly) && selected(it)) }
 }

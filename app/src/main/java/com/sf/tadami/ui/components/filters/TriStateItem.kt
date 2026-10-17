@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.state.ToggleableState
 import com.sf.tadami.ui.utils.padding
 
@@ -25,11 +26,15 @@ import com.sf.tadami.ui.utils.padding
 fun TriStateItem(
     label: String,
     state: ToggleableState,
+    // Disabled: a filter the app forces, greyed out
+    enabled: Boolean = true,
     setFilters: () -> Unit,
 ) {
     Row(
         modifier = Modifier
+            .alpha(if (enabled) 1f else DISABLED_ALPHA)
             .clickable(
+                enabled = enabled,
                 interactionSource = remember {
                     MutableInteractionSource()
                 },
@@ -65,3 +70,5 @@ fun TriStateItem(
         )
     }
 }
+
+private const val DISABLED_ALPHA = .38f

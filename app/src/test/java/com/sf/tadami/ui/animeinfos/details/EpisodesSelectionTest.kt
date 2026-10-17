@@ -22,7 +22,7 @@ class EpisodesSelectionTest {
 
     @Test
     fun selectAllOnlySelectsTheEpisodesTheSeenFilterShows() {
-        val result = episodes.selectDisplayed(Anime.EPISODE_SHOW_UNSEEN) { true }
+        val result = episodes.selectDisplayed(Anime.EPISODE_SHOW_UNSEEN, false) { true }
 
         assertEquals(listOf(2L, 4L), result.selectedIds())
     }
@@ -31,14 +31,14 @@ class EpisodesSelectionTest {
     fun invertOnlyInvertsTheDisplayedEpisodes() {
         val selected = episodes.map { it.copy(selected = it.episode.id == 1L) }
 
-        val result = selected.selectDisplayed(Anime.EPISODE_SHOW_SEEN) { !it.selected }
+        val result = selected.selectDisplayed(Anime.EPISODE_SHOW_SEEN, false) { !it.selected }
 
         assertEquals(listOf(3L), result.selectedIds())
     }
 
     @Test
     fun withoutFilterEveryEpisodeIsSelected() {
-        val result = episodes.selectDisplayed(null) { true }
+        val result = episodes.selectDisplayed(null, false) { true }
 
         assertEquals(listOf(1L, 2L, 3L, 4L), result.selectedIds())
     }

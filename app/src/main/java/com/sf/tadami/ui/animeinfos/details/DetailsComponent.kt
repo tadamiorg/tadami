@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import com.sf.tadami.data.download.model.Download
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.source.model.SAnimeStatus
 import com.sf.tadami.ui.animeinfos.details.actions.AnimeActionRow
@@ -44,9 +45,9 @@ fun DetailsComponent(
 ) {
     val topPadding = contentPadding.calculateTopPadding()
 
-    val episodes by remember(uiState.episodes,uiState.details?.unseenFilterRaw) {
+    val episodes by remember(uiState.episodes,uiState.details?.unseenFilterRaw,uiState.downloadedOnly) {
         derivedStateOf{
-            uiState.episodes.addFilters(uiState.details?.unseenFilterRaw)
+            uiState.episodes.addFilters(uiState.details?.unseenFilterRaw, uiState.downloadedOnly)
         }
     }
 
@@ -120,7 +121,7 @@ fun DetailsComponent(
                 ) {
                     EpisodesHeader(
                         totalEpisodes = uiState.episodes.size,
-                        isFiltered = uiState.details?.areEpisodesFiltered,
+                        isFiltered = uiState.details?.areEpisodesFiltered == true || uiState.downloadedOnly,
                         onFilterClicked = onEpisodeFilterClicked,
                         filteredEpisodes = episodes.size
                     )
@@ -138,11 +139,13 @@ fun DetailsComponent(
     }
 }
 
-private fun List<EpisodeItem>.addFilters(unseenFilter: Long?): List<EpisodeItem> {
-    return this.filter { it.isDisplayed(unseenFilter) }
+private fun List<EpisodeItem>.addFilters(unseenFilter: Long?, downloadedOnly: Boolean): List<EpisodeItem> {
+    return this.filter { it.isDisplayed(unseenFilter, downloadedOnly) }
 }
 
-internal fun EpisodeItem.isDisplayed(unseenFilter: Long?): Boolean {
+internal fun EpisodeItem.isDisplayed(unseenFilter: Long?, downloadedOnly: Boolean = false): Boolean {
+    // The downloaded only mode forces a downloaded filter, the seen filter still applies
+    if (downloadedOnly && download.state != Download.State.DOWNLOADED) return false
     return when(unseenFilter){
         Anime.EPISODE_SHOW_SEEN -> episode.seen
         Anime.EPISODE_SHOW_UNSEEN -> !episode.seen

@@ -10,8 +10,16 @@ import com.sf.tadami.ui.components.filters.TriStateItem
 import com.sf.tadami.ui.tabs.library.bottomsheet.setFlags
 
 @Composable
-fun FilterTab(anime: Anime, setFilters: (filterFlags: Long) -> Unit) {
+fun FilterTab(anime: Anime, downloadedOnly: Boolean, setFilters: (filterFlags: Long) -> Unit) {
     Column {
+        // Forced by the downloaded only mode, not a filter of the anime
+        if (downloadedOnly) {
+            TriStateItem(
+                label = stringResource(id = R.string.filter_downloaded),
+                state = ToggleableState.On,
+                enabled = false,
+            ) {}
+        }
         TriStateItem(
             label = stringResource(id = R.string.filter_unseen),
             state = anime.unseenFilter

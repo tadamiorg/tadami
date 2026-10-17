@@ -5,7 +5,8 @@ import com.sf.tadami.ui.components.data.EpisodeItem
 
 data class DetailsUiState (
     val details : Anime? = null,
-    val episodes : List<EpisodeItem> = emptyList()
+    val episodes : List<EpisodeItem> = emptyList(),
+    val downloadedOnly : Boolean = false
 )
 
 enum class DetailsScreenItem {

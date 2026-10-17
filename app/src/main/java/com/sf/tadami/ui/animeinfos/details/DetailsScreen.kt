@@ -103,6 +103,7 @@ fun DetailsScreen(
                         ) {
                             FilterTab(
                                 anime = uiState.details!!,
+                                downloadedOnly = uiState.downloadedOnly,
                                 setFilters = {
                                     detailsViewModel.setEpisodeFlags(it)
                                 }
@@ -142,7 +143,8 @@ fun DetailsScreen(
                     },
                     onDownloadClicked = detailsViewModel::runDownloadAction,
                     onDeleteDownloadsClicked = { showDeleteDownloadsDialog = true },
-                    hasDownloads = uiState.episodes.fastAny { it.download.state != Download.State.NOT_DOWNLOADED }
+                    hasDownloads = uiState.episodes.fastAny { it.download.state != Download.State.NOT_DOWNLOADED },
+                    downloadedOnly = uiState.downloadedOnly
                 )
             },
             floatingActionButton = {

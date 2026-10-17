@@ -40,6 +40,8 @@ fun DetailsToolbar(
     onDownloadClicked : (DetailsDownloadAction) -> Unit,
     onDeleteDownloadsClicked : () -> Unit,
     hasDownloads : Boolean,
+    // Only downloaded episodes are listed: nothing left to download
+    downloadedOnly : Boolean,
     // For Action Mode
     actionModeCounter: Int,
     onCloseClicked: () -> Unit,
@@ -85,15 +87,18 @@ fun DetailsToolbar(
                     DropDownAction(
                         title = pluralStringResource(R.plurals.download_next_unseen, action.count!!, action.count),
                         onClick = { onDownloadClicked(action) },
+                        enabled = !downloadedOnly,
                     )
                 } + listOf(
                     DropDownAction(
                         title = stringResource(id = R.string.download_unseen),
                         onClick = { onDownloadClicked(DetailsDownloadAction.UNSEEN) },
+                        enabled = !downloadedOnly,
                     ),
                     DropDownAction(
                         title = stringResource(id = R.string.download_all),
                         onClick = { onDownloadClicked(DetailsDownloadAction.ALL) },
+                        enabled = !downloadedOnly,
                     ),
                     DropDownAction(
                         title = stringResource(id = R.string.download_delete_all),
