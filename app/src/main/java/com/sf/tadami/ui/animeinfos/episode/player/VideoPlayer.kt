@@ -59,6 +59,7 @@ import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.sf.tadami.R
+import com.sf.tadami.data.download.isLocalFile
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.network.player.HlsPlaylistFixingDataSource
@@ -153,6 +154,13 @@ fun VideoPlayer(
     val dataSourceFactory = remember {
         DefaultMediaSourceFactory(context).apply {
             setDataSourceFactory(resolvingDataSource)
+            setSubtitleParserFactory(CustomSubtitleParserFactory())
+        }
+    }
+
+    // Downloaded files: read as they are, kept out of the stream cache, no headers
+    val localMediaSourceFactory = remember {
+        DefaultMediaSourceFactory(context).apply {
             setSubtitleParserFactory(CustomSubtitleParserFactory())
         }
     }
@@ -360,13 +368,14 @@ fun VideoPlayer(
                     }
                 }.build()
 
+                val mediaSourceFactory = if (source.isLocalFile) localMediaSourceFactory else dataSourceFactory
                 if (source.audioTracks.isNotEmpty()) {
                     // Demuxed HLS: the variant URL is video-only, so merge the separate audio group(s). Each
                     // audio source becomes one audio track group (the video variant contributes none), so
                     // selectAudio can override by index. createMediaSource keeps the side-loaded subtitles.
-                    val videoSource = dataSourceFactory.createMediaSource(videoItem)
+                    val videoSource = mediaSourceFactory.createMediaSource(videoItem)
                     val audioSources = source.audioTracks.map { audio ->
-                        dataSourceFactory.createMediaSource(MediaItem.fromUri(audio.url))
+                        mediaSourceFactory.createMediaSource(MediaItem.fromUri(audio.url))
                     }
                     val merged = MergingMediaSource(
                         /* adjustPeriodTimeOffsets = */ true,
@@ -375,6 +384,8 @@ fun VideoPlayer(
                         *audioSources.toTypedArray(),
                     )
                     exoPlayer.setMediaSource(merged, startPos)
+                } else if (source.isLocalFile) {
+                    exoPlayer.setMediaSource(mediaSourceFactory.createMediaSource(videoItem), startPos)
                 } else {
                     exoPlayer.setMediaItem(videoItem, startPos)
                 }

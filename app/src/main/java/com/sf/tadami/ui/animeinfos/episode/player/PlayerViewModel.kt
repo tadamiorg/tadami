@@ -1,5 +1,8 @@
 package com.sf.tadami.ui.animeinfos.episode.player
 
+import android.app.Application
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -7,6 +10,8 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.sf.tadami.R
+import com.sf.tadami.data.download.TadamiDownloadManager
+import com.sf.tadami.data.download.isLocalFile
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
@@ -18,6 +23,7 @@ import com.sf.tadami.extension.util.ExtensionDisabledException
 import com.sf.tadami.extension.util.fetchGuarded
 import com.sf.tadami.network.utils.TadaErrorConsumer
 import com.sf.tadami.preferences.CommonKeys
+import com.sf.tadami.preferences.download.DownloadPreferences
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.source.model.Track
@@ -27,6 +33,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.CastRemoteState
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.SaveableMutableSaveStateFlow
 import com.sf.tadami.ui.utils.UiToasts
+import com.sf.tadami.utils.getPreferencesGroup
 import io.reactivex.rxjava3.disposables.Disposable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -66,6 +73,8 @@ class PlayerViewModel(
     private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
     private val updateHistoryInteractor: UpdateHistoryInteractor = Injekt.get()
     private val sourcesManager: SourceManager = Injekt.get()
+    private val downloadManager: TadamiDownloadManager = Injekt.get()
+    private val dataStore: DataStore<Preferences> = Injekt.get()
 
     private val sourceId: Long = checkNotNull(savedStateHandle["sourceId"])
 
@@ -143,6 +152,10 @@ class PlayerViewModel(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     private var fetchEpisodeDisposable: Disposable? = null
+    private var localEpisodeJob: Job? = null
+
+    /** Downloaded episodes watched here, deleted once left when the settings say so */
+    private val watchedDownloads = mutableSetOf<Episode>()
 
     private val _uiState = MutableStateFlow(EpisodeUiState())
     val uiState: StateFlow<EpisodeUiState> = _uiState.asStateFlow()
@@ -247,6 +260,11 @@ class PlayerViewModel(
                     val watched = isEpisodeWatched(timeSeen, totalTime, threshold)
                     if (watched) {
                         updateAnimeInteractor.awaitSeenEpisodeUpdate(setOf(ep.id), true)
+                        if (_uiState.value.selectedSource?.isLocalFile == true &&
+                            dataStore.getPreferencesGroup(DownloadPreferences).deleteAfterWatched
+                        ) {
+                            synchronized(watchedDownloads) { watchedDownloads += ep }
+                        }
                     } else {
                         updateAnimeInteractor.awaitSeenEpisodeTimeUpdate(ep, totalTime, timeSeen)
                     }
@@ -289,6 +307,7 @@ class PlayerViewModel(
         selectedTrack: Long?
     ) {
         fetchEpisodeDisposable?.dispose()
+        localEpisodeJob?.cancel()
         _isFetchingSources.update { false }
         // The episode first: the cast load guard compares it with the cast media when the sources change
         isResumedFromCast = true
@@ -327,7 +346,42 @@ class PlayerViewModel(
         }
         _isFetchingSources.update { true }
         fetchEpisodeDisposable?.dispose()
+        localEpisodeJob?.cancel()
+        deleteWatchedDownloads(except = episode)
 
+        // A downloaded episode plays from its files, without network
+        localEpisodeJob = viewModelScope.launch(Dispatchers.IO) {
+            val local = downloadManager.getLocalEpisode(episode)
+                ?.toStreamSource(Injekt.get<Application>().getString(R.string.episode_downloaded))
+            if (local == null) {
+                fetchOnlineSources(episode)
+                return@launch
+            }
+            _uiState.update { currentState ->
+                currentState.copy(
+                    rawUrl = episode.url,
+                    selectedSource = local,
+                    availableSources = listOf(local)
+                )
+            }
+            _isFetchingSources.update { false }
+            updateHistoryInteractor.awaitAnimeHistoryUpdate(episode)
+        }
+    }
+
+    /**
+     * The streams of the source instead of the downloaded files, for the current episode: the cast
+     * receiver can't read the phone's files.
+     */
+    fun fetchOnlineSources() {
+        val episode = currentEpisode.value ?: return
+        if (_uiState.value.selectedSource?.isLocalFile != true) return
+        _isFetchingSources.update { true }
+        fetchOnlineSources(episode)
+    }
+
+    private fun fetchOnlineSources(episode: Episode) {
+        fetchEpisodeDisposable?.dispose()
         fetchEpisodeDisposable = source.fetchGuarded { fetchEpisodeSources(episode.url) }.subscribe(
             { data ->
                 _uiState.updateAndGet { currentState ->
@@ -346,7 +400,9 @@ class PlayerViewModel(
             },
             TadaErrorConsumer {error, _, _ ->
                 _isFetchingSources.update { false }
-                if(error is StubSource.SourceNotInstalledException || error is ExtensionDisabledException){
+                // A downloaded episode still plays, only its cast failed
+                val playsLocally = _uiState.value.selectedSource?.isLocalFile == true
+                if(!playsLocally && (error is StubSource.SourceNotInstalledException || error is ExtensionDisabledException)){
                     _uiState.update {
                         it.copy(loadError = true)
                     }
@@ -360,9 +416,19 @@ class PlayerViewModel(
         )
     }
 
+    /** Not [except], the episode now played, even when watched before. */
+    private fun deleteWatchedDownloads(except: Episode? = null) {
+        val episodes = synchronized(watchedDownloads) {
+            watchedDownloads.filter { it.id != except?.id }.also { watchedDownloads.clear() }
+        }
+        val anime = anime.value ?: return
+        downloadManager.deleteEpisodes(anime, episodes)
+    }
+
     override fun onCleared() {
         super.onCleared()
         fetchEpisodeDisposable?.dispose()
+        deleteWatchedDownloads()
     }
 
 }

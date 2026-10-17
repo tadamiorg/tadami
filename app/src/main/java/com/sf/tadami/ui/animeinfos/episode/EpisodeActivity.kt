@@ -54,6 +54,7 @@ import com.google.android.gms.cast.framework.media.RemoteMediaClient
 import com.google.android.gms.common.api.PendingResult
 import com.google.android.gms.common.api.Status
 import com.sf.tadami.R
+import com.sf.tadami.data.download.isLocalFile
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.toSEpisode
@@ -542,6 +543,11 @@ class EpisodeActivity : AppCompatActivity() {
         // collectors haven't repopulated it yet on return (a null thumbnailUrl NPEs Uri.parse).
         val anime = playerViewModel.anime.value ?: this.anime
         if (castSession == null || selectedSource == null || episode == null) {
+            return
+        }
+        // The TV can't read the phone's files: cast the source's streams, this runs again once fetched
+        if (selectedSource!!.isLocalFile) {
+            playerViewModel.fetchOnlineSources()
             return
         }
 
