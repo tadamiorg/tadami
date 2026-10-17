@@ -2,9 +2,11 @@ package com.sf.tadami.ui.webview
 
 import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
+import android.os.Message
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.CancelPresentation
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -25,10 +28,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,11 +43,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.kevinnzou.web.AccompanistWebChromeClient
 import com.kevinnzou.web.AccompanistWebViewClient
 import com.kevinnzou.web.LoadingState
+import com.kevinnzou.web.WebContent
 import com.kevinnzou.web.WebView
-import com.kevinnzou.web.rememberWebViewNavigator
-import com.kevinnzou.web.rememberWebViewState
+import com.kevinnzou.web.WebViewNavigator
+import com.kevinnzou.web.WebViewState
 import com.sf.tadami.BuildConfig
 import com.sf.tadami.R
 import com.sf.tadami.network.utils.CLOUDFLARE_CHALLENGE_PROBE
@@ -52,6 +61,24 @@ import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
+
+/**
+ * A page of the screen: the one it opened, or a popup (`window.open`, a `target=_blank` link) stacked
+ * above it. Each window has its own clients, so a page loading under a popup doesn't change the header.
+ */
+private class WebViewWindow(
+    content: WebContent,
+    val navigator: WebViewNavigator,
+    initialUrl: String,
+    // The popup's WebView goes back to the page that opened it through this message
+    val popupMessage: Message? = null,
+) {
+    val state = WebViewState(content)
+    var currentUrl by mutableStateOf(initialUrl)
+    var webView: WebView? = null
+    lateinit var client: AccompanistWebViewClient
+    lateinit var chromeClient: AccompanistWebChromeClient
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,10 +93,7 @@ fun WebviewScreen(
     headers: Map<String, String> = emptyMap(),
     onUrlChange: (String) -> Unit = {},
 ) {
-    val state = rememberWebViewState(url = url, additionalHttpHeaders = headers)
-    val navigator = rememberWebViewNavigator()
-
-    var currentUrl by remember { mutableStateOf(url) }
+    val coroutineScope = rememberCoroutineScope()
     var challengeState by remember { mutableStateOf(ChallengeState.NONE) }
     var solvedUrl by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
@@ -83,7 +107,27 @@ fun WebviewScreen(
         headers.filterKeys { !it.equals("user-agent", ignoreCase = true) }
     }
 
-    val webClient = remember {
+    val windows = remember { mutableStateListOf<WebViewWindow>() }
+    // Destroyed once: by the window closing, or by the screen leaving
+    val destroyedWebViews = remember { mutableSetOf<WebView>() }
+    var screenActive by remember { mutableStateOf(true) }
+
+    fun destroy(webView: WebView) {
+        if (!destroyedWebViews.add(webView)) return
+        // Stop media and scripts now rather than whenever the WebView is collected
+        webView.stopLoading()
+        webView.destroy()
+    }
+
+    fun closeWindow(window: WebViewWindow) {
+        if (window === windows.first()) return
+        val visible = window === windows.last()
+        if (!windows.remove(window)) return
+        // The visible one is destroyed when it leaves the composition, the ones below it now
+        if (!visible) window.webView?.let(::destroy)
+    }
+
+    fun createWebClient(window: WebViewWindow) =
         object : AccompanistWebViewClient() {
 
             override fun shouldInterceptRequest(
@@ -99,14 +143,13 @@ fun WebviewScreen(
 
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
-                url?.let {
-                    currentUrl = it
-                    onUrlChange(it)
-                }
+                url?.let { window.currentUrl = it }
             }
 
             override fun onPageFinished(view: WebView, url: String?) {
                 super.onPageFinished(view, url)
+                // The challenges are solved in the page the screen opened
+                if (window !== windows.firstOrNull()) return
                 val pageUrl = url ?: return
                 view.evaluateJavascript(CLOUDFLARE_CHALLENGE_PROBE) { result ->
                     challengeState = when {
@@ -128,10 +171,7 @@ fun WebviewScreen(
                 isReload: Boolean,
             ) {
                 super.doUpdateVisitedHistory(view, url, isReload)
-                url?.let {
-                    currentUrl = it
-                    onUrlChange(it)
-                }
+                url?.let { window.currentUrl = it }
             }
 
             override fun shouldOverrideUrlLoading(
@@ -156,6 +196,53 @@ fun WebviewScreen(
                 return true
             }
         }
+
+    fun createWindow(content: WebContent, initialUrl: String, popupMessage: Message? = null): WebViewWindow =
+        WebViewWindow(content, WebViewNavigator(coroutineScope), initialUrl, popupMessage).also { window ->
+            window.client = createWebClient(window)
+            window.chromeClient = object : AccompanistWebChromeClient() {
+                override fun onCreateWindow(
+                    view: WebView,
+                    isDialog: Boolean,
+                    isUserGesture: Boolean,
+                    resultMsg: Message,
+                ): Boolean {
+                    // Like a browser's popup blocker: only the ones the user asked for
+                    if (!isUserGesture) return false
+                    windows.add(createWindow(WebContent.NavigatorOnly, "", resultMsg))
+                    return true
+                }
+
+                override fun onCloseWindow(view: WebView) {
+                    // window.close()
+                    windows.find { it.webView === view }?.let(::closeWindow)
+                }
+            }
+        }
+
+    remember {
+        windows.add(createWindow(WebContent.Url(url = url, additionalHttpHeaders = headers), url))
+    }
+    val rootWindow = windows.first()
+    val currentWindow = windows.last()
+    val state = currentWindow.state
+    val navigator = currentWindow.navigator
+    val currentUrl = currentWindow.currentUrl
+
+    LaunchedEffect(currentUrl) {
+        onUrlChange(currentUrl)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            screenActive = false
+            windows.forEach { window -> window.webView?.let(::destroy) }
+        }
+    }
+
+    // Back closes the popup once its own history is done (the WebView handles that first)
+    BackHandler(enabled = windows.size > 1) {
+        closeWindow(currentWindow)
     }
 
     Scaffold(
@@ -171,7 +258,7 @@ fun WebviewScreen(
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
-                                    text = state.lastLoadedUrl ?: url,
+                                    text = state.lastLoadedUrl ?: currentUrl,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     style = MaterialTheme.typography.bodyMedium
@@ -187,7 +274,15 @@ fun WebviewScreen(
                             }
                         },
                         actions =
-                        listOf(
+                        listOfNotNull(
+                            // Shown while a popup is open: back to the page below it
+                            Action.Vector(
+                                title = R.string.action_webview_close_window,
+                                icon = Icons.Outlined.CancelPresentation,
+                                onClick = {
+                                    closeWindow(currentWindow)
+                                },
+                            ).takeIf { windows.size > 1 },
                             Action.Vector(
                                 title = R.string.stub_text,
                                 icon = Icons.AutoMirrored.Outlined.ArrowBack,
@@ -260,38 +355,58 @@ fun WebviewScreen(
                 .fillMaxSize()
                 .padding(contentPadding),
         ) {
-            if (challengeState != ChallengeState.NONE) {
+            if (challengeState != ChallengeState.NONE && currentWindow === rootWindow) {
                 ChallengeBanner(
                     solved = challengeState == ChallengeState.SOLVED,
                     onDone = onNavigateUp,
                 )
             }
-            WebView(
-                state = state,
-                modifier = Modifier.fillMaxSize(),
-                // Once verified, back returns to the source instead of replaying the challenge pages
-                captureBackPresses = challengeState != ChallengeState.SOLVED,
-                navigator = navigator,
-                onCreated = { webView ->
-                    webView.setDefaultSettings()
+            // Keyed to the window: showing another window creates the composable again with its WebView
+            key(currentWindow) {
+                WebView(
+                    state = state,
+                    modifier = Modifier.fillMaxSize(),
+                    // Once verified, back returns to the source instead of replaying the challenge pages
+                    captureBackPresses = currentWindow !== rootWindow || challengeState != ChallengeState.SOLVED,
+                    navigator = navigator,
+                    onCreated = { webView ->
+                        webView.setDefaultSettings()
+                        // Popups open in a window of their own, see onCreateWindow
+                        webView.settings.setSupportMultipleWindows(true)
+                        webView.settings.javaScriptCanOpenWindowsAutomatically = true
 
-                    // Debug mode (chrome://inspect/#devices)
-                    if (BuildConfig.DEBUG &&
-                        0 != webView.context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE
-                    ) {
-                        WebView.setWebContentsDebuggingEnabled(true)
-                    }
+                        // Debug mode (chrome://inspect/#devices)
+                        if (BuildConfig.DEBUG &&
+                            0 != webView.context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE
+                        ) {
+                            WebView.setWebContentsDebuggingEnabled(true)
+                        }
 
-                    // Same UA as OkHttp, or the clearance obtained here would be useless to it
-                    webView.applyUserAgent(userAgent)
-                },
-                onDispose = { webView ->
-                    // Stop media and scripts now rather than whenever the WebView is collected
-                    webView.stopLoading()
-                    webView.destroy()
-                },
-                client = webClient,
-            )
+                        // Same UA as OkHttp, or the clearance obtained here would be useless to it
+                        webView.applyUserAgent(userAgent)
+                    },
+                    onDispose = { webView ->
+                        val window = windows.find { it.webView === webView }
+                        if (window == null || !screenActive) {
+                            destroy(webView)
+                        } else {
+                            // Covered by a popup: kept as it is, not loaded again when shown again
+                            window.state.content = WebContent.NavigatorOnly
+                        }
+                    },
+                    client = currentWindow.client,
+                    chromeClient = currentWindow.chromeClient,
+                    factory = { context ->
+                        currentWindow.webView ?: WebView(context).also { webView ->
+                            currentWindow.webView = webView
+                            currentWindow.popupMessage?.let { message ->
+                                (message.obj as WebView.WebViewTransport).webView = webView
+                                message.sendToTarget()
+                            }
+                        }
+                    },
+                )
+            }
         }
     }
 }
