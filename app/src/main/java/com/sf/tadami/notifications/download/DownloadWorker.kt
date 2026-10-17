@@ -65,7 +65,7 @@ class DownloadWorker(
                 val errors = launch {
                     downloadManager.statusFlow()
                         .filter { it.status == Download.State.ERROR }
-                        .collect { notifier.showError(it) }
+                        .collect { downloadManager.showError(it) }
                 }
                 downloadManager.runQueue()
                 notifications.cancel()

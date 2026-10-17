@@ -64,6 +64,25 @@ class TadamiDownloadManager(
         )
     }
 
+    /** The failed download the error notification shows */
+    @Volatile
+    private var notifiedError: Download? = null
+
+    init {
+        // The error notification goes once its download is retried or removed, or the queue emptied
+        scope.launch {
+            downloader.awaitRestored()
+            merge(queueState.map { }, statusFlow().map { }).collect {
+                val queue = queueState.value
+                val shown = notifiedError
+                if (queue.isEmpty() || (shown != null && (shown.status != Download.State.ERROR || shown !in queue))) {
+                    notifiedError = null
+                    notifier.dismissError()
+                }
+            }
+        }
+    }
+
     /** The queue, in download order. Downloaded episodes leave it, failed ones stay. */
     val queueState: StateFlow<List<Download>>
         get() = downloader.queueState
@@ -140,6 +159,7 @@ class TadamiDownloadManager(
         downloader.remove(queueState.value)
         notifier.dismissProgress()
         notifier.dismissPaused()
+        notifier.dismissError()
     }
 
     fun cancelQueuedDownloads(downloads: List<Download>) {
@@ -238,6 +258,12 @@ class TadamiDownloadManager(
             logcat(LogPriority.WARN, e, tag = TAG) { "Couldn't read the download of ${episode.name}" }
             null
         }
+    }
+
+    /** Tells [download] failed, for [DownloadWorker]: one notification, the last error. */
+    internal fun showError(download: Download) {
+        notifiedError = download
+        notifier.showError(download)
     }
 
     /** Runs the queue, for [DownloadWorker]. */

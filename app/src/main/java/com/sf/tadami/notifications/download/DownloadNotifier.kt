@@ -114,6 +114,10 @@ class DownloadNotifier(private val context: Context) {
         context.notify(Notifications.DOWNLOADER_ERROR_ID, notification)
     }
 
+    fun dismissError() {
+        context.cancelNotification(Notifications.DOWNLOADER_ERROR_ID)
+    }
+
     private fun mainActivityIntent(): PendingIntent {
         val intent = Intent(context, MainActivity::class.java).apply {
             action = MainActivity.ACTION_OPEN_DOWNLOADS
