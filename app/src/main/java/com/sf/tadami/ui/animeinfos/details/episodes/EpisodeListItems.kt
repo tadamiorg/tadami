@@ -17,7 +17,8 @@ fun LazyListScope.episodeItems(
     displayMode : Anime.DisplayMode? = Anime.DisplayMode.NAME,
     episodes: List<EpisodeItem>,
     onEpisodeClicked: (epId: Long) -> Unit,
-    onEpisodeSelected: (episode: EpisodeItem, selected: Boolean) -> Unit
+    onEpisodeSelected: (episode: EpisodeItem, selected: Boolean) -> Unit,
+    onDownloadAction: ((episode: EpisodeItem, action: EpisodeDownloadAction) -> Unit)? = null
 ) {
 
 
@@ -66,7 +67,9 @@ fun LazyListScope.episodeItems(
                 else -> null
             },
             selected = episodeItem.selected,
-            languages = episodeItem.episode.languages
+            languages = episodeItem.episode.languages,
+            download = episodeItem.download,
+            onDownloadAction = onDownloadAction?.let { onAction -> { action -> onAction(episodeItem, action) } }
         )
     }
 }

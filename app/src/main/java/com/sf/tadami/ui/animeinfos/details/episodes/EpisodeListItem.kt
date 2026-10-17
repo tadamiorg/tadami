@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sf.tadami.data.download.model.EpisodeDownloadState
 import com.sf.tadami.ui.animeinfos.details.infos.DotSeparatorText
 import com.sf.tadami.ui.utils.SecondaryItemAlpha
 import com.sf.tadami.ui.utils.SeenItemAlpha
@@ -39,6 +40,8 @@ fun EpisodeListItem(
     watchProgress : String?,
     languages : String?,
     selected : Boolean,
+    download : EpisodeDownloadState? = null,
+    onDownloadAction : ((EpisodeDownloadAction) -> Unit)? = null,
 ) {
     val textAlpha = if (seen) SeenItemAlpha else 1f
     val textSubtitleAlpha = if (seen) SeenItemAlpha else SecondaryItemAlpha
@@ -51,6 +54,7 @@ fun EpisodeListItem(
                 onLongClick = onLongClick
             )
             .padding(horizontal = MaterialTheme.padding.medium, vertical = MaterialTheme.padding.small),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -100,6 +104,12 @@ fun EpisodeListItem(
                     }
                 }
             }
+        }
+        if (download != null && onDownloadAction != null) {
+            EpisodeDownloadIndicator(
+                download = download,
+                onAction = onDownloadAction,
+            )
         }
     }
 }

@@ -3,12 +3,14 @@ package com.sf.tadami.ui.animeinfos.details
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.anime.GetAnime
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.extension.util.fetchGuarded
+import com.sf.tadami.ui.animeinfos.details.episodes.EpisodeDownloadAction
 import com.sf.tadami.ui.components.data.EpisodeItem
 import com.sf.tadami.ui.discover.migrate.MigrateHelperState
 import com.sf.tadami.ui.tabs.browse.SourceManager
@@ -21,6 +23,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -35,6 +40,7 @@ class DetailsViewModel(
     private val updateAnimeInteractor: UpdateAnimeInteractor = Injekt.get()
     private val animeWithEpisodesInteractor: AnimeWithEpisodesInteractor = Injekt.get()
     private val getAnime: GetAnime = Injekt.get()
+    private val downloadManager: TadamiDownloadManager = Injekt.get()
 
     private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
     private val sourceId: Long = checkNotNull(savedStateHandle["sourceId"])
@@ -83,10 +89,36 @@ class DetailsViewModel(
                         details = anime,
                         episodes = episodes.sortedBy {
                             it.sourceOrder
-                        }.toEpisodeItems(anime.unseenFilterRaw)
+                        }.toEpisodeItems(anime.unseenFilterRaw).withDownloadStates(anime)
                     )
                 }
             }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            merge(
+                downloadManager.queueState.map { },
+                downloadManager.statusFlow().map { },
+                downloadManager.cacheChanges.map { },
+            ).collect {
+                _uiState.update { currentState ->
+                    val anime = currentState.details ?: return@update currentState
+                    currentState.copy(episodes = currentState.episodes.withDownloadStates(anime))
+                }
+            }
+        }
+        viewModelScope.launch {
+            downloadManager.progressFlow()
+                .filter { it.anime.id == animeId }
+                .collect { download ->
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            episodes = currentState.episodes.map {
+                                if (it.episode.id != download.episode.id) return@map it
+                                it.copy(download = it.download.copy(progress = download.progress))
+                            }
+                        )
+                    }
+                }
         }
         viewModelScope.launch(Dispatchers.IO) {
             val anime = animeWithEpisodesInteractor.awaitAnime(animeId)
@@ -152,6 +184,25 @@ class DetailsViewModel(
             val anime = animeWithEpisodesInteractor.awaitAnime(animeId)
             updateAnimeInteractor.updateAnimeEpisodeFlags(anime,flags)
         }
+    }
+
+    // Downloads
+
+    fun onDownloadAction(episodeItem: EpisodeItem, action: EpisodeDownloadAction) {
+        val anime = uiState.value.details ?: return
+        val episode = episodeItem.episode
+        val download = downloadManager.queueState.value.find { it.episode.id == episode.id }
+        when (action) {
+            EpisodeDownloadAction.START -> downloadManager.downloadEpisodes(anime, listOf(episode))
+            EpisodeDownloadAction.CANCEL -> download?.let { downloadManager.cancelQueuedDownloads(listOf(it)) }
+            EpisodeDownloadAction.DELETE -> downloadManager.deleteEpisodes(anime, listOf(episode))
+            EpisodeDownloadAction.RETRY -> download?.let { downloadManager.retryDownloads(listOf(it)) }
+        }
+    }
+
+    private fun List<EpisodeItem>.withDownloadStates(anime: Anime): List<EpisodeItem> {
+        val states = downloadManager.getDownloadStates(anime, map { it.episode })
+        return map { item -> states[item.episode.id]?.let { item.copy(download = it) } ?: item }
     }
 
     // Action Mode Functions

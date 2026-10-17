@@ -242,6 +242,7 @@ fun DetailsScreen(
                 onEpisodeSelected = { episodeItem, selected ->
                     detailsViewModel.toggleSelectedEpisode(episodeItem, selected)
                 },
+                onDownloadAction = detailsViewModel::onDownloadAction,
                 onEpisodeFilterClicked = {
                     showFiltersSheet = true
                 },

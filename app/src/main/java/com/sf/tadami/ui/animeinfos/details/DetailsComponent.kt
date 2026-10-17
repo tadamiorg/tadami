@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.source.model.SAnimeStatus
 import com.sf.tadami.ui.animeinfos.details.actions.AnimeActionRow
+import com.sf.tadami.ui.animeinfos.details.episodes.EpisodeDownloadAction
 import com.sf.tadami.ui.animeinfos.details.episodes.EpisodesHeader
 import com.sf.tadami.ui.animeinfos.details.episodes.episodeItems
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeInfosBox
@@ -37,7 +38,8 @@ fun DetailsComponent(
     onEpisodeClicked : (Long) -> Unit,
     onEpisodeSelected : (EpisodeItem, Boolean) -> Unit,
     onEpisodeFilterClicked : () -> Unit,
-    onTitleSearch : (String) -> Unit = {}
+    onTitleSearch : (String) -> Unit = {},
+    onDownloadAction : ((EpisodeItem, EpisodeDownloadAction) -> Unit)? = null
 
 ) {
     val topPadding = contentPadding.calculateTopPadding()
@@ -128,7 +130,8 @@ fun DetailsComponent(
                     episodes = episodes,
                     displayMode = uiState.details?.displayMode,
                     onEpisodeClicked = onEpisodeClicked,
-                    onEpisodeSelected = onEpisodeSelected
+                    onEpisodeSelected = onEpisodeSelected,
+                    onDownloadAction = onDownloadAction
                 )
             }
         }
