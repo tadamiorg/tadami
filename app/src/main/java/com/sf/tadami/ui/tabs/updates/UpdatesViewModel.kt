@@ -5,20 +5,28 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sf.tadami.data.anime.AnimeRepository
+import com.sf.tadami.data.download.TadamiDownloadManager
+import com.sf.tadami.data.download.model.Download
+import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.data.interactors.updates.GetUpdatesInteractor
 import com.sf.tadami.domain.updates.UpdatesWithRelations
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
+import com.sf.tadami.preferences.app.BasePreferences
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.ui.utils.addOrRemove
 import com.sf.tadami.utils.editPreference
+import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import com.sf.tadami.utils.launchIO
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uy.kohesive.injekt.Injekt
@@ -29,6 +37,9 @@ class UpdatesViewModel : ViewModel() {
     private val getUpdatesInteractor : GetUpdatesInteractor = Injekt.get()
     private val updateAnimeInteractor : UpdateAnimeInteractor = Injekt.get()
     private val dataStore : DataStore<Preferences> = Injekt.get()
+    private val animeRepository : AnimeRepository = Injekt.get()
+    private val episodeRepository : EpisodeRepository = Injekt.get()
+    private val downloadManager : TadamiDownloadManager = Injekt.get()
 
     private var _uiState = MutableStateFlow(UpdatesUiState())
     val uiState = _uiState.asStateFlow()
@@ -43,7 +54,14 @@ class UpdatesViewModel : ViewModel() {
             // Set date limit for recent episodes
             val limit = ZonedDateTime.now().minusMonths(3).toInstant()
 
-            getUpdatesInteractor.subscribe(limit).distinctUntilChanged().collectLatest {updates->
+            combine(
+                getUpdatesInteractor.subscribe(limit).distinctUntilChanged(),
+                dataStore.getPreferencesGroupAsFlow(BasePreferences).map { it.downloadedOnly }.distinctUntilChanged(),
+                // The downloads change without the updates, the cache tells when
+                downloadManager.cacheChanges,
+            ) { updates, downloadedOnly, _ ->
+                updates.downloadedOnly(if (downloadedOnly) downloadedEpisodeIds(updates) else null)
+            }.collectLatest {updates->
                 _uiState.update {
                     it.copy(
                         items = updates.toUpdateItems()
@@ -138,7 +156,21 @@ class UpdatesViewModel : ViewModel() {
         }
     }
 
+    // From the download cache, one anime at a time: the updates don't have the URLs the cache lookup needs
+    private suspend fun downloadedEpisodeIds(updates: List<UpdatesWithRelations>): Set<Long> {
+        return updates.groupBy { it.animeId }.flatMapTo(HashSet()) { (animeId, animeUpdates) ->
+            val anime = animeRepository.getAnimeById(animeId)
+            if (downloadManager.getDownloadCount(anime) == 0) return@flatMapTo emptyList()
+            val updateIds = animeUpdates.mapTo(HashSet()) { it.episodeId }
+            val episodes = episodeRepository.getEpisodesByAnimeId(animeId).filter { it.id in updateIds }
+            downloadManager.getDownloadStates(anime, episodes)
+                .filterValues { it.state == Download.State.DOWNLOADED }.keys
+        }
+    }
+
     private fun List<UpdatesWithRelations>.toUpdateItems(): List<UpdatesItem> {
+        // An episode no longer listed doesn't stay selected
+        selectedEpisodesIds.retainAll(mapTo(HashSet()) { it.episodeId })
         return this
             .map { update ->
                 UpdatesItem(
@@ -148,5 +180,11 @@ class UpdatesViewModel : ViewModel() {
             }
             .toList()
     }
+}
+
+/** The downloaded only mode: [downloadedIds] are the downloaded episodes, null when it is off. */
+internal fun List<UpdatesWithRelations>.downloadedOnly(downloadedIds: Set<Long>?): List<UpdatesWithRelations> {
+    if (downloadedIds == null) return this
+    return filter { it.episodeId in downloadedIds }
 }
 
