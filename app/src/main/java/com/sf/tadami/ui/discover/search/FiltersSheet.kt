@@ -16,8 +16,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
 import com.sf.tadami.source.model.AnimeFilter
@@ -25,6 +25,7 @@ import com.sf.tadami.source.model.AnimeFilterList
 import com.sf.tadami.ui.components.filters.CheckboxItem
 import com.sf.tadami.ui.components.filters.Group
 import com.sf.tadami.ui.components.filters.SelectItem
+import com.sf.tadami.ui.components.filters.SettingsItemsPaddings
 import com.sf.tadami.ui.utils.capFirstLetter
 import com.sf.tadami.ui.utils.padding
 
@@ -98,16 +99,18 @@ fun FiltersSheet(
 
                 is AnimeFilter.Header -> {
                     if (animeFilter.name.isNotEmpty()) {
+                        // A section heading, as in the settings: often a full sentence, shown whole
                         Text(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(color = Color.Red)
                                 .padding(
-                                    vertical = MaterialTheme.padding.extraSmall
+                                    horizontal = SettingsItemsPaddings.Horizontal,
+                                    vertical = SettingsItemsPaddings.Vertical,
                                 ),
                             text = animeFilter.name,
-                            maxLines = 1,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.SemiBold,
                         )
                     } else {
                         HorizontalDivider(
