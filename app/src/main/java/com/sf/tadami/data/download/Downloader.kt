@@ -356,7 +356,7 @@ class Downloader(
                     context,
                     tmpDir,
                     download.dirName,
-                    EpisodeMetadata.of(stream, downloaded.video.file, downloaded.audios.map { it.file }),
+                    EpisodeMetadata.of(stream, downloaded.video, downloaded.audios),
                 )
                 finish(download, animeDir, tmpDir)
                 return

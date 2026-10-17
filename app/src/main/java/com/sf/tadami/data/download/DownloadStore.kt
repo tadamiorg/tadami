@@ -111,7 +111,8 @@ data class ResumeData(
 /**
  * Progress of one file. Progressive: [bytes] written so far, every 2 MiB, only shown (a resume
  * reads the file length), [total] is the full length. HLS: [segments] segments were written in
- * order, [bytes] long, out of [total] segments.
+ * order, [bytes] long, out of [total] segments, [sizes] the size of each, for the segment index
+ * of the sidecar (null when the download started before they were recorded).
  */
 @Serializable
 data class FileProgress(
@@ -120,6 +121,7 @@ data class FileProgress(
     val bytes: Long = 0,
     val segments: Int = 0,
     val total: Long = -1,
+    val sizes: List<Long>? = null,
 )
 
 private object StoreFiles {

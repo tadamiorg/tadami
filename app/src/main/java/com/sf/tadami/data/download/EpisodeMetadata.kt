@@ -3,6 +3,7 @@ package com.sf.tadami.data.download
 import android.content.Context
 import com.hippo.unifile.UniFile
 import com.sf.tadami.data.download.stream.DownloadOutput
+import com.sf.tadami.data.download.stream.DownloadedFile
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.utils.logcat
 import kotlinx.serialization.Serializable
@@ -29,7 +30,7 @@ data class EpisodeMetadata(
     companion object {
         const val VERSION = 1
 
-        fun of(stream: StreamSource, video: UniFile, audios: List<UniFile>) = EpisodeMetadata(
+        fun of(stream: StreamSource, video: DownloadedFile, audios: List<DownloadedFile>) = EpisodeMetadata(
             version = VERSION,
             fullName = stream.fullName,
             server = stream.server,
@@ -75,11 +76,29 @@ data class MediaFileMetadata(
     val name: String,
     /** The container, as the file extension: ts, mp4, mkv, m4a, aac... */
     val container: String,
+    /**
+     * HLS: the segments joined in the file, in order, so it can be served as a playlist again.
+     * Null for a progressive file, or when unknown (a download resumed from an older version).
+     */
+    val segments: List<SegmentMetadata>? = null,
 ) {
     companion object {
-        fun of(file: UniFile): MediaFileMetadata {
-            val name = file.name.orEmpty()
-            return MediaFileMetadata(name, name.substringAfterLast('.', "").lowercase())
+        fun of(downloaded: DownloadedFile): MediaFileMetadata {
+            val name = downloaded.file.name.orEmpty()
+            return MediaFileMetadata(name, name.substringAfterLast('.', "").lowercase(), downloaded.segments)
         }
     }
 }
+
+/**
+ * One HLS segment in its joined file: [length] bytes at [offset] (after the init segment, if any),
+ * lasting [durationUs]. [discontinuity] when the playlist had a discontinuity before it: its
+ * timestamps don't follow the previous segment's.
+ */
+@Serializable
+data class SegmentMetadata(
+    val offset: Long,
+    val length: Long,
+    val durationUs: Long,
+    val discontinuity: Boolean = false,
+)

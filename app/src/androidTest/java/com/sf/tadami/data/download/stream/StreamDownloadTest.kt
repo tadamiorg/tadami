@@ -76,7 +76,7 @@ class StreamDownloadTest {
     @Test
     fun aMultivariantPlaylistIsJoinedAndDecrypted() = runBlocking {
         val saved = mutableListOf<FileProgress>()
-        val file = HlsDownload(context, http).download(
+        val downloaded = HlsDownload(context, http).download(
             url = server.url("/master.m3u8").toString(),
             playlist = null,
             headers = null,
@@ -90,12 +90,17 @@ class StreamDownloadTest {
             onProgress = {},
         )
 
+        val file = downloaded.file
         assertEquals("Ep 1.ts", file.name)
         assertArrayEquals(segments.reduce(ByteArray::plus), File(root, "Ep 1.ts").readBytes())
+        val sizes = segments.map { it.size.toLong() }
         assertEquals(
-            FileProgress("Ep 1.ts", hls = true, bytes = file.length(), segments = SEGMENT_COUNT, total = SEGMENT_COUNT.toLong()),
+            FileProgress("Ep 1.ts", hls = true, bytes = file.length(), segments = SEGMENT_COUNT, total = SEGMENT_COUNT.toLong(), sizes = sizes),
             saved.last(),
         )
+        // Where each segment is in the joined file, for the cast proxy
+        assertEquals(sizes.runningFold(0L, Long::plus).dropLast(1), downloaded.segments!!.map { it.offset })
+        assertEquals(sizes, downloaded.segments!!.map { it.length })
         // The 720p variant, not the 360p one
         assertTrue(paths.none { it.startsWith("/low/") })
         // The key once

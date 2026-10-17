@@ -4,6 +4,7 @@ import android.content.Context
 import com.hippo.unifile.UniFile
 import com.sf.tadami.data.download.DownloadNames
 import com.sf.tadami.data.download.FileProgress
+import com.sf.tadami.data.download.SegmentMetadata
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.utils.logcat
 import kotlinx.coroutines.CancellationException
@@ -58,8 +59,8 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
             onFileProgress = onFileProgress,
             progress = progress,
         )
-        if (MediaCheck.isTooSmall(video.length())) {
-            throw StreamFailedException(StreamFailure.TOO_SMALL, "The video is ${video.length()} bytes only")
+        if (MediaCheck.isTooSmall(video.file.length())) {
+            throw StreamFailedException(StreamFailure.TOO_SMALL, "The video is ${video.file.length()} bytes only")
         }
 
         val audios = stream.audioTracks.map { it.url to it.lang } + listOfNotNull(rendition?.let { it.url to it.lang })
@@ -81,7 +82,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
         }
 
         downloadSubtitles(stream, headers, dir, episodeDirName)
-        return DownloadedStream(DownloadedFile(video), audioFiles.map(::DownloadedFile))
+        return DownloadedStream(video, audioFiles)
     }
 
     private suspend fun media(
@@ -96,7 +97,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
         onAudioRendition: (HlsDownload.AudioRendition) -> Unit,
         onFileProgress: (String, FileProgress) -> Unit,
         progress: Progress,
-    ): UniFile {
+    ): DownloadedFile {
         val saveProgress = { file: FileProgress -> onFileProgress(role, file) }
         val reportProgress = { fraction: Float -> progress.update(role, fraction) }
         suspend fun hlsDownload(playlistUrl: String, playlist: String?) = hls.download(
@@ -107,7 +108,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
             return if (resume.hls) {
                 hlsDownload(url, null)
             } else {
-                progressive.download(url, headers, dir, fileBase, resume, null, saveProgress, reportProgress)
+                DownloadedFile(progressive.download(url, headers, dir, fileBase, resume, null, saveProgress, reportProgress))
             }
         }
         if (MediaCheck.isPlaylistUrl(url)) return hlsDownload(url, null)
@@ -127,7 +128,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
             }
             return hlsDownload(finalUrl, playlist)
         }
-        return progressive.download(url, headers, dir, fileBase, null, response, saveProgress, reportProgress)
+        return DownloadedFile(progressive.download(url, headers, dir, fileBase, null, response, saveProgress, reportProgress))
     }
 
     /** Best effort: an episode without its subtitles is still worth having. */
@@ -161,8 +162,6 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
     /** The files of a downloaded stream, in the tmp dir. */
     class DownloadedStream(val video: DownloadedFile, val audios: List<DownloadedFile>)
 
-    class DownloadedFile(val file: UniFile)
-
     /** The progress of the whole stream, each file weighted. */
     private class Progress(private val onProgress: (Float) -> Unit) {
         private val weights = mutableMapOf<String, Float>()
@@ -191,3 +190,6 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
         fun audioRole(index: Int) = "audio$index"
     }
 }
+
+/** One downloaded file, with its segments when joined from HLS (see [HlsDownload]). */
+class DownloadedFile(val file: UniFile, val segments: List<SegmentMetadata>? = null)

@@ -12,6 +12,7 @@ import androidx.media3.exoplayer.hls.playlist.HlsPlaylist
 import androidx.media3.exoplayer.hls.playlist.HlsPlaylistParser
 import com.hippo.unifile.UniFile
 import com.sf.tadami.data.download.FileProgress
+import com.sf.tadami.data.download.SegmentMetadata
 import com.sf.tadami.network.player.HlsSegmentIvs
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -26,7 +27,9 @@ import java.security.GeneralSecurityException
 /**
  * One HLS rendition joined into one file, without ffmpeg: MPEG-TS segments concatenated into a
  * `.ts`, fMP4 segments after their init segment into a `.mp4`. A few segments are fetched in
- * parallel and written in order, so a resume only needs the count of written segments.
+ * parallel and written in order, so a resume only needs the count of written segments. Where each
+ * segment ended up is recorded too, for the sidecar: the cast proxy serves the file as a playlist
+ * again.
  */
 @OptIn(UnstableApi::class)
 class HlsDownload(private val context: Context, private val http: MediaHttp) {
@@ -37,12 +40,21 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
     /** Where a resumed download goes on: after [segments] segments, [bytes] long. */
     data class ResumePoint(val segments: Int, val bytes: Long)
 
-    private class Segment(val url: String, val range: String?, val keyUrl: String?, val iv: ByteArray?)
+    private class Segment(
+        val url: String,
+        val range: String?,
+        val keyUrl: String?,
+        val iv: ByteArray?,
+        val durationUs: Long,
+        val discontinuitySequence: Int,
+    )
 
     /**
      * Downloads the playlist at [url] into [dir] as `<fileBase>.<ext>`. [playlist] is its content
      * when already read, [url] then being where it was read from. For a multivariant playlist, the
      * variant closest to [quality].
+     *
+     * @return the file, with its segments when their sizes are all known.
      */
     suspend fun download(
         url: String,
@@ -56,7 +68,7 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
         onAudioRendition: (AudioRendition) -> Unit,
         onFileProgress: (FileProgress) -> Unit,
         onProgress: (Float) -> Unit,
-    ): UniFile {
+    ): DownloadedFile {
         val (baseUrl, text) = if (playlist != null) url to playlist else fetchPlaylist(url, headers)
         var parsed = parse(baseUrl, text)
         if (parsed is HlsMultivariantPlaylist) {
@@ -159,6 +171,8 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
             range = range,
             keyUrl = keyUrl,
             iv = keyUrl?.let { HlsCrypto.iv(segment.encryptionIV, mediaSequence) },
+            durationUs = segment.durationUs,
+            discontinuitySequence = segment.relativeDiscontinuitySequence,
         )
     }
 
@@ -172,7 +186,7 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
         resume: FileProgress?,
         onFileProgress: (FileProgress) -> Unit,
         onProgress: (Float) -> Unit,
-    ): UniFile = coroutineScope {
+    ): DownloadedFile = coroutineScope {
         val count = segments.size
         val keys = Keys(headers)
         var file = resume?.takeIf { it.hls }?.let { dir.findFile(it.name) }
@@ -184,6 +198,8 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
         var output: OutputStream? = file?.let { DownloadOutput.openAt(context, it, point!!.bytes) }
         var written = point?.bytes ?: 0L
         var done = point?.segments ?: 0
+        // Unknown for good when resumed from a download that didn't record them
+        val sizes = if (point == null) mutableListOf() else resumedSizes(resume, point)?.toMutableList()
         try {
             val window = ArrayDeque<Deferred<ByteArray>>()
             var next = done
@@ -202,7 +218,7 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
                     target = DownloadOutput.getOrCreateFile(dir, "$fileBase.$extension")
                     file = target
                     output = DownloadOutput.openAt(context, target, 0)
-                    onFileProgress(FileProgress(name = target.name.orEmpty(), hls = true, total = count.toLong()))
+                    onFileProgress(FileProgress(name = target.name.orEmpty(), hls = true, total = count.toLong(), sizes = sizes?.toList()))
                     if (init != null) {
                         val initData = fetch(init, headers, keys)
                         DownloadOutput.write(output, initData)
@@ -212,12 +228,24 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
                 DownloadOutput.write(output, data)
                 written += data.size
                 done++
+                sizes?.add(data.size.toLong())
                 onFileProgress(
-                    FileProgress(name = target.name.orEmpty(), hls = true, bytes = written, segments = done, total = count.toLong()),
+                    FileProgress(
+                        name = target.name.orEmpty(),
+                        hls = true,
+                        bytes = written,
+                        segments = done,
+                        total = count.toLong(),
+                        sizes = sizes?.toList(),
+                    ),
                 )
                 onProgress(done.toFloat() / count)
             }
-            file ?: throw StreamFailedException(StreamFailure.TOO_SMALL, "Nothing downloaded")
+            val joined = file ?: throw StreamFailedException(StreamFailure.TOO_SMALL, "Nothing downloaded")
+            DownloadedFile(
+                joined,
+                segmentIndex(written, sizes, segments.map { it.durationUs }, segments.map { it.discontinuitySequence }),
+            )
         } finally {
             output?.close()
         }
@@ -266,6 +294,34 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
             if (resume.total != segmentCount.toLong() || resume.segments > segmentCount) return null
             if (fileLength == null || fileLength < resume.bytes) return null
             return ResumePoint(resume.segments, resume.bytes)
+        }
+
+        /** The sizes of the segments written before [point], null when they weren't all recorded. */
+        fun resumedSizes(resume: FileProgress?, point: ResumePoint): List<Long>? {
+            return resume?.sizes?.takeIf { it.size >= point.segments }?.take(point.segments)
+        }
+
+        /**
+         * Where each segment is in the joined file of [fileLength] bytes: they follow each other
+         * after the init segment, whatever is left before them. Null when a size is unknown.
+         */
+        fun segmentIndex(
+            fileLength: Long,
+            sizes: List<Long>?,
+            durationsUs: List<Long>,
+            discontinuitySequences: List<Int>,
+        ): List<SegmentMetadata>? {
+            if (sizes == null || sizes.size != durationsUs.size || sizes.size != discontinuitySequences.size) return null
+            var offset = fileLength - sizes.sum()
+            if (offset < 0) return null
+            return sizes.mapIndexed { index, size ->
+                SegmentMetadata(
+                    offset = offset,
+                    length = size,
+                    durationUs = durationsUs[index],
+                    discontinuity = index > 0 && discontinuitySequences[index] != discontinuitySequences[index - 1],
+                ).also { offset += size }
+            }
         }
     }
 }
