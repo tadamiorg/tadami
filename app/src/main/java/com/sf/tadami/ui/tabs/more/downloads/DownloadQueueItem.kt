@@ -27,8 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
 import com.sf.tadami.data.download.model.Download
+import com.sf.tadami.ui.components.material.LanguageBadge
 import com.sf.tadami.ui.utils.padding
 
 /** One queued episode: its anime, its state and progress, and its actions. */
@@ -53,14 +55,20 @@ fun DownloadQueueItem(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
+            // The language and the source tell apart the entries of one anime (VF, VOSTFR...)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                download.anime.language?.takeIf { it.isNotBlank() }?.let {
+                    LanguageBadge(it, Modifier.padding(end = 4.dp))
+                }
+                Text(
+                    text = download.anime.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
             Text(
-                text = download.anime.title,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = download.episode.name,
+                text = "${download.episode.name} · ${download.source.name}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
