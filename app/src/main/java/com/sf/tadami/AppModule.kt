@@ -263,6 +263,8 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
             get<SourceManager>()
             get<Database>()
             get<PlayerNetworkHelper>()
+            // Restores the download queue and scans the downloads before the first screen asks
+            get<TadamiDownloadManager>()
         }
     }
 }

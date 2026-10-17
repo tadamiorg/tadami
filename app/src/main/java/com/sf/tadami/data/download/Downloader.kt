@@ -100,15 +100,21 @@ class Downloader(
 
     private suspend fun restore() {
         try {
-            val downloads = store.restore().mapNotNull { entry ->
+            val entries = store.restore()
+            // Two queries per anime, not per episode: the queue shows up sooner after a cold start
+            val episodes = entries.map { it.animeId }.distinct().mapNotNull { animeId ->
                 try {
-                    val anime = animeRepository.getAnimeById(entry.animeId)
-                    val episode = episodeRepository.getEpisodeById(entry.episodeId)
-                    Download(sourceManager.getOrStub(entry.sourceId), anime, episode, entry.dirName)
+                    val anime = animeRepository.getAnimeById(animeId)
+                    anime to episodeRepository.getEpisodesByAnimeId(animeId).associateBy { it.id }
                 } catch (e: Exception) {
                     // Deleted meanwhile
                     null
                 }
+            }.associateBy { it.first.id }
+            val downloads = entries.mapNotNull { entry ->
+                val (anime, animeEpisodes) = episodes[entry.animeId] ?: return@mapNotNull null
+                val episode = animeEpisodes[entry.episodeId] ?: return@mapNotNull null
+                Download(sourceManager.getOrStub(entry.sourceId), anime, episode, entry.dirName)
             }
             synchronized(lock) {
                 val current = _queueState.value
