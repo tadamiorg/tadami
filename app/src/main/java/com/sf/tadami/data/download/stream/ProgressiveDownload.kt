@@ -51,7 +51,7 @@ class ProgressiveDownload(private val context: Context, private val http: MediaH
                 if (result.total <= 0 || length >= result.total) return result.file
                 // Ended early without an error: go on from there
                 if (++failures > MAX_RESUMES) {
-                    throw StreamFailedException("The video keeps ending at $length of ${result.total} bytes")
+                    throw StreamFailedException(StreamFailure.INCOMPLETE, "The video keeps ending at $length of ${result.total} bytes")
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -107,10 +107,10 @@ class ProgressiveDownload(private val context: Context, private val http: MediaH
         if (position == 0L) {
             val contentType = response.header("Content-Type")
             if (MediaCheck.isTextContentType(contentType) || MediaCheck.isPlaylistContentType(contentType)) {
-                throw StreamFailedException("Not a video: $contentType")
+                throw StreamFailedException(StreamFailure.NOT_VIDEO, "Not a video: $contentType")
             }
             val head = response.peekBody(MediaCheck.SNIFF_BYTES.toLong()).bytes()
-            if (MediaCheck.looksLikeText(head)) throw StreamFailedException("Not a video: a text or HTML page")
+            if (MediaCheck.looksLikeText(head)) throw StreamFailedException(StreamFailure.NOT_VIDEO, "Not a video: a text or HTML page")
             if (file == null) {
                 val extension = MediaCheck.videoExtension(contentType, url, head)
                 file = DownloadOutput.getOrCreateFile(dir, "$fileBase.$extension")

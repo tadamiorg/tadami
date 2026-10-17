@@ -60,15 +60,15 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
         val (baseUrl, text) = if (playlist != null) url to playlist else fetchPlaylist(url, headers)
         var parsed = parse(baseUrl, text)
         if (parsed is HlsMultivariantPlaylist) {
-            val variant = chooseVariant(parsed, quality) ?: throw StreamFailedException("No variant in the playlist")
+            val variant = chooseVariant(parsed, quality) ?: throw StreamFailedException(StreamFailure.PLAYLIST, "No variant in the playlist")
             audioRenditionOf(parsed, variant)?.let(onAudioRendition)
             val (mediaUrl, mediaText) = fetchPlaylist(variant.url.toString(), headers)
             parsed = parse(mediaUrl, mediaText)
         }
-        val media = parsed as? HlsMediaPlaylist ?: throw StreamFailedException("No media playlist")
+        val media = parsed as? HlsMediaPlaylist ?: throw StreamFailedException(StreamFailure.PLAYLIST, "No media playlist")
         checkSupported(media)
         if (!audio && MediaCheck.isTooShort(media.durationUs / 1000)) {
-            throw StreamFailedException("The video lasts ${media.durationUs / 1_000_000} s only")
+            throw StreamFailedException(StreamFailure.TOO_SHORT, "The video lasts ${media.durationUs / 1_000_000} s only")
         }
 
         val segments = media.segments
@@ -91,14 +91,14 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
 
     private fun parse(url: String, text: String): HlsPlaylist {
         if (!MediaCheck.isPlaylist(text.take(MediaCheck.SNIFF_BYTES).encodeToByteArray())) {
-            throw StreamFailedException("Not an HLS playlist")
+            throw StreamFailedException(StreamFailure.PLAYLIST, "Not an HLS playlist")
         }
         // Kwik's segments keep their encoder number as IV after a gap
         val fixed = HlsSegmentIvs.fix(text) ?: text
         return try {
             HlsPlaylistParser().parse(Uri.parse(url), fixed.byteInputStream())
         } catch (e: IOException) {
-            throw StreamFailedException("Unreadable playlist: ${e.message}", e)
+            throw StreamFailedException(StreamFailure.PLAYLIST, "Unreadable playlist: ${e.message}", e)
         }
     }
 
@@ -135,16 +135,16 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
     }
 
     private fun checkSupported(media: HlsMediaPlaylist) {
-        if (!media.hasEndTag) throw StreamFailedException("Live playlist")
-        if (media.segments.isEmpty()) throw StreamFailedException("Empty playlist")
+        if (!media.hasEndTag) throw StreamFailedException(StreamFailure.LIVE, "Live playlist")
+        if (media.segments.isEmpty()) throw StreamFailedException(StreamFailure.PLAYLIST, "Empty playlist")
         if (media.protectionSchemes != null || media.segments.any { it.drmInitData != null }) {
-            throw StreamFailedException("DRM protected playlist")
+            throw StreamFailedException(StreamFailure.DRM, "DRM protected playlist")
         }
         val inits = media.segments.mapTo(mutableSetOf()) { segment ->
             segment.initializationSegment?.let { "${it.url}|${it.byteRangeOffset}|${it.byteRangeLength}" }
         }
         // A second init segment would need a second file, players don't read joined ones
-        if (inits.size > 1) throw StreamFailedException("Several init segments")
+        if (inits.size > 1) throw StreamFailedException(StreamFailure.UNSUPPORTED, "Several init segments")
     }
 
     private fun segmentOf(baseUri: String, segment: HlsMediaPlaylist.SegmentBase, mediaSequence: Long): Segment {
@@ -217,7 +217,7 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
                 )
                 onProgress(done.toFloat() / count)
             }
-            file ?: throw StreamFailedException("Nothing downloaded")
+            file ?: throw StreamFailedException(StreamFailure.TOO_SMALL, "Nothing downloaded")
         } finally {
             output?.close()
         }
@@ -228,14 +228,14 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
         if (data.isEmpty()) return data
         if (segment.keyUrl == null) {
             if (MediaCheck.looksLikeText(data.copyOf(minOf(data.size, MediaCheck.SNIFF_BYTES)))) {
-                throw StreamFailedException("A segment is a text or HTML page")
+                throw StreamFailedException(StreamFailure.NOT_VIDEO, "A segment is a text or HTML page")
             }
             return data
         }
         return try {
             HlsCrypto.decrypt(data, keys.get(segment.keyUrl), segment.iv!!)
         } catch (e: GeneralSecurityException) {
-            throw StreamFailedException("Can't decrypt a segment", e)
+            throw StreamFailedException(StreamFailure.DECRYPTION, "Can't decrypt a segment", e)
         }
     }
 
@@ -246,7 +246,7 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
 
         suspend fun get(url: String): ByteArray = mutex.withLock {
             keys[url] ?: http.bytes(url, headers).also { key ->
-                if (key.size != KEY_SIZE) throw StreamFailedException("AES-128 key of ${key.size} bytes")
+                if (key.size != KEY_SIZE) throw StreamFailedException(StreamFailure.DECRYPTION, "AES-128 key of ${key.size} bytes")
                 keys[url] = key
             }
         }

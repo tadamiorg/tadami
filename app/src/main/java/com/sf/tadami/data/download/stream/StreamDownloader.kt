@@ -59,7 +59,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
             progress = progress,
         )
         if (MediaCheck.isTooSmall(video.length())) {
-            throw StreamFailedException("The video is ${video.length()} bytes only")
+            throw StreamFailedException(StreamFailure.TOO_SMALL, "The video is ${video.length()} bytes only")
         }
 
         val audios = stream.audioTracks.map { it.url to it.lang } + listOfNotNull(rendition?.let { it.url to it.lang })

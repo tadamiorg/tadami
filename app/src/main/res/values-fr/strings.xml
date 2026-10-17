@@ -444,6 +444,17 @@
     <string name="download_error_no_space">Espace de stockage insuffisant</string>
     <string name="download_error_no_stream">Aucune vidéo trouvée pour cet épisode</string>
     <string name="download_error_all_streams_failed">Aucune vidéo n\'a pu être téléchargée. Dernière erreur : %1$s</string>
+    <string name="download_error_storage">Impossible d\'écrire dans le dossier de stockage</string>
+    <string name="download_error_timeout">Le serveur n\'a pas répondu à temps</string>
+    <string name="download_stream_error_playlist">La playlist de la vidéo est illisible</string>
+    <string name="download_stream_error_live">Les diffusions en direct ne peuvent pas être téléchargées</string>
+    <string name="download_stream_error_drm">La vidéo est protégée (DRM)</string>
+    <string name="download_stream_error_unsupported">Format vidéo non pris en charge</string>
+    <string name="download_stream_error_not_video">Le serveur a envoyé une page, pas une vidéo</string>
+    <string name="download_stream_error_decryption">La vidéo ne peut pas être déchiffrée</string>
+    <string name="download_stream_error_incomplete">La vidéo s\'arrête toujours avant la fin</string>
+    <string name="download_stream_error_too_small">Le fichier vidéo est trop petit</string>
+    <string name="download_stream_error_too_short">La vidéo est trop courte</string>
     <string name="episode_download_cancel">Annuler le téléchargement</string>
     <string name="episode_download_delete">Supprimer le téléchargement</string>
     <string name="episode_download_retry">Réessayer le téléchargement</string>

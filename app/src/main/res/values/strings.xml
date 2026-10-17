@@ -435,6 +435,17 @@
     <string name="download_error_no_space">Not enough storage space</string>
     <string name="download_error_no_stream">No video found for this episode</string>
     <string name="download_error_all_streams_failed">No video could be downloaded. Last error: %1$s</string>
+    <string name="download_error_storage">Couldn\'t write to the storage folder</string>
+    <string name="download_error_timeout">The server didn\'t answer in time</string>
+    <string name="download_stream_error_playlist">The video playlist can\'t be read</string>
+    <string name="download_stream_error_live">Live streams can\'t be downloaded</string>
+    <string name="download_stream_error_drm">The video is protected (DRM)</string>
+    <string name="download_stream_error_unsupported">Unsupported video format</string>
+    <string name="download_stream_error_not_video">The server sent a page, not a video</string>
+    <string name="download_stream_error_decryption">The video can\'t be decrypted</string>
+    <string name="download_stream_error_incomplete">The video keeps stopping before its end</string>
+    <string name="download_stream_error_too_small">The video file is too small</string>
+    <string name="download_stream_error_too_short">The video is too short</string>
     <string name="episode_download_cancel">Cancel the download</string>
     <string name="episode_download_delete">Delete the download</string>
     <string name="episode_download_retry">Retry the download</string>

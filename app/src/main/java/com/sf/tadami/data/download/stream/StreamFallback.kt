@@ -1,12 +1,34 @@
 package com.sf.tadami.data.download.stream
 
+import androidx.annotation.StringRes
+import com.sf.tadami.R
 import com.sf.tadami.network.HttpException
 import com.sf.tadami.source.model.StreamSource
 import kotlinx.coroutines.CancellationException
 import java.io.IOException
 
-/** The stream can't give a valid video: the next one is tried. */
-class StreamFailedException(message: String, cause: Throwable? = null) : Exception(message, cause)
+/**
+ * The stream can't give a valid video: the next one is tried. [failure] is what the user is told,
+ * in their language; [message] gives the details, in English, for the logs.
+ */
+class StreamFailedException(
+    val failure: StreamFailure,
+    message: String,
+    cause: Throwable? = null,
+) : Exception(message, cause)
+
+/** Why a stream failed, as the user is told. */
+enum class StreamFailure(@StringRes val text: Int) {
+    PLAYLIST(R.string.download_stream_error_playlist),
+    LIVE(R.string.download_stream_error_live),
+    DRM(R.string.download_stream_error_drm),
+    UNSUPPORTED(R.string.download_stream_error_unsupported),
+    NOT_VIDEO(R.string.download_stream_error_not_video),
+    DECRYPTION(R.string.download_stream_error_decryption),
+    INCOMPLETE(R.string.download_stream_error_incomplete),
+    TOO_SMALL(R.string.download_stream_error_too_small),
+    TOO_SHORT(R.string.download_stream_error_too_short),
+}
 
 /** No stream is worth trying: no storage, no space left, no stream at all... */
 open class DownloadFatalException(message: String, cause: Throwable? = null) : Exception(message, cause)

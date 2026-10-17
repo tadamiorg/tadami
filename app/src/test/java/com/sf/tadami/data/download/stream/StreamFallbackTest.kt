@@ -55,7 +55,7 @@ class StreamFallbackTest {
     fun badStreamsMoveToTheNextOne() {
         assertEquals(FailureAction.NEXT_STREAM, StreamFallback.classify(HttpException(404), online = true))
         assertEquals(FailureAction.NEXT_STREAM, StreamFallback.classify(HttpException(503), online = true))
-        assertEquals(FailureAction.NEXT_STREAM, StreamFallback.classify(StreamFailedException("Not a video"), online = true))
+        assertEquals(FailureAction.NEXT_STREAM, StreamFallback.classify(StreamFailedException(StreamFailure.NOT_VIDEO, "Not a video"), online = true))
         assertEquals(FailureAction.NEXT_STREAM, StreamFallback.classify(SocketTimeoutException(), online = true))
         assertEquals(FailureAction.NEXT_STREAM, StreamFallback.classify(IllegalArgumentException("Bad URL"), online = true))
     }
@@ -86,7 +86,7 @@ class StreamFallbackTest {
         assertTrue(StreamFallback.isRetryable(HttpException(408)))
         assertFalse(StreamFallback.isRetryable(HttpException(404)))
         assertFalse(StreamFallback.isRetryable(HttpException(403)))
-        assertFalse(StreamFallback.isRetryable(StreamFailedException("Not a video")))
+        assertFalse(StreamFallback.isRetryable(StreamFailedException(StreamFailure.NOT_VIDEO, "Not a video")))
         assertFalse(StreamFallback.isRetryable(NetworkLostException(IOException())))
     }
 }

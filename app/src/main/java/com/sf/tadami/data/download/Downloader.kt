@@ -13,9 +13,11 @@ import com.sf.tadami.data.download.stream.DownloadOutput
 import com.sf.tadami.data.download.stream.FailureAction
 import com.sf.tadami.data.download.stream.MediaCheck
 import com.sf.tadami.data.download.stream.NetworkLostException
+import com.sf.tadami.data.download.stream.StorageException
 import com.sf.tadami.data.download.stream.StreamDownloader
 import com.sf.tadami.data.download.stream.StreamFailedException
 import com.sf.tadami.data.download.stream.StreamFallback
+import com.sf.tadami.data.download.stream.StreamFailure
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.extension.util.fetchGuarded
 import com.sf.tadami.network.NetworkHelper
@@ -48,6 +50,7 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import java.io.IOException
+import java.net.SocketTimeoutException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
@@ -366,10 +369,15 @@ class Downloader(
         throw DownloadFatalException(context.getString(R.string.download_error_all_streams_failed, reason), lastError)
     }
 
-    // Ours are written for the user, the others are named by the app's formatting
+    // In the user's language: the exception messages stay in English, for the logs
     private fun errorMessage(error: Throwable): String {
         return when (error) {
-            is DownloadFatalException, is StreamFailedException -> error.message.orEmpty()
+            is StreamFailedException -> context.getString(error.failure.text)
+            // The system's own message is in English
+            is StorageException -> context.getString(R.string.download_error_storage)
+            // Ours are written for the user
+            is DownloadFatalException -> error.message.orEmpty()
+            is SocketTimeoutException -> context.getString(R.string.download_error_timeout)
             else -> with(context) { error.formattedMessage }
         }
     }
@@ -388,7 +396,7 @@ class Downloader(
             null
         }
         if (MediaCheck.isTooShort(durationMs)) {
-            throw StreamFailedException("The video lasts ${durationMs!! / 1000} s only")
+            throw StreamFailedException(StreamFailure.TOO_SHORT, "The video lasts ${durationMs!! / 1000} s only")
         }
     }
 
