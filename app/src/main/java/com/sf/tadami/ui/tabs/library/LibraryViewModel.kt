@@ -3,11 +3,9 @@ package com.sf.tadami.ui.tabs.library
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.domain.anime.LibraryAnime
-import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.utils.addOrRemove
@@ -16,7 +14,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uy.kohesive.injekt.Injekt
@@ -25,7 +22,6 @@ import uy.kohesive.injekt.api.get
 class LibraryViewModel : ViewModel() {
     private val libraryInteractor: LibraryInteractor = Injekt.get()
     private val updateAnimeInteractor : UpdateAnimeInteractor = Injekt.get()
-    private val downloadManager : TadamiDownloadManager = Injekt.get()
 
     private val _libraryList : MutableStateFlow<List<LibraryItem>> = MutableStateFlow(emptyList())
     val libraryList = _libraryList.asStateFlow()
@@ -43,10 +39,7 @@ class LibraryViewModel : ViewModel() {
 
     init {
         viewModelScope.launch(Dispatchers.IO){
-            // The download counts change without the library
-            combine(libraryInteractor.subscribe(), downloadManager.cacheChanges) { libraryList, _ ->
-                libraryList
-            }.collectLatest { libraryList ->
+            libraryInteractor.subscribe().collectLatest { libraryList ->
                 _libraryList.update { libraryList.toLibraryItems() }
                 if(!_initLoaded.value){
                     _initLoaded.update { true }
@@ -134,8 +127,7 @@ class LibraryViewModel : ViewModel() {
         return this.map {
             LibraryItem(
                 it,
-                it.id in selectedIds,
-                downloadManager.getDownloadCount(it.toAnime())
+                it.id in selectedIds
             )
         }
     }
