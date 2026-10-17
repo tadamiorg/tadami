@@ -464,5 +464,13 @@
     <string name="download_delete_all_confirm_title">Delete the downloads?</string>
     <string name="download_delete_all_confirm_text">Every downloaded episode of %1$s will be deleted, and its queued downloads cancelled.</string>
     <string name="episodes_download_delete">Delete the downloads</string>
+    <string name="preferences_download_title">Downloads</string>
+    <string name="preferences_download_summary">Wi-Fi only, parallel downloads, delete after watching</string>
+    <string name="preferences_download_only_over_wifi">Only download over Wi-Fi</string>
+    <string name="preferences_download_parallel">Parallel downloads</string>
+    <string name="preferences_download_parallel_subtitle">%s at a time, one per source at most</string>
+    <string name="preferences_download_delete_after_watched">Delete after watching</string>
+    <string name="preferences_download_delete_after_watched_subtitle">Deletes a downloaded episode once it is marked as seen, when you leave it</string>
+    <string name="preferences_download_location">Download location</string>
 
 </resources>

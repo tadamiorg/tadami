@@ -4,6 +4,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.sf.tadami.ui.tabs.more.settings.screens.appearance.AppearancePreferencesScreen
+import com.sf.tadami.ui.tabs.more.settings.screens.download.DownloadPreferencesScreen
 import com.sf.tadami.ui.tabs.more.settings.screens.library.LibraryPreferencesScreen
 import com.sf.tadami.ui.tabs.more.settings.screens.player.PlayerPreferencesScreen
 
@@ -19,6 +20,9 @@ fun NavGraphBuilder.settingsNavGraph(
     composable(route = SettingsRoutes.APPEARANCE) {
         AppearancePreferencesScreen(navController).Content()
     }
+    composable(route = SettingsRoutes.DOWNLOADS) {
+        DownloadPreferencesScreen(navController).Content()
+    }
     advancedNavGraph(navController)
     dataNavGraph(navController)
 }
@@ -26,4 +30,5 @@ object SettingsRoutes {
     const val LIBRARY = "library_settings"
     const val PLAYER = "player_settings"
     const val APPEARANCE = "appearance_settings"
+    const val DOWNLOADS = "download_settings"
 }

@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.OndemandVideo
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.VideoLibrary
@@ -77,6 +78,14 @@ fun SettingsScreen(
                     icon = Icons.Outlined.OndemandVideo,
                     onClick = {
                         navController.navigate(SettingsRoutes.PLAYER)
+                    }
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(id = R.string.preferences_download_title),
+                    subtitle = stringResource(id = R.string.preferences_download_summary),
+                    icon = Icons.Outlined.Download,
+                    onClick = {
+                        navController.navigate(SettingsRoutes.DOWNLOADS)
                     }
                 ),
                 Preference.PreferenceItem.TextPreference(
