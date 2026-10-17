@@ -6,6 +6,7 @@ import com.sf.tadami.network.player.HlsSegmentIvs
 import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
 import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyServer.Companion.DEFAULT_PORT
 import fi.iki.elonen.NanoHTTPD
+import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -36,6 +37,10 @@ import java.util.concurrent.TimeUnit
  *   types — segments disguised as images — for that probe).
  * - `GET /echo?body=<enc>&type=<enc>` — reflects a receiver-composed body back verbatim.
  * - `GET /health` — plain "ok", for LAN reachability checks.
+ * - `GET|HEAD /local-<token>-<name>` — the downloaded episode being cast, read from the phone's
+ *   storage ([LocalMediaRoute]): its files with Range support, and HLS playlists over them. The
+ *   only phone-side state, set by [serveLocal]. The receiver wraps these http URLs in `/proxy`
+ *   like any other: such a request is answered here directly, not fetched back over the network.
  *
  * Every response is `Connection: close` — NanoHTTPD keep-alive reuse stalls the receiver's
  * sequential startup requests in 5s read-timeout quanta, while LAN reconnects are sub-millisecond.
@@ -46,7 +51,10 @@ import java.util.concurrent.TimeUnit
 class CastProxyServer(
     private val appContext: Context,
     private val client: OkHttpClient,
+    localFiles: LocalFileOpener = ContentFileOpener(appContext),
 ) {
+
+    private val localRoute = LocalMediaRoute(localFiles)
 
     /** AdvancedPreferences User-Agent, applied only when neither the request nor the carried headers set one. */
     @Volatile
@@ -90,10 +98,21 @@ class CastProxyServer(
     fun stop() {
         server?.stop()
         server = null
+        localRoute.clear()
     }
+
+    /**
+     * Serves the downloaded episode [media] instead of the one served before. Returns the path
+     * prefix of its URLs, `/local-<token>-`, to put after [baseUrl]: the same for the same
+     * [LocalMedia.key], another random token for another episode.
+     */
+    fun serveLocal(media: LocalMedia): String = localRoute.serve(media)
 
     private inner class Server(port: Int) : NanoHTTPD(port) {
         override fun serve(session: IHTTPSession): Response = this@CastProxyServer.route(session)
+
+        // Local files are served with their exact length, and a HEAD with no body
+        override fun useGzipWhenAccepted(r: Response): Boolean = r !is LocalResponse && super.useGzipWhenAccepted(r)
     }
 
     private fun route(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
@@ -110,10 +129,11 @@ class CastProxyServer(
             if (session.method == NanoHTTPD.Method.OPTIONS) {
                 cors(newResponse(NanoHTTPD.Response.Status.NO_CONTENT, "text/plain", ""))
             } else {
-                when (session.uri) {
-                    "/health" -> cors(newResponse(NanoHTTPD.Response.Status.OK, "text/plain", "ok"))
-                    "/echo" -> handleEcho(session)
-                    "/proxy" -> handleProxy(session)
+                when {
+                    session.uri == "/health" -> cors(newResponse(NanoHTTPD.Response.Status.OK, "text/plain", "ok"))
+                    session.uri == "/echo" -> handleEcho(session)
+                    session.uri == "/proxy" -> handleProxy(session)
+                    localRoute.handles(session.uri) -> cors(localRoute.respond(session.method, session.uri, range))
                     else -> cors(newResponse(NanoHTTPD.Response.Status.NOT_FOUND, "text/plain", "not found"))
                 }
             }
@@ -136,6 +156,11 @@ class CastProxyServer(
             ?: return cors(newResponse(NanoHTTPD.Response.Status.BAD_REQUEST, "text/plain", "missing url"))
         val httpUrl = url.toHttpUrlOrNull()
             ?: return cors(newResponse(NanoHTTPD.Response.Status.BAD_REQUEST, "text/plain", "bad url"))
+        // The web receiver wraps any http:// URL, ours too: a local file is read here, not fetched
+        // back through the network (and a second worker thread)
+        if (isOwnUrl(httpUrl, session.headers["host"]) && localRoute.handles(httpUrl.encodedPath)) {
+            return cors(localRoute.respond(session.method, httpUrl.encodedPath, session.headers["range"]))
+        }
         val carriedHeaders = parseHeadersParam(session.parameters["headers"]?.firstOrNull())
 
         // Mirror the incoming method: Shaka's container probe uses HEAD, and answering it with a
@@ -211,6 +236,10 @@ class CastProxyServer(
         Log.d(TAG, "ECHO ${body.length} chars type=$type")
         return cors(newResponse(NanoHTTPD.Response.Status.OK, type, body))
     }
+
+    /** Whether [url] points at this very server, as the client reached it ([host], its Host header). */
+    private fun isOwnUrl(url: HttpUrl, host: String?): Boolean =
+        host != null && url.port == listeningPort && "${url.host}:${url.port}".equals(host, ignoreCase = true)
 
     private fun newResponse(status: NanoHTTPD.Response.IStatus, mime: String, text: String): NanoHTTPD.Response =
         NanoHTTPD.newFixedLengthResponse(status, mime, text)
