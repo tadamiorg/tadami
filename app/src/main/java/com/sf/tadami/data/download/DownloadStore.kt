@@ -1,5 +1,6 @@
 package com.sf.tadami.data.download
 
+import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.utils.logcat
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -43,6 +44,28 @@ class DownloadStore(private val file: File, private val json: Json = DEFAULT_JSO
 
     companion object {
         internal val DEFAULT_JSON = Json { ignoreUnknownKeys = true }
+
+        /**
+         * [downloads] without those whose episode is downloaded already: a download completed just
+         * before the process died can still be in the saved queue. [episodeDirs] gives the dir
+         * names in an anime's dir, by anime id; it is read once per anime, `_tmp` dirs don't count.
+         */
+        fun <T> withoutDownloaded(
+            downloads: List<T>,
+            episode: (T) -> Episode,
+            episodeDirs: (animeId: Long) -> Collection<String>,
+        ): List<T> {
+            val downloaded = HashMap<Long, DownloadNames.EpisodeDirs>()
+            return downloads.filter { download ->
+                val ep = episode(download)
+                val dirs = downloaded.getOrPut(ep.animeId) {
+                    DownloadNames.EpisodeDirs(
+                        episodeDirs(ep.animeId).filterNot { it.endsWith(TadamiDownloadManager.TMP_DIR_SUFFIX) },
+                    )
+                }
+                dirs.find(ep) == null
+            }
+        }
     }
 }
 

@@ -35,6 +35,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
@@ -45,6 +46,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import logcat.LogPriority
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -121,10 +123,19 @@ class Downloader(
                     null
                 }
             }.associateBy { it.first.id }
-            val downloads = entries.mapNotNull { entry ->
+            val found = entries.mapNotNull { entry ->
                 val (anime, animeEpisodes) = episodes[entry.animeId] ?: return@mapNotNull null
                 val episode = animeEpisodes[entry.episodeId] ?: return@mapNotNull null
                 Download(sourceManager.getOrStub(entry.sourceId), anime, episode, entry.dirName)
+            }
+            // Completed just before the process died, while the queue was being saved
+            val firstOfAnime = found.associateBy { it.anime.id }
+            val downloads = DownloadStore.withoutDownloaded(found, { it.episode }) { animeId ->
+                firstOfAnime[animeId]?.let(::episodeDirsOf).orEmpty()
+            }
+            (found - downloads.toSet()).forEach {
+                logcat { "${it.episode.name} of ${it.anime.title} is downloaded already, not restored" }
+                resumeStore.delete(it.episode.id)
             }
             synchronized(lock) {
                 val current = _queueState.value
@@ -212,10 +223,11 @@ class Downloader(
         }
     }
 
-    private fun setQueue(downloads: List<Download>) {
+    /** The saves run in order: the returned job ends once this queue is written. */
+    private fun setQueue(downloads: List<Download>): Job {
         _queueState.value = downloads
         val entries = downloads.map { DownloadStore.Entry(it.episode.id, it.anime.id, it.source.id, it.dirName) }
-        scope.launch(persistDispatcher) { store.save(entries) }
+        return scope.launch(persistDispatcher) { store.save(entries) }
     }
 
     /**
@@ -271,12 +283,6 @@ class Downloader(
                     download.status = Download.State.DOWNLOADING
                 }
             }
-            synchronized(lock) {
-                setQueue(_queueState.value - download)
-            }
-            resumeStore.delete(download.episode.id)
-            download.progress = 100
-            download.status = Download.State.DOWNLOADED
         } catch (e: Exception) {
             // Paused or stopped, the failure coming from the stop: still queued, unless removed
             if (e is CancellationException || !currentCoroutineContext().isActive) {
@@ -400,8 +406,11 @@ class Downloader(
         }
     }
 
-    /** The tmp dir becomes the episode dir: only now is the episode seen as downloaded. */
-    private fun finish(download: Download, animeDir: UniFile, tmpDir: UniFile) {
+    /**
+     * The tmp dir becomes the episode dir: only now is the episode seen as downloaded. It leaves the
+     * saved queue at once, so a process dying now doesn't download it again (see [restore] too).
+     */
+    private suspend fun finish(download: Download, animeDir: UniFile, tmpDir: UniFile) {
         DownloadOutput.storage {
             animeDir.findFile(download.dirName)?.deleteRecursively()
             if (!tmpDir.renameTo(download.dirName)) throw IOException("Can't rename ${tmpDir.name}")
@@ -411,6 +420,24 @@ class Downloader(
             animeDir.name ?: provider.getAnimeDirName(download.anime),
             download.dirName,
         )
+        val saved = synchronized(lock) { setQueue(_queueState.value - download) }
+        resumeStore.delete(download.episode.id)
+        download.progress = 100
+        // Before the wait: a pause now doesn't turn it back to queued
+        download.status = Download.State.DOWNLOADED
+        withContext(NonCancellable) { saved.join() }
+    }
+
+    /** The episode dirs in the anime dir of [download], read from the storage: the cache may not be filled yet. */
+    private fun episodeDirsOf(download: Download): List<String> {
+        return try {
+            provider.findAnimeDir(download.source, download.anime)?.listFiles().orEmpty()
+                .filter { it.isDirectory }
+                .mapNotNull { it.name }
+        } catch (e: Exception) {
+            logcat(LogPriority.WARN, e) { "Couldn't read the downloads of ${download.anime.title}" }
+            emptyList()
+        }
     }
 
     private fun clearDir(dir: UniFile) {

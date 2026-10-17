@@ -1,5 +1,6 @@
 package com.sf.tadami.data.download
 
+import com.sf.tadami.domain.episode.Episode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -65,5 +66,39 @@ class DownloadStoreTest {
         store.delete(5L)
         assertNull(store.load(5L))
         assertTrue(dir.exists())
+    }
+
+    private fun episode(id: Long, animeId: Long, name: String = "Episode $id") =
+        Episode.create().copy(id = id, animeId = animeId, name = name, url = "/anime$animeId/ep/$id", episodeNumber = id.toFloat())
+
+    @Test
+    fun theRestoreLeavesOutTheDownloadedEpisodes() {
+        val ep1 = episode(1, animeId = 1)
+        val ep2 = episode(2, animeId = 1)
+        val ep3 = episode(3, animeId = 1)
+        val ep4 = episode(4, animeId = 2)
+        val dirs = mapOf(
+            // ep1 completed before the crash, ep2 was in progress
+            1L to listOf(DownloadNames.episodeDirName(ep1), DownloadNames.tmpDirName(DownloadNames.episodeDirName(ep2))),
+            2L to emptyList(),
+        )
+        val reads = mutableListOf<Long>()
+        val restored = DownloadStore.withoutDownloaded(listOf(ep1, ep2, ep3, ep4), { it }) { animeId ->
+            reads += animeId
+            dirs.getValue(animeId)
+        }
+        assertEquals(listOf(ep2, ep3, ep4), restored)
+        // One read per anime
+        assertEquals(listOf(1L, 2L), reads)
+    }
+
+    @Test
+    fun theRestoreFindsAnEpisodeRenamedSinceItsDownload() {
+        val downloaded = episode(5, animeId = 1, name = "Episode 5")
+        val renamed = downloaded.copy(name = "Episode 5 - The title")
+        val restored = DownloadStore.withoutDownloaded(listOf(renamed), { it }) {
+            listOf(DownloadNames.episodeDirName(downloaded))
+        }
+        assertEquals(emptyList<Episode>(), restored)
     }
 }
