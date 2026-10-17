@@ -2,18 +2,27 @@ package com.sf.tadami.ui.tabs.library
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.viewModelScope
+import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.domain.anime.LibraryAnime
+import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
+import com.sf.tadami.preferences.app.BasePreferences
 import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.utils.addOrRemove
+import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uy.kohesive.injekt.Injekt
@@ -22,12 +31,18 @@ import uy.kohesive.injekt.api.get
 class LibraryViewModel : ViewModel() {
     private val libraryInteractor: LibraryInteractor = Injekt.get()
     private val updateAnimeInteractor : UpdateAnimeInteractor = Injekt.get()
+    private val downloadManager : TadamiDownloadManager = Injekt.get()
+    private val dataStore : DataStore<Preferences> = Injekt.get()
 
     private val _libraryList : MutableStateFlow<List<LibraryItem>> = MutableStateFlow(emptyList())
     val libraryList = _libraryList.asStateFlow()
 
     private val _searchFilter : MutableStateFlow<String> = MutableStateFlow("")
     val searchFilter = _searchFilter.asStateFlow()
+
+    // The anime with a downloaded episode while the downloaded only mode is on, null when it is off
+    private val _downloadedIds : MutableStateFlow<Set<Long>?> = MutableStateFlow(null)
+    val downloadedIds = _downloadedIds.asStateFlow()
 
     private val _isRefreshing : MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
@@ -44,6 +59,22 @@ class LibraryViewModel : ViewModel() {
                 if(!_initLoaded.value){
                     _initLoaded.update { true }
                 }
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            // The downloads change without the library, the cache tells when
+            combine(
+                libraryInteractor.subscribe(),
+                dataStore.getPreferencesGroupAsFlow(BasePreferences).map { it.downloadedOnly }.distinctUntilChanged(),
+                downloadManager.cacheChanges,
+            ) { libraryList, downloadedOnly, _ ->
+                if (downloadedOnly) {
+                    libraryList.filter { downloadManager.getDownloadCount(it.toAnime()) > 0 }.mapTo(HashSet()) { it.id }
+                } else {
+                    null
+                }
+            }.collectLatest { ids ->
+                _downloadedIds.update { ids }
             }
         }
     }

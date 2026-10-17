@@ -49,6 +49,7 @@ import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.components.filters.TadaBottomSheetScaffold
 import com.sf.tadami.ui.components.topappbar.ContextualSearchTopAppBar
 import com.sf.tadami.ui.tabs.library.bottomsheet.LibrarySheetContent
+import com.sf.tadami.ui.tabs.library.bottomsheet.downloadedOnly
 import com.sf.tadami.ui.tabs.library.bottomsheet.libraryFilters
 import com.sf.tadami.ui.tabs.library.bottomsheet.sortComparator
 import com.sf.tadami.ui.themes.colorschemes.active
@@ -67,9 +68,10 @@ fun LibraryScreen(
     val initLoaded by libraryViewModel.initLoaded.collectAsState()
     val libraryList by libraryViewModel.libraryList.collectAsState()
     val searchFilter by libraryViewModel.searchFilter.collectAsState()
+    val downloadedIds by libraryViewModel.downloadedIds.collectAsState()
     val libraryPreferences by rememberDataStoreState(customPrefs = LibraryPreferences).value.collectAsState()
-    val displayedList = remember(libraryList, libraryPreferences, searchFilter) {
-        libraryList.addFilters(libraryPreferences, searchFilter)
+    val displayedList = remember(libraryList, libraryPreferences, searchFilter, downloadedIds) {
+        libraryList.addFilters(libraryPreferences, searchFilter, downloadedIds)
     }
     val displayedIds = remember(displayedList) { displayedList.mapTo(HashSet()) { it.anime.id } }
     LaunchedEffect(displayedIds) {
@@ -242,12 +244,14 @@ fun LibraryScreen(
 
 private fun List<LibraryItem>.addFilters(
     prefs: LibraryPreferences,
-    searchFilter: String
+    searchFilter: String,
+    downloadedIds: Set<Long>?
 ): List<LibraryItem> {
     return this
         .filter {
             it.anime.title.contains(searchFilter, true)
         }
+        .downloadedOnly(downloadedIds)
         .libraryFilters(prefs.filterFlags)
         .sortedWith { a1, a2 -> sortComparator(prefs.sortFlags).invoke(a1, a2) }
 }
