@@ -49,6 +49,14 @@ object Notifications {
     const val EXTENSIONS_UPDATES_CHANNEL = "ext_apk_update_channel"
     const val EXTENSIONS_UPDATES_ID = 500
 
+    // Episode downloads
+    const val DOWNLOADER_GROUP = "downloader_group"
+    const val DOWNLOADER_PROGRESS_CHANNEL = "downloader_progress_channel"
+    const val DOWNLOADER_PROGRESS_ID = 600
+    const val DOWNLOADER_PAUSED_ID = 601
+    const val DOWNLOADER_ERROR_CHANNEL = "downloader_error_channel"
+    const val DOWNLOADER_ERROR_ID = 602
+
 
     fun setupNotificationsChannels(context: Context) {
         val notificationService = NotificationManagerCompat.from(context)
@@ -69,6 +77,9 @@ object Notifications {
                 }.build(),
                 NotificationChannelGroupCompat.Builder(BACKUP_RESTORE_GROUP).apply {
                     setName(context.getString(R.string.notification_backup_group))
+                }.build(),
+                NotificationChannelGroupCompat.Builder(DOWNLOADER_GROUP).apply {
+                    setName(context.getString(R.string.notification_downloader_group))
                 }.build()
             )
         )
@@ -166,12 +177,30 @@ object Notifications {
         )
 
 
+        val downloaderChannels = listOf(
+            NotificationChannelCompat.Builder(
+                DOWNLOADER_PROGRESS_CHANNEL,
+                NotificationManagerCompat.IMPORTANCE_LOW
+            ).apply {
+                setGroup(DOWNLOADER_GROUP)
+                setName(context.getString(R.string.notification_downloader_progress))
+            }.build(),
+            NotificationChannelCompat.Builder(
+                DOWNLOADER_ERROR_CHANNEL,
+                NotificationManagerCompat.IMPORTANCE_DEFAULT
+            ).apply {
+                setGroup(DOWNLOADER_GROUP)
+                setName(context.getString(R.string.notification_downloader_errors))
+            }.build()
+        )
+
         notificationService.createNotificationChannelsCompat(
             appGroupChannels +
                     extensionsGroupChannels +
                     libraryGroupChannels +
                     castChannels +
-                    backupChannels
+                    backupChannels +
+                    downloaderChannels
         )
     }
 

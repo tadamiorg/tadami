@@ -111,6 +111,9 @@
         <receiver android:name=".notifications.libraryupdate.LibraryUpdateReceiver" />
         <receiver android:name=".notifications.appupdate.AppUpdateReceiver" />
         <receiver android:name=".notifications.backup.BackupReceiver" />
+        <receiver
+            android:name=".notifications.download.DownloadReceiver"
+            android:exported="false" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

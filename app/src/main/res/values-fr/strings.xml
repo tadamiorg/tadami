@@ -421,5 +421,35 @@
     <string name="webview_challenge_solved">Vérification terminée, vous pouvez revenir à l\'application.</string>
     <string name="webview_challenge_done">Terminé</string>
 
+    <!-- Downloads -->
+    <string name="notification_downloader_group">Téléchargements</string>
+    <string name="notification_downloader_progress">Progression des téléchargements</string>
+    <string name="notification_downloader_errors">Erreurs de téléchargement</string>
+    <string name="notification_download_waiting">En attente de téléchargement…</string>
+    <plurals name="notification_downloading_episodes">
+        <item quantity="one">Téléchargement de %1$d épisode</item>
+        <item quantity="many">Téléchargement de %1$d épisodes</item>
+        <item quantity="other">Téléchargement de %1$d épisodes</item>
+    </plurals>
+    <plurals name="notification_download_queued">
+        <item quantity="one">%1$d épisode dans la file</item>
+        <item quantity="many">%1$d épisodes dans la file</item>
+        <item quantity="other">%1$d épisodes dans la file</item>
+    </plurals>
+    <string name="notification_download_paused">Téléchargements en pause</string>
+    <string name="notification_download_error">Impossible de télécharger %1$s</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_resume">Reprendre</string>
+    <string name="download_error_no_storage">Le dossier de stockage est inaccessible, choisissez-le à nouveau dans les paramètres</string>
+    <string name="download_error_no_space">Espace de stockage insuffisant</string>
+    <string name="download_error_no_stream">Aucune vidéo trouvée pour cet épisode</string>
+    <string name="download_error_all_streams_failed">Aucune vidéo n\'a pu être téléchargée. Dernière erreur : %1$s</string>
+    <string name="episode_download_cancel">Annuler le téléchargement</string>
+    <string name="episode_download_delete">Supprimer le téléchargement</string>
+    <string name="episode_download_retry">Réessayer le téléchargement</string>
+    <string name="episode_download_queued">En attente de téléchargement</string>
+    <string name="episode_download_progress">Téléchargement : %1$d%%</string>
+    <string name="episode_downloaded">Téléchargé</string>
+    <string name="episode_download_error">Échec du téléchargement</string>
 
 </resources>

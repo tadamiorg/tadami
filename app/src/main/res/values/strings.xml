@@ -414,4 +414,33 @@
     <string name="webview_challenge_solved">Verification complete, you can go back to the app.</string>
     <string name="webview_challenge_done">Done</string>
 
+    <!-- Downloads -->
+    <string name="notification_downloader_group">Downloads</string>
+    <string name="notification_downloader_progress">Download progress</string>
+    <string name="notification_downloader_errors">Download errors</string>
+    <string name="notification_download_waiting">Waiting to download…</string>
+    <plurals name="notification_downloading_episodes">
+        <item quantity="one">Downloading %1$d episode</item>
+        <item quantity="other">Downloading %1$d episodes</item>
+    </plurals>
+    <plurals name="notification_download_queued">
+        <item quantity="one">%1$d episode in the queue</item>
+        <item quantity="other">%1$d episodes in the queue</item>
+    </plurals>
+    <string name="notification_download_paused">Downloads paused</string>
+    <string name="notification_download_error">Couldn\'t download %1$s</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_resume">Resume</string>
+    <string name="download_error_no_storage">The storage folder can\'t be reached, choose it again in the settings</string>
+    <string name="download_error_no_space">Not enough storage space</string>
+    <string name="download_error_no_stream">No video found for this episode</string>
+    <string name="download_error_all_streams_failed">No video could be downloaded. Last error: %1$s</string>
+    <string name="episode_download_cancel">Cancel the download</string>
+    <string name="episode_download_delete">Delete the download</string>
+    <string name="episode_download_retry">Retry the download</string>
+    <string name="episode_download_queued">Waiting to download</string>
+    <string name="episode_download_progress">Downloading: %1$d%%</string>
+    <string name="episode_downloaded">Downloaded</string>
+    <string name="episode_download_error">Download failed</string>
+
 </resources>
