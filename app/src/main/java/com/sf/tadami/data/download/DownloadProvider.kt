@@ -3,6 +3,7 @@ package com.sf.tadami.data.download
 import android.content.Context
 import com.hippo.unifile.UniFile
 import com.sf.tadami.domain.anime.Anime
+import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.storage.StorageManager
 import com.sf.tadami.source.Source
 import uy.kohesive.injekt.Injekt
@@ -34,8 +35,11 @@ class DownloadProvider(
         return dirs.find { it.name == name }
     }
 
-    fun findEpisodeDir(source: Source, anime: Anime, episodeDirName: String): UniFile? {
-        return findAnimeDir(source, anime)?.findFile(episodeDirName)
+    /** The episode directory if it exists, found by its key when it is named after an older name. */
+    fun findEpisodeDir(source: Source, anime: Anime, episode: Episode): UniFile? {
+        val dirs = findAnimeDir(source, anime)?.listFiles()?.filter { it.isDirectory } ?: return null
+        val name = DownloadNames.EpisodeDirs(dirs.mapNotNull { it.name }).find(episode) ?: return null
+        return dirs.find { it.name == name }
     }
 
     /** The anime directory, created when missing. Null when the storage can't be reached. */

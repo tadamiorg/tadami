@@ -13,12 +13,15 @@ import java.security.MessageDigest
  */
 object DownloadNames {
 
-    /** Kept free in an episode name for "_tmp", the collision suffix and the file suffixes */
+    /** Kept free in an episode name for "_tmp", the key and the file suffixes */
     private const val EPISODE_SUFFIXES_BYTES = 64
 
     /** " (<6 hex chars>)" */
     private const val ANIME_KEY_BYTES = 9
     private val ANIME_KEY_REGEX = Regex(""" \(([0-9a-f]{6})\)$""")
+
+    private const val EPISODE_KEY_SIZE = 4
+    private val EPISODE_KEY_REGEX = Regex(""" \(([0-9a-f]{8})\)$""")
 
     private const val AUDIO_PREFIX = "audio."
     private const val UNDETERMINED_LANG = "und"
@@ -44,7 +47,7 @@ object DownloadNames {
         return "${validName(title, DiskUtil.MAX_FILE_NAME_BYTES - ANIME_KEY_BYTES)} (${animeKey(url)})"
     }
 
-    fun animeKey(url: String): String = urlHash(url)
+    fun animeKey(url: String): String = urlHash(url, 3)
 
     /** The key of an anime directory name, null when it has none. */
     fun animeKeyOf(dirName: String): String? = ANIME_KEY_REGEX.find(dirName)?.groupValues?.get(1)
@@ -60,22 +63,33 @@ object DownloadNames {
     }
 
     /**
-     * The directory name of each episode of an anime, by episode id. Episodes whose names collide,
-     * ignoring case as FAT and the FUSE storage do, get a suffix from their URL.
+     * `<episode name> (<key>)`, the key from the episode URL: episodes with the same name get their
+     * own folders, and the folder is found again by its key when the source renames the episode.
      */
-    fun episodeDirNames(episodes: List<Episode>): Map<Long, String> {
-        val bases = episodes.associate { it.id to episodeBaseName(it) }
-        val collisions = bases.values.groupingBy { it.lowercase() }.eachCount()
-        return episodes.associate { episode ->
-            val base = bases.getValue(episode.id)
-            val name = if (collisions.getValue(base.lowercase()) > 1) "$base (${urlHash(episode.url)})" else base
-            episode.id to name
-        }
-    }
+    fun episodeDirName(episode: Episode): String = "${episodeBaseName(episode)} (${episodeKey(episode.url)})"
 
-    fun episodeDirName(episode: Episode, episodes: List<Episode>): String {
-        val all = if (episodes.any { it.id == episode.id }) episodes else episodes + episode
-        return episodeDirNames(all).getValue(episode.id)
+    /** 4 bytes, not the anime's 3: one anime can have a thousand episodes, all looked up by key. */
+    fun episodeKey(url: String): String = urlHash(url, EPISODE_KEY_SIZE)
+
+    /** The key of an episode directory name, null when it has none. */
+    fun episodeKeyOf(dirName: String): String? = EPISODE_KEY_REGEX.find(dirName)?.groupValues?.get(1)
+
+    /**
+     * The episode directories of one anime, by their names. An episode's is the one with its name,
+     * else the one with its key, named after an older episode name, else one of the earlier,
+     * unreleased layout: the bare name, or the name with a 6 chars collision suffix.
+     */
+    class EpisodeDirs(dirNames: Collection<String>) {
+        private val names = dirNames.toSet()
+        private val byKey = names.mapNotNull { name -> episodeKeyOf(name)?.let { it to name } }.toMap()
+
+        fun find(episode: Episode): String? {
+            val expected = episodeDirName(episode)
+            if (expected in names) return expected
+            byKey[episodeKey(episode.url)]?.let { return it }
+            val base = episodeBaseName(episode)
+            return base.takeIf { it in names } ?: "$base (${urlHash(episode.url, 3)})".takeIf { it in names }
+        }
     }
 
     fun tmpDirName(episodeDirName: String): String = episodeDirName + TadamiDownloadManager.TMP_DIR_SUFFIX
@@ -148,12 +162,13 @@ object DownloadNames {
     }
 
     /**
-     * 6 hex chars of the URL's SHA-256: the same on every device and version. Not the first chars of
-     * `String.hashCode`, which stay the same for URLs that differ only at the end ("/ep/1", "/ep/2").
+     * The first [bytes] bytes of the URL's SHA-256, in hex: the same on every device and version. Not
+     * the first chars of `String.hashCode`, which stay the same for URLs that differ only at the end
+     * ("/ep/1", "/ep/2").
      */
-    private fun urlHash(url: String): String {
+    private fun urlHash(url: String, bytes: Int): String {
         val digest = MessageDigest.getInstance("SHA-256").digest(url.toByteArray(Charsets.UTF_8))
-        return digest.take(3).joinToString("") { "%02x".format(it) }
+        return digest.take(bytes).joinToString("") { "%02x".format(it) }
     }
 
     private fun validName(name: String, maxBytes: Int): String {

@@ -22,52 +22,70 @@ class DownloadNamesTest {
         assertEquals("42", DownloadNames.sourceDirName(42L, " ", Lang.UNKNOWN))
     }
 
+    private fun base(episode: Episode) = DownloadNames.episodeDirName(episode).substringBeforeLast(" (")
+
     @Test
     fun episodeNamesAreMadeValid() {
-        val names = DownloadNames.episodeDirNames(
-            listOf(episode(1, "Episode 1: The *start*?"), episode(2, "Ep. 2..."), episode(3, ""), episode(4, " ", number = 4.5f)),
-        )
-        assertEquals("Episode 1_ The _start__", names[1])
+        assertEquals("Episode 1_ The _start__", base(episode(1, "Episode 1: The *start*?")))
         // No trailing dot, FAT and Windows drop it
-        assertEquals("Ep. 2", names[2])
-        assertEquals("Episode 3", names[3])
-        assertEquals("Episode 4.5", names[4])
+        assertEquals("Ep. 2", base(episode(2, "Ep. 2...")))
+        assertEquals("Episode 3", base(episode(3, "")))
+        assertEquals("Episode 4.5", base(episode(4, " ", number = 4.5f)))
     }
 
     @Test
-    fun collidingEpisodeNamesGetAUrlSuffix() {
-        val episodes = listOf(
-            episode(1, "Episode 1", url = "/vostfr/1"),
-            episode(2, "episode 1", url = "/vf/1"),
-            episode(3, "Episode 2"),
-        )
-        val names = DownloadNames.episodeDirNames(episodes)
+    fun episodeDirsAreKeyedOnTheUrl() {
+        val vostfr = DownloadNames.episodeDirName(episode(1, "Episode 1", url = "/vostfr/1"))
+        val vf = DownloadNames.episodeDirName(episode(2, "episode 1", url = "/vf/1"))
 
-        assertTrue(names.getValue(1).startsWith("Episode 1 ("))
-        assertTrue(names.getValue(2).startsWith("episode 1 ("))
-        assertNotEquals(names[1]!!.lowercase(), names[2]!!.lowercase())
-        // The others keep their plain name
-        assertEquals("Episode 2", names[3])
-        // URLs that differ only at the end get different suffixes too
-        val numbered = DownloadNames.episodeDirNames(listOf(episode(4, "Episode", url = "/ep?id=1"), episode(5, "Episode", url = "/ep?id=2")))
-        assertNotEquals(numbered[4], numbered[5])
-        // Stable: the same names every time
-        assertEquals(names, DownloadNames.episodeDirNames(episodes.reversed()))
+        assertEquals("Episode 1 (${DownloadNames.episodeKey("/vostfr/1")})", vostfr)
+        assertEquals(8, DownloadNames.episodeKey("/vostfr/1").length)
+        assertNotEquals(vostfr.lowercase(), vf.lowercase())
+        // URLs that differ only at the end get different keys too
+        assertNotEquals(DownloadNames.episodeKey("/ep?id=1"), DownloadNames.episodeKey("/ep?id=2"))
+        // Stable: the same name every time
+        assertEquals(vostfr, DownloadNames.episodeDirName(episode(1, "Episode 1", url = "/vostfr/1")))
+        assertEquals(DownloadNames.episodeKey("/vostfr/1"), DownloadNames.episodeKeyOf(vostfr))
+        // An anime key isn't an episode key
+        assertNull(DownloadNames.episodeKeyOf(DownloadNames.animeDirName("Frieren", "/a")))
     }
 
     @Test
-    fun anEpisodeMissingFromTheListIsNamedWithIt() {
-        val others = listOf(episode(1, "Episode 1", url = "/a"))
-        val name = DownloadNames.episodeDirName(episode(2, "Episode 1", url = "/b"), others)
-        assertTrue(name.startsWith("Episode 1 ("))
+    fun episodeDirIsFoundByItsKeyAfterARename() {
+        val renamed = episode(1, "Episode 1 - The start", url = "/ep/1")
+        val old = DownloadNames.episodeDirName(episode(1, "Episode 1", url = "/ep/1"))
+        val other = DownloadNames.episodeDirName(episode(2, "Episode 2", url = "/ep/2"))
+        val dirs = DownloadNames.EpisodeDirs(listOf(old, other))
+
+        assertEquals(old, dirs.find(renamed))
+        assertEquals(other, dirs.find(episode(2, "Episode 2", url = "/ep/2")))
+        assertNull(dirs.find(episode(3, "Episode 1", url = "/ep/3")))
+        // Its own name first
+        val current = DownloadNames.episodeDirName(renamed)
+        assertEquals(current, DownloadNames.EpisodeDirs(listOf(old, current)).find(renamed))
+    }
+
+    @Test
+    fun episodeDirsOfTheEarlierLayoutAreFound() {
+        val plain = episode(1, "Episode 1", url = "/ep/1")
+        val collided = episode(2, "Episode 2", url = "/ep/2")
+        val collidedDir = "Episode 2 (${DownloadNames.animeKey("/ep/2")})"
+        val dirs = DownloadNames.EpisodeDirs(listOf("Episode 1", collidedDir, "Episode 3_tmp"))
+
+        assertEquals("Episode 1", dirs.find(plain))
+        assertEquals(collidedDir, dirs.find(collided))
+        // A partial download isn't one
+        assertNull(dirs.find(episode(3, "Episode 3", url = "/ep/3")))
     }
 
     @Test
     fun longNamesFitInTheFileNameLimitWithRoomForSuffixes() {
         val long = "あ".repeat(200) // 3 bytes each
-        val name = DownloadNames.episodeDirNames(listOf(episode(1, long))).getValue(1)
-        val bytes = name.toByteArray(Charsets.UTF_8).size
-        assertTrue(bytes <= DiskUtil.MAX_FILE_NAME_BYTES - 64)
+        val name = DownloadNames.episodeDirName(episode(1, long))
+        val bytes = DownloadNames.tmpDirName(name).toByteArray(Charsets.UTF_8).size
+        assertTrue(bytes <= DiskUtil.MAX_FILE_NAME_BYTES)
+        // The key survives the cut
+        assertEquals(DownloadNames.episodeKey("/ep/1"), DownloadNames.episodeKeyOf(name))
         val file = DownloadNames.audioFileName(name, "Japanese", "m4a")
         assertTrue(file.toByteArray(Charsets.UTF_8).size <= DiskUtil.MAX_FILE_NAME_BYTES)
         val animeDir = DownloadNames.animeDirName(long, "/anime/1")
