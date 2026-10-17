@@ -21,7 +21,13 @@ Anime.author,
 Anime.raw_title,
 Anime.language,
 COUNT(Episode._id) AS episodes,
-TOTAL(Episode.seen = 0) AS unseen_episodes
+TOTAL(Episode.seen = 0) AS unseen_episodes,
+-- The anime's category ids, comma separated: 0, the Default category, when it is in none
+coalesce((
+    SELECT group_concat(anime_categories.category_id)
+    FROM anime_categories
+    WHERE anime_categories.anime_id = Anime._id
+), '0') AS categories
 FROM Anime
 LEFT JOIN Episode ON Anime._id = Episode.anime_id
 WHERE Anime.favorite = 1

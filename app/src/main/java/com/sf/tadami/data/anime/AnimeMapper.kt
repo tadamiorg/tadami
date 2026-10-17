@@ -2,6 +2,7 @@ package com.sf.tadami.data.anime
 
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.LibraryAnime
+import com.sf.tadami.domain.category.Category
 import com.sf.tadami.source.model.SAnimeStatus
 
 object AnimeMapper {
@@ -72,7 +73,8 @@ object AnimeMapper {
         language: String?,
 
         episodes : Long,
-        unseenEpisodes: Double
+        unseenEpisodes: Double,
+        categories: String
     ) : LibraryAnime = LibraryAnime(
         id = id,
         source = source,
@@ -95,6 +97,14 @@ object AnimeMapper {
         episodes = episodes,
         unseenEpisodes = unseenEpisodes.toLong(),
         episodeFlags = episodeFlags,
-        dateAdded = dateAdded
+        dateAdded = dateAdded,
+        categories = parseCategories(categories)
     )
+
+    // The view's comma separated category ids
+    internal fun parseCategories(categories: String): List<Long> {
+        return categories.split(',')
+            .mapNotNull { it.trim().toLongOrNull() }
+            .ifEmpty { listOf(Category.UNCATEGORIZED_ID) }
+    }
 }

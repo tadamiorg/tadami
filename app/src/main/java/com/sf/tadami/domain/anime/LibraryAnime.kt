@@ -1,5 +1,6 @@
 package com.sf.tadami.domain.anime
 
+import com.sf.tadami.domain.category.Category
 import com.sf.tadami.source.model.SAnimeStatus
 
 data class LibraryAnime(
@@ -24,5 +25,7 @@ data class LibraryAnime(
     val fetchInterval: Int,
     val unseenEpisodes: Long,
     val episodeFlags : Long,
-    val dateAdded : Long
+    val dateAdded : Long,
+    // The ids of its categories, the Default category's one when it is in none
+    val categories : List<Long> = listOf(Category.UNCATEGORIZED_ID)
 )

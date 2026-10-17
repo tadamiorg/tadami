@@ -1,0 +1,47 @@
+CREATE TABLE categories(
+    _id INTEGER NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    sort INTEGER NOT NULL,
+    flags INTEGER NOT NULL DEFAULT 0
+);
+
+getCategories:
+SELECT *
+FROM categories
+ORDER BY sort, _id;
+
+getCategoriesByAnimeId:
+SELECT C.*
+FROM categories C
+JOIN anime_categories AC
+ON C._id = AC.category_id
+WHERE AC.anime_id = :animeId
+ORDER BY C.sort, C._id;
+
+insert:
+-- Last in the order, taken inside the insert so two categories created at once can't share it
+INSERT INTO categories(name, sort, flags)
+SELECT :name, coalesce(max(sort), -1) + 1, :flags
+FROM categories;
+
+updateName:
+UPDATE categories
+SET name = :name
+WHERE _id = :categoryId;
+
+updateSort:
+UPDATE categories
+SET sort = :sort
+WHERE _id = :categoryId;
+
+-- The anime of the category go back to the Default category when they are in no other one
+delete {
+    DELETE FROM anime_categories
+    WHERE category_id = :categoryId;
+
+    DELETE FROM categories
+    WHERE _id = :categoryId;
+}
+
+selectLastInsertedRowId:
+SELECT last_insert_rowid();

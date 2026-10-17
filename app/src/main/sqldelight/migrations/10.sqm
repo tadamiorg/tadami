@@ -1,0 +1,56 @@
+-- Categories of the library, and the categories of each anime. An anime in none is in the Default category
+CREATE TABLE categories(
+    _id INTEGER NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    sort INTEGER NOT NULL,
+    flags INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE anime_categories(
+    anime_id INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
+    PRIMARY KEY(anime_id, category_id),
+    FOREIGN KEY(anime_id) REFERENCES Anime (_id)
+    ON DELETE CASCADE,
+    FOREIGN KEY(category_id) REFERENCES categories (_id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX anime_categories_category_id_index ON anime_categories(category_id);
+
+-- The library view lists the categories of each anime
+DROP VIEW IF EXISTS LibraryView;
+
+CREATE VIEW LibraryView AS
+SELECT
+Anime._id,
+Anime.source,
+Anime.url,
+Anime.title,
+Anime.thumbnail_url,
+Anime.release,
+Anime.status,
+Anime.description,
+Anime.genres,
+Anime.last_update,
+Anime.next_update,
+Anime.calculate_interval,
+Anime.favorite,
+Anime.initialized,
+Anime.episode_flags,
+Anime.date_added,
+Anime.studio,
+Anime.author,
+Anime.raw_title,
+Anime.language,
+COUNT(Episode._id) AS episodes,
+TOTAL(Episode.seen = 0) AS unseen_episodes,
+coalesce((
+    SELECT group_concat(anime_categories.category_id)
+    FROM anime_categories
+    WHERE anime_categories.anime_id = Anime._id
+), '0') AS categories
+FROM Anime
+LEFT JOIN Episode ON Anime._id = Episode.anime_id
+WHERE Anime.favorite = 1
+GROUP BY Anime._id;

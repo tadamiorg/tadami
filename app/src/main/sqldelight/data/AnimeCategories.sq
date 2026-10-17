@@ -1,0 +1,24 @@
+-- The categories of the anime. An anime in none is in the Default category, which isn't stored
+CREATE TABLE anime_categories(
+    anime_id INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
+    PRIMARY KEY(anime_id, category_id),
+    FOREIGN KEY(anime_id) REFERENCES Anime (_id)
+    ON DELETE CASCADE,
+    FOREIGN KEY(category_id) REFERENCES categories (_id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX anime_categories_category_id_index ON anime_categories(category_id);
+
+insert:
+INSERT OR IGNORE INTO anime_categories(anime_id, category_id)
+VALUES (:animeId, :categoryId);
+
+deleteByAnimeId:
+DELETE FROM anime_categories
+WHERE anime_id = :animeId;
+
+deleteByAnimeIdAndCategoryIds:
+DELETE FROM anime_categories
+WHERE anime_id = :animeId AND category_id IN :categoryIds;
