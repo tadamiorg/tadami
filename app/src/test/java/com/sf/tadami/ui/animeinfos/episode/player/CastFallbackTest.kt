@@ -1,8 +1,11 @@
 package com.sf.tadami.ui.animeinfos.episode.player
 
 import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.source.model.Track
 import com.sf.tadami.ui.animeinfos.episode.player.CastFallback.AfterCast
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CastFallbackTest {
@@ -27,5 +30,22 @@ class CastFallbackTest {
     fun theFilesPlayingAlreadyOrNoEpisodeKeepThePlayer() {
         assertEquals(AfterCast.Keep, CastFallback.afterCast(1L, local, beforeCast = 1L to local))
         assertEquals(AfterCast.Keep, CastFallback.afterCast(null, online, beforeCast = 1L to local))
+    }
+
+    @Test
+    fun theFilesPlayAgainOnlyWhenAllAreStillThere() {
+        val dir = "content://com.android.externalstorage.documents/tree/primary/Ep 1"
+        val withTracks = local.copy(
+            audioTracks = listOf(Track.AudioTrack(url = "$dir.audio.Japanese.ts", lang = "Japanese")),
+            subtitleTracks = listOf(Track.SubtitleTrack(url = "$dir.sub.French.vtt", lang = "French")),
+        )
+        val all = setOf(local.url, "$dir.audio.Japanese.ts", "$dir.sub.French.vtt")
+
+        assertTrue(CastFallback.canRestore(local, exists = { it == local.url }))
+        assertTrue(CastFallback.canRestore(withTracks, exists = all::contains))
+        // Deleted during the cast: the stream goes on
+        assertFalse(CastFallback.canRestore(local, exists = { false }))
+        assertFalse(CastFallback.canRestore(withTracks, exists = (all - "$dir.audio.Japanese.ts")::contains))
+        assertFalse(CastFallback.canRestore(withTracks, exists = (all - "$dir.sub.French.vtt")::contains))
     }
 }

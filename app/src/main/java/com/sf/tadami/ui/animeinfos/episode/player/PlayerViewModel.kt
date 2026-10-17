@@ -386,8 +386,9 @@ class PlayerViewModel(
     }
 
     /**
-     * The cast ended: the local player plays the downloaded files of the current episode again,
-     * not the streams the cast needed. The player starts them at the saved time, where the cast was.
+     * The cast ended: the local player plays the downloaded files of the current episode again, when
+     * still there, not the streams the cast needed. The player starts them at the saved time, where
+     * the cast was.
      */
     fun restoreLocalSource() {
         val episode = currentEpisode.value ?: return
@@ -395,8 +396,22 @@ class PlayerViewModel(
         localBeforeCast = null
         when (val next = CastFallback.afterCast(episode.id, _uiState.value.selectedSource, beforeCast)) {
             CastFallback.AfterCast.Keep -> Unit
-            // At once: the player opens on the files, it doesn't start the stream first
-            is CastFallback.AfterCast.Restore -> playLocal(next.source)
+            // No source while the files are checked: the player doesn't start the stream first
+            is CastFallback.AfterCast.Restore -> {
+                val online = _uiState.value.selectedSource
+                localEpisodeJob?.cancel()
+                _isFetchingSources.update { true }
+                _uiState.update { it.copy(selectedSource = null) }
+                localEpisodeJob = viewModelScope.launch(Dispatchers.IO) {
+                    if (CastFallback.canRestore(next.source, downloadManager::localFileExists)) {
+                        playLocal(next.source)
+                    } else {
+                        // Deleted during the cast: the stream goes on, from the saved time where the cast was
+                        _isFetchingSources.update { false }
+                        _uiState.update { it.copy(selectedSource = online) }
+                    }
+                }
+            }
             CastFallback.AfterCast.Lookup -> {
                 localEpisodeJob?.cancel()
                 localEpisodeJob = viewModelScope.launch(Dispatchers.IO) {

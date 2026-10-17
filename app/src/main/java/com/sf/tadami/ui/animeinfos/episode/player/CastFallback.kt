@@ -31,4 +31,14 @@ object CastFallback {
             else -> AfterCast.Lookup
         }
     }
+
+    /**
+     * Whether the downloaded files [kept] play again after the cast: the video, its separate audio and
+     * its subtitles are all still there, [exists] telling a file is. One deleted during the cast (after
+     * watching, by hand, all the downloads of the anime) and the stream goes on.
+     */
+    fun canRestore(kept: StreamSource, exists: (url: String) -> Boolean): Boolean {
+        val files = listOf(kept.url) + kept.audioTracks.map { it.url } + kept.subtitleTracks.map { it.url }
+        return files.all(exists)
+    }
 }
