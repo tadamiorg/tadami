@@ -29,6 +29,8 @@ data class BackupAnime(
     @ProtoNumber(14) var author: String? = null,
     @ProtoNumber(15) var rawTitle: String? = null,
     @ProtoNumber(16) var language: String? = null,
+    // The ids of its categories in the backup's categories, none for the Default category
+    @ProtoNumber(17) var categories: List<Long> = emptyList(),
     @ProtoNumber(20) var episodes: List<BackupEpisode> = emptyList(),
     @ProtoNumber(30) var history: List<BackupHistory> = emptyList(),
 

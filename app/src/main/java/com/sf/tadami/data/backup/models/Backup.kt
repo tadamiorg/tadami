@@ -11,6 +11,8 @@ import java.util.Locale
 @Serializable
 data class Backup(
     @ProtoNumber(1) val backupAnime: List<BackupAnime>,
+    // Empty in the backups made before the categories
+    @ProtoNumber(2) var backupCategories: List<BackupCategory> = emptyList(),
     @ProtoNumber(100) var backupPreferences: List<BackupPreference> = emptyList(),
     @ProtoNumber(101) var backupSources: List<BackupSource> = emptyList(),
     @ProtoNumber(102) var backupSourcePreferences: List<BackupSourcePreferences> = emptyList(),

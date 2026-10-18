@@ -6,17 +6,19 @@ import kotlinx.collections.immutable.persistentListOf
 
 data class RestoreOptions(
     val libraryEntries: Boolean = true,
+    val categories: Boolean = true,
     val appSettings: Boolean = true,
     val sourcesSettings: Boolean = false,
 ) {
 
     fun asBooleanArray() = booleanArrayOf(
         libraryEntries,
+        categories,
         appSettings,
         sourcesSettings,
     )
 
-    fun canRestore() = libraryEntries || appSettings || sourcesSettings
+    fun canRestore() = libraryEntries || categories || appSettings || sourcesSettings
 
     companion object {
         val options = persistentListOf(
@@ -24,6 +26,11 @@ data class RestoreOptions(
                 label = R.string.library_entries,
                 getter = RestoreOptions::libraryEntries,
                 setter = { options, enabled -> options.copy(libraryEntries = enabled) },
+            ),
+            Entry(
+                label = R.string.label_categories,
+                getter = RestoreOptions::categories,
+                setter = { options, enabled -> options.copy(categories = enabled) },
             ),
             Entry(
                 label = R.string.app_settings,
@@ -39,8 +46,9 @@ data class RestoreOptions(
 
         fun fromBooleanArray(array: BooleanArray) = RestoreOptions(
             libraryEntries = array[0],
-            appSettings = array[1],
-            sourcesSettings = array[2],
+            categories = array[1],
+            appSettings = array[2],
+            sourcesSettings = array[3],
         )
     }
 

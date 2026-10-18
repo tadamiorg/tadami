@@ -14,6 +14,7 @@ import com.sf.tadami.DataStoresHandler
 import com.sf.tadami.R
 import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.data.backup.models.BackupAnime
+import com.sf.tadami.data.backup.models.BackupCategory
 import com.sf.tadami.data.backup.models.BackupHistory
 import com.sf.tadami.data.backup.models.BackupPreference
 import com.sf.tadami.data.backup.models.BackupSourcePreferences
@@ -23,9 +24,12 @@ import com.sf.tadami.data.backup.models.IntPreferenceValue
 import com.sf.tadami.data.backup.models.LongPreferenceValue
 import com.sf.tadami.data.backup.models.StringPreferenceValue
 import com.sf.tadami.data.backup.models.StringSetPreferenceValue
+import com.sf.tadami.data.category.CategoryRepository
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.interactors.anime.FetchIntervalInteractor
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.category.GetCategories
+import com.sf.tadami.data.interactors.category.SetAnimeCategories
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.history.HistoryUpdate
@@ -61,6 +65,9 @@ class BackupRestorer(
     private val episodeRepository: EpisodeRepository = Injekt.get()
     private val fetchInterval: FetchIntervalInteractor = Injekt.get()
     private val dataStoresHandler : DataStoresHandler = Injekt.get()
+    private val getCategories: GetCategories = Injekt.get()
+    private val categoryRepository: CategoryRepository = Injekt.get()
+    private val setAnimeCategories: SetAnimeCategories = Injekt.get()
 
     private val dataStore: DataStore<Preferences> = Injekt.get()
 
@@ -117,6 +124,9 @@ class BackupRestorer(
         if (options.libraryEntries) {
             restoreAmount += backup.backupAnime.size
         }
+        if (options.categories) {
+            restoreAmount += 1
+        }
         if (options.appSettings) {
             restoreAmount += 1
         }
@@ -127,15 +137,18 @@ class BackupRestorer(
         now = ZonedDateTime.now()
         currentFetchWindow = fetchInterval.getWindow(now)
 
+        // First: the anime and the settings name their categories with the backup's ids, mapped to the local ones
+        val categoryIds = if (options.categories) restoreCategories(backup.backupCategories) else emptyMap()
+
         coroutineScope {
             if (options.appSettings) {
-                restoreAppPreferences(backup.backupPreferences)
+                restoreAppPreferences(backup.backupPreferences, categoryIds)
             }
             if (options.sourcesSettings) {
                 restoreSourcesPreferences(backup.backupSourcePreferences)
             }
             if (options.libraryEntries) {
-                restoreAnime(backup.backupAnime)
+                restoreAnime(backup.backupAnime, categoryIds)
             }
         }
     }
@@ -155,7 +168,28 @@ class BackupRestorer(
         )
     }
 
-    private fun CoroutineScope.restoreAnime(backupAnimes: List<BackupAnime>) = launch {
+    private suspend fun restoreCategories(backupCategories: List<BackupCategory>): Map<Long, Long> {
+        val categoryIds = try {
+            categoriesToRestore(getCategories.await(), backupCategories).forEach {
+                categoryRepository.insert(it.name, it.flags)
+            }
+            backupCategoryIds(backupCategories, getCategories.await())
+        } catch (e: Exception) {
+            errors.add(Date() to "${context.getString(R.string.label_categories)}: ${e.message}")
+            emptyMap()
+        }
+
+        restoreProgress += 1
+        showRestoreProgress(
+            restoreProgress,
+            restoreAmount,
+            context.getString(R.string.label_categories),
+            context.getString(R.string.restoring_backup),
+        )
+        return categoryIds
+    }
+
+    private fun CoroutineScope.restoreAnime(backupAnimes: List<BackupAnime>, categoryIds: Map<Long, Long>) = launch {
         backupAnimes.forEach { backupAnime ->
             ensureActive()
             val anime = backupAnime.getAnimeImpl()
@@ -172,6 +206,11 @@ class BackupRestorer(
                     val updatedAnime = restoreExistingAnime(anime, dbAnime)
                     // Fetch rest of anime information
                     restoreUpdatedAnime(updatedAnime, episodes, history)
+                }
+                // An anime without categories in the backup keeps the ones it has here
+                val animeCategoryIds = backupAnime.categories.mapNotNull { categoryIds[it] }
+                if (animeCategoryIds.isNotEmpty()) {
+                    setAnimeCategories.await(restoredAnime.id, animeCategoryIds)
                 }
                 updateAnime.awaitUpdateFetchInterval(restoredAnime, now, currentFetchWindow)
             } catch (e: Exception) {
@@ -366,10 +405,16 @@ class BackupRestorer(
         }
     }
 
-    private fun CoroutineScope.restoreAppPreferences(preferences: List<BackupPreference>) = launch {
+    private fun CoroutineScope.restoreAppPreferences(
+        preferences: List<BackupPreference>,
+        categoryIds: Map<Long, Long>
+    ) = launch {
         ensureActive()
         // Older backups have the storage folder, an access grant of the install they come from
-        restorePreferences(preferences.filterNot { it.key == StoragePreferences.STORAGE_DIR.name }, dataStore)
+        val toRestore = preferences
+            .filterNot { it.key == StoragePreferences.STORAGE_DIR.name }
+            .mapNotNull { it.withLocalCategoryIds(categoryIds) }
+        restorePreferences(toRestore, dataStore)
 
         LibraryUpdateWorker.setupTask(context)
         BackupCreateWorker.setupTask(context)

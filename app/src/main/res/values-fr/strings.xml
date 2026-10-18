@@ -512,5 +512,6 @@
     <string name="preferences_library_update_categories_include">Catégories à mettre à jour</string>
     <string name="preferences_library_update_categories_exclude">Catégories à ne pas mettre à jour</string>
     <string name="preferences_library_update_categories_all">Toutes</string>
+    <string name="label_categories">Catégories</string>
 
 </resources>

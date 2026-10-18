@@ -10,6 +10,7 @@ import com.sf.tadami.R
 import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.data.backup.models.Backup
 import com.sf.tadami.data.backup.models.BackupAnime
+import com.sf.tadami.data.backup.models.BackupCategory
 import com.sf.tadami.data.backup.models.BackupEpisode
 import com.sf.tadami.data.backup.models.BackupHistory
 import com.sf.tadami.data.backup.models.BackupPreference
@@ -23,9 +24,11 @@ import com.sf.tadami.data.backup.models.LongPreferenceValue
 import com.sf.tadami.data.backup.models.StringPreferenceValue
 import com.sf.tadami.data.backup.models.StringSetPreferenceValue
 import com.sf.tadami.data.episode.EpisodeMapper
+import com.sf.tadami.data.interactors.category.GetCategories
 import com.sf.tadami.data.interactors.history.GetHistoryInteractor
 import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.domain.anime.LibraryAnime
+import com.sf.tadami.domain.category.Category
 import com.sf.tadami.notifications.backup.BackupFileValidator
 import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.preferences.model.CustomPreferences
@@ -55,6 +58,7 @@ class BackupCreator(
     private val getHistory: GetHistoryInteractor = Injekt.get()
     private val sourceManager: SourceManager = Injekt.get()
     private val getLibary: LibraryInteractor = Injekt.get()
+    private val getCategories: GetCategories = Injekt.get()
 
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -87,10 +91,11 @@ class BackupCreator(
 
             val databaseAnime = getLibary.await()
             val backup = Backup(
-                backupAnimes(databaseAnime, options),
-                backupAppPreferences(options),
-                backupSources(databaseAnime),
-                backupSourcePreferences(options)
+                backupAnime = backupAnimes(databaseAnime, options),
+                backupCategories = backupCategories(options),
+                backupPreferences = backupAppPreferences(options),
+                backupSources = backupSources(databaseAnime),
+                backupSourcePreferences = backupSourcePreferences(options)
             )
 
             val byteArray = parser.encodeToByteArray(Backup.serializer(), backup)
@@ -133,6 +138,10 @@ class BackupCreator(
         // Entry for this anime
         val animeObject = BackupAnime.copyFrom(anime)
 
+        if (options.categories) {
+            animeObject.categories = anime.categories.filterNot { it == Category.UNCATEGORIZED_ID }
+        }
+
         // Check if user wants episode information in backup
         if (options.episodes) {
             // Backup all the episodes
@@ -162,6 +171,11 @@ class BackupCreator(
         }
 
         return animeObject
+    }
+
+    private suspend fun backupCategories(options: BackupOptions): List<BackupCategory> {
+        if (!options.categories) return emptyList()
+        return getCategories.await().map(BackupCategory::copyFrom)
     }
 
     private suspend fun backupAppPreferences(options: BackupOptions): List<BackupPreference> {

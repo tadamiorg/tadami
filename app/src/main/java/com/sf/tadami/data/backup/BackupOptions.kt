@@ -32,6 +32,11 @@ data class BackupOptions(
                 setter = { options, enabled -> options.copy(libraryEntries = enabled) },
             ),
             Entry(
+                label = R.string.label_categories,
+                getter = BackupOptions::categories,
+                setter = { options, enabled -> options.copy(categories = enabled) },
+            ),
+            Entry(
                 label = R.string.label_episodes,
                 getter = BackupOptions::episodes,
                 setter = { options, enabled -> options.copy(episodes = enabled) },
