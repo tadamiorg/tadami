@@ -276,12 +276,18 @@ class ExtensionManager(
      */
     suspend fun fetchRepo(candidates: List<String>): FetchedRepo = api.fetchRepo(candidates)
 
-    /** Adds [repo] to the repos the extensions are found in, then finds them again. */
-    suspend fun addRepo(repo: FetchedRepo) {
+    /**
+     * Adds [repo] to the repos the extensions are found in, then finds them again.
+     *
+     * @param trustKey Whether to trust the key its extensions are signed with, the one its
+     * `repo.json` gives, as Mihon does, see [trustSignature].
+     */
+    suspend fun addRepo(repo: FetchedRepo, trustKey: Boolean) {
         dataStore.edit { preferences ->
             preferences[SourcesPreferences.EXTENSIONS_REPOS] =
                 SourcesPreferences.transform(preferences).extensionsRepos + repo.url
         }
+        repo.meta?.signingKeyFingerprint?.takeIf { trustKey }?.let { trustSignature(it) }
         repo.meta?.let { meta -> _repoMetasFlow.update { it + (repo.url to meta) } }
         findAvailableExtensions()
     }
@@ -489,7 +495,14 @@ class ExtensionManager(
      * @param extension The extension to trust.
      */
     suspend fun trustExtension(extension: Extension.Installed) {
-        val signatureHash = extension.signatureHash ?: return
+        trustSignature(extension.signatureHash ?: return)
+    }
+
+    /**
+     * Trusts the signing key of SHA-256 fingerprint [signatureHash], then loads the extensions signed
+     * with it. They, and their updates signed with it, are loaded from now on.
+     */
+    private suspend fun trustSignature(signatureHash: String) {
         dataStore.edit { preferences ->
             preferences[TrustedExtensionsPreferences.TRUSTED_SIGNATURES] =
                 preferences[TrustedExtensionsPreferences.TRUSTED_SIGNATURES].orEmpty() + signatureHash

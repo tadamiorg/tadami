@@ -378,6 +378,7 @@
     <string name="ext_repo_error_duplicate">This repository is already added</string>
     <string name="ext_repo_error_unreadable">Couldn\'t read the repository index: %1$s</string>
     <string name="ext_repo_confirm_title">Add this repository?</string>
+    <string name="ext_repo_trust_key">Trust the extensions signed with this key</string>
     <string name="ext_repo_confirm_warning">Its extensions run their code inside Tadami: add only a repository you trust.</string>
     <string name="ext_repo_remove">Remove</string>
     <string name="ext_repo_remove_title">Remove this repository?</string>

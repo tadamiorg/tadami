@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Add
@@ -35,6 +36,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -45,9 +47,11 @@ import com.sf.tadami.extension.api.FetchedRepo
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
+import com.sf.tadami.ui.components.dialog.alert.DialogCheckBoxRow
 import com.sf.tadami.ui.components.material.ExtendedFloatingActionButton
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 import com.sf.tadami.ui.components.widgets.ScrollbarLazyColumn
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.groupedFingerprint
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.repoDisplayName
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.secondaryItemAlpha
@@ -120,7 +124,7 @@ fun ExtensionReposScreen(
         is RepoDialog.ConfirmAdd -> ConfirmAddRepoDialog(
             repo = current.repo,
             onDismissRequest = viewModel::dismissDialog,
-            onConfirm = { viewModel.addRepo(current.repo) },
+            onConfirm = { trustKey -> viewModel.addRepo(current.repo, trustKey) },
         )
         is RepoDialog.Remove -> RemoveRepoDialog(
             name = repoDisplayName(current.repoUrl, repoMetas[current.repoUrl]),
@@ -218,13 +222,19 @@ private fun AddRepoDialog(
     }
 }
 
-/** Before adding [repo], read: what it is and what it lists. */
+/**
+ * Before adding [repo], read: what it is and what it lists, and the key its extensions are signed
+ * with, if it gives it, to trust them.
+ */
 @Composable
 private fun ConfirmAddRepoDialog(
     repo: FetchedRepo,
     onDismissRequest: () -> Unit,
-    onConfirm: () -> Unit,
+    onConfirm: (trustKey: Boolean) -> Unit,
 ) {
+    val fingerprint = repo.meta?.signingKeyFingerprint
+    // On by default, as Mihon trusts the key of a repo it adds
+    var trustKey by rememberSaveable { mutableStateOf(true) }
     CustomAlertDialog(
         onDismissRequest = onDismissRequest,
         modifier = Modifier.fillMaxWidth(),
@@ -232,7 +242,7 @@ private fun ConfirmAddRepoDialog(
         dismissButton = { DefaultDialogCancelButton() },
         confirmButton = {
             DefaultDialogConfirmButton(text = R.string.action_add) {
-                onConfirm()
+                onConfirm(fingerprint != null && trustKey)
             }
         },
     ) {
@@ -242,6 +252,23 @@ private fun ConfirmAddRepoDialog(
                 Text(text = repo.url, style = MaterialTheme.typography.bodySmall)
             }
             Text(text = pluralStringResource(R.plurals.ext_repo_extensions_count, repo.extensionsCount, repo.extensionsCount))
+            if (fingerprint != null) {
+                Column {
+                    Text(text = stringResource(R.string.ext_trust_fingerprint), style = MaterialTheme.typography.labelMedium)
+                    SelectionContainer {
+                        Text(
+                            text = groupedFingerprint(fingerprint),
+                            fontFamily = FontFamily.Monospace,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+                DialogCheckBoxRow(
+                    label = stringResource(R.string.ext_repo_trust_key),
+                    isSelected = trustKey,
+                    onSelected = { trustKey = !it },
+                )
+            }
             Text(text = stringResource(R.string.ext_repo_confirm_warning))
         }
     }

@@ -86,9 +86,9 @@ class ExtensionReposViewModel(savedStateHandle: SavedStateHandle) : ViewModel() 
         _dialog.value = RepoDialog.Add(input, error = error, errorDetail = detail)
     }
 
-    fun addRepo(repo: FetchedRepo) {
+    fun addRepo(repo: FetchedRepo, trustKey: Boolean) {
         _dialog.value = null
-        viewModelScope.launchIO { extensionManager.addRepo(repo) }
+        viewModelScope.launchIO { extensionManager.addRepo(repo, trustKey) }
     }
 
     fun showRemoveDialog(repoUrl: String) {

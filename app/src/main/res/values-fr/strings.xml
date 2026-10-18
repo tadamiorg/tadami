@@ -379,6 +379,7 @@
     <string name="ext_repo_error_duplicate">Ce dépôt est déjà ajouté</string>
     <string name="ext_repo_error_unreadable">Impossible de lire l\'index du dépôt : %1$s</string>
     <string name="ext_repo_confirm_title">Ajouter ce dépôt ?</string>
+    <string name="ext_repo_trust_key">Approuver les extensions signées avec cette clé</string>
     <string name="ext_repo_confirm_warning">Ses extensions exécutent leur code dans Tadami : n\'ajoutez qu\'un dépôt de confiance.</string>
     <string name="ext_repo_remove">Retirer</string>
     <string name="ext_repo_remove_title">Retirer ce dépôt ?</string>
