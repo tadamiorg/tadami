@@ -6,6 +6,8 @@ import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.category.GetCategories
+import com.sf.tadami.data.interactors.category.SetAnimeCategories
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.UpdateAnime
 import com.sf.tadami.domain.episode.toUpdateEpisode
@@ -30,6 +32,8 @@ class MigrateDialogViewModel : ViewModel() {
     private val episodeRepository: EpisodeRepository = Injekt.get()
     private val animeRepository: AnimeRepository = Injekt.get()
     private val downloadManager: TadamiDownloadManager = Injekt.get()
+    private val getCategories: GetCategories = Injekt.get()
+    private val setAnimeCategories: SetAnimeCategories = Injekt.get()
 
     fun hasDownloads(anime: Anime): Boolean = downloadManager.getDownloadCount(anime) > 0
 
@@ -74,6 +78,7 @@ class MigrateDialogViewModel : ViewModel() {
         flags: Int,
     ) {
         val migrateEpisodes = MigrationFlags.hasEpisodes(flags)
+        val migrateCategories = MigrationFlags.hasCategories(flags)
         val deleteDownloaded = MigrationFlags.hasDeleteDownloaded(flags)
 
         try {
@@ -113,6 +118,11 @@ class MigrateDialogViewModel : ViewModel() {
 
             val episodeUpdates = updatedAnimeEpisodes.map { it.toUpdateEpisode() }
             episodeRepository.updateAll(episodeUpdates)
+        }
+
+        // Before it joins the library, so it shows up in its tabs
+        if (migrateCategories) {
+            setAnimeCategories.await(newAnime.id, getCategories.await(oldAnime.id).map { it.id })
         }
 
         // The new entry first: stopped or failing halfway, the anime stays in the library

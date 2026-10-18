@@ -23,10 +23,15 @@ data class MigrationFlag(
 object MigrationFlags {
 
     private const val EPISODES = 0x00000001
+    private const val CATEGORIES = 0x00000002
     private const val DELETE_DOWNLOADED = 0x00000010
 
     fun hasEpisodes(value: Int): Boolean {
         return value and EPISODES != 0
+    }
+
+    fun hasCategories(value: Int): Boolean {
+        return value and CATEGORIES != 0
     }
 
     fun hasDeleteDownloaded(value: Int): Boolean {
@@ -37,6 +42,7 @@ object MigrationFlags {
     fun getFlags(hasDownloads: Boolean) : List<MigrationFlag>{
         val flags = mutableListOf<MigrationFlag>()
         flags += MigrationFlag.create(EPISODES, true, R.string.label_episodes)
+        flags += MigrationFlag.create(CATEGORIES, true, R.string.label_categories)
         if (hasDownloads) {
             flags += MigrationFlag.create(DELETE_DOWNLOADED, false, R.string.migration_delete_downloaded)
         }
