@@ -58,6 +58,9 @@ import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.kevinnzou.web.AccompanistWebChromeClient
 import com.kevinnzou.web.AccompanistWebViewClient
 import com.kevinnzou.web.LoadingState
@@ -446,6 +449,29 @@ fun WebviewScreen(
         }
     }
 
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    var screenResumed by remember { mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> screenResumed = true
+                Lifecycle.Event.ON_PAUSE -> screenResumed = false
+                else -> {}
+            }
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+
+    // A page under a popup, or in the background, doesn't play
+    LaunchedEffect(currentWindow, windows.size, screenResumed) {
+        val running = WebViewMediaPause.runningWindow(windows.size, screenResumed)
+        windows.forEachIndexed { index, window ->
+            val webView = window.webView?.takeUnless { it in destroyedWebViews } ?: return@forEachIndexed
+            if (index == running) webView.onResume() else webView.onPause()
+        }
+    }
+
     // Back closes the popup at once, the ad chains walked in it included
     BackHandler(enabled = windows.size > 1) {
         closeWindow(currentWindow)
@@ -623,6 +649,7 @@ fun WebviewScreen(
                         factory = { context ->
                             currentWindow.webView ?: WebView(context).also { webView ->
                                 currentWindow.webView = webView
+                                WebViewMediaPause.install(webView)
                                 currentWindow.popupMessage?.let { message ->
                                     (message.obj as WebView.WebViewTransport).webView = webView
                                     message.sendToTarget()
