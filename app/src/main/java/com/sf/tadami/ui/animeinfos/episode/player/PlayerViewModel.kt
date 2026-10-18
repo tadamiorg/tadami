@@ -19,8 +19,9 @@ import com.sf.tadami.data.interactors.history.UpdateHistoryInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.isEpisodeWatched
+import com.sf.tadami.domain.episode.toSEpisode
 import com.sf.tadami.extension.util.ExtensionDisabledException
-import com.sf.tadami.extension.util.fetchGuarded
+import com.sf.tadami.extension.util.callGuarded
 import com.sf.tadami.network.utils.TadaErrorConsumer
 import com.sf.tadami.preferences.CommonKeys
 import com.sf.tadami.preferences.download.DownloadPreferences
@@ -34,7 +35,7 @@ import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.SaveableMutableSaveStateFlow
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.utils.getPreferencesGroup
-import io.reactivex.rxjava3.disposables.Disposable
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -151,7 +152,7 @@ class PlayerViewModel(
         anime?.title?.isEmpty() ?: false || episodes.isEmpty()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
-    private var fetchEpisodeDisposable: Disposable? = null
+    private var fetchEpisodeJob: Job? = null
     private var localEpisodeJob: Job? = null
 
     /** The downloaded files a cast replaced by the source's streams, and their episode id */
@@ -310,7 +311,7 @@ class PlayerViewModel(
         availableSources: List<StreamSource>,
         selectedTrack: Long?
     ) {
-        fetchEpisodeDisposable?.dispose()
+        fetchEpisodeJob?.cancel()
         localEpisodeJob?.cancel()
         _isFetchingSources.update { false }
         // The episode first: the cast load guard compares it with the cast media when the sources change
@@ -349,7 +350,7 @@ class PlayerViewModel(
             )
         }
         _isFetchingSources.update { true }
-        fetchEpisodeDisposable?.dispose()
+        fetchEpisodeJob?.cancel()
         localEpisodeJob?.cancel()
         deleteWatchedDownloads(except = episode)
 
@@ -432,7 +433,7 @@ class PlayerViewModel(
     }
 
     private fun playLocal(local: StreamSource) {
-        fetchEpisodeDisposable?.dispose()
+        fetchEpisodeJob?.cancel()
         _isFetchingSources.update { false }
         _uiState.update { currentState ->
             currentState.copy(
@@ -446,39 +447,42 @@ class PlayerViewModel(
     }
 
     private fun fetchOnlineSources(episode: Episode) {
-        fetchEpisodeDisposable?.dispose()
-        fetchEpisodeDisposable = source.fetchGuarded { fetchEpisodeSources(episode.url) }.subscribe(
-            { data ->
-                _uiState.updateAndGet { currentState ->
-                    currentState.copy(
-                        rawUrl = episode.url,
-                        selectedSource = data.firstOrNull(),
-                        availableSources = data
-                    )
-                }
-                _isFetchingSources.update { false }
-                if(data.isNotEmpty()){
-                    viewModelScope.launch(Dispatchers.IO) {
-                        updateHistoryInteractor.awaitAnimeHistoryUpdate(episode)
+        fetchEpisodeJob?.cancel()
+        fetchEpisodeJob = viewModelScope.launch {
+            val data = try {
+                source.callGuarded { getEpisodeSources(episode.toSEpisode()) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                TadaErrorConsumer {error, _, _ ->
+                    _isFetchingSources.update { false }
+                    // A downloaded episode still plays, only its cast failed
+                    val playsLocally = _uiState.value.selectedSource?.isLocalFile == true
+                    if(!playsLocally && (error is StubSource.SourceNotInstalledException || error is ExtensionDisabledException)){
+                        _uiState.update {
+                            it.copy(loadError = true)
+                        }
                     }
-                }
-            },
-            TadaErrorConsumer {error, _, _ ->
-                _isFetchingSources.update { false }
-                // A downloaded episode still plays, only its cast failed
-                val playsLocally = _uiState.value.selectedSource?.isLocalFile == true
-                if(!playsLocally && (error is StubSource.SourceNotInstalledException || error is ExtensionDisabledException)){
-                    _uiState.update {
-                        it.copy(loadError = true)
-                    }
-                }
-            },
-            {
-                if(_uiState.value.availableSources.isEmpty()){
-                    UiToasts.showToast(R.string.player_screen_empty_sources)
+                }.accept(e)
+                return@launch
+            }
+            _uiState.updateAndGet { currentState ->
+                currentState.copy(
+                    rawUrl = episode.url,
+                    selectedSource = data.firstOrNull(),
+                    availableSources = data
+                )
+            }
+            _isFetchingSources.update { false }
+            if(data.isNotEmpty()){
+                viewModelScope.launch(Dispatchers.IO) {
+                    updateHistoryInteractor.awaitAnimeHistoryUpdate(episode)
                 }
             }
-        )
+            if(_uiState.value.availableSources.isEmpty()){
+                UiToasts.showToast(R.string.player_screen_empty_sources)
+            }
+        }
     }
 
     /** Not [except], the episode now played, even when watched before. */
@@ -492,7 +496,7 @@ class PlayerViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        fetchEpisodeDisposable?.dispose()
+        fetchEpisodeJob?.cancel()
         deleteWatchedDownloads()
     }
 

@@ -23,7 +23,8 @@ import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.isEpisodeWatched
-import com.sf.tadami.extension.util.fetchGuarded
+import com.sf.tadami.domain.episode.toSEpisode
+import com.sf.tadami.extension.util.callGuarded
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
 import com.sf.tadami.preferences.cast.CastPreferences
@@ -47,9 +48,10 @@ import com.sf.tadami.ui.animeinfos.episode.cast.sendCastMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.utils.getPreferencesGroup
-import io.reactivex.rxjava3.disposables.Disposable
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -86,7 +88,7 @@ class CastControlService : Service() {
     private val errorChannel = ErrorChannel()
     private lateinit var proxyServer: CastProxyServer
     private var webNoticeShownThisSession = false
-    private var fetchDisposable: Disposable? = null
+    private var fetchJob: Job? = null
     // Last seen media customData: at end of playback the media goes IDLE/FINISHED and mediaInfo
     // becomes null, so we fall back to this to keep episode switching working past the end.
     private var lastCustomData: JSONObject? = null
@@ -164,7 +166,7 @@ class CastControlService : Service() {
     }
 
     override fun onDestroy() {
-        fetchDisposable?.dispose()
+        fetchJob?.cancel()
         castContext?.sessionManager?.removeSessionManagerListener(sessionListener, CastSession::class.java)
         CastProxyHolder.server = null
         proxyServer.stop()
@@ -315,21 +317,25 @@ class CastControlService : Service() {
                 contentUrl = contentUrl,
             )
 
-        fetchDisposable?.dispose()
+        fetchJob?.cancel()
         // A downloaded episode is served by the phone, when the receiver can play its files
         val local = LocalCast.resolve(applicationContext, fresh, proxyServer)
         if (local != null) {
             remoteMediaClient?.load(request(local.source, listOf(local.source), local.contentUrl))
             return
         }
-        fetchDisposable = source.fetchGuarded { fetchEpisodeSources(fresh.url) }.subscribe(
-            { sources: List<StreamSource> ->
-                val selected = sources.firstOrNull() ?: return@subscribe
-                val request = request(selected, sources)
-                scope.launch { remoteMediaClient?.load(request) }
-            },
-            { /* fetch error: leave current playback as-is */ },
-        )
+        fetchJob = scope.launch {
+            val sources = try {
+                source.callGuarded { getEpisodeSources(fresh.toSEpisode()) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // fetch error: leave current playback as-is
+                return@launch
+            }
+            val selected = sources.firstOrNull() ?: return@launch
+            remoteMediaClient?.load(request(selected, sources))
+        }
     }
 
     private fun episodeFromCustomData(customData: JSONObject): Episode {
