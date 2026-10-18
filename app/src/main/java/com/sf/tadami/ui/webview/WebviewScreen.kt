@@ -388,7 +388,7 @@ fun WebviewScreen(
         }
     }
 
-    // Back closes the popup once its own history is done (the WebView handles that first)
+    // Back closes the popup at once, the ad chains walked in it included
     BackHandler(enabled = windows.size > 1) {
         closeWindow(currentWindow)
     }
@@ -515,8 +515,9 @@ fun WebviewScreen(
                     WebView(
                         state = state,
                         modifier = Modifier.fillMaxSize(),
-                        // Once verified, back returns to the source instead of replaying the challenge pages
-                        captureBackPresses = currentWindow !== rootWindow || challengeState != ChallengeState.SOLVED,
+                        // The page's history only: a popup closes on back. Once verified, back returns to the
+                        // source instead of replaying the challenge pages
+                        captureBackPresses = currentWindow === rootWindow && challengeState != ChallengeState.SOLVED,
                         navigator = navigator,
                         onCreated = { webView ->
                             webView.setDefaultSettings()
