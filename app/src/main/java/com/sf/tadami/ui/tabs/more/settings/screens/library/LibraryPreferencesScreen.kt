@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
@@ -29,6 +30,7 @@ import com.commandiron.wheel_picker_compose.core.WheelTextPicker
 import com.sf.tadami.R
 import com.sf.tadami.data.interactors.category.GetCategories
 import com.sf.tadami.domain.category.Category
+import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.DataStoreState
@@ -44,7 +46,7 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class LibraryPreferencesScreen(
-    navController: NavHostController,
+    private val navController: NavHostController,
 ) : PreferenceScreen {
 
     override val title: Int = R.string.preferences_library_title
@@ -80,6 +82,15 @@ class LibraryPreferencesScreen(
         return Preference.PreferenceCategory(
             title = stringResource(id = R.string.preferences_library_category_categories),
             preferenceItems = listOf(
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(id = R.string.action_edit_categories),
+                    subtitle = pluralStringResource(
+                        id = R.plurals.preferences_library_categories_count,
+                        count = categories.size,
+                        categories.size
+                    ),
+                    onClick = { navController.navigate(SettingsRoutes.CATEGORIES) }
+                ),
                 Preference.PreferenceItem.SelectPreference(
                     // A category deleted meanwhile is asked for
                     value = prefs.defaultCategory.takeIf { it in defaultCategoryItems } ?: LibraryPreferences.DEFAULT_CATEGORY_ASK,

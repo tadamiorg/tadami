@@ -503,5 +503,22 @@
     <string name="preferences_library_update_categories_exclude">Categories not to update</string>
     <string name="preferences_library_update_categories_all">All</string>
     <string name="label_categories">Categories</string>
+    <string name="action_add">Add</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_move_up">Move up</string>
+    <string name="action_move_down">Move down</string>
+    <string name="action_add_category">Add category</string>
+    <string name="action_rename_category">Rename category</string>
+    <string name="action_delete_category">Delete category</string>
+    <string name="delete_category_confirmation">Delete the category \"%s\"? Its anime stay in your library.</string>
+    <string name="category_name">Name</string>
+    <string name="category_name_empty">The name can\'t be empty</string>
+    <string name="category_name_exists">A category with this name already exists</string>
+    <string name="category_error">The categories couldn\'t be changed</string>
+    <string name="categories_empty">You have no categories. Tap the plus button to create one for organizing your library.</string>
+    <plurals name="preferences_library_categories_count">
+        <item quantity="one">%d category</item>
+        <item quantity="other">%d categories</item>
+    </plurals>
 
 </resources>

@@ -29,19 +29,26 @@ import com.sf.tadami.ui.utils.padding
 
 /**
  * Checkboxes to put the anime in categories, from [initialSelection]. [onConfirm] gets the categories to add
- * them to and the ones to remove them from.
+ * them to and the ones to remove them from. [onEditCategories] opens the category screen, the dialog closes.
  */
 @Composable
 fun SetCategoriesDialog(
     initialSelection: List<CategoryCheckbox>,
     onDismissRequest: () -> Unit,
     onConfirm: (add: List<Long>, remove: List<Long>) -> Unit,
+    onEditCategories: () -> Unit,
 ) {
+    val editCategories = {
+        onDismissRequest()
+        onEditCategories()
+    }
+
     if (initialSelection.isEmpty()) {
         CustomAlertDialog(
             onDismissRequest = onDismissRequest,
             title = { Text(text = stringResource(R.string.action_set_categories)) },
-            confirmButton = { DefaultDialogConfirmButton(onClick = onDismissRequest) },
+            dismissButton = { DefaultDialogCancelButton() },
+            confirmButton = { DefaultDialogConfirmButton(text = R.string.action_edit, onClick = editCategories) },
         ) {
             Text(text = stringResource(R.string.set_categories_none))
         }
@@ -53,7 +60,10 @@ fun SetCategoriesDialog(
     CustomAlertDialog(
         onDismissRequest = onDismissRequest,
         title = { Text(text = stringResource(R.string.action_set_categories)) },
-        dismissButton = { DefaultDialogCancelButton() },
+        dismissButton = {
+            DefaultDialogCancelButton(text = R.string.action_edit, onDismissRequest = editCategories)
+            DefaultDialogCancelButton()
+        },
         confirmButton = {
             DefaultDialogConfirmButton {
                 val (add, remove) = selection.toChanges()

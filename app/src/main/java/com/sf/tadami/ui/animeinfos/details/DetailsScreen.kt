@@ -42,6 +42,7 @@ import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.navigation.graphs.migrate.MigrateRoutes
+import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.ui.animeinfos.details.episodes.filters.DisplayTab
@@ -293,7 +294,8 @@ fun DetailsScreen(
             SetCategoriesDialog(
                 initialSelection = dialog.selection,
                 onDismissRequest = detailsViewModel::dismissSetCategoriesDialog,
-                onConfirm = detailsViewModel::setCategories
+                onConfirm = detailsViewModel::setCategories,
+                onEditCategories = { navHostController.navigate(SettingsRoutes.CATEGORIES) }
             )
         }
         if (showDeleteDownloadsDialog) {

@@ -46,6 +46,7 @@ import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
+import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.category.CategoryCheckbox
@@ -141,7 +142,8 @@ fun LibraryScreen(
         SetCategoriesDialog(
             initialSelection = selection,
             onDismissRequest = { setCategoriesSelection = null },
-            onConfirm = { add, remove -> libraryViewModel.setSelectedCategories(add, remove) }
+            onConfirm = { add, remove -> libraryViewModel.setSelectedCategories(add, remove) },
+            onEditCategories = { navController.navigate(SettingsRoutes.CATEGORIES) }
         )
     }
 

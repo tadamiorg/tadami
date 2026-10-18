@@ -513,5 +513,23 @@
     <string name="preferences_library_update_categories_exclude">Catégories à ne pas mettre à jour</string>
     <string name="preferences_library_update_categories_all">Toutes</string>
     <string name="label_categories">Catégories</string>
+    <string name="action_add">Ajouter</string>
+    <string name="action_edit">Modifier</string>
+    <string name="action_move_up">Monter</string>
+    <string name="action_move_down">Descendre</string>
+    <string name="action_add_category">Ajouter une catégorie</string>
+    <string name="action_rename_category">Renommer la catégorie</string>
+    <string name="action_delete_category">Supprimer la catégorie</string>
+    <string name="delete_category_confirmation">Supprimer la catégorie « %s » ? Ses animés restent dans votre bibliothèque.</string>
+    <string name="category_name">Nom</string>
+    <string name="category_name_empty">Le nom ne peut pas être vide</string>
+    <string name="category_name_exists">Une catégorie porte déjà ce nom</string>
+    <string name="category_error">Les catégories n\'ont pas pu être modifiées</string>
+    <string name="categories_empty">Vous n\'avez aucune catégorie. Appuyez sur le bouton plus pour en créer une et organiser votre bibliothèque.</string>
+    <plurals name="preferences_library_categories_count">
+        <item quantity="one">%d catégorie</item>
+        <item quantity="many">%d catégories</item>
+        <item quantity="other">%d catégories</item>
+    </plurals>
 
 </resources>
