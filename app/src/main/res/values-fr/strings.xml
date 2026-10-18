@@ -357,6 +357,7 @@
     <string name="ext_install_title">Installer cette extension ?</string>
     <string name="ext_install_version_lang">Version %1$s · %2$s</string>
     <string name="ext_install_repo">Provient de %1$s</string>
+    <string name="ext_install_repo_official">Provient du dépôt officiel (%1$s)</string>
     <string name="ext_install_message">Elle sera téléchargée et son code s\'exécutera dans Tadami.</string>
     <string name="ext_pending">En attente</string>
     <string name="ext_downloading">En cours de téléchargement</string>
