@@ -108,6 +108,39 @@ class ExtensionReposTest {
     }
 
     @Test
+    fun noRepoNameCanPassForTheOfficialRepoOrTheApp() {
+        listOf(
+            "Official",
+            "Tadami Official",
+            "TADAMI",
+            "Officiel(le)",
+            "D\u00e9p\u00f4t officiel",
+            "0fficial",
+            "Offic1al",
+            // Greek capital omicron
+            "\u039Ffficial",
+            // Cyrillic o and a
+            "Offici\u0430l t\u0430d\u0430mi",
+            // Zero width space
+            "Off\u200Bicial",
+            // Full width letters
+            "\uFF34\uFF41\uFF44\uFF41\uFF4D\uFF49",
+            "Off\u00edcial",
+            "O.f.f.i.c.i.a.l",
+            " ",
+            null,
+        ).forEach { assertNull(it, ExtensionRepos.safeName(it)) }
+    }
+
+    @Test
+    fun anotherRepoNameIsKeptCleaned() {
+        assertEquals("Keiyoushi", ExtensionRepos.safeName("Keiyoushi"))
+        assertEquals("Anime repo", ExtensionRepos.safeName(" Anime\u0007 repo\u202E "))
+        val long = "A".repeat(60)
+        assertEquals("A".repeat(40) + "\u2026", ExtensionRepos.safeName(long))
+    }
+
+    @Test
     fun theOfficialRepoIsAddedByDefaultAndStaysRemovedOnceRemoved() {
         val official = SourcesPreferences.DEFAULT_EXTENSIONS_REPO
         // Never stored: the official one

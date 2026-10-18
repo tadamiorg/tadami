@@ -16,11 +16,14 @@ import com.sf.tadami.preferences.sources.SourcesPreferences
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-/** The name of the repo [repoUrl] for the user: the name its [meta] gives, `owner/repo` otherwise. */
+/**
+ * The name of the repo [repoUrl] for the user: the official one for the app's own only, else the
+ * name its [meta] gives if it can be shown, see [ExtensionRepos.safeName], `owner/repo` otherwise.
+ */
 @Composable
 fun repoDisplayName(repoUrl: String, meta: RepoMeta?): String = when {
     ExtensionRepos.isOfficial(repoUrl) -> stringResource(R.string.ext_repo_official)
-    else -> meta?.name ?: ExtensionRepos.name(repoUrl)
+    else -> ExtensionRepos.safeName(meta?.name) ?: ExtensionRepos.name(repoUrl)
 }
 
 /**

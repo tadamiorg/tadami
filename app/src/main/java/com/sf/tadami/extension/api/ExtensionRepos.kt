@@ -3,6 +3,7 @@ package com.sf.tadami.extension.api
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.text.Normalizer
 
 /** The URLs of the extension repos: a repo is the base URL its `index.min.json` is under. */
 internal object ExtensionRepos {
@@ -66,6 +67,56 @@ internal object ExtensionRepos {
     private fun normalizeFingerprint(fingerprint: String): String? =
         fingerprint.filterNot { it == ':' || it.isWhitespace() }.lowercase()
             .takeIf { hex -> hex.length == 64 && hex.all { it in '0'..'9' || it in 'a'..'f' } }
+
+    private const val MAX_NAME_LENGTH = 40
+
+    /** What a repo can't call itself: it would pass for the official repo, or the app's. */
+    private val RESERVED_NAMES = listOf("official", "officiel", "tadami")
+
+    /** Letters of other scripts, digits and signs that read as latin letters, to the letter. */
+    private val HOMOGLYPHS = mapOf(
+        // Cyrillic
+        '\u0430' to 'a', '\u0432' to 'b', '\u0435' to 'e', '\u0451' to 'e', '\u043a' to 'k', '\u043c' to 'm',
+        '\u043d' to 'h', '\u043e' to 'o', '\u0440' to 'p', '\u0441' to 'c', '\u0442' to 't', '\u0443' to 'y',
+        '\u0445' to 'x', '\u0456' to 'i', '\u0457' to 'i', '\u0458' to 'j', '\u0455' to 's', '\u0501' to 'd',
+        '\u051b' to 'q', '\u051d' to 'w', '\u04cf' to 'l',
+        // Greek
+        '\u03b1' to 'a', '\u03b2' to 'b', '\u03b5' to 'e', '\u03b7' to 'n', '\u03b9' to 'i', '\u03ba' to 'k',
+        '\u03bc' to 'm', '\u03bd' to 'v', '\u03bf' to 'o', '\u03c1' to 'p', '\u03c4' to 't', '\u03c5' to 'u',
+        '\u03c7' to 'x', '\u03f2' to 'c', '\u0131' to 'i',
+        // Digits and signs
+        '0' to 'o', '1' to 'l', '3' to 'e', '4' to 'a', '5' to 's', '7' to 't', '@' to 'a', '$' to 's', '|' to 'l',
+        '!' to 'l',
+        // I and l look alike
+        'i' to 'l',
+    )
+
+    /**
+     * [name], the name a repo gives itself in its `repo.json`, as it can be shown: without control
+     * nor invisible characters, [MAX_NAME_LENGTH] characters at most, null when it's empty or could
+     * pass for the official repo or the app, however it's written, see [RESERVED_NAMES]. Only the
+     * app calls a repo official, see [isOfficial].
+     */
+    fun safeName(name: String?): String? {
+        val cleaned = name.orEmpty()
+            .filterNot { Character.isISOControl(it) || Character.getType(it) == Character.FORMAT.toInt() }
+            .trim()
+        if (cleaned.isEmpty()) return null
+        val skeleton = skeleton(cleaned)
+        if (RESERVED_NAMES.any { skeleton(it) in skeleton }) return null
+        return if (cleaned.length > MAX_NAME_LENGTH) cleaned.take(MAX_NAME_LENGTH).trimEnd() + "\u2026" else cleaned
+    }
+
+    /** [text] as the latin letters it reads as, lowercase, without anything else, see [HOMOGLYPHS]. */
+    private fun skeleton(text: String): String = buildString {
+        // Compatibility forms to their letters: full width, ligatures, styled ones... then accents apart
+        for (c in Normalizer.normalize(text, Normalizer.Form.NFKD)) {
+            if (Character.getType(c) == Character.NON_SPACING_MARK.toInt()) continue
+            val lower = c.lowercaseChar()
+            val letter = HOMOGLYPHS[lower] ?: lower
+            if (letter in 'a'..'z') append(letter)
+        }
+    }
 
     /** A readable name of the repo [repoUrl]: `owner/repo` on GitHub, its host and path otherwise. */
     fun name(repoUrl: String): String {

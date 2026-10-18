@@ -63,8 +63,8 @@ fun InstallExtensionDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small)) {
                 ExtensionDialogHeader(extension)
-                val repoName = LocalExtensionRepos.current.metas[extension.repoUrl]
-                    ?.let { "${it.name} (${ExtensionRepos.name(extension.repoUrl)})" }
+                val repoName = ExtensionRepos.safeName(LocalExtensionRepos.current.metas[extension.repoUrl]?.name)
+                    ?.let { "$it (${ExtensionRepos.name(extension.repoUrl)})" }
                     ?: ExtensionRepos.name(extension.repoUrl)
                 Text(
                     text = stringResource(
