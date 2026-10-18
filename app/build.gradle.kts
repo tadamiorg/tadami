@@ -1,5 +1,6 @@
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Properties
 import java.util.TimeZone
 
 plugins {
@@ -110,6 +111,58 @@ androidComponents {
     }
 }
 
+// ExtensionsApiCompatibilityTest checks the app still provides what extensions link against: the
+// classes of :extensions-lib, the stub they compile against, and those of the released lib versions,
+// frozen in extensions-lib/api. -Ptadami.updateApiBaseline=X.Y adds the stub to extensions-lib/api/X.Y.txt
+// (when tagging lib-X.Y.Z, see extensions-lib/README.md).
+val extensionsApiClasses = configurations.dependencyScope("extensionsApiClasses")
+val extensionsApiClassesFiles = configurations.resolvable("extensionsApiClassesFiles") {
+    extendsFrom(extensionsApiClasses.get())
+}
+val extensionsLibDir = isolated.rootProject.projectDirectory.dir("extensions-lib")
+val extensionsLibVersion = providers.fileContents(extensionsLibDir.file("gradle.properties")).asText.map { text ->
+    Properties().apply { load(text.reader()) }.getProperty("extensionsLibVersion")
+}
+
+abstract class ExtensionsApiTestArguments : CommandLineArgumentProvider {
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val stubClasses: ConfigurableFileCollection
+
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val baselines: DirectoryProperty
+
+    @get:Input
+    abstract val libVersion: Property<String>
+
+    @get:Input
+    @get:Optional
+    abstract val updateBaseline: Property<String>
+
+    override fun asArguments(): List<String> = listOfNotNull(
+        "-Dtadami.extensionsApiClasses=${stubClasses.files.joinToString(File.pathSeparator)}",
+        "-Dtadami.extensionsApiBaselines=${baselines.get().asFile.absolutePath}",
+        "-Dtadami.extensionsLibVersion=${libVersion.get()}",
+        updateBaseline.orNull?.let { "-Dtadami.updateApiBaseline=$it" },
+    )
+}
+
+tasks.withType<Test>().configureEach {
+    val arguments = objects.newInstance<ExtensionsApiTestArguments>().apply {
+        stubClasses.from(extensionsApiClassesFiles)
+        baselines.set(extensionsLibDir.dir("api"))
+        libVersion.set(extensionsLibVersion)
+        updateBaseline.set(providers.gradleProperty("tadami.updateApiBaseline"))
+    }
+    jvmArgumentProviders.add(arguments)
+    if (arguments.updateBaseline.isPresent) {
+        // Writes extensions-lib/api/X.Y.txt: never skipped nor taken from the build cache
+        outputs.upToDateWhen { false }
+        outputs.cacheIf { false }
+    }
+}
+
 // 1.10.0 gives 1010000: it grows with the version, and stays above 52, the last hand-set code (1.9.3)
 fun versionCodeOf(versionName: String): Int {
     val parts = Regex("""(\d+)\.(\d+)\.(\d+)""").matchEntire(versionName)?.groupValues?.drop(1)?.map { it.toInt() }
@@ -201,6 +254,10 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.okhttp.mockwebserver3)
+    testImplementation(libs.asm)
+    testImplementation(libs.asm.tree)
+    testImplementation(kotlinx.metadata.jvm)
+    extensionsApiClasses(project(":extensions-lib", "apiClassesElements"))
 
     // SQLite
     implementation(libs.bundles.sqlite)

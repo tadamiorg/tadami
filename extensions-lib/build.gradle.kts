@@ -1,3 +1,5 @@
+import com.android.build.api.artifact.ScopedArtifact
+import com.android.build.api.variant.ScopedArtifacts
 import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -36,4 +38,50 @@ dependencies {
     api(platform(compose.bom))
     api(compose.ui)
     api(androidx.annotation)
+}
+
+// The compiled stub, for :app's ExtensionsApiCompatibilityTest (and its release keep rules)
+abstract class ExportApiClasses : DefaultTask() {
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val jars: ListProperty<RegularFile>
+
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val dirs: ListProperty<Directory>
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @get:Inject
+    abstract val files: FileSystemOperations
+
+    @get:Inject
+    abstract val archives: ArchiveOperations
+
+    @TaskAction
+    fun export() {
+        files.sync {
+            into(outputDir)
+            dirs.get().forEach { from(it) }
+            jars.get().forEach { from(archives.zipTree(it)) }
+            include("**/*.class")
+        }
+    }
+}
+
+val exportApiClasses = tasks.register<ExportApiClasses>("exportApiClasses") {
+    outputDir.set(layout.buildDirectory.dir("apiClasses"))
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        variant.artifacts.forScope(ScopedArtifacts.Scope.PROJECT)
+            .use(exportApiClasses)
+            .toGet(ScopedArtifact.CLASSES, ExportApiClasses::jars, ExportApiClasses::dirs)
+    }
+}
+
+configurations.consumable("apiClassesElements") {
+    outgoing.artifact(exportApiClasses.flatMap { it.outputDir })
 }

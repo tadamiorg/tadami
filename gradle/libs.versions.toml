@@ -8,6 +8,7 @@ dotenv_version = "4.0.0"
 richtext = "1.0.0-alpha05"
 logcat-version = "0.4"
 custom-accompanist = "0.33.6"
+asm-version = "9.9.1"
 
 [libraries]
 
@@ -39,6 +40,8 @@ nanohttpd = "org.nanohttpd:nanohttpd:2.3.1"
 
 # Unit tests
 junit = "junit:junit:4.13.2"
+asm = { group = "org.ow2.asm", name = "asm", version.ref = "asm-version" }
+asm-tree = { group = "org.ow2.asm", name = "asm-tree", version.ref = "asm-version" }
 
 # SQLITE
 sqlite-framework = { module = "androidx.sqlite:sqlite-framework", version.ref = "sqlite" }
