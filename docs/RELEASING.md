@@ -100,7 +100,14 @@ The extension API, `extensions-lib/`, is released on its own: the tag `lib-X.Y.Z
 2. When `API_VERSION_MAX` changed, release the app first: extensions built against the new lib need an app that accepts them.
 3. Bring `main` up to `develop`, then Actions > Release extensions-lib > Run workflow, with "Use workflow from" on `main`. It fails when the tag `lib-X.Y.Z` already exists. Otherwise it runs the drift test, checks the baseline is committed, builds the lib the way JitPack does, pushes the annotated tag `lib-X.Y.Z`, then asks JitPack for the artifact and waits for it, up to 20 minutes. The run summary gives the coordinates and the `compileOnly` line.
 
-When JitPack fails or times out, the run fails with the link to the build log, `https://jitpack.io/com/github/tadamiorg/tadami/lib-X.Y.Z/build.log`, and the tag stays. Start the build again from [jitpack.io](https://jitpack.io/#tadamiorg/tadami) once the cause is fixed on JitPack's side, or fix the lib, raise the patch of `extensionsLibVersion` and run the workflow again.
+When JitPack fails or times out, the run fails with the link to the build log, `https://jitpack.io/com/github/tadamiorg/tadami/lib-X.Y.Z/build.log`, and the tag stays. Running the workflow again doesn't help: it refuses the existing tag. Once the cause is fixed on JitPack's side:
+
+1. JitPack keeps serving the failed build of a tag until it's deleted. Sign in on [jitpack.io](https://jitpack.io/#tadamiorg/tadami) with GitHub, open `tadamiorg/tadami` and delete the failed `lib-X.Y.Z` build (only a signed-in maintainer can).
+2. Request the POM to build it again, and repeat until it answers 200: `curl -sI https://jitpack.io/com/github/tadamiorg/tadami/lib-X.Y.Z/tadami-lib-X.Y.Z.pom`.
+
+If the lib itself must change, fix it, raise the patch of `extensionsLibVersion` and run the workflow again.
+
+For `lib-1.6.0`, JitPack's builds on its "latest" build image failed to resolve the Android Gradle plugin, and the build on its "legacy" image worked: when a log shows that error, check which image built it.
 
 What the lib must follow, and how to fix a drift test failure, is in [extensions-lib/README.md](../extensions-lib/README.md).
 

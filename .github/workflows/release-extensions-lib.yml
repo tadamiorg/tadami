@@ -142,7 +142,9 @@ jobs:
               echo "$1"
               echo
               echo "- Build log: $LOG"
-              echo "- The tag $TAG stays in place: once the cause is fixed on JitPack's side (a missing SDK, a timeout...), rebuild it from $PAGE."
+              echo "- The tag $TAG stays in place, so running this workflow again refuses it."
+              echo "- JitPack keeps serving the failed build of $TAG: once the cause is fixed on JitPack's side (a missing SDK, a timeout...), sign in on https://jitpack.io with GitHub, open https://jitpack.io/#$OWNER/$REPO and delete the failed $TAG build. Only then does a request to the POM build it again: \`curl -sI $POM\`, then wait for HTTP 200."
+              echo "- lib-1.6.0 failed to resolve the Android Gradle plugin on JitPack's \"latest\" build image and built on its \"legacy\" one: check which image the log shows."
               echo "- If the lib itself must change, fix it on main, raise the patch of extensionsLibVersion and run this workflow again."
             } >> "$GITHUB_STEP_SUMMARY"
             exit 1

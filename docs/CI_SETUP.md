@@ -49,7 +49,7 @@ Secrets go in the repo's **Settings > Secrets and variables > Actions > Secrets*
 
 **Extensions lib** builds extensions-lib and publishes it to the local Maven repository the way JitPack does (`JITPACK=true`, `jitpack.yml`).
 
-**Release extensions-lib** releases the extension API as `com.github.tadamiorg:tadami:lib-X.Y.Z` on JitPack: it runs the drift test, pushes the tag `lib-X.Y.Z` and waits for JitPack's build (RELEASING.md, "Releasing extensions-lib").
+**Release extensions-lib** releases the extension API as `com.github.tadamiorg:tadami:lib-X.Y.Z` on JitPack: it runs the drift test, pushes the tag `lib-X.Y.Z` and waits for JitPack's build (RELEASING.md, "Releasing extensions-lib"). When JitPack's build fails, running it again refuses the existing tag, and JitPack keeps serving the failed build: a maintainer signed in on [jitpack.io](https://jitpack.io/#tadamiorg/tadami) with GitHub deletes the failed version there, then a request to the POM URL builds it again. JitPack needs no secret or setting, but which build image it uses matters: `lib-1.6.0` couldn't resolve the Android Gradle plugin on its "latest" image and built on its "legacy" one.
 
 ### Run options
 
