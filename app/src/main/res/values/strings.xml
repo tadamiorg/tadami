@@ -415,6 +415,22 @@
     <string name="webview_challenge_pending">Complete the verification below. The source will use it once you go back.</string>
     <string name="webview_challenge_solved">Verification complete, you can go back to the app.</string>
     <string name="webview_challenge_done">Done</string>
+    <string name="pref_category_webview_adblock">WebView ad blocker</string>
+    <string name="pref_webview_adblock">Block ads in the WebView</string>
+    <string name="pref_webview_adblock_summary">Blocks ads, trackers and ad popups with the filter lists below</string>
+    <string name="pref_webview_adblock_list_not_downloaded">Not downloaded yet</string>
+    <string name="pref_webview_adblock_update_now">Update filter lists now</string>
+    <string name="pref_webview_adblock_never_updated">Not downloaded yet, the built-in list is used</string>
+    <string name="pref_webview_adblock_last_update">Last update: %1$s · %2$s</string>
+    <string name="pref_webview_adblock_last_attempt_failed">%1$s (the last attempt failed)</string>
+    <string name="pref_webview_adblock_updating">Updating…</string>
+    <string name="pref_webview_adblock_update_started">Updating the filter lists…</string>
+    <string name="pref_webview_adblock_updated">Filter lists updated</string>
+    <string name="pref_webview_adblock_update_failed">Could not update the filter lists</string>
+    <plurals name="pref_webview_adblock_rules">
+        <item quantity="one">%1$s rule</item>
+        <item quantity="other">%1$s rules</item>
+    </plurals>
 
     <!-- Downloads -->
     <string name="notification_downloader_group">Downloads</string>

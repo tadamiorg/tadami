@@ -32,6 +32,8 @@ object WebViewNavigationPolicy {
      * @param currentUrl the page the window shows
      * @param initialLoadDone whether the window's page finished its first load
      * @param canOpenPopup whether another popup fits on the stack
+     * @param isAd whether the ad blocker blocks the target, as a page of the window or ([asPopup]) as
+     * a page opening in a new window
      * @param siteOf the site of a URL, its registrable domain (eTLD+1) by default
      */
     fun decide(
@@ -41,18 +43,20 @@ object WebViewNavigationPolicy {
         initialLoadDone: Boolean,
         isPopup: Boolean,
         canOpenPopup: Boolean,
-        isAdHost: (String) -> Boolean,
+        isAd: (target: HttpUrl, asPopup: Boolean) -> Boolean,
         siteOf: (HttpUrl) -> String = ::registrableDomain,
     ): NavigationDecision {
         val target = targetUrl.toHttpUrlOrNull() ?: return NavigationDecision.BLOCK
-        if (isAdHost(target.host)) return NavigationDecision.BLOCK
         // Other sites are what popups are for
-        if (isPopup) return NavigationDecision.ALLOW
-        // The URL the screen opened and its redirects (sources move to mirror domains), then the
-        // redirects of the navigations allowed
-        if (!initialLoadDone || isRedirect) return NavigationDecision.ALLOW
-        val current = currentUrl?.toHttpUrlOrNull() ?: return NavigationDecision.ALLOW
-        if (siteOf(current) == siteOf(target)) return NavigationDecision.ALLOW
+        if (isPopup) return if (isAd(target, true)) NavigationDecision.BLOCK else NavigationDecision.ALLOW
+        val current = currentUrl?.toHttpUrlOrNull()
+        // The URL the screen opened and its redirects (sources move to mirror domains), the redirects
+        // of the navigations allowed, then the page's own site
+        if (!initialLoadDone || isRedirect || current == null || siteOf(current) == siteOf(target)) {
+            return if (isAd(target, false)) NavigationDecision.BLOCK else NavigationDecision.ALLOW
+        }
+        // Would open in a new window: the popup rules apply
+        if (isAd(target, true)) return NavigationDecision.BLOCK
         return if (canOpenPopup) NavigationDecision.POPUP else NavigationDecision.BLOCK
     }
 

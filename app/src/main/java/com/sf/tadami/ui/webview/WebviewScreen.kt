@@ -74,9 +74,13 @@ import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 import com.sf.tadami.ui.utils.UiToasts
+import com.sf.tadami.ui.webview.adblock.AdBlockRequest
+import com.sf.tadami.ui.webview.adblock.RequestKind
 import com.sf.tadami.utils.findActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.io.ByteArrayInputStream
 
 /**
@@ -89,9 +93,14 @@ private class WebViewWindow(
     initialUrl: String,
     // The popup's WebView goes back to the page that opened it through this message
     val popupMessage: Message? = null,
+    // For a popup, the page the screen opened
+    val opener: WebViewWindow? = null,
 ) {
+    val isPopup: Boolean get() = opener != null
     val state = WebViewState(content)
     var currentUrl by mutableStateOf(initialUrl)
+    // The host of its page, for the ad blocker off the main thread
+    @Volatile var pageHost: String? = initialUrl.toHttpUrlOrNull()?.host
     var webView: WebView? = null
     // Until the page the window opened finished loading, its navigations are its redirects
     var initialLoadDone = false
@@ -112,6 +121,7 @@ fun WebviewScreen(
     onClearCookies: (String) -> Unit,
     hasClearance: (String) -> Boolean,
     headers: Map<String, String> = emptyMap(),
+    adBlockEnabled: Boolean = true,
     onUrlChange: (String) -> Unit = {},
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -119,8 +129,18 @@ fun WebviewScreen(
     var solvedUrl by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
+    // Whatever the lists say, the source's own site always loads
+    val sourceSite = remember(url) { url.toHttpUrlOrNull()?.let { it.topPrivateDomain() ?: it.host } }
+
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) { WebViewAdBlocker.load(context.applicationContext) }
+        if (adBlockEnabled) withContext(Dispatchers.IO) { WebViewAdBlocker.load(context.applicationContext) }
+    }
+
+    // Also called off the main thread
+    fun isAd(url: HttpUrl, kind: RequestKind, contextHost: String?, pageHost: String? = null): Boolean {
+        if (!adBlockEnabled) return false
+        return WebViewAdBlocker.isBlocked(AdBlockRequest.of(url, kind, contextHost, pageHost)) &&
+            (url.topPrivateDomain() ?: url.host) != sourceSite
     }
 
     // The user agent travels through the WebView settings, only re-send the other source headers
@@ -195,8 +215,21 @@ fun WebviewScreen(
                 view: WebView?,
                 request: WebResourceRequest?
             ): WebResourceResponse? {
-                // Never block the page itself, only what it loads
-                if (request != null && !request.isForMainFrame && WebViewAdBlocker.isBlocked(request.url.host)) {
+                val requestUrl = request?.url?.toString()?.toHttpUrlOrNull()
+                    ?: return super.shouldInterceptRequest(view, request)
+                // The frame making the request, as far as the WebView tells
+                val referrerHost = request.requestHeaders.entries
+                    .firstOrNull { it.key.equals("Referer", ignoreCase = true) }
+                    ?.value?.toHttpUrlOrNull()?.host
+                val blocked = when {
+                    !request.isForMainFrame ->
+                        isAd(requestUrl, RequestKind.SUBRESOURCE, referrerHost ?: window.pageHost, window.pageHost)
+                    // A popup's page, also the first one, that the navigation callbacks don't see
+                    window.isPopup -> isAd(requestUrl, RequestKind.POPUP, referrerHost ?: window.opener?.pageHost)
+                    // Never the page itself
+                    else -> false
+                }
+                if (blocked) {
                     return WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream(ByteArray(0)))
                 }
                 return super.shouldInterceptRequest(view, request)
@@ -204,13 +237,17 @@ fun WebviewScreen(
 
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                 // An ad in a popup, the one shouldOverrideUrlLoading didn't see
-                if (window !== windows.firstOrNull() && WebViewAdBlocker.isBlocked(url?.toUri()?.host)) {
+                val pageUrl = url?.toHttpUrlOrNull()
+                if (window.isPopup && pageUrl != null && isAd(pageUrl, RequestKind.POPUP, window.opener?.pageHost)) {
                     if (window.pageStarted) view.stopLoading() else view.post { closeWindow(window) }
                     return
                 }
                 window.pageStarted = true
                 super.onPageStarted(view, url, favicon)
-                url?.let { window.currentUrl = it }
+                url?.let {
+                    window.currentUrl = it
+                    window.pageHost = pageUrl?.host
+                }
             }
 
             override fun onPageFinished(view: WebView, url: String?) {
@@ -239,7 +276,10 @@ fun WebviewScreen(
                 isReload: Boolean,
             ) {
                 super.doUpdateVisitedHistory(view, url, isReload)
-                url?.let { window.currentUrl = it }
+                url?.let {
+                    window.currentUrl = it
+                    window.pageHost = it.toHttpUrlOrNull()?.host
+                }
             }
 
             override fun shouldOverrideUrlLoading(
@@ -266,7 +306,11 @@ fun WebviewScreen(
                     initialLoadDone = window.initialLoadDone,
                     isPopup = window !== windows.firstOrNull(),
                     canOpenPopup = windows.size - 1 < WebViewNavigationPolicy.MAX_POPUPS,
-                    isAdHost = WebViewAdBlocker::isBlocked,
+                    isAd = { url, asPopup ->
+                        // A popup's pages, like a page opening in a new window, against the page that opened it
+                        val contextHost = if (window.isPopup) window.opener?.pageHost else window.pageHost
+                        isAd(url, if (asPopup) RequestKind.POPUP else RequestKind.DOCUMENT, contextHost)
+                    },
                 )
                 when (decision) {
                     NavigationDecision.ALLOW -> {}
@@ -295,8 +339,13 @@ fun WebviewScreen(
             }
         }
 
-    fun createWindow(content: WebContent, initialUrl: String, popupMessage: Message? = null): WebViewWindow =
-        WebViewWindow(content, WebViewNavigator(coroutineScope), initialUrl, popupMessage).also { window ->
+    fun createWindow(
+        content: WebContent,
+        initialUrl: String,
+        popupMessage: Message? = null,
+        opener: WebViewWindow? = windows.firstOrNull(),
+    ): WebViewWindow =
+        WebViewWindow(content, WebViewNavigator(coroutineScope), initialUrl, popupMessage, opener).also { window ->
             window.client = createWebClient(window) { popupUrl ->
                 windows.add(createWindow(WebContent.Url(url = popupUrl), popupUrl))
             }
@@ -368,7 +417,7 @@ fun WebviewScreen(
         }
 
     remember {
-        windows.add(createWindow(WebContent.Url(url = url, additionalHttpHeaders = headers), url))
+        windows.add(createWindow(WebContent.Url(url = url, additionalHttpHeaders = headers), url, opener = null))
     }
     val rootWindow = windows.first()
     val currentWindow = windows.last()

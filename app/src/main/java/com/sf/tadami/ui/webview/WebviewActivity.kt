@@ -14,14 +14,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.luminance
 import androidx.core.net.toUri
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.lifecycle.lifecycleScope
 import com.sf.tadami.R
 import com.sf.tadami.network.NetworkHelper
+import com.sf.tadami.preferences.advanced.AdBlockPreferences
 import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.setComposeContent
+import com.sf.tadami.ui.webview.adblock.AdBlockUpdateWorker
+import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.openInBrowser
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import uy.kohesive.injekt.injectLazy
 import java.net.URLDecoder
@@ -31,6 +40,7 @@ class WebViewActivity : AppCompatActivity() {
 
     private val sourceManager: SourceManager by injectLazy()
     private val network: NetworkHelper by injectLazy()
+    private val dataStore: DataStore<Preferences> by injectLazy()
 
     private var assistUrl: String? = null
 
@@ -62,6 +72,11 @@ class WebViewActivity : AppCompatActivity() {
         // Must match what OkHttp sends: Cloudflare binds its clearance to the user agent
         val userAgent = network.resolveUserAgent(headers["user-agent"])
 
+        val adBlockPreferences = runBlocking { dataStore.getPreferencesGroup(AdBlockPreferences) }
+        lifecycleScope.launch(Dispatchers.IO) {
+            AdBlockUpdateWorker.updateIfNeeded(applicationContext, adBlockPreferences)
+        }
+
         setComposeContent {
             val statusBarBackgroundColor = MaterialTheme.colorScheme.surface
             val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -84,6 +99,7 @@ class WebViewActivity : AppCompatActivity() {
                 url = url,
                 userAgent = userAgent,
                 headers = headers,
+                adBlockEnabled = adBlockPreferences.enabled,
                 onUrlChange = { assistUrl = it },
                 onOpenInBrowser = this::openInBrowser,
                 onClearCookies = this::clearCookies,

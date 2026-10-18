@@ -8,12 +8,14 @@ import android.util.Log
 import android.webkit.WebStorage
 import android.webkit.WebView
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
@@ -24,12 +26,16 @@ import com.sf.tadami.crash.CrashReporter
 import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.utils.setDefaultSettings
+import com.sf.tadami.preferences.advanced.AdBlockPreferences
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
 import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.more.settings.components.PreferenceScreen
 import com.sf.tadami.ui.utils.UiToasts
+import com.sf.tadami.ui.webview.WebViewAdBlocker
+import com.sf.tadami.ui.webview.adblock.AdBlockUpdateWorker
+import com.sf.tadami.ui.webview.adblock.FilterList
 import com.sf.tadami.utils.powerManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,6 +43,9 @@ import kotlinx.coroutines.withContext
 import okhttp3.Headers
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import java.text.DateFormat
+import java.text.NumberFormat
+import java.util.Date
 
 class AdvancedPreferencesScreen(
     val navController: NavHostController
@@ -52,6 +61,7 @@ class AdvancedPreferencesScreen(
         return listOf(
             getDataGroup(),
             getNetworkGroup(advancedPreferences, advancedPreferencesState),
+            getAdBlockGroup(),
             getBackgroundJobGroup()
         )
     }
@@ -170,6 +180,85 @@ class AdvancedPreferencesScreen(
                     },
                 ),
             )
+        )
+    }
+
+    @Composable
+    private fun getAdBlockGroup(): Preference.PreferenceCategory {
+        val context = LocalContext.current
+        val adBlockState = rememberDataStoreState(AdBlockPreferences)
+        val adBlock by adBlockState.value.collectAsState()
+        val status by WebViewAdBlocker.state.collectAsState()
+        val updating by WebViewAdBlocker.updating.collectAsState()
+
+        LaunchedEffect(Unit) {
+            withContext(Dispatchers.IO) { WebViewAdBlocker.readState(context.applicationContext) }
+        }
+
+        val numberFormat = remember { NumberFormat.getIntegerInstance() }
+        val updateSummary = when {
+            updating -> stringResource(R.string.pref_webview_adblock_updating)
+            status?.compiledLists == null -> stringResource(R.string.pref_webview_adblock_never_updated)
+            else -> {
+                val current = status!!
+                val summary = stringResource(
+                    R.string.pref_webview_adblock_last_update,
+                    if (current.lastSuccess > 0) {
+                        DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(current.lastSuccess))
+                    } else {
+                        "-"
+                    },
+                    pluralStringResource(R.plurals.pref_webview_adblock_rules, current.ruleCount, numberFormat.format(current.ruleCount)),
+                )
+                if (current.lastAttempt > current.lastSuccess) {
+                    stringResource(R.string.pref_webview_adblock_last_attempt_failed, summary)
+                } else {
+                    summary
+                }
+            }
+        }
+
+        return Preference.PreferenceCategory(
+            title = stringResource(id = R.string.pref_category_webview_adblock),
+            preferenceItems = listOf<Preference.PreferenceItem<*>>(
+                Preference.PreferenceItem.TogglePreference(
+                    value = adBlock.enabled,
+                    title = stringResource(R.string.pref_webview_adblock),
+                    subtitle = stringResource(R.string.pref_webview_adblock_summary),
+                    onValueChanged = { enabled ->
+                        adBlockState.setValue(adBlock.copy(enabled = enabled))
+                        AdBlockUpdateWorker.setupTask(context, enabled)
+                        true
+                    },
+                ),
+            ) + FilterList.entries.map { list ->
+                val ruleCount = status?.lists?.get(list.id)?.ruleCount ?: 0
+                Preference.PreferenceItem.TogglePreference(
+                    value = list.id !in adBlock.disabledLists,
+                    title = list.title,
+                    subtitle = if (ruleCount > 0) {
+                        pluralStringResource(R.plurals.pref_webview_adblock_rules, ruleCount, numberFormat.format(ruleCount))
+                    } else {
+                        stringResource(R.string.pref_webview_adblock_list_not_downloaded)
+                    },
+                    enabled = adBlock.enabled,
+                    onValueChanged = { on ->
+                        val disabled = if (on) adBlock.disabledLists - list.id else adBlock.disabledLists + list.id
+                        adBlockState.setValue(adBlock.copy(disabledLists = disabled))
+                        // Compiled again, from the lists already downloaded when they're unchanged
+                        AdBlockUpdateWorker.startNow(context, manual = false)
+                        true
+                    },
+                )
+            } + Preference.PreferenceItem.TextPreference(
+                title = stringResource(R.string.pref_webview_adblock_update_now),
+                subtitle = updateSummary,
+                enabled = !updating,
+                onClick = {
+                    AdBlockUpdateWorker.startNow(context, manual = true)
+                    UiToasts.showToast(R.string.pref_webview_adblock_update_started)
+                },
+            ),
         )
     }
 

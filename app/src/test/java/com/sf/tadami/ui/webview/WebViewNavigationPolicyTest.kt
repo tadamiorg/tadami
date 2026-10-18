@@ -36,7 +36,7 @@ class WebViewNavigationPolicyTest {
         initialLoadDone = initialLoadDone,
         isPopup = isPopup,
         canOpenPopup = canOpenPopup,
-        isAdHost = { it == "ads.example.com" },
+        isAd = { url, asPopup -> url.host == "ads.example.com" || (asPopup && url.host == "popunder.example.com") },
         siteOf = ::site,
     )
 
@@ -86,6 +86,17 @@ class WebViewNavigationPolicyTest {
         assertEquals(BLOCK, decide("https://ads.example.com/click", initialLoadDone = false))
         assertEquals(BLOCK, decide("https://ads.example.com/click", isPopup = true))
         assertEquals(BLOCK, decide("https://ads.example.com/click", isPopup = true, current = null))
+    }
+
+    @Test
+    fun popupRulesApplyToPopupsAndToNavigationsOpeningOne() {
+        assertEquals(BLOCK, decide("https://popunder.example.com/go"))
+        assertEquals(BLOCK, decide("https://popunder.example.com/go", isPopup = true))
+        assertEquals(BLOCK, decide("https://popunder.example.com/go", isPopup = true, isRedirect = true))
+        // Not a new window: the page itself or its redirects
+        assertEquals(ALLOW, decide("https://popunder.example.com/go", initialLoadDone = false))
+        assertEquals(ALLOW, decide("https://popunder.example.com/go", isRedirect = true))
+        assertEquals(ALLOW, decide("https://www.popunder.example.com/", current = "https://popunder.example.com/"))
     }
 
     @Test
