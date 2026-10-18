@@ -26,3 +26,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Tadami"
 include (":app")
+include(":extensions-lib")

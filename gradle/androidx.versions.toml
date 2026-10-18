@@ -25,6 +25,7 @@ appcompat = {module = "androidx.appcompat:appcompat", version.ref="appcompat_ver
 splashscreen = {module = "androidx.core:core-splashscreen", version.ref="splashscreen_version"}
 webkit = {module = "androidx.webkit:webkit", version.ref="webkit_version"}
 datastore = { module="androidx.datastore:datastore-preferences", version.ref="datastore_version"}
+annotation = { module = "androidx.annotation:annotation", version = "1.10.0" }
 
 # Lifecycle
 lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle_version" }

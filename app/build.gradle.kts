@@ -241,6 +241,9 @@ dependencies {
 tasks {
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         compilerOptions {
+            // Interface methods with a body become JVM default methods, plus DefaultImpls for the
+            // extensions compiled without them. Pinned like in :extensions-lib: changing it breaks them.
+            jvmDefault.set(org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode.ENABLE)
             freeCompilerArgs.addAll(
                 "-Xcontext-parameters",
                 "-XXLanguage:+PropertyParamAnnotationDefaultTargetMode"
