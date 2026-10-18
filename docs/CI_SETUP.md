@@ -34,6 +34,8 @@ Secrets go in the repo's **Settings > Secrets and variables > Actions > Secrets*
 | --- | --- | --- | --- |
 | CI | `.github/workflows/ci.yml` | Pushes and pull requests to `develop`, or Actions > CI > Run workflow | No |
 | Release | `.github/workflows/release.yml` | Actions > Release > Run workflow, on `main` | Yes, see below |
+| Extensions lib | `.github/workflows/extensions-lib.yml` | Pushes and pull requests to `develop` changing `extensions-lib/`, the Gradle files or `jitpack.yml` | No |
+| Release extensions-lib | `.github/workflows/release-extensions-lib.yml` | Actions > Release extensions-lib > Run workflow, on `main` | No: it pushes the `lib-X.Y.Z` tag with the workflow's token |
 | Dependabot | `.github/dependabot.yml` | Monthly | No: it opens pull requests on `develop` updating the workflow actions |
 
 **CI** runs the unit tests, builds the debug APK and an unsigned release APK (R8 included), runs lint (informational: lint errors don't fail it), then the instrumented tests on an Android 14 emulator. It uploads the debug APK and the test and lint reports as artifacts. It never uses the signing secrets.
@@ -44,6 +46,10 @@ Secrets go in the repo's **Settings > Secrets and variables > Actions > Secrets*
 3. checks the APK's version, verifies the signature, and compares the certificate with `RELEASE_CERT_SHA256` when it's set;
 4. pushes the tag `vX.Y.Z` and creates the GitHub release `Tadami vX.Y.Z`, **as a draft** unless `RELEASE_DRAFT` is `false`, with notes built from the commits, a SHA-256 checksum and `tadami-vX.Y.Z.apk` as its only asset;
 5. keeps the R8 mapping as the workflow artifact `mapping-vX.Y.Z`.
+
+**Extensions lib** builds extensions-lib and publishes it to the local Maven repository the way JitPack does (`JITPACK=true`, `jitpack.yml`).
+
+**Release extensions-lib** releases the extension API as `com.github.tadamiorg.tadami:extensions-lib:lib-X.Y.Z` on JitPack: it runs the drift test, pushes the tag `lib-X.Y.Z` and waits for JitPack's build (RELEASING.md, "Releasing extensions-lib").
 
 ### Run options
 
