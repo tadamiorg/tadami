@@ -25,4 +25,24 @@ interface Source {
 
     fun getIconRes() : Int? = null
 
+    /**
+     * The details of [anime], what [fetchAnimeDetails] gives by default.
+     *
+     * @since extensions-lib 1.7
+     */
+    suspend fun getAnimeDetails(anime: SAnime): SAnime = throw Exception("Stub!")
+
+    /**
+     * The episodes of [anime], what [fetchEpisodesList] gives by default.
+     *
+     * @since extensions-lib 1.7
+     */
+    suspend fun getEpisodeList(anime: SAnime): List<SEpisode> = throw Exception("Stub!")
+
+    /**
+     * The streams of [episode], what [fetchEpisodeSources] gives by default.
+     *
+     * @since extensions-lib 1.7
+     */
+    suspend fun getEpisodeSources(episode: SEpisode): List<StreamSource> = throw Exception("Stub!")
 }

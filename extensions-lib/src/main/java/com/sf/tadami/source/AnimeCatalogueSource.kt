@@ -22,4 +22,19 @@ interface AnimeCatalogueSource : Source {
     fun fetchLatest(page: Int): Observable<AnimesPage>
 
     fun getFilterList(): AnimeFilterList
+
+    /**
+     * The page [page] of the results of [query] with [filters], what [fetchSearch] gives by default.
+     *
+     * @since extensions-lib 1.7
+     */
+    suspend fun getSearchAnime(page: Int, query: String, filters: AnimeFilterList, noToasts: Boolean = false): AnimesPage =
+        throw Exception("Stub!")
+
+    /**
+     * The page [page] of the latest anime, what [fetchLatest] gives by default.
+     *
+     * @since extensions-lib 1.7
+     */
+    suspend fun getLatestAnime(page: Int): AnimesPage = throw Exception("Stub!")
 }
