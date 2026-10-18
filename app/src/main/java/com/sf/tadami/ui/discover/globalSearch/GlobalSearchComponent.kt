@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.source.AnimeCatalogueSource
+import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchCardRow
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchErrorResultItem
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchItemResult
@@ -44,7 +45,7 @@ fun GlobalSearchComponent(
                 ) {
                     when (result) {
                         GlobalSearchItemResult.Loading -> {
-                            GlobalSearchLoadingResultItem()
+                            GlobalSearchLoadingResultItem((source as? AnimeHttpSource)?.baseUrl)
                         }
                         is GlobalSearchItemResult.Success -> {
                             if (result.isEmpty) {

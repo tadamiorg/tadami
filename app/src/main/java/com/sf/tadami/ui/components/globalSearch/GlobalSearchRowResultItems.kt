@@ -1,7 +1,6 @@
 package com.sf.tadami.ui.components.globalSearch
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,21 +20,22 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
+import com.sf.tadami.ui.components.widgets.CloudflareVerificationLine
 import com.sf.tadami.ui.utils.padding
 
 @Composable
-fun GlobalSearchLoadingResultItem() {
-    Box(
+fun GlobalSearchLoadingResultItem(sourceBaseUrl: String? = null) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = MaterialTheme.padding.medium),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         CircularProgressIndicator(
-            modifier = Modifier
-                .size(16.dp)
-                .align(Alignment.Center),
+            modifier = Modifier.size(16.dp),
             strokeWidth = 2.dp,
         )
+        CloudflareVerificationLine(sourceBaseUrl)
     }
 }
 

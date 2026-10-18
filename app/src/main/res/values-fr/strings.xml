@@ -8,6 +8,7 @@
     <string name="language_unknown">Inconnue</string>
     <string name="request_error_response">Impossible de récupérer les données de la source. Code d\'erreur : %1$s</string>
     <string name="request_bypass_cloudflare_failure">Impossible de contourner Cloudflare. Ouvrez la source dans la WebView pour valider la vérification</string>
+    <string name="cloudflare_verification">Vérification Cloudflare…</string>
     <string name="discover_recents_screen_title">Récents</string>
     <string name="anime_sources_screen_recents_btn">Récents</string>
     <string name="information_no_recent_episodes">Aucun épisodes récents</string>
@@ -161,6 +162,7 @@
     <string name="default_string_formatted">Par défaut : %1$s</string>
     <string name="clipboard_copied">Copié dans le presse-papiers</string>
     <string name="information_webview_required">WebView est requis pour le fonctionnement l\'application</string>
+    <string name="information_webview_crashed">La page web a cessé de fonctionner et a été fermée</string>
     <string name="in_library">Dans la bibliothèque</string>
     <string name="add_to_library">Ajouter à la bibliothèque</string>
     <string name="pref_clear_cookies">Effacer les cookies</string>
@@ -422,6 +424,26 @@
     <string name="webview_challenge_pending">Validez la vérification ci-dessous. La source l\'utilisera une fois revenu dans l\'application.</string>
     <string name="webview_challenge_solved">Vérification terminée, vous pouvez revenir à l\'application.</string>
     <string name="webview_challenge_done">Terminé</string>
+    <string name="action_webview_block_ads">Bloquer les pubs</string>
+    <string name="webview_cloudflare_adblock_hint">Bloqué sur la vérification ? Essayez de désactiver le bloqueur de pubs</string>
+    <string name="webview_cloudflare_adblock_turn_off">Désactiver</string>
+    <string name="pref_category_webview_adblock">Bloqueur de pubs de la WebView</string>
+    <string name="pref_webview_adblock">Bloquer les pubs dans la WebView</string>
+    <string name="pref_webview_adblock_summary">Bloque les pubs, les traqueurs et les popups publicitaires avec les listes de filtres ci-dessous</string>
+    <string name="pref_webview_adblock_list_not_downloaded">Pas encore téléchargée</string>
+    <string name="pref_webview_adblock_update_now">Mettre à jour les listes de filtres</string>
+    <string name="pref_webview_adblock_never_updated">Pas encore téléchargées, la liste intégrée est utilisée</string>
+    <string name="pref_webview_adblock_last_update">Dernière mise à jour : %1$s · %2$s</string>
+    <string name="pref_webview_adblock_last_attempt_failed">%1$s (la dernière tentative a échoué)</string>
+    <string name="pref_webview_adblock_updating">Mise à jour…</string>
+    <string name="pref_webview_adblock_update_started">Mise à jour des listes de filtres…</string>
+    <string name="pref_webview_adblock_updated">Listes de filtres mises à jour</string>
+    <string name="pref_webview_adblock_update_failed">Impossible de mettre à jour les listes de filtres</string>
+    <plurals name="pref_webview_adblock_rules">
+        <item quantity="one">%1$s règle</item>
+        <item quantity="many">%1$s règles</item>
+        <item quantity="other">%1$s règles</item>
+    </plurals>
 
     <!-- Downloads -->
     <string name="notification_downloader_group">Téléchargements</string>

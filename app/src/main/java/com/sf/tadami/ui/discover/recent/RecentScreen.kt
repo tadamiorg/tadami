@@ -113,7 +113,8 @@ fun RecentScreen(
                     val source = recentViewModel.source
                     val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
                     navController.navigate("${SourcesRoutes.EXTENSIONS_WEBVIEW}/${source.id}/${source.name}/${encodedUrl}")
-                }
+                },
+                sourceBaseUrl = remember { runCatching { (recentViewModel.source as? AnimeHttpSource)?.baseUrl }.getOrNull() },
             )
         }
 

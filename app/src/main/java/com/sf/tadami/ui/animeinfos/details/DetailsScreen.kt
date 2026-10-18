@@ -241,6 +241,7 @@ fun DetailsScreen(
                 uiState = uiState,
                 sourceName = detailsViewModel.source.name,
                 isStubSource = remember { detailsViewModel.source is StubSource },
+                sourceBaseUrl = remember { (detailsViewModel.source as? AnimeHttpSource)?.baseUrl },
                 onRefresh = detailsViewModel::onRefresh,
                 onAddToLibraryClicked = {
                     if (migrateHelperState.oldAnime != null) {

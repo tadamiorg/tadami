@@ -4,8 +4,8 @@ import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -51,6 +51,7 @@ import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.components.data.LibraryItem
+import com.sf.tadami.ui.components.widgets.CloudflareVerificationLine
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.tabs.library.badges.UnseenBadge
 import com.sf.tadami.ui.utils.CommonAnimeItemDefaults
@@ -70,6 +71,7 @@ fun AnimeGrid(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     contentPadding: PaddingValues = PaddingValues(0.dp),
     onOpenInWebView: ((url: String) -> Unit)? = null,
+    sourceBaseUrl: String? = null,
 ) {
 
     val context = LocalContext.current
@@ -150,7 +152,8 @@ fun AnimeGrid(
 
     ContentLoader(
         modifier = modifier,
-        isLoading = isLoading
+        isLoading = isLoading,
+        subtitle = { CloudflareVerificationLine(sourceBaseUrl) },
     ) {
         if (animeList.itemCount <= 0 && errorState != null && errorState is LoadState.Error) {
             EmptyScreen(
@@ -184,7 +187,7 @@ fun AnimeGrid(
         ) {
             if (animeList.loadState.prepend is LoadState.Loading) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    LoadingItem()
+                    LoadingItem(sourceBaseUrl)
                 }
             }
             items(animeList.itemCount) { index ->
@@ -199,7 +202,7 @@ fun AnimeGrid(
             }
             if (animeList.loadState.append is LoadState.Loading) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    LoadingItem()
+                    LoadingItem(sourceBaseUrl)
                 }
             }
         }
@@ -284,13 +287,14 @@ fun LibraryAnimeGrid(
 }
 
 @Composable
-private fun LoadingItem() {
-    Row(
+private fun LoadingItem(sourceBaseUrl: String?) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = MaterialTheme.padding.medium),
-        horizontalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         CircularProgressIndicator()
+        CloudflareVerificationLine(sourceBaseUrl)
     }
 }

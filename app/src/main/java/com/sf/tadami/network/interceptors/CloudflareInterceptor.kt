@@ -5,6 +5,8 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -13,6 +15,7 @@ import android.widget.Toast
 import com.sf.tadami.R
 import com.sf.tadami.network.AndroidCookieJar
 import com.sf.tadami.network.CloudflareChallengeException
+import com.sf.tadami.network.SolvingHosts
 import com.sf.tadami.network.utils.CLOUDFLARE_CHALLENGE_PROBE
 import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.ui.utils.UiToasts
@@ -87,7 +90,11 @@ class CloudflareInterceptor @JvmOverloads constructor(
                     cookieManager.remove(challenged.url, COOKIE_NAMES, 0)
                 }
 
-                if (resolveWithWebView(chain, challenged, current) == Outcome.FAILED) {
+                // The requested host too: the challenge may be on a mirror it redirected to
+                val outcome = solvingHosts.solving(listOf(request.url.host, challenged.url.host)) {
+                    resolveWithWebView(chain, challenged, current)
+                }
+                if (outcome == Outcome.FAILED) {
                     failedUntil[site] = SystemClock.elapsedRealtime() + FAILURE_BACKOFF_MILLIS
                     // Prompt user to update WebView if it seems too outdated
                     if (WebViewUtil.isOutdated()) {
@@ -187,6 +194,18 @@ class CloudflareInterceptor @JvmOverloads constructor(
                             finish(Outcome.NO_CHALLENGE)
                         }
                     }
+
+                    override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+                        // Not handling it kills the app. The WebView can't be used anymore
+                        Log.e(TAG, "WebView renderer gone while solving $url: crashed=${detail.didCrash()}")
+                        if (webView === view) {
+                            webView = null
+                            view.destroy()
+                        }
+                        state.rendererGone = true
+                        latch.countDown()
+                        return true
+                    }
                 }
                 view.loadUrl(url.toString(), headers)
                 mainHandler.postDelayed(pollClearance, POLL_MILLIS)
@@ -214,6 +233,8 @@ class CloudflareInterceptor @JvmOverloads constructor(
         }
 
         state.error?.let { throw IOException("Could not start the WebView", it) }
+        // Not the challenge's fault: no backoff, the next request tries again
+        if (state.outcome == null && state.rendererGone) throw IOException("The WebView renderer process is gone")
         val outcome = state.outcome ?: Outcome.FAILED
         if (outcome == Outcome.SOLVED) {
             // Keep the clearance if the app is killed before the WebView's periodic commit
@@ -257,10 +278,14 @@ class CloudflareInterceptor @JvmOverloads constructor(
         @Volatile var outcome: Outcome? = null
         @Volatile var error: Throwable? = null
         @Volatile var abandoned = false
+        @Volatile var rendererGone = false
     }
 
     companion object {
         const val DEFAULT_TIMEOUT_SECONDS = 30L
+
+        /** The hosts whose challenge a WebView is solving right now, app-wide. */
+        val solvingHosts = SolvingHosts()
     }
 }
 
@@ -285,6 +310,7 @@ internal fun isCloudflareChallenge(response: Response): Boolean {
         document.getElementById("challenge-error-text") != null
 }
 
+private const val TAG = "CloudflareInterceptor"
 private val ERROR_CODES = listOf(403, 503)
 private const val CF_CLEARANCE = "cf_clearance"
 private val COOKIE_NAMES = listOf(CF_CLEARANCE)

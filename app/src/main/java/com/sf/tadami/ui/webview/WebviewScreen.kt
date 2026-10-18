@@ -4,11 +4,16 @@ import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
 import android.os.Message
+import android.util.Log
 import android.view.View
+import android.webkit.JsPromptResult
+import android.webkit.JsResult
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -49,6 +54,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -67,9 +73,14 @@ import com.sf.tadami.network.utils.setDefaultSettings
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
+import com.sf.tadami.ui.utils.UiToasts
+import com.sf.tadami.ui.webview.adblock.AdBlockRequest
+import com.sf.tadami.ui.webview.adblock.RequestKind
 import com.sf.tadami.utils.findActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.io.ByteArrayInputStream
 
 /**
@@ -82,10 +93,21 @@ private class WebViewWindow(
     initialUrl: String,
     // The popup's WebView goes back to the page that opened it through this message
     val popupMessage: Message? = null,
+    // For a popup, the page the screen opened
+    val opener: WebViewWindow? = null,
 ) {
+    val isPopup: Boolean get() = opener != null
     val state = WebViewState(content)
     var currentUrl by mutableStateOf(initialUrl)
+    // The host of its page, for the ad blocker off the main thread
+    @Volatile var pageHost: String? = initialUrl.toHttpUrlOrNull()?.host
+    // Its page looks like a Cloudflare challenge
+    var cloudflareHint by mutableStateOf(false)
     var webView: WebView? = null
+    // Until the page the window opened finished loading, its navigations are its redirects
+    var initialLoadDone = false
+    // A popup opened on an ad closes, it has nothing else to show
+    var pageStarted = false
     lateinit var client: AccompanistWebViewClient
     lateinit var chromeClient: AccompanistWebChromeClient
 }
@@ -101,6 +123,7 @@ fun WebviewScreen(
     onClearCookies: (String) -> Unit,
     hasClearance: (String) -> Boolean,
     headers: Map<String, String> = emptyMap(),
+    adBlockEnabled: Boolean = true,
     onUrlChange: (String) -> Unit = {},
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -108,19 +131,38 @@ fun WebviewScreen(
     var solvedUrl by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) { WebViewAdBlocker.load(context.applicationContext) }
+    // Can be turned off for this screen only, from its menu: the setting applies again to the next one
+    var adBlockOn by remember { mutableStateOf(adBlockEnabled) }
+    // Whatever the lists say, the source's own site always loads
+    val sourceSite = remember(url) { url.toHttpUrlOrNull()?.let { it.topPrivateDomain() ?: it.host } }
+
+    LaunchedEffect(adBlockOn) {
+        if (adBlockOn) withContext(Dispatchers.IO) { WebViewAdBlocker.load(context.applicationContext) }
+    }
+
+    // Also called off the main thread
+    fun isAd(url: HttpUrl, kind: RequestKind, contextHost: String?, pageHost: String? = null): Boolean {
+        if (!adBlockOn) return false
+        return WebViewAdBlocker.isBlocked(AdBlockRequest.of(url, kind, contextHost, pageHost)) &&
+            (url.topPrivateDomain() ?: url.host) != sourceSite
     }
 
     // The user agent travels through the WebView settings, only re-send the other source headers
     val navigationHeaders = remember(headers) {
         headers.filterKeys { !it.equals("user-agent", ignoreCase = true) }
     }
+    // The source's headers are for the source: the host of the page the screen opened
+    val headersHost = remember(url) { url.toUri().host }
 
     val windows = remember { mutableStateListOf<WebViewWindow>() }
     // Destroyed once: by the window closing, or by the screen leaving
     val destroyedWebViews = remember { mutableSetOf<WebView>() }
     var screenActive by remember { mutableStateOf(true) }
+    var rendererGoneReported by remember { mutableStateOf(false) }
+    val activity = remember(context) { context.findActivity() }
+
+    // Closed, or closing: the activity finishes before the screen leaves the composition
+    fun isClosed() = !screenActive || activity.isFinishing
 
     // A web video player in fullscreen (HTML5 <video> or an embedded player), shown over the screen
     var fullscreenView by remember { mutableStateOf<View?>(null) }
@@ -150,27 +192,72 @@ fun WebviewScreen(
         if (!visible) window.webView?.let(::destroy)
     }
 
-    fun createWebClient(window: WebViewWindow) =
+    fun onRendererGone(window: WebViewWindow) {
+        if (!rendererGoneReported) {
+            rendererGoneReported = true
+            UiToasts.showToast(R.string.information_webview_crashed, Toast.LENGTH_LONG)
+        }
+        // Its WebView is no use anymore: a popup closes, the page the screen opened closes the screen
+        if (window === windows.firstOrNull()) onNavigateUp() else closeWindow(window)
+    }
+
+    fun createWebClient(window: WebViewWindow, openPopup: (String) -> Unit) =
         object : AccompanistWebViewClient() {
+
+            override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+                // Each WebView using the renderer hears about it. Not handling it kills the app
+                Log.e(
+                    TAG,
+                    "WebView renderer gone: crashed=${detail.didCrash()}, " +
+                        "priority=${detail.rendererPriorityAtExit()}, url=${window.currentUrl}",
+                )
+                onRendererGone(window)
+                return true
+            }
 
             override fun shouldInterceptRequest(
                 view: WebView?,
                 request: WebResourceRequest?
             ): WebResourceResponse? {
-                // Never block the page itself, only what it loads
-                if (request != null && !request.isForMainFrame && WebViewAdBlocker.isBlocked(request.url.host)) {
+                val requestUrl = request?.url?.toString()?.toHttpUrlOrNull()
+                    ?: return super.shouldInterceptRequest(view, request)
+                // The frame making the request, as far as the WebView tells
+                val referrerHost = request.requestHeaders.entries
+                    .firstOrNull { it.key.equals("Referer", ignoreCase = true) }
+                    ?.value?.toHttpUrlOrNull()?.host
+                val blocked = when {
+                    !request.isForMainFrame ->
+                        isAd(requestUrl, RequestKind.SUBRESOURCE, referrerHost ?: window.pageHost, window.pageHost)
+                    // A popup's page, also the first one, that the navigation callbacks don't see
+                    window.isPopup -> isAd(requestUrl, RequestKind.POPUP, referrerHost ?: window.opener?.pageHost)
+                    // Never the page itself
+                    else -> false
+                }
+                if (blocked) {
                     return WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream(ByteArray(0)))
                 }
                 return super.shouldInterceptRequest(view, request)
             }
 
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
+                // An ad in a popup, the one shouldOverrideUrlLoading didn't see
+                val pageUrl = url?.toHttpUrlOrNull()
+                if (window.isPopup && pageUrl != null && isAd(pageUrl, RequestKind.POPUP, window.opener?.pageHost)) {
+                    if (window.pageStarted) view.stopLoading() else view.post { closeWindow(window) }
+                    return
+                }
+                window.pageStarted = true
                 super.onPageStarted(view, url, favicon)
-                url?.let { window.currentUrl = it }
+                url?.let {
+                    window.currentUrl = it
+                    window.pageHost = pageUrl?.host
+                }
             }
 
             override fun onPageFinished(view: WebView, url: String?) {
                 super.onPageFinished(view, url)
+                window.initialLoadDone = true
+                view.evaluateJavascript(CLOUDFLARE_HINT_PROBE) { result -> window.cloudflareHint = result == "true" }
                 // The challenges are solved in the page the screen opened
                 if (window !== windows.firstOrNull()) return
                 val pageUrl = url ?: return
@@ -194,7 +281,10 @@ fun WebviewScreen(
                 isReload: Boolean,
             ) {
                 super.doUpdateVisitedHistory(view, url, isReload)
-                url?.let { window.currentUrl = it }
+                url?.let {
+                    window.currentUrl = it
+                    window.pageHost = it.toHttpUrlOrNull()?.host
+                }
             }
 
             override fun shouldOverrideUrlLoading(
@@ -211,7 +301,42 @@ fun WebviewScreen(
                 if (scheme != "http" && scheme != "https") {
                     return true
                 }
-                if (!request.isForMainFrame || navigationHeaders.isEmpty()) {
+                if (!request.isForMainFrame) {
+                    return false
+                }
+                val decision = WebViewNavigationPolicy.decide(
+                    currentUrl = view?.url,
+                    targetUrl = target.toString(),
+                    isRedirect = request.isRedirect,
+                    initialLoadDone = window.initialLoadDone,
+                    isPopup = window !== windows.firstOrNull(),
+                    canOpenPopup = windows.size - 1 < WebViewNavigationPolicy.MAX_POPUPS,
+                    isAd = { url, asPopup ->
+                        // A popup's pages, like a page opening in a new window, against the page that opened it
+                        val contextHost = if (window.isPopup) window.opener?.pageHost else window.pageHost
+                        isAd(url, if (asPopup) RequestKind.POPUP else RequestKind.DOCUMENT, contextHost)
+                    },
+                )
+                when (decision) {
+                    NavigationDecision.ALLOW -> {}
+                    NavigationDecision.POPUP -> {
+                        // Another site taking over the page (an ad script setting top.location): the page stays
+                        openPopup(target.toString())
+                        return true
+                    }
+                    NavigationDecision.BLOCK -> {
+                        // An ad chain: the popup has nothing else to show
+                        if (window.isPopup && (!window.pageStarted || !window.initialLoadDone || request.isRedirect)) {
+                            view?.post { closeWindow(window) }
+                        }
+                        return true
+                    }
+                }
+                if (navigationHeaders.isEmpty() ||
+                    !target.host.equals(headersHost, ignoreCase = true) ||
+                    // The page shown, like a reload: the WebView handles it
+                    target.toString() == view?.url
+                ) {
                     return false
                 }
                 // Continue with request, but with custom headers
@@ -220,9 +345,16 @@ fun WebviewScreen(
             }
         }
 
-    fun createWindow(content: WebContent, initialUrl: String, popupMessage: Message? = null): WebViewWindow =
-        WebViewWindow(content, WebViewNavigator(coroutineScope), initialUrl, popupMessage).also { window ->
-            window.client = createWebClient(window)
+    fun createWindow(
+        content: WebContent,
+        initialUrl: String,
+        popupMessage: Message? = null,
+        opener: WebViewWindow? = windows.firstOrNull(),
+    ): WebViewWindow =
+        WebViewWindow(content, WebViewNavigator(coroutineScope), initialUrl, popupMessage, opener).also { window ->
+            window.client = createWebClient(window) { popupUrl ->
+                windows.add(createWindow(WebContent.Url(url = popupUrl), popupUrl))
+            }
             window.chromeClient = object : AccompanistWebChromeClient() {
                 override fun onCreateWindow(
                     view: WebView,
@@ -230,8 +362,8 @@ fun WebviewScreen(
                     isUserGesture: Boolean,
                     resultMsg: Message,
                 ): Boolean {
-                    // Like a browser's popup blocker: only the ones the user asked for
-                    if (!isUserGesture) return false
+                    // Like a browser's popup blocker: only the ones the user asked for, and not endlessly
+                    if (!isUserGesture || windows.size - 1 >= WebViewNavigationPolicy.MAX_POPUPS) return false
                     windows.add(createWindow(WebContent.NavigatorOnly, "", resultMsg))
                     return true
                 }
@@ -239,6 +371,37 @@ fun WebviewScreen(
                 override fun onCloseWindow(view: WebView) {
                     // window.close()
                     windows.find { it.webView === view }?.let(::closeWindow)
+                }
+
+                // A page's dialog once the screen is closing would flash over the app and leak its window
+                override fun onJsAlert(view: WebView, url: String?, message: String?, result: JsResult): Boolean {
+                    if (isClosed()) {
+                        result.confirm()
+                        return true
+                    }
+                    return super.onJsAlert(view, url, message, result)
+                }
+
+                override fun onJsConfirm(view: WebView, url: String?, message: String?, result: JsResult): Boolean {
+                    if (isClosed()) {
+                        result.cancel()
+                        return true
+                    }
+                    return super.onJsConfirm(view, url, message, result)
+                }
+
+                override fun onJsPrompt(
+                    view: WebView,
+                    url: String?,
+                    message: String?,
+                    defaultValue: String?,
+                    result: JsPromptResult,
+                ): Boolean {
+                    if (isClosed()) {
+                        result.cancel()
+                        return true
+                    }
+                    return super.onJsPrompt(view, url, message, defaultValue, result)
                 }
 
                 override fun onShowCustomView(view: View, callback: WebChromeClient.CustomViewCallback) {
@@ -260,7 +423,7 @@ fun WebviewScreen(
         }
 
     remember {
-        windows.add(createWindow(WebContent.Url(url = url, additionalHttpHeaders = headers), url))
+        windows.add(createWindow(WebContent.Url(url = url, additionalHttpHeaders = headers), url, opener = null))
     }
     val rootWindow = windows.first()
     val currentWindow = windows.last()
@@ -280,7 +443,7 @@ fun WebviewScreen(
         }
     }
 
-    // Back closes the popup once its own history is done (the WebView handles that first)
+    // Back closes the popup at once, the ad chains walked in it included
     BackHandler(enabled = windows.size > 1) {
         closeWindow(currentWindow)
     }
@@ -366,7 +529,15 @@ fun WebviewScreen(
                                             onClick = {
                                                 onClearCookies(currentUrl)
                                             }
-                                        )
+                                        ),
+                                        DropDownAction(
+                                            title = stringResource(id = R.string.action_webview_block_ads),
+                                            checked = adBlockOn,
+                                            onClick = {
+                                                adBlockOn = !adBlockOn
+                                                navigator.reload()
+                                            }
+                                        ),
                                     )
                                 )
                             )
@@ -402,13 +573,22 @@ fun WebviewScreen(
                         onDone = onNavigateUp,
                     )
                 }
+                if (adBlockOn && currentWindow.cloudflareHint) {
+                    AdBlockerHint(
+                        onTurnOff = {
+                            adBlockOn = false
+                            navigator.reload()
+                        },
+                    )
+                }
                 // Keyed to the window: showing another window creates the composable again with its WebView
                 key(currentWindow) {
                     WebView(
                         state = state,
                         modifier = Modifier.fillMaxSize(),
-                        // Once verified, back returns to the source instead of replaying the challenge pages
-                        captureBackPresses = currentWindow !== rootWindow || challengeState != ChallengeState.SOLVED,
+                        // The page's history only: a popup closes on back. Once verified, back returns to the
+                        // source instead of replaying the challenge pages
+                        captureBackPresses = currentWindow === rootWindow && challengeState != ChallengeState.SOLVED,
                         navigator = navigator,
                         onCreated = { webView ->
                             webView.setDefaultSettings()
@@ -484,6 +664,29 @@ private fun ChallengeBanner(solved: Boolean, onDone: () -> Unit) {
     }
 }
 
+/** On a Cloudflare page, whose challenge the blocker might keep from passing. */
+@Composable
+private fun AdBlockerHint(onTurnOff: () -> Unit) {
+    Surface(
+        color = MaterialTheme.colorScheme.tertiaryContainer,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.webview_cloudflare_adblock_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = onTurnOff) {
+                Text(text = stringResource(R.string.webview_cloudflare_adblock_turn_off))
+            }
+        }
+    }
+}
+
 /**
  * [view] over the whole screen on a black background, the system bars hidden (a swipe shows them for
  * a moment) and any orientation allowed. Leaving it restores the bars and the orientation.
@@ -522,5 +725,12 @@ private fun FullscreenView(view: View, onExit: () -> Unit) {
 }
 
 private enum class ChallengeState { NONE, PENDING, SOLVED }
+
+private const val TAG = "WebviewScreen"
+
+/** Mihon's check for a Cloudflare page: a challenge, or one of its error pages. */
+private const val CLOUDFLARE_HINT_PROBE =
+    "(function () { var html = document.documentElement.outerHTML; " +
+        "return html.indexOf('window._cf_chl_opt') >= 0 || html.indexOf('Ray ID is') >= 0; })()"
 
 /** Cheap check for a Cloudflare challenge page, instead of pulling the whole DOM over the bridge. */

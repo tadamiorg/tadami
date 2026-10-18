@@ -17,6 +17,7 @@ import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
+import com.sf.tadami.ui.webview.adblock.AdBlockUpdateWorker
 import com.sf.tadami.utils.Lang
 import com.sf.tadami.utils.Lang.Companion.toPref
 import com.sf.tadami.utils.clearAllPreferences
@@ -53,6 +54,7 @@ object Migrations {
             // Always set up background tasks to ensure they're running
             LibraryUpdateWorker.setupTask(context)
             BackupCreateWorker.setupTask(context)
+            AdBlockUpdateWorker.setupTask(context)
 
             // Fresh install
             if (oldVersion == 0) {

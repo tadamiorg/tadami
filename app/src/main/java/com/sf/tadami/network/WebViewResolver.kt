@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.webkit.JavascriptInterface
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -66,7 +68,8 @@ class WebViewResolver internal constructor(
      * @param script a JavaScript expression evaluated once the page has loaded (again after each
      * navigation). It may evaluate to a Promise, e.g. one polling for an iframe added later.
      * @param interceptRequest called for every request the page makes (from a background thread)
-     * @throws IOException if the WebView can't be created or the thread is interrupted
+     * @throws IOException if the WebView can't be created, its renderer process dies or the thread is
+     * interrupted
      */
     @JvmOverloads
     @Throws(IOException::class)
@@ -145,6 +148,20 @@ class WebViewResolver internal constructor(
                         }
                     }
 
+                    override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+                        // Not handling it kills the app. The WebView can't be used anymore
+                        Log.e(TAG, "WebView renderer gone while loading $url: crashed=${detail.didCrash()}")
+                        if (webView === view) {
+                            webView = null
+                            view.destroy()
+                        }
+                        if (!state.done) {
+                            state.rendererGone = true
+                            finish()
+                        }
+                        return true
+                    }
+
                     override fun shouldInterceptRequest(
                         view: WebView,
                         request: WebResourceRequest,
@@ -182,6 +199,7 @@ class WebViewResolver internal constructor(
         }
 
         state.error?.let { throw IOException("Could not start the WebView", it) }
+        if (state.rendererGone) throw IOException("The WebView renderer process is gone while loading $url")
         // A challenge solved on the way gave a clearance worth keeping
         cookieJar.flush()
 
@@ -202,6 +220,7 @@ class WebViewResolver internal constructor(
         @Volatile var generation = 0
         @Volatile var done = false
         @Volatile var error: Throwable? = null
+        @Volatile var rendererGone = false
     }
 
     /** Receives script results on the JavaBridge thread. */
@@ -245,5 +264,6 @@ class WebViewResolver internal constructor(
     companion object {
         const val DEFAULT_TIMEOUT_SECONDS = 30L
         private const val BRIDGE_NAME = "__tadamiResolver"
+        private const val TAG = "WebViewResolver"
     }
 }
