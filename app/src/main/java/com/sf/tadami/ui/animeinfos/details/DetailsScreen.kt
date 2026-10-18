@@ -46,6 +46,7 @@ import com.sf.tadami.source.StubSource
 import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.ui.animeinfos.details.episodes.filters.DisplayTab
 import com.sf.tadami.ui.animeinfos.details.episodes.filters.FilterTab
+import com.sf.tadami.ui.category.SetCategoriesDialog
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
@@ -141,6 +142,8 @@ fun DetailsScreen(
                     onMigrateClicked = {
                         navHostController.navigate("${MigrateRoutes.MIGRATE}/${uiState.details!!.id}")
                     },
+                    onEditCategoriesClicked = { detailsViewModel.showSetCategoriesDialog() }
+                        .takeIf { uiState.details?.favorite == true },
                     onDownloadClicked = detailsViewModel::runDownloadAction,
                     onDeleteDownloadsClicked = { showDeleteDownloadsDialog = true },
                     hasDownloads = uiState.episodes.fastAny { it.download.state != Download.State.NOT_DOWNLOADED },
@@ -245,6 +248,7 @@ fun DetailsScreen(
                         detailsViewModel.toggleFavorite()
                     }
                 },
+                onEditCategoriesClicked = { detailsViewModel.showSetCategoriesDialog() },
                 onWebViewClicked = {
                     val url = uiState.details?.url
                     val title = uiState.details?.title
@@ -283,6 +287,13 @@ fun DetailsScreen(
                     // Encoded so a '&', '#' or '%' in the title can't break the route, navigation decodes it
                     navHostController.navigate("${DiscoverRoutes.GLOBAL_SEARCH}?initialQuery=${Uri.encode(query)}")
                 }
+            )
+        }
+        uiState.setCategoriesDialog?.let { dialog ->
+            SetCategoriesDialog(
+                initialSelection = dialog.selection,
+                onDismissRequest = detailsViewModel::dismissSetCategoriesDialog,
+                onConfirm = detailsViewModel::setCategories
             )
         }
         if (showDeleteDownloadsDialog) {

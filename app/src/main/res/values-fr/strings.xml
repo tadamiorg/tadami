@@ -505,5 +505,9 @@
     <string name="library_display_number_of_items">Afficher le nombre d\'éléments</string>
     <string name="action_set_categories">Définir les catégories</string>
     <string name="set_categories_none">Vous n\'avez encore aucune catégorie.</string>
+    <string name="action_edit_categories">Modifier les catégories</string>
+    <string name="preferences_library_category_categories">Catégories</string>
+    <string name="preferences_library_default_category">Catégorie par défaut</string>
+    <string name="preferences_library_default_category_ask">Toujours demander</string>
 
 </resources>

@@ -35,6 +35,7 @@ fun DetailsComponent(
     isStubSource : Boolean,
     onRefresh : () -> Unit,
     onAddToLibraryClicked : () -> Unit,
+    onEditCategoriesClicked : () -> Unit,
     onWebViewClicked : () -> Unit,
     onEpisodeClicked : (Long) -> Unit,
     onEpisodeSelected : (EpisodeItem, Boolean) -> Unit,
@@ -99,6 +100,7 @@ fun DetailsComponent(
                     AnimeActionRow(
                         favorite = uiState.details?.favorite,
                         onAddToLibraryClicked = onAddToLibraryClicked,
+                        onEditCategoriesClicked = onEditCategoriesClicked,
                         onWebViewClicked = onWebViewClicked,
                         onWebViewLongClicked = {}
                     )

@@ -13,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -26,6 +27,8 @@ import androidx.navigation.NavHostController
 import com.commandiron.wheel_picker_compose.core.WheelPickerDefaults
 import com.commandiron.wheel_picker_compose.core.WheelTextPicker
 import com.sf.tadami.R
+import com.sf.tadami.data.interactors.category.GetCategories
+import com.sf.tadami.domain.category.Category
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.DataStoreState
@@ -37,6 +40,8 @@ import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 import com.sf.tadami.ui.tabs.more.settings.components.PreferenceScreen
 import com.sf.tadami.ui.utils.defaultParser
 import com.sf.tadami.ui.utils.toPrefMultiCheckbox
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 class LibraryPreferencesScreen(
     navController: NavHostController,
@@ -52,10 +57,44 @@ class LibraryPreferencesScreen(
     override fun getPreferences(): List<Preference> {
         val libraryPreferencesState = rememberDataStoreState(LibraryPreferences)
         val libraryPreferences by libraryPreferencesState.value.collectAsState()
+        val categories by remember { Injekt.get<GetCategories>().subscribe() }.collectAsState(initial = emptyList())
 
         return listOf(
             getDisplayGroup(prefState = libraryPreferencesState, prefs = libraryPreferences),
+            getCategoriesGroup(prefState = libraryPreferencesState, prefs = libraryPreferences, categories = categories),
             getUpdateGroup(prefState = libraryPreferencesState, prefs = libraryPreferences)
+        )
+    }
+
+    @Composable
+    fun getCategoriesGroup(
+        prefState: DataStoreState<LibraryPreferences>,
+        prefs: LibraryPreferences,
+        categories: List<Category>
+    ): Preference.PreferenceCategory {
+        val defaultCategoryItems = buildMap {
+            put(LibraryPreferences.DEFAULT_CATEGORY_ASK, stringResource(id = R.string.preferences_library_default_category_ask))
+            put(Category.UNCATEGORIZED_ID.toInt(), stringResource(id = R.string.category_default))
+            categories.forEach { put(it.id.toInt(), it.name) }
+        }
+        return Preference.PreferenceCategory(
+            title = stringResource(id = R.string.preferences_library_category_categories),
+            preferenceItems = listOf(
+                Preference.PreferenceItem.SelectPreference(
+                    // A category deleted meanwhile is asked for
+                    value = prefs.defaultCategory.takeIf { it in defaultCategoryItems } ?: LibraryPreferences.DEFAULT_CATEGORY_ASK,
+                    title = stringResource(id = R.string.preferences_library_default_category),
+                    items = defaultCategoryItems,
+                    onValueChanged = {
+                        prefState.setValue(
+                            prefs.copy(
+                                defaultCategory = it
+                            )
+                        )
+                        true
+                    }
+                )
+            )
         )
     }
 

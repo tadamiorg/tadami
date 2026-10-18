@@ -18,6 +18,8 @@ fun AnimeActionRow(
     modifier: Modifier = Modifier,
     favorite: Boolean? = false,
     onAddToLibraryClicked: () -> Unit,
+    // A long press on the library button, while in the library
+    onEditCategoriesClicked: (() -> Unit)? = null,
     onWebViewClicked: (() -> Unit)?,
     onWebViewLongClicked: (() -> Unit)?,
 ) {
@@ -33,6 +35,7 @@ fun AnimeActionRow(
             icon = if (favorite==true) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
             color = if (favorite==true) MaterialTheme.colorScheme.primary else defaultActionButtonColor,
             onClick = onAddToLibraryClicked,
+            onLongClick = onEditCategoriesClicked?.takeIf { favorite == true },
         )
         if (onWebViewClicked != null) {
             AnimeActionButton(

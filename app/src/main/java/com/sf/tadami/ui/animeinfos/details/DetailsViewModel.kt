@@ -9,18 +9,25 @@ import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.anime.GetAnime
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.category.GetCategories
+import com.sf.tadami.data.interactors.category.SetAnimeCategories
 import com.sf.tadami.domain.anime.Anime
+import com.sf.tadami.domain.category.DefaultCategoryChoice
+import com.sf.tadami.domain.category.defaultCategoryChoice
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.extension.util.fetchGuarded
 import com.sf.tadami.preferences.app.BasePreferences
+import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.ui.animeinfos.details.episodes.DetailsDownloadAction
 import com.sf.tadami.ui.animeinfos.details.episodes.EpisodeDownloadAction
 import com.sf.tadami.ui.animeinfos.details.episodes.episodesToDownload
+import com.sf.tadami.ui.category.categoryCheckboxes
 import com.sf.tadami.ui.components.data.EpisodeItem
 import com.sf.tadami.ui.discover.migrate.MigrateHelperState
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.addOrRemove
 import com.sf.tadami.ui.utils.awaitSingleOrNull
+import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,6 +56,8 @@ class DetailsViewModel(
     private val getAnime: GetAnime = Injekt.get()
     private val downloadManager: TadamiDownloadManager = Injekt.get()
     private val dataStore: DataStore<Preferences> = Injekt.get()
+    private val getCategories: GetCategories = Injekt.get()
+    private val setAnimeCategories: SetAnimeCategories = Injekt.get()
 
     private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
     private val sourceId: Long = checkNotNull(savedStateHandle["sourceId"])
@@ -195,7 +204,44 @@ class DetailsViewModel(
     fun toggleFavorite() {
         viewModelScope.launch(Dispatchers.IO) {
             val anime = animeWithEpisodesInteractor.awaitAnime(animeId)
-            updateAnimeInteractor.updateLibraryAnime(anime, !anime.favorite)
+            if (anime.favorite) {
+                updateAnimeInteractor.updateLibraryAnime(anime, false)
+                return@launch
+            }
+            val defaultCategory = dataStore.getPreferencesGroup(LibraryPreferences).defaultCategory
+            when (val choice = defaultCategoryChoice(defaultCategory, getCategories.await())) {
+                is DefaultCategoryChoice.Ask -> showSetCategoriesDialog(addToLibrary = true)
+                // Its categories first, so it joins the library in its tabs
+                is DefaultCategoryChoice.Categories -> {
+                    setAnimeCategories.await(anime.id, choice.ids)
+                    updateAnimeInteractor.updateLibraryAnime(anime, true)
+                }
+            }
+        }
+    }
+
+    // Categories
+
+    fun showSetCategoriesDialog(addToLibrary: Boolean = false) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val animeCategories = getCategories.await(animeId).map { it.id }
+            val selection = categoryCheckboxes(getCategories.await(), listOf(animeCategories))
+            _uiState.update { it.copy(setCategoriesDialog = SetCategoriesDialogState(selection, addToLibrary)) }
+        }
+    }
+
+    fun dismissSetCategoriesDialog() {
+        _uiState.update { it.copy(setCategoriesDialog = null) }
+    }
+
+    fun setCategories(add: List<Long>, remove: List<Long>) {
+        val addToLibrary = uiState.value.setCategoriesDialog?.addToLibrary == true
+        viewModelScope.launch(Dispatchers.IO) {
+            setAnimeCategories.await(listOf(animeId), add, remove)
+            if (addToLibrary) {
+                val anime = animeWithEpisodesInteractor.awaitAnime(animeId)
+                if (!anime.favorite) updateAnimeInteractor.updateLibraryAnime(anime, true)
+            }
         }
     }
 

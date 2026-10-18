@@ -37,6 +37,8 @@ fun DetailsToolbar(
     onMigrateClicked : () -> Unit,
     episodesListState: LazyListState,
     migrationEnabled : Boolean = false,
+    // In the library only
+    onEditCategoriesClicked : (() -> Unit)? = null,
     onDownloadClicked : (DetailsDownloadAction) -> Unit,
     onDeleteDownloadsClicked : () -> Unit,
     hasDownloads : Boolean,
@@ -110,7 +112,13 @@ fun DetailsToolbar(
             Action.DropDownDrawable(
                 title = R.string.stub_text,
                 icon = R.drawable.ic_vertical_settings,
-                items = listOf(
+                items = listOfNotNull(
+                    onEditCategoriesClicked?.let {
+                        DropDownAction(
+                            title = stringResource(id = R.string.action_edit_categories),
+                            onClick = it
+                        )
+                    },
                     DropDownAction(
                         title = stringResource(id = R.string.action_migrate),
                         onClick = onMigrateClicked,
