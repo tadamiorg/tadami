@@ -62,7 +62,7 @@ class LibraryPreferencesScreen(
         return listOf(
             getDisplayGroup(prefState = libraryPreferencesState, prefs = libraryPreferences),
             getCategoriesGroup(prefState = libraryPreferencesState, prefs = libraryPreferences, categories = categories),
-            getUpdateGroup(prefState = libraryPreferencesState, prefs = libraryPreferences)
+            getUpdateGroup(prefState = libraryPreferencesState, prefs = libraryPreferences, categories = categories)
         )
     }
 
@@ -101,9 +101,15 @@ class LibraryPreferencesScreen(
     @Composable
     fun getUpdateGroup(
         prefState: DataStoreState<LibraryPreferences>,
-        prefs: LibraryPreferences
+        prefs: LibraryPreferences,
+        categories: List<Category>
     ): Preference.PreferenceCategory {
         val context = LocalContext.current
+        // The Default category too, for the anime in no category
+        val categoryItems = buildMap {
+            put(Category.UNCATEGORIZED_ID.toString(), stringResource(id = R.string.category_default))
+            categories.forEach { put(it.id.toString(), it.name) }
+        }
         return Preference.PreferenceCategory(
             title = stringResource(id = R.string.preferences_library_category_updates),
             preferenceItems = listOf(
@@ -149,6 +155,40 @@ class LibraryPreferencesScreen(
                         true
                     }
 
+                ),
+                Preference.PreferenceItem.MultiSelectPreference(
+                    value = prefs.updateCategories.filterTo(HashSet()) { it in categoryItems },
+                    title = stringResource(id = R.string.preferences_library_update_categories_include),
+                    items = categoryItems.toPrefMultiCheckbox(),
+                    subtitleProvider = {
+                        prefs.updateCategories.mapNotNull { categoryItems[it] }.takeIf { it.isNotEmpty() }?.joinToString()
+                            ?: stringResource(id = R.string.preferences_library_update_categories_all)
+                    },
+                    onValueChanged = {
+                        prefState.setValue(
+                            prefs.copy(
+                                updateCategories = it
+                            )
+                        )
+                        true
+                    }
+                ),
+                Preference.PreferenceItem.MultiSelectPreference(
+                    value = prefs.updateCategoriesExclude.filterTo(HashSet()) { it in categoryItems },
+                    title = stringResource(id = R.string.preferences_library_update_categories_exclude),
+                    items = categoryItems.toPrefMultiCheckbox(),
+                    subtitleProvider = {
+                        prefs.updateCategoriesExclude.mapNotNull { categoryItems[it] }.takeIf { it.isNotEmpty() }?.joinToString()
+                            ?: stringResource(id = R.string.none)
+                    },
+                    onValueChanged = {
+                        prefState.setValue(
+                            prefs.copy(
+                                updateCategoriesExclude = it
+                            )
+                        )
+                        true
+                    }
                 )
             )
         )

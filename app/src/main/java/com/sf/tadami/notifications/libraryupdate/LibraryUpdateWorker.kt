@@ -135,7 +135,9 @@ class LibraryUpdateWorker(
 
     private fun addAnimesToQueue() {
         val libraryAnimes = runBlocking { libraryInteractor.await() }
-        val listToUpdate = libraryAnimes.sortedBy { it.title }
+        val listToUpdate = libraryAnimes
+            .inUpdateCategories(libraryPreferences.updateCategories, libraryPreferences.updateCategoriesExclude)
+            .sortedBy { it.title }
 
         val skippedUpdates = mutableListOf<Pair<Anime, String?>>()
         animesToUpdate = listToUpdate.filter {

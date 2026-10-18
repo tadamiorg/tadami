@@ -509,5 +509,8 @@
     <string name="preferences_library_category_categories">Catégories</string>
     <string name="preferences_library_default_category">Catégorie par défaut</string>
     <string name="preferences_library_default_category_ask">Toujours demander</string>
+    <string name="preferences_library_update_categories_include">Catégories à mettre à jour</string>
+    <string name="preferences_library_update_categories_exclude">Catégories à ne pas mettre à jour</string>
+    <string name="preferences_library_update_categories_all">Toutes</string>
 
 </resources>
