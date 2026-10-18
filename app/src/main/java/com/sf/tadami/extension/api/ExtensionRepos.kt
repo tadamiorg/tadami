@@ -76,10 +76,12 @@ internal object ExtensionRepos {
         return if (onGitHub && parts.size >= 3) "${parts[1]}/${parts[2]}" else repo
     }
 
-    /** Whether [repoUrl] is the official repo, see [SourcesPreferences.DEFAULT_EXTENSIONS_REPO]. */
+    /**
+     * Whether [repoUrl] is the official repo: only the app's own URL of it, scheme included, see
+     * [SourcesPreferences.DEFAULT_EXTENSIONS_REPO], so that no other repo can be shown as the official one.
+     */
     fun isOfficial(repoUrl: String): Boolean =
-        normalize(repoUrl).substringAfter("://") ==
-            normalize(SourcesPreferences.DEFAULT_EXTENSIONS_REPO).substringAfter("://")
+        normalize(repoUrl) == normalize(SourcesPreferences.DEFAULT_EXTENSIONS_REPO)
 }
 
 /** What a repo says of itself in its `repo.json`. */

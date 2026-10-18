@@ -72,6 +72,18 @@ class ExtensionReposTest {
         assertFalse(ExtensionRepos.isOfficial("https://raw.githubusercontent.com/tadamiorg/tadami-extensions/dev"))
     }
 
+    @Test
+    fun noLookalikeOfTheOfficialRepoIsOfficial() {
+        listOf(
+            "http://raw.githubusercontent.com/tadamiorg/tadami-extensions/main",
+            "https://raw.githubusercontent.com/tadami0rg/tadami-extensions/main",
+            "https://raw.githubusercontent.com/tadamiorg/tadami-extensions/main/repo",
+            "https://raw.githubusercontent.com.evil.com/tadamiorg/tadami-extensions/main",
+            "https://github.com/tadamiorg/tadami-extensions",
+            "https://evil.com/raw.githubusercontent.com/tadamiorg/tadami-extensions/main",
+        ).forEach { assertFalse(it, ExtensionRepos.isOfficial(it)) }
+    }
+
     private val json = Json { ignoreUnknownKeys = true }
 
     @Test
