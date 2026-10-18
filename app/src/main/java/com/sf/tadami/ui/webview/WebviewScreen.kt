@@ -121,6 +121,8 @@ fun WebviewScreen(
     val navigationHeaders = remember(headers) {
         headers.filterKeys { !it.equals("user-agent", ignoreCase = true) }
     }
+    // The source's headers are for the source: the host of the page the screen opened
+    val headersHost = remember(url) { url.toUri().host }
 
     val windows = remember { mutableStateListOf<WebViewWindow>() }
     // Destroyed once: by the window closing, or by the screen leaving
@@ -249,7 +251,11 @@ fun WebviewScreen(
                         return true
                     }
                 }
-                if (navigationHeaders.isEmpty()) {
+                if (navigationHeaders.isEmpty() ||
+                    !target.host.equals(headersHost, ignoreCase = true) ||
+                    // The page shown, like a reload: the WebView handles it
+                    target.toString() == view?.url
+                ) {
                     return false
                 }
                 // Continue with request, but with custom headers
