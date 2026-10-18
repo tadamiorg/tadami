@@ -1,0 +1,67 @@
+name: Extensions lib
+
+# Builds and publishes extensions-lib to the local Maven repository the way JitPack does (jitpack.yml),
+# so a change that would break its JitPack build shows up before a lib-X.Y.Z tag. The drift test
+# between the lib and the app runs with the unit tests, in ci.yml. See extensions-lib/README.md.
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'extensions-lib/**'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'gradle.properties'
+      - 'jitpack.yml'
+      - '.github/workflows/extensions-lib.yml'
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - 'extensions-lib/**'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'gradle.properties'
+      - 'jitpack.yml'
+      - '.github/workflows/extensions-lib.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  jitpack:
+    name: Build like JitPack
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+
+      # JITPACK=true leaves :app out of the build, as on JitPack, which passes the tag in VERSION
+      - name: Publish to the local Maven repository
+        env:
+          JITPACK: 'true'
+        run: |
+          VERSION="lib-$(sed -n 's/^extensionsLibVersion=//p' extensions-lib/gradle.properties | tr -d '[:space:]')"
+          export VERSION
+          ./gradlew :extensions-lib:publishReleasePublicationToMavenLocal
+          ls -l "$HOME/.m2/repository/com/github/tadamiorg/tadami/extensions-lib/$VERSION"
