@@ -4,11 +4,14 @@ import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
 import android.os.Message
+import android.util.Log
 import android.view.View
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -68,6 +71,7 @@ import com.sf.tadami.network.utils.setDefaultSettings
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
+import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.utils.findActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -128,6 +132,7 @@ fun WebviewScreen(
     // Destroyed once: by the window closing, or by the screen leaving
     val destroyedWebViews = remember { mutableSetOf<WebView>() }
     var screenActive by remember { mutableStateOf(true) }
+    var rendererGoneReported by remember { mutableStateOf(false) }
 
     // A web video player in fullscreen (HTML5 <video> or an embedded player), shown over the screen
     var fullscreenView by remember { mutableStateOf<View?>(null) }
@@ -157,8 +162,28 @@ fun WebviewScreen(
         if (!visible) window.webView?.let(::destroy)
     }
 
+    fun onRendererGone(window: WebViewWindow) {
+        if (!rendererGoneReported) {
+            rendererGoneReported = true
+            UiToasts.showToast(R.string.information_webview_crashed, Toast.LENGTH_LONG)
+        }
+        // Its WebView is no use anymore: a popup closes, the page the screen opened closes the screen
+        if (window === windows.firstOrNull()) onNavigateUp() else closeWindow(window)
+    }
+
     fun createWebClient(window: WebViewWindow, openPopup: (String) -> Unit) =
         object : AccompanistWebViewClient() {
+
+            override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+                // Each WebView using the renderer hears about it. Not handling it kills the app
+                Log.e(
+                    TAG,
+                    "WebView renderer gone: crashed=${detail.didCrash()}, " +
+                        "priority=${detail.rendererPriorityAtExit()}, url=${window.currentUrl}",
+                )
+                onRendererGone(window)
+                return true
+            }
 
             override fun shouldInterceptRequest(
                 view: WebView?,
@@ -568,5 +593,7 @@ private fun FullscreenView(view: View, onExit: () -> Unit) {
 }
 
 private enum class ChallengeState { NONE, PENDING, SOLVED }
+
+private const val TAG = "WebviewScreen"
 
 /** Cheap check for a Cloudflare challenge page, instead of pulling the whole DOM over the bridge. */

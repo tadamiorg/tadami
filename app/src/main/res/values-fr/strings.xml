@@ -160,6 +160,7 @@
     <string name="default_string_formatted">Par défaut : %1$s</string>
     <string name="clipboard_copied">Copié dans le presse-papiers</string>
     <string name="information_webview_required">WebView est requis pour le fonctionnement l\'application</string>
+    <string name="information_webview_crashed">La page web a cessé de fonctionner et a été fermée</string>
     <string name="in_library">Dans la bibliothèque</string>
     <string name="add_to_library">Ajouter à la bibliothèque</string>
     <string name="pref_clear_cookies">Effacer les cookies</string>

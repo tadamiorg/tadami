@@ -200,6 +200,7 @@
     <string name="default_string_formatted">Default : %1$s</string>
     <string name="clipboard_copied">Copied to clipboard</string>
     <string name="information_webview_required">WebView is required for the app to function</string>
+    <string name="information_webview_crashed">The web page stopped working and was closed</string>
     <string name="in_library">In library</string>
     <string name="add_to_library">Add to library</string>
     <string name="action_web_view" translatable="false">WebView</string>
