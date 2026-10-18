@@ -54,6 +54,10 @@ sealed class Extension {
         val signatureHash: String? = null,
     ) : Extension() {
 
+        /** Its entry in [available]: from the repo it comes from when it's known, see [repoUrl]. */
+        fun listedIn(available: List<Available>): Available? =
+            available.find { it.pkgName == pkgName && (repoUrl == null || it.repoUrl == repoUrl) }
+
         /** Whether [available] is an update of this one, see [isUpdate]. */
         fun isUpdatedBy(available: Available): Boolean =
             isUpdate(available.versionCode, available.apiVersion, versionCode, apiVersion)

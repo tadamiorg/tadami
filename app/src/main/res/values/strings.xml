@@ -368,6 +368,24 @@
     <string name="ext_uninstall">Uninstall</string>
     <string name="ext_uninstall_title">Uninstall this extension?</string>
     <string name="ext_uninstall_message">It will be removed from Tadami.</string>
+    <string name="ext_repos_title">Extension repositories</string>
+    <string name="ext_repos_summary">Add or remove the repositories the extensions come from</string>
+    <string name="ext_repo_official">Official repository</string>
+    <string name="ext_repo_url">Repository URL</string>
+    <string name="ext_repo_add_title">Add a repository</string>
+    <string name="ext_repo_error_invalid">Not a valid repository URL</string>
+    <string name="ext_repo_error_https">The URL must start with https://</string>
+    <string name="ext_repo_error_duplicate">This repository is already added</string>
+    <string name="ext_repo_error_unreadable">Couldn\'t read the repository index: %1$s</string>
+    <string name="ext_repo_confirm_title">Add this repository?</string>
+    <string name="ext_repo_confirm_warning">Its extensions run their code inside Tadami: add only a repository you trust.</string>
+    <string name="ext_repo_remove">Remove</string>
+    <string name="ext_repo_remove_title">Remove this repository?</string>
+    <string name="ext_repo_remove_message">Its extensions disappear from the list. The installed ones stay installed, without updates.</string>
+    <plurals name="ext_repo_extensions_count">
+        <item quantity="one">%d extension</item>
+        <item quantity="other">%d extensions</item>
+    </plurals>
     <string name="ext_install_error_download">Couldn\'t download %1$s</string>
     <string name="ext_install_error_invalid">%1$s: the downloaded file isn\'t the expected extension, nothing was changed</string>
     <string name="ext_install_error_checksum">%1$s: the downloaded file doesn\'t match the size or SHA-256 the repository lists, nothing was changed</string>

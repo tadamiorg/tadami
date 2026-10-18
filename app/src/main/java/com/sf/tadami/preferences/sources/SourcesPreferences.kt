@@ -22,7 +22,7 @@ data class SourcesPreferences(
         const val DEFAULT_EXTENSIONS_REPO = "https://raw.githubusercontent.com/tadamiorg/tadami-extensions/main"
 
         private val HIDDEN_SOURCES =  stringSetPreferencesKey("hidden_sources")
-        private val EXTENSIONS_REPOS = stringSetPreferencesKey("extensions_repos")
+        val EXTENSIONS_REPOS = stringSetPreferencesKey("extensions_repos")
         val ENABLED_LANGUAGES =  stringSetPreferencesKey("enabled_languages")
         val LAST_EXT_CHECK = longPreferencesKey(CustomPreferences.appStateKey("last_ext_check"))
         val EXT_UPDATES_COUNT = intPreferencesKey("ext_updates_count")

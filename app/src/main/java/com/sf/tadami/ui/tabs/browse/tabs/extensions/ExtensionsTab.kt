@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -24,6 +25,7 @@ import com.sf.tadami.navigation.graphs.sources.SourcesRoutes
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.ui.components.data.Action
+import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.screens.ScreenTabContent
 import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.ExtensionComponent
@@ -58,7 +60,17 @@ fun extensionsTab(
                     navController.navigate(DiscoverRoutes.EXTENSIONS_FILTER)
                 },
             ),
-            Action.CastButton()
+            Action.CastButton(),
+            Action.DropDownDrawable(
+                title = R.string.stub_text,
+                icon = R.drawable.ic_vertical_settings,
+                items = listOf(
+                    DropDownAction(
+                        title = stringResource(R.string.ext_repos_title),
+                        onClick = { navController.navigate(DiscoverRoutes.EXTENSION_REPOS) },
+                    ),
+                ),
+            ),
         )
     ) { contentPadding, _ ->
         var installDialog by remember { mutableStateOf<Extension.Available?>(null) }

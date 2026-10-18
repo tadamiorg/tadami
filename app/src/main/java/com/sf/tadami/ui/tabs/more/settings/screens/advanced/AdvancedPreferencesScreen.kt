@@ -23,6 +23,7 @@ import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.crash.CrashLogUtil
 import com.sf.tadami.crash.CrashReporter
+import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
 import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.utils.setDefaultSettings
@@ -60,9 +61,24 @@ class AdvancedPreferencesScreen(
         val advancedPreferences by advancedPreferencesState.value.collectAsState()
         return listOf(
             getDataGroup(),
+            getExtensionsGroup(),
             getNetworkGroup(advancedPreferences, advancedPreferencesState),
             getAdBlockGroup(),
             getBackgroundJobGroup()
+        )
+    }
+
+    @Composable
+    private fun getExtensionsGroup(): Preference.PreferenceCategory {
+        return Preference.PreferenceCategory(
+            title = stringResource(id = R.string.label_extensions),
+            preferenceItems = listOf(
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(R.string.ext_repos_title),
+                    subtitle = stringResource(R.string.ext_repos_summary),
+                    onClick = { navController.navigate(DiscoverRoutes.EXTENSION_REPOS) },
+                ),
+            ),
         )
     }
 

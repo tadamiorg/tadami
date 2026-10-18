@@ -16,8 +16,11 @@ import androidx.datastore.preferences.core.edit
 import com.sf.tadami.BuildConfig
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
+import com.sf.tadami.extension.api.ExtensionRepos
 import com.sf.tadami.extension.api.ExtensionsApi
+import com.sf.tadami.extension.api.FetchedRepo
 import com.sf.tadami.extension.api.RepoExtensions
+import com.sf.tadami.extension.api.RepoMeta
 import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.extension.model.LoadResult
@@ -139,6 +142,11 @@ class ExtensionManager(
 
     fun getSourceData(id: Long) = availableExtensionsSourcesData[id]
 
+    private val _repoMetasFlow = MutableStateFlow(emptyMap<String, RepoMeta>())
+
+    /** What each repo says of itself, for those that have a `repo.json`, see [RepoMeta]. */
+    val repoMetasFlow = _repoMetasFlow.asStateFlow()
+
     init {
         // Before the extensions are loaded: a crash of their code the app survives disables them
         instance = this
@@ -254,6 +262,43 @@ class ExtensionManager(
         _availableExtensionsFlow.value = extensions.available
         updatedInstalledExtensionsStatuses(extensions)
         setupAvailableExtensionsSourcesDataMap(extensions.available)
+        // One that can't be read now keeps what it said before
+        val repos = sourcesPreferences.extensionsRepos
+        val metas = api.findMetas(repos)
+        _repoMetasFlow.update { previous -> previous.filterKeys { it in repos } + metas }
+    }
+
+    /**
+     * The repo the user typed, the first of [candidates] whose index can be read, see
+     * [ExtensionRepos.parse].
+     *
+     * @throws Exception Why none can be read.
+     */
+    suspend fun fetchRepo(candidates: List<String>): FetchedRepo = api.fetchRepo(candidates)
+
+    /** Adds [repo] to the repos the extensions are found in, then finds them again. */
+    suspend fun addRepo(repo: FetchedRepo) {
+        dataStore.edit { preferences ->
+            preferences[SourcesPreferences.EXTENSIONS_REPOS] =
+                SourcesPreferences.transform(preferences).extensionsRepos + repo.url
+        }
+        repo.meta?.let { meta -> _repoMetasFlow.update { it + (repo.url to meta) } }
+        findAvailableExtensions()
+    }
+
+    /**
+     * Removes the repo [repoUrl], but the official one. Its extensions installed stay installed and
+     * usable, in no repo anymore: neither obsolete nor updated, see [RepoExtensions.isObsolete].
+     */
+    suspend fun removeRepo(repoUrl: String) {
+        if (ExtensionRepos.isOfficial(repoUrl)) return
+        dataStore.edit { preferences ->
+            preferences[SourcesPreferences.EXTENSIONS_REPOS] =
+                SourcesPreferences.transform(preferences).extensionsRepos - repoUrl
+        }
+        _availableExtensionsFlow.update { available -> available.filter { it.repoUrl != repoUrl } }
+        _repoMetasFlow.update { it - repoUrl }
+        findAvailableExtensions()
     }
 
     /**
@@ -272,13 +317,14 @@ class ExtensionManager(
 
             for ((index, installedExt) in mutInstalledExtensions.withIndex()) {
                 val pkgName = installedExt.pkgName
-                val availableExt = availableExtensions.find { it.pkgName == pkgName }
+                val availableExt = installedExt.listedIn(availableExtensions)
 
                 if (availableExt == null) {
                     // Unknown when its repo may have failed: kept as it was
                     val isObsolete = repoExtensions.isObsolete(pkgName, installedExt.repoUrl) ?: installedExt.isObsolete
-                    if (installedExt.isObsolete != isObsolete) {
-                        mutInstalledExtensions[index] = installedExt.copy(isObsolete = isObsolete)
+                    // Not listed by its repo, removed for instance: nothing to update it with
+                    if (installedExt.isObsolete != isObsolete || installedExt.hasUpdate) {
+                        mutInstalledExtensions[index] = installedExt.copy(isObsolete = isObsolete, hasUpdate = false)
                         changed = true
                     }
                 } else {
@@ -325,8 +371,7 @@ class ExtensionManager(
      * @param extension The extension to be updated.
      */
     fun updateExtension(extension: Extension.Installed): Flow<InstallStep> {
-        val availableExt = _availableExtensionsFlow.value.find { it.pkgName == extension.pkgName }
-            ?: return emptyFlow()
+        val availableExt = extension.listedIn(_availableExtensionsFlow.value) ?: return emptyFlow()
         return installExtension(availableExt)
     }
 
@@ -582,9 +627,7 @@ class ExtensionManager(
     }
 
     private fun Extension.Installed.updateExists(availableExtension: Extension.Available? = null): Boolean {
-        val availableExt =
-            availableExtension ?: _availableExtensionsFlow.value.find { it.pkgName == pkgName }
-            ?: return false
+        val availableExt = availableExtension ?: listedIn(_availableExtensionsFlow.value) ?: return false
 
         return isUpdatedBy(availableExt)
     }

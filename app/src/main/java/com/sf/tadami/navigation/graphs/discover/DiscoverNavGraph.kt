@@ -5,11 +5,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.sf.tadami.ui.discover.globalSearch.GlobalSearchScreen
 import com.sf.tadami.ui.discover.recent.RecentScreen
 import com.sf.tadami.ui.discover.search.SearchScreen
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.details.ExtensionDetailsScreen
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.filters.ExtensionsFilterScreen
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.repos.ExtensionReposScreen
 import com.sf.tadami.ui.tabs.browse.tabs.sources.filters.SourcesFilterScreen
 
 fun NavGraphBuilder.discoverNavGraph(navController: NavHostController) {
@@ -71,6 +73,20 @@ fun NavGraphBuilder.discoverNavGraph(navController: NavHostController) {
     {
         ExtensionDetailsScreen(navController = navController)
     }
+    composable(
+        route = "${DiscoverRoutes.EXTENSION_REPOS}?url={url}",
+        arguments = listOf(
+            navArgument("url") {
+                nullable = true
+                defaultValue = null
+                type = NavType.StringType
+            },
+        ),
+        // A link to add a repo, as Mihon's: asked to the user before it's added
+        deepLinks = listOf(navDeepLink { uriPattern = "tadami://add-repo?url={url}" }),
+    ) {
+        ExtensionReposScreen(navController = navController)
+    }
 }
 
 object DiscoverRoutes {
@@ -80,4 +96,5 @@ object DiscoverRoutes {
     const val SOURCES_FILTER = "sources_filter"
     const val EXTENSIONS_FILTER = "extensions_filter"
     const val EXTENSION_DETAILS = "extension_details"
+    const val EXTENSION_REPOS = "extension_repos"
 }

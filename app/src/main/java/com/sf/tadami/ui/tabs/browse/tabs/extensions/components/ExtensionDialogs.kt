@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
-import com.sf.tadami.preferences.sources.SourcesPreferences
+import com.sf.tadami.extension.api.ExtensionRepos
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
@@ -65,8 +65,8 @@ fun InstallExtensionDialog(
                 ExtensionDialogHeader(extension)
                 Text(
                     text = stringResource(
-                        if (isOfficialRepo(extension.repoUrl)) R.string.ext_install_repo_official else R.string.ext_install_repo,
-                        repoName(extension.repoUrl),
+                        if (ExtensionRepos.isOfficial(extension.repoUrl)) R.string.ext_install_repo_official else R.string.ext_install_repo,
+                        ExtensionRepos.name(extension.repoUrl),
                     ),
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -143,23 +143,6 @@ fun TrustExtensionDialog(
         dismissButton = { DefaultDialogCancelButton() },
     )
 }
-
-/** The repo [repoUrl] without its scheme, index file and trailing slashes. */
-private fun normalizedRepo(repoUrl: String): String =
-    repoUrl.trim().trimEnd('/').removeSuffix("/index.min.json").trimEnd('/').substringAfter("://")
-
-/** A readable name of the extension repo [repoUrl]: `owner/repo` on GitHub, its host and path otherwise. */
-internal fun repoName(repoUrl: String): String {
-    val repo = normalizedRepo(repoUrl)
-    val parts = repo.split('/')
-    val host = parts.first().lowercase().removePrefix("www.")
-    val onGitHub = host == "raw.githubusercontent.com" || host == "github.com"
-    return if (onGitHub && parts.size >= 3) "${parts[1]}/${parts[2]}" else repo
-}
-
-/** Whether [repoUrl] is the official extension repo. */
-internal fun isOfficialRepo(repoUrl: String): Boolean =
-    normalizedRepo(repoUrl) == normalizedRepo(SourcesPreferences.DEFAULT_EXTENSIONS_REPO)
 
 /** [hex], a SHA-256 fingerprint, uppercase in groups of 4 characters. */
 internal fun groupedFingerprint(hex: String): String = hex.uppercase().chunked(4).joinToString(" ")

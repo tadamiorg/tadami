@@ -79,6 +79,29 @@ class RepoExtensionsTest {
 
         val allRead = RepoExtensions.of(mapOf(official to listOf(available("official.ext", repoUrl = official))), emptyList())
         assertTrue(allRead.isObsolete("official.removed", null)!!)
-        assertTrue(allRead.isObsolete("dead.ext", dead)!!)
+    }
+
+    @Test
+    fun anExtensionOfARemovedRepoIsKeptButNotObsolete() {
+        // The repo "dead" was removed: only the official one is read
+        val repo = RepoExtensions.of(mapOf(official to listOf(available("official.ext", repoUrl = official))), emptyList())
+
+        assertFalse(repo.isObsolete("dead.ext", dead)!!)
+        // Even when the official repo lists the same package, it isn't updated from there
+        val installed = Extension.Installed(
+            name = "dead.ext",
+            pkgName = "official.ext",
+            versionName = "1",
+            versionCode = 1,
+            apiVersion = ExtensionsLoader.API_VERSION_MAX,
+            lang = Lang.ENGLISH,
+            pkgFactory = null,
+            sources = emptyList(),
+            icon = null,
+            repoUrl = dead,
+        )
+        assertNull(installed.listedIn(repo.available))
+        assertEquals(official, installed.copy(repoUrl = null).listedIn(repo.available)?.repoUrl)
+        assertEquals(official, installed.copy(repoUrl = official).listedIn(repo.available)?.repoUrl)
     }
 }

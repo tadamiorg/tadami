@@ -20,6 +20,8 @@ import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -63,12 +65,58 @@ internal class ExtensionsApi {
     }
 
     /**
+     * The first of [candidates] whose index can be read, see [ExtensionRepos.parse], with what its
+     * `repo.json` says of it, if it has one.
+     *
+     * @throws Exception The error of the last candidate when none can be read.
+     */
+    suspend fun fetchRepo(candidates: List<String>): FetchedRepo {
+        return withContext(Dispatchers.IO) {
+            var error: Exception = IllegalArgumentException("No repo URL")
+            for (url in candidates) {
+                val extensions = try {
+                    getExtensions(url)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    error = e
+                    continue
+                }
+                return@withContext FetchedRepo(url, extensions.size, getMeta(url))
+            }
+            throw error
+        }
+    }
+
+    /** What each repo of [repos] says of itself, for those that have a `repo.json` read. */
+    suspend fun findMetas(repos: Collection<String>): Map<String, RepoMeta> {
+        return withContext(Dispatchers.IO) {
+            repos.map { repo -> async { getMeta(repo)?.let { repo to it } } }
+                .awaitAll()
+                .filterNotNull()
+                .toMap()
+        }
+    }
+
+    /** What the repo [repoUrl] says of itself, null when it has no `repo.json` or it can't be read. */
+    private suspend fun getMeta(repoUrl: String): RepoMeta? {
+        return try {
+            val response = networkService.client.newCall(GET(ExtensionRepos.metaUrl(repoUrl))).awaitSuccess()
+            ExtensionRepos.parseMeta(json, response.use { it.body.string() })
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /**
      * Network, HTTP and index format errors are propagated so the caller can tell the repo failed.
      */
     private suspend fun getExtensions(repoBaseUrl: String): List<Extension.Available> {
         return try {
             val response = networkService.client
-                .newCall(GET("$repoBaseUrl/index.min.json"))
+                .newCall(GET(ExtensionRepos.indexUrl(repoBaseUrl)))
                 .awaitSuccess()
 
             with(json) {
@@ -115,8 +163,7 @@ internal class ExtensionsApi {
         for (installedExt in installedExtensions) {
             // Trusted first, then updated
             if (installedExt.loadIssue == ExtensionLoadIssue.UNTRUSTED) continue
-            val pkgName = installedExt.pkgName
-            val availableExt = extensions.find { it.pkgName == pkgName } ?: continue
+            val availableExt = installedExt.listedIn(extensions) ?: continue
             if (installedExt.isUpdatedBy(availableExt)) {
                 extensionsWithUpdate.add(installedExt)
             }
@@ -165,6 +212,8 @@ internal class ExtensionsApi {
 internal class RepoExtensions(
     listed: List<Extension.Available>,
     private val failedRepos: Set<String> = emptySet(),
+    /** The repos read or tried, null when unknown, see [isObsolete]. */
+    private val repos: Set<String>? = null,
 ) {
     /** The ones this app can load, the others can't be installed nor be an update. */
     val available = listed.filter { ExtensionsLoader.libVersionIssue(it.apiVersion) == null }
@@ -177,6 +226,8 @@ internal class RepoExtensions(
      * removed from the repos. Null when it can't be told: it may come from a repo that failed.
      */
     fun isObsolete(pkgName: String, repoUrl: String?): Boolean? = when {
+        // From a repo removed since: still installed and usable, it's in no repo anymore
+        repoUrl != null && repos != null && repoUrl !in repos -> false
         pkgName in listedPkgNames -> false
         failedRepos.isEmpty() -> true
         repoUrl != null && repoUrl !in failedRepos -> true
@@ -190,10 +241,13 @@ internal class RepoExtensions(
          */
         fun of(byRepo: Map<String, List<Extension.Available>?>, previous: List<Extension.Available>): RepoExtensions {
             val listed = byRepo.flatMap { (repo, extensions) -> extensions ?: previous.filter { it.repoUrl == repo } }
-            return RepoExtensions(listed, failedRepos = byRepo.filterValues { it == null }.keys)
+            return RepoExtensions(listed, failedRepos = byRepo.filterValues { it == null }.keys, repos = byRepo.keys)
         }
     }
 }
+
+/** The repo at [url], whose index lists [extensionsCount] extensions this app can read. */
+data class FetchedRepo(val url: String, val extensionsCount: Int, val meta: RepoMeta?)
 
 @Serializable
 private data class ExtensionJsonObject(

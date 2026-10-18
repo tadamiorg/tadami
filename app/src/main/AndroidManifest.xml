@@ -69,6 +69,17 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- tadami://add-repo?url=..., asks to add an extension repo -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="add-repo"
+                    android:scheme="tadami" />
+            </intent-filter>
 
             <meta-data
                 android:name="android.app.lib_name"

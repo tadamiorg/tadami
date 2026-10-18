@@ -369,6 +369,25 @@
     <string name="ext_uninstall">Désinstaller</string>
     <string name="ext_uninstall_title">Désinstaller cette extension ?</string>
     <string name="ext_uninstall_message">Elle sera supprimée de Tadami.</string>
+    <string name="ext_repos_title">Dépôts d\'extensions</string>
+    <string name="ext_repos_summary">Ajouter ou retirer les dépôts d\'où viennent les extensions</string>
+    <string name="ext_repo_official">Dépôt officiel</string>
+    <string name="ext_repo_url">URL du dépôt</string>
+    <string name="ext_repo_add_title">Ajouter un dépôt</string>
+    <string name="ext_repo_error_invalid">Ce n\'est pas une URL de dépôt valide</string>
+    <string name="ext_repo_error_https">L\'URL doit commencer par https://</string>
+    <string name="ext_repo_error_duplicate">Ce dépôt est déjà ajouté</string>
+    <string name="ext_repo_error_unreadable">Impossible de lire l\'index du dépôt : %1$s</string>
+    <string name="ext_repo_confirm_title">Ajouter ce dépôt ?</string>
+    <string name="ext_repo_confirm_warning">Ses extensions exécutent leur code dans Tadami : n\'ajoutez qu\'un dépôt de confiance.</string>
+    <string name="ext_repo_remove">Retirer</string>
+    <string name="ext_repo_remove_title">Retirer ce dépôt ?</string>
+    <string name="ext_repo_remove_message">Ses extensions disparaissent de la liste. Celles installées le restent, sans mises à jour.</string>
+    <plurals name="ext_repo_extensions_count">
+        <item quantity="one">%d extension</item>
+        <item quantity="many">%d extensions</item>
+        <item quantity="other">%d extensions</item>
+    </plurals>
     <string name="ext_install_error_download">Impossible de télécharger %1$s</string>
     <string name="ext_install_error_invalid">%1$s : le fichier téléchargé n\'est pas l\'extension attendue, rien n\'a été modifié</string>
     <string name="ext_install_error_checksum">%1$s : le fichier téléchargé ne correspond pas à la taille ou au SHA-256 indiqués par le dépôt, rien n\'a été modifié</string>
