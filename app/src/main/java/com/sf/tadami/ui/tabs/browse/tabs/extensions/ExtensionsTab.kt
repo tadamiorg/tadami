@@ -124,7 +124,7 @@ fun extensionsTab(
 
         uninstallDialog?.let { extension ->
             UninstallExtensionDialog(
-                extensionName = extension.name,
+                extension = extension,
                 onDismissRequest = { uninstallDialog = null },
                 onConfirm = { extensionsViewModel.uninstallExtension(extension) },
             )

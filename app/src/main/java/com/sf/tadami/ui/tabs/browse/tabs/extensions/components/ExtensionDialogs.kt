@@ -3,6 +3,7 @@ package com.sf.tadami.ui.tabs.browse.tabs.extensions.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
@@ -23,14 +24,21 @@ import java.net.URI
 
 @Composable
 fun UninstallExtensionDialog(
-    extensionName: String,
+    extension: Extension.Installed,
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
 ) {
     CustomAlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text(text = stringResource(R.string.ext_uninstall)) },
-        text = { Text(text = stringResource(R.string.ext_uninstall_confirm, extensionName)) },
+        // The platform dialog width, rather than the width of its short text
+        modifier = Modifier.fillMaxWidth(),
+        title = { Text(text = stringResource(R.string.ext_uninstall_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small)) {
+                ExtensionDialogHeader(extension)
+                Text(text = stringResource(R.string.ext_uninstall_message))
+            }
+        },
         confirmButton = {
             DefaultDialogConfirmButton(text = R.string.ext_uninstall) {
                 onConfirm()
@@ -51,26 +59,11 @@ fun InstallExtensionDialog(
     val repoHost = runCatching { URI(extension.repoUrl).host }.getOrNull() ?: extension.repoUrl
     CustomAlertDialog(
         onDismissRequest = onDismissRequest,
+        modifier = Modifier.fillMaxWidth(),
         title = { Text(text = stringResource(R.string.ext_install_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
-                ) {
-                    ExtensionIcon(extension = extension, modifier = Modifier.size(40.dp))
-                    Column {
-                        Text(text = extension.name, style = MaterialTheme.typography.titleSmall)
-                        Text(
-                            text = stringResource(
-                                R.string.ext_install_version_lang,
-                                extension.versionName,
-                                stringResource(extension.lang.getRes()),
-                            ),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                }
+                ExtensionDialogHeader(extension)
                 Text(
                     text = stringResource(R.string.ext_install_repo, repoHost),
                     style = MaterialTheme.typography.bodySmall,
@@ -86,6 +79,28 @@ fun InstallExtensionDialog(
         },
         dismissButton = { DefaultDialogCancelButton() },
     )
+}
+
+/** The icon, name, version and language of [extension], at the top of a dialog about it. */
+@Composable
+private fun ExtensionDialogHeader(extension: Extension) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
+    ) {
+        ExtensionIcon(extension = extension, modifier = Modifier.size(40.dp))
+        Column {
+            Text(text = extension.name, style = MaterialTheme.typography.titleSmall)
+            Text(
+                text = stringResource(
+                    R.string.ext_install_version_lang,
+                    extension.versionName,
+                    stringResource(extension.lang?.getRes() ?: R.string.language_unknown),
+                ),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+    }
 }
 
 /** Before trusting the signing key of an untrusted extension, and so every extension signed with it. */

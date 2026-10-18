@@ -134,7 +134,7 @@ fun ExtensionDetailsScreen(
 
             if (showUninstallDialog) {
                 UninstallExtensionDialog(
-                    extensionName = uiState.extension!!.name,
+                    extension = uiState.extension!!,
                     onDismissRequest = { showUninstallDialog = false },
                     onConfirm = {
                         extensionDetailsViewModel.uninstallExtension()

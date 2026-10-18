@@ -365,7 +365,8 @@
     <string name="ext_info_version">Version</string>
     <string name="ext_info_language">Language</string>
     <string name="ext_uninstall">Uninstall</string>
-    <string name="ext_uninstall_confirm">Uninstall %1$s?</string>
+    <string name="ext_uninstall_title">Uninstall this extension?</string>
+    <string name="ext_uninstall_message">It will be removed from Tadami.</string>
     <string name="ext_install_error_download">Couldn\'t download %1$s</string>
     <string name="ext_install_error_invalid">%1$s: the downloaded file isn\'t the expected extension, nothing was changed</string>
     <string name="ext_install_error_checksum">%1$s: the downloaded file doesn\'t match the size or SHA-256 the repository lists, nothing was changed</string>
