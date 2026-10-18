@@ -161,7 +161,11 @@ fun LibraryScreen(
     setCategoriesSelection?.let { selection ->
         SetCategoriesDialog(
             initialSelection = selection,
-            onDismissRequest = { setCategoriesSelection = null },
+            // Like the other actions of the bar, it ends the selection: the bar stays disabled after one
+            onDismissRequest = {
+                setCategoriesSelection = null
+                libraryViewModel.toggleAllSelected(false)
+            },
             onConfirm = { add, remove -> libraryViewModel.setSelectedCategories(add, remove) },
             onEditCategories = { navController.navigate(SettingsRoutes.CATEGORIES) }
         )

@@ -198,8 +198,10 @@ class LibraryViewModel : ViewModel() {
     }
 
     fun setSelectedCategories(add: List<Long>, remove: List<Long>) {
+        // Read now: closing the dialog ends the selection
+        val animeIds = selectedIds.toList()
         viewModelScope.launch(Dispatchers.IO) {
-            setAnimeCategories.await(selectedIds.toList(), add, remove)
+            setAnimeCategories.await(animeIds, add, remove)
             toggleAllSelected(false)
         }
     }
