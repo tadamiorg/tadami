@@ -325,7 +325,8 @@ fun WebviewScreen(
                         return true
                     }
                     NavigationDecision.BLOCK -> {
-                        if (window !== windows.firstOrNull() && !window.pageStarted) {
+                        // An ad chain: the popup has nothing else to show
+                        if (window.isPopup && (!window.pageStarted || !window.initialLoadDone || request.isRedirect)) {
                             view?.post { closeWindow(window) }
                         }
                         return true
