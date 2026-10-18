@@ -9,12 +9,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.ExtensionIcon
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.item.BaseBrowseItem
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.loadIssueMessage
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.secondaryItemAlpha
 
@@ -55,9 +55,9 @@ fun UnusableExtensionItem(
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyMedium,
             )
-            extension.loadIssue?.let { issue ->
+            loadIssueMessage(extension)?.let { message ->
                 Text(
-                    text = stringResource(issue.messageRes),
+                    text = message,
                     color = MaterialTheme.colorScheme.error,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,

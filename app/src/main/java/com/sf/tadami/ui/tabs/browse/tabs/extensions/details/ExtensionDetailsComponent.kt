@@ -7,6 +7,7 @@ import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.ui.components.banners.WarningBanner
 import com.sf.tadami.ui.components.widgets.ScrollbarLazyColumn
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.loadIssueMessage
 
 @Composable
 fun ExtensionDetailsComponent(
@@ -20,9 +21,9 @@ fun ExtensionDetailsComponent(
     ScrollbarLazyColumn(
         contentPadding = contentPadding,
     ) {
-        extension.loadIssue?.let { issue ->
+        if (extension.loadIssue != null) {
             item {
-                WarningBanner(issue.messageRes)
+                WarningBanner(loadIssueMessage(extension).orEmpty())
             }
         }
 

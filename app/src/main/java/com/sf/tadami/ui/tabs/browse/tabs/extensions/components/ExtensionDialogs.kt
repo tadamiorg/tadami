@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.api.ExtensionRepos
+import com.sf.tadami.extension.model.SourceIdConflict
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
@@ -49,10 +50,16 @@ fun UninstallExtensionDialog(
     )
 }
 
-/** Before installing a new extension, as nothing asks the system for it. */
+/**
+ * Before installing a new extension, as nothing asks the system for it.
+ *
+ * @param sourceIdConflict why it wouldn't be usable once installed, its source IDs being another
+ * extension's, null when it would be
+ */
 @Composable
 fun InstallExtensionDialog(
     extension: Extension.Available,
+    sourceIdConflict: SourceIdConflict?,
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
 ) {
@@ -74,6 +81,14 @@ fun InstallExtensionDialog(
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Text(text = stringResource(R.string.ext_install_message))
+                val conflictMessage = when (sourceIdConflict) {
+                    SourceIdConflict.Duplicate -> stringResource(R.string.ext_issue_source_id_duplicate_message)
+                    is SourceIdConflict.TakenBy -> stringResource(R.string.ext_install_source_id_conflict, sourceIdConflict.ownerName)
+                    null -> null
+                }
+                conflictMessage?.let {
+                    Text(text = it, color = MaterialTheme.colorScheme.error)
+                }
             }
         },
         confirmButton = {

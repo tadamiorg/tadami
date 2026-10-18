@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable
 import com.sf.tadami.extension.api.ExtensionRepos
 import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.extension.model.LibVersion
+import com.sf.tadami.extension.model.SourceIdConflict
 import com.sf.tadami.source.Source
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.utils.Lang
@@ -59,6 +60,13 @@ sealed class Extension {
         val loadIssue: ExtensionLoadIssue? = null,
         /** SHA-256 fingerprint of its signing key, the one stored when the user trusts it. */
         val signatureHash: String? = null,
+        /** Why its sources aren't registered, with [ExtensionLoadIssue.SOURCE_ID_CONFLICT]. */
+        val sourceIdConflict: SourceIdConflict? = null,
+        /**
+         * Its sources, loaded but not registered because of [sourceIdConflict]: they replace [sources]
+         * once the conflict is gone, see resolveSourceIdConflicts.
+         */
+        val refusedSources: List<Source> = emptyList(),
     ) : Extension() {
 
         /**

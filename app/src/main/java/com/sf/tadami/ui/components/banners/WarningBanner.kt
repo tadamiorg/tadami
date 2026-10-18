@@ -17,8 +17,16 @@ fun WarningBanner(
     @StringRes textRes: Int,
     modifier: Modifier = Modifier,
 ) {
+    WarningBanner(text = stringResource(textRes), modifier = modifier)
+}
+
+@Composable
+fun WarningBanner(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
     Text(
-        text = stringResource(textRes),
+        text = text,
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.error)

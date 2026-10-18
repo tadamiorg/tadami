@@ -24,13 +24,17 @@ import com.sf.tadami.extension.api.RepoMeta
 import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.extension.model.LoadResult
+import com.sf.tadami.extension.model.SourceIdConflict
 import com.sf.tadami.extension.util.ExtensionsGuard
 import com.sf.tadami.extension.util.ExtensionsInstaller
 import com.sf.tadami.extension.util.ExtensionsLoader
 import com.sf.tadami.extension.util.ExtensionOrigin
 import com.sf.tadami.extension.util.ExtensionsMigration
 import com.sf.tadami.extension.util.ExtensionsStorage
+import com.sf.tadami.extension.util.resolveSourceIdConflicts
+import com.sf.tadami.extension.util.sourceIdConflictOf
 import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerNotifier
+import com.sf.tadami.preferences.extensions.SourceIdOwnersPreferences
 import com.sf.tadami.preferences.extensions.TrustedExtensionsPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.source.Source
@@ -58,6 +62,8 @@ import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -95,6 +101,19 @@ class ExtensionManager(
 
     private val _installedExtensionsFlow = MutableStateFlow(emptyList<Extension.Installed>())
     val installedExtensionsFlow = _installedExtensionsFlow.asStateFlow()
+
+    /** Held while the installed extensions change, see [updateInstalledExtensions]. */
+    private val installedLock = Any()
+
+    /**
+     * The owner, a package name, of each source ID, see [resolveSourceIdConflicts]. Read at startup,
+     * then written after each change.
+     */
+    @Volatile
+    private var sourceIdOwners: Map<Long, String> = emptyMap()
+
+    /** Writes the owners one at a time, see [saveSourceIdOwners]. */
+    private val sourceIdOwnersMutex = Mutex()
 
     private val _legacyPackagesFlow = MutableStateFlow(emptyList<String>())
 
@@ -178,6 +197,9 @@ class ExtensionManager(
         }
         val safeMode = ExtensionsGuard.isSafeMode(context)
         _safeModeFlow.value = safeMode
+        sourceIdOwners = runCatching { runBlocking { dataStore.getPreferencesGroup(SourceIdOwnersPreferences).owners } }
+            .onFailure { Log.d("SourceIdOwners", it.stackTraceToString()) }
+            .getOrDefault(emptyMap())
         // Before the extensions are loaded, so that the ones still installed as apps are loaded
         // from their copy. A failure must not prevent the others from loading: retried next launch
         _legacyPackagesFlow.value = runCatching { runBlocking { ExtensionsMigration.migrate(context, dataStore) } }
@@ -189,7 +211,7 @@ class ExtensionManager(
         val loadedExtensions = extensions
             .filterIsInstance<LoadResult.Success>()
             .map { it.extension }
-        _installedExtensionsFlow.update { lateExtensions ->
+        updateInstalledExtensions { lateExtensions ->
             // One that timed out may have finished loading already
             loadedExtensions.map { extension ->
                 val loaded = lateExtensions.find { it.pkgName == extension.pkgName }
@@ -232,7 +254,7 @@ class ExtensionManager(
     /** Registers an extension that finished loading after its time limit. */
     private fun onLateExtensionLoaded(result: LoadResult) {
         val extension = (result as? LoadResult.Success)?.extension ?: return
-        _installedExtensionsFlow.update { installedExtensions ->
+        updateInstalledExtensions { installedExtensions ->
             val current = installedExtensions.find { it.pkgName == extension.pkgName }
             // Already replaced, by an update for instance, or uninstalled
             if (current != null &&
@@ -324,7 +346,7 @@ class ExtensionManager(
         if (availableExtensions.isEmpty() && repoExtensions.hasRepos) return
 
         var inferredRepos = emptyMap<String, String>()
-        _installedExtensionsFlow.update { installedExtensions ->
+        updateInstalledExtensions { installedExtensions ->
             val mutInstalledExtensions = installedExtensions.toMutableList()
             var changed = false
             val inferred = mutableMapOf<String, String>()
@@ -621,7 +643,7 @@ class ExtensionManager(
      * @param extension The extension to be registered.
      */
     private fun registerUpdatedExtension(extension: Extension.Installed) {
-        _installedExtensionsFlow.update { installedExtensions ->
+        updateInstalledExtensions { installedExtensions ->
             val mutInstalledExtensions = installedExtensions.toMutableList()
             val oldExtension = mutInstalledExtensions.find { it.pkgName == extension.pkgName }
             if (oldExtension != null) {
@@ -642,7 +664,7 @@ class ExtensionManager(
             .filter { it.pkgName in pkgNames }
             .flatMap { it.sources }
         _crashedSourcesFlow.update { it + crashedSources }
-        _installedExtensionsFlow.update { installedExtensions ->
+        updateInstalledExtensions { installedExtensions ->
             installedExtensions.map { it.withoutQuarantinedCode() }
         }
     }
@@ -652,8 +674,13 @@ class ExtensionManager(
      * loading, or since then, see [disableCrashedExtensions].
      */
     private fun Extension.Installed.withoutQuarantinedCode(): Extension.Installed {
-        if (sources.isEmpty() || !ExtensionsGuard.isQuarantined(context, pkgName)) return this
-        return copy(sources = emptyList(), loadIssue = ExtensionLoadIssue.QUARANTINED)
+        if (sources.isEmpty() && refusedSources.isEmpty() || !ExtensionsGuard.isQuarantined(context, pkgName)) return this
+        return copy(
+            sources = emptyList(),
+            refusedSources = emptyList(),
+            loadIssue = ExtensionLoadIssue.QUARANTINED,
+            sourceIdConflict = null,
+        )
     }
 
     /**
@@ -662,10 +689,56 @@ class ExtensionManager(
      * @param pkgName The package name of the uninstalled extension.
      */
     private fun unregisterExtension(pkgName: String) {
-        _installedExtensionsFlow.update { installedExtensions ->
+        updateInstalledExtensions { installedExtensions ->
             val installedExtension = installedExtensions.find { it.pkgName == pkgName }
             if (installedExtension != null) installedExtensions - installedExtension else installedExtensions
         }
+    }
+
+    /**
+     * Changes the installed extensions with [transform], then refuses those with a source ID another
+     * one owns, or gives a refused one its sources back, see [resolveSourceIdConflicts]. The owners
+     * changed are saved.
+     */
+    private fun updateInstalledExtensions(transform: (List<Extension.Installed>) -> List<Extension.Installed>) {
+        val ownersChanged = synchronized(installedLock) {
+            val (installed, owners) = resolveSourceIdConflicts(
+                extensions = transform(_installedExtensionsFlow.value),
+                owners = sourceIdOwners,
+                isOfficial = ExtensionsLoader::isOfficial,
+                installedAt = { pkgName -> ExtensionsStorage.apkFile(storageDir, pkgName).lastModified() },
+            )
+            _installedExtensionsFlow.value = installed
+            (owners != sourceIdOwners).also { sourceIdOwners = owners }
+        }
+        if (ownersChanged) saveSourceIdOwners()
+    }
+
+    /** Writes [sourceIdOwners], the latest ones whatever the order the writes run in. */
+    private fun saveSourceIdOwners() {
+        scope.launch {
+            sourceIdOwnersMutex.withLock {
+                dataStore.edit { preferences ->
+                    preferences[SourceIdOwnersPreferences.OWNERS] = SourceIdOwnersPreferences.encode(sourceIdOwners)
+                }
+            }
+        }
+    }
+
+    /**
+     * Why [extension] wouldn't be usable once installed, its source IDs being another extension's,
+     * see [resolveSourceIdConflicts], or null.
+     */
+    fun sourceIdConflictOf(extension: Extension.Available): SourceIdConflict? {
+        val listed = listedExtension(extension) ?: extension
+        return sourceIdConflictOf(
+            pkgName = listed.pkgName,
+            sourceIds = listed.sources.map { it.id },
+            official = ExtensionRepos.isOfficial(listed.repoUrl),
+            extensions = _installedExtensionsFlow.value,
+            owners = sourceIdOwners,
+            isOfficial = ExtensionsLoader::isOfficial,
+        )
     }
 
     /**

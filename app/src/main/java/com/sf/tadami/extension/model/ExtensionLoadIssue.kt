@@ -36,4 +36,11 @@ enum class ExtensionLoadIssue(
 
     /** Not loaded: the app started in safe mode after crashing at startup, until the user loads them again. */
     SAFE_MODE(R.string.ext_issue_safe_mode, R.string.ext_issue_safe_mode_message),
+
+    /**
+     * A source of another extension has the ID of one of its sources, see
+     * [com.sf.tadami.domain.extensions.Extension.Installed.sourceIdConflict], which names it: its
+     * sources aren't registered while that one is installed.
+     */
+    SOURCE_ID_CONFLICT(R.string.ext_issue_source_id_conflict, R.string.ext_issue_source_id_conflict_message),
 }

@@ -133,6 +133,7 @@ fun extensionsTab(
             installDialog?.let { extension ->
                 InstallExtensionDialog(
                     extension = extension,
+                    sourceIdConflict = remember(extension) { extensionsViewModel.sourceIdConflictOf(extension) },
                     onDismissRequest = { installDialog = null },
                     onConfirm = { extensionsViewModel.installExtension(extension) },
                 )

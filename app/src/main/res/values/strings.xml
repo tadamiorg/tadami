@@ -346,6 +346,10 @@
     <string name="ext_crashed_disabled">%1$s crashed and was disabled. Retry it in Extensions</string>
     <string name="ext_issue_safe_mode">Not loaded</string>
     <string name="ext_issue_safe_mode_message">Tadami started without extensions after crashing: load them again from the Extensions tab.</string>
+    <string name="ext_issue_source_id_conflict">Source ID conflict</string>
+    <string name="ext_issue_source_id_conflict_message">One of its sources has the ID of a source of %1$s, which would mix up their anime: uninstall one of the two extensions.</string>
+    <string name="ext_issue_source_id_duplicate_message">Two of its sources have the same ID: update the extension.</string>
+    <string name="ext_install_source_id_conflict">It won\'t be usable: one of its sources has the ID of a source of %1$s, already installed.</string>
     <string name="ext_safe_mode_banner">Safe mode: Tadami started without extensions after crashing. They stay unloaded until you load them again.</string>
     <string name="ext_safe_mode_load">Load extensions again</string>
     <string name="ext_trust">Trust</string>

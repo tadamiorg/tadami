@@ -10,6 +10,7 @@ import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.extension.model.InstallStep
+import com.sf.tadami.extension.model.SourceIdConflict
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
@@ -181,6 +182,10 @@ class ExtensionsViewModel : ViewModel() {
     fun cancelInstallUpdateExtension(extension: Extension) {
         extensionManager.cancelInstallUpdateExtension(extension)
     }
+
+    /** Why [extension] wouldn't be usable once installed, see [ExtensionManager.sourceIdConflictOf]. */
+    fun sourceIdConflictOf(extension: Extension.Available): SourceIdConflict? =
+        extensionManager.sourceIdConflictOf(extension)
 
     private fun addDownloadState(extension: Extension, installStep: InstallStep) {
         _currentDownloads.update { it + Pair(extension.pkgName, installStep) }
