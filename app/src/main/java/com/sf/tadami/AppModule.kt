@@ -8,6 +8,8 @@ import com.sf.tadami.data.AndroidDatabaseHandler
 import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.data.anime.AnimeRepositoryImpl
+import com.sf.tadami.data.category.CategoryRepository
+import com.sf.tadami.data.category.CategoryRepositoryImpl
 import com.sf.tadami.data.animeStatusAdapter
 import com.sf.tadami.data.dateColumnAdapter
 import com.sf.tadami.data.download.DownloadProvider
@@ -20,6 +22,12 @@ import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.anime.FetchIntervalInteractor
 import com.sf.tadami.data.interactors.anime.GetAnime
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.category.CreateCategoryWithName
+import com.sf.tadami.data.interactors.category.DeleteCategory
+import com.sf.tadami.data.interactors.category.GetCategories
+import com.sf.tadami.data.interactors.category.RenameCategory
+import com.sf.tadami.data.interactors.category.ReorderCategory
+import com.sf.tadami.data.interactors.category.SetAnimeCategories
 import com.sf.tadami.data.interactors.extension.GetExtensionLanguages
 import com.sf.tadami.data.interactors.extension.GetExtensionsByType
 import com.sf.tadami.data.interactors.history.GetHistoryInteractor
@@ -164,6 +172,10 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
             UpdatesRepositoryImpl(get())
         }
 
+        addSingletonFactory<CategoryRepository>{
+            CategoryRepositoryImpl(get())
+        }
+
         // Anime interactors
 
         addSingletonFactory {
@@ -194,6 +206,32 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
 
         addSingletonFactory {
             LibraryInteractor(get())
+        }
+
+        // Category interactors
+
+        addSingletonFactory {
+            GetCategories(get())
+        }
+
+        addSingletonFactory {
+            CreateCategoryWithName(get())
+        }
+
+        addSingletonFactory {
+            RenameCategory(get())
+        }
+
+        addSingletonFactory {
+            DeleteCategory(get(),get())
+        }
+
+        addSingletonFactory {
+            ReorderCategory(get())
+        }
+
+        addSingletonFactory {
+            SetAnimeCategories(get())
         }
 
         // Sources interactors

@@ -16,7 +16,12 @@ data class LibraryPreferences(
     val filterFlags: LibraryFilter,
     val sortFlags : LibrarySort,
     val lastUpdatedTimestamp : Long,
-    val newUpdatesCount : Int
+    val newUpdatesCount : Int,
+    // A category id, DEFAULT_CATEGORY_ASK to ask with the set categories dialog
+    val defaultCategory : Int,
+    // Category ids as strings, the Default category's included. No category to include updates them all
+    val updateCategories : Set<String>,
+    val updateCategoriesExclude : Set<String>
 ) : CustomPreferencesIdentifier {
 
     object AutoUpdateRestrictionItems {
@@ -42,6 +47,13 @@ data class LibraryPreferences(
         private val LIBRARY_UPDATE_LAST_TIMESTAMP = longPreferencesKey(CustomPreferences.appStateKey("library_update_last_timestamp"))
         val NEW_UPDATES_COUNT = intPreferencesKey(CustomPreferences.appStateKey("library_unseen_updates_count"))
 
+        // Categories
+        val DEFAULT_CATEGORY = intPreferencesKey("library_default_category")
+        val UPDATE_CATEGORIES = stringSetPreferencesKey("library_update_categories")
+        val UPDATE_CATEGORIES_EXCLUDE = stringSetPreferencesKey("library_update_categories_exclude")
+
+        const val DEFAULT_CATEGORY_ASK = -1
+
         // Flags
         private val FILTER_FLAGS = longPreferencesKey("library_filter_flags")
         private val SORT_FLAGS = longPreferencesKey("library_sort_flags")
@@ -57,7 +69,10 @@ data class LibraryPreferences(
                 filterFlags = LibraryFilter(flags = preferences[FILTER_FLAGS] ?: LibraryFilter.DEFAULT_FILTER),
                 sortFlags = LibrarySort(flags = preferences[SORT_FLAGS] ?: LibrarySort.DEFAULT_SORT),
                 lastUpdatedTimestamp = preferences[LIBRARY_UPDATE_LAST_TIMESTAMP] ?: 0L,
-                newUpdatesCount = preferences[NEW_UPDATES_COUNT] ?: 0
+                newUpdatesCount = preferences[NEW_UPDATES_COUNT] ?: 0,
+                defaultCategory = preferences[DEFAULT_CATEGORY] ?: DEFAULT_CATEGORY_ASK,
+                updateCategories = preferences[UPDATE_CATEGORIES] ?: emptySet(),
+                updateCategoriesExclude = preferences[UPDATE_CATEGORIES_EXCLUDE] ?: emptySet()
             )
         }
 
@@ -70,6 +85,9 @@ data class LibraryPreferences(
             preferences[SORT_FLAGS] = newValue.sortFlags.flags
             preferences[LIBRARY_UPDATE_LAST_TIMESTAMP] = newValue.lastUpdatedTimestamp
             preferences[NEW_UPDATES_COUNT] = newValue.newUpdatesCount
+            preferences[DEFAULT_CATEGORY] = newValue.defaultCategory
+            preferences[UPDATE_CATEGORIES] = newValue.updateCategories
+            preferences[UPDATE_CATEGORIES_EXCLUDE] = newValue.updateCategoriesExclude
         }
 
 
