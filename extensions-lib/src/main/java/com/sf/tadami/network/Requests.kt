@@ -33,3 +33,31 @@ fun POST(
 ): Request {
     throw Exception("Stub!")
 }
+
+/**
+ * A PUT request of [body].
+ *
+ * @since extensions-lib 1.7
+ */
+fun PUT(
+    url: String,
+    headers: Headers = DEFAULT_HEADERS,
+    body: RequestBody = DEFAULT_BODY,
+    cache: CacheControl = DEFAULT_CACHE_CONTROL,
+): Request {
+    throw Exception("Stub!")
+}
+
+/**
+ * A DELETE request, of [body] when it isn't empty.
+ *
+ * @since extensions-lib 1.7
+ */
+fun DELETE(
+    url: String,
+    headers: Headers = DEFAULT_HEADERS,
+    body: RequestBody = DEFAULT_BODY,
+    cache: CacheControl = DEFAULT_CACHE_CONTROL,
+): Request {
+    throw Exception("Stub!")
+}
