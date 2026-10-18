@@ -365,6 +365,9 @@
     <string name="ext_update_all">Update all</string>
     <string name="ext_info_version">Version</string>
     <string name="ext_info_language">Language</string>
+    <string name="ext_info_repository">Repository</string>
+    <string name="ext_origin_manual">Installed manually</string>
+    <string name="ext_origin_no_repo">Not in any repository</string>
     <string name="ext_uninstall">Uninstall</string>
     <string name="ext_uninstall_title">Uninstall this extension?</string>
     <string name="ext_uninstall_message">It will be removed from Tadami.</string>

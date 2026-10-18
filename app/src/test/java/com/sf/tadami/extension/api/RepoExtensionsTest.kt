@@ -104,4 +104,64 @@ class RepoExtensionsTest {
         assertEquals(official, installed.copy(repoUrl = null).listedIn(repo.available)?.repoUrl)
         assertEquals(official, installed.copy(repoUrl = official).listedIn(repo.available)?.repoUrl)
     }
+
+    private val realOfficial = "https://raw.githubusercontent.com/tadamiorg/tadami-extensions/main"
+    private val other = "https://example.com/repo"
+    private val third = "https://example.org/repo"
+
+    @Test
+    fun aPackageListedBySeveralReposIsShownOncePreferringItsInstalledRepoThenTheOfficialOne() {
+        val available = listOf(
+            available("shared", repoUrl = other),
+            available("shared", repoUrl = realOfficial),
+            available("shared", repoUrl = third),
+            available("only.other", repoUrl = other),
+            available("first.wins", repoUrl = third),
+            available("first.wins", repoUrl = other),
+        )
+
+        assertEquals(
+            listOf("shared" to realOfficial, "only.other" to other, "first.wins" to third),
+            RepoExtensions.deduplicated(available).map { it.pkgName to it.repoUrl },
+        )
+        assertEquals(
+            listOf("shared" to third, "only.other" to other, "first.wins" to other),
+            RepoExtensions.deduplicated(available, mapOf("shared" to third, "first.wins" to other))
+                .map { it.pkgName to it.repoUrl },
+        )
+    }
+
+    @Test
+    fun anInstalledExtensionIsOnlyUpdatedFromItsRepoOrTheOfficialOneWhenItsRepoIsUnknown() {
+        val available = listOf(available("shared", repoUrl = other), available("shared", repoUrl = realOfficial))
+        val installed = Extension.Installed(
+            name = "shared",
+            pkgName = "shared",
+            versionName = "1",
+            versionCode = 1,
+            apiVersion = ExtensionsLoader.API_VERSION_MAX,
+            lang = Lang.ENGLISH,
+            pkgFactory = null,
+            sources = emptyList(),
+            icon = null,
+        )
+
+        assertEquals(other, installed.copy(repoUrl = other).listedIn(available)?.repoUrl)
+        assertEquals(realOfficial, installed.listedIn(available)?.repoUrl)
+        assertNull(installed.copy(repoUrl = third).listedIn(available))
+    }
+
+    @Test
+    fun anExtensionIsObsoleteWhenItsOwnRepoNoLongerListsIt() {
+        val repo = RepoExtensions.of(
+            mapOf(official to listOf(available("moved", repoUrl = official)), other to emptyList()),
+            emptyList(),
+        )
+
+        // Listed by another repo, not by its own
+        assertTrue(repo.isObsolete("moved", other)!!)
+        assertFalse(repo.isObsolete("moved", official)!!)
+        // Unknown repo: listed by one of them
+        assertFalse(repo.isObsolete("moved", null)!!)
+    }
 }

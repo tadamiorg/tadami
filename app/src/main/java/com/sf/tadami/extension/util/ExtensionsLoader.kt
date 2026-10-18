@@ -123,16 +123,26 @@ internal object ExtensionsLoader {
             items = pkgNames,
             timeoutMillis = LOAD_TIMEOUT_MS,
             // One malformed package must not prevent the others from loading
-            load = { runCatching { loadExtensionFromPkgName(context, it, trustedSignatures, safeMode) }.getOrDefault(LoadResult.Error) },
+            load = {
+                runCatching { loadExtensionFromPkgName(context, it, trustedSignatures, safeMode).withOrigin(context, it) }
+                    .getOrDefault(LoadResult.Error)
+            },
             timedOut = { pkgName ->
                 Log.d("LoadExtension", "Extension $pkgName timed out after ${LOAD_TIMEOUT_MS}ms")
                 runCatching {
                     getExtensionPackageInfo(context, pkgName)
-                        ?.let { unusableResult(context, it, ExtensionLoadIssue.TIMED_OUT) }
+                        ?.let { unusableResult(context, it, ExtensionLoadIssue.TIMED_OUT).withOrigin(context, pkgName) }
                 }.getOrNull() ?: LoadResult.Error
             },
             onLateResult = onLateResult,
         )
+    }
+
+    /** This result with where its extension [pkgName] was installed from, see [ExtensionsStorage.readOrigin]. */
+    private fun LoadResult.withOrigin(context: Context, pkgName: String): LoadResult {
+        if (this !is LoadResult.Success) return this
+        val origin = ExtensionsStorage.readOrigin(ExtensionsStorage.dir(context), pkgName) ?: return this
+        return copy(extension = extension.copy(repoUrl = origin.repoUrl, isManual = origin.manual))
     }
 
     /**

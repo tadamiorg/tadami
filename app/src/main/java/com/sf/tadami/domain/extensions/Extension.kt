@@ -1,6 +1,7 @@
 package com.sf.tadami.domain.extensions
 
 import android.graphics.drawable.Drawable
+import com.sf.tadami.extension.api.ExtensionRepos
 import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.extension.model.LibVersion
 import com.sf.tadami.source.Source
@@ -47,16 +48,33 @@ sealed class Extension {
         val icon: Drawable?,
         val hasUpdate: Boolean = false,
         val isObsolete: Boolean = false,
+        /**
+         * The repo it was installed or updated from, recorded since, or the only repo that lists it,
+         * null when it's unknown, see [listedIn].
+         */
         val repoUrl: String? = null,
+        /** Whether it was installed with adb in a debug build, from no repo. */
+        val isManual: Boolean = false,
         /** Set when the extension can't be used, [sources] is empty then. */
         val loadIssue: ExtensionLoadIssue? = null,
         /** SHA-256 fingerprint of its signing key, the one stored when the user trusts it. */
         val signatureHash: String? = null,
     ) : Extension() {
 
-        /** Its entry in [available]: from the repo it comes from when it's known, see [repoUrl]. */
-        fun listedIn(available: List<Available>): Available? =
-            available.find { it.pkgName == pkgName && (repoUrl == null || it.repoUrl == repoUrl) }
+        /**
+         * Its entry in [available], the one it's updated with: only from the repo it comes from when
+         * it's known, see [repoUrl], from the official repo otherwise, or the first one that lists
+         * it. Another repo can't update it: one of the same package signed with another key would be
+         * refused anyway, see ExtensionsInstaller.
+         */
+        fun listedIn(available: List<Available>): Available? {
+            val entries = available.filter { it.pkgName == pkgName }
+            return if (repoUrl != null) {
+                entries.find { it.repoUrl == repoUrl }
+            } else {
+                entries.find { ExtensionRepos.isOfficial(it.repoUrl) } ?: entries.firstOrNull()
+            }
+        }
 
         /** Whether [available] is an update of this one, see [isUpdate]. */
         fun isUpdatedBy(available: Available): Boolean =

@@ -3,6 +3,7 @@ package com.sf.tadami.extension.util
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeFalse
@@ -27,6 +28,50 @@ class ExtensionsStorageTest {
         val dir = tmpFolder.root
         assertThrows(IllegalArgumentException::class.java) { ExtensionsStorage.apkFile(dir, "../com.evil") }
         assertThrows(IllegalArgumentException::class.java) { ExtensionsStorage.newTmpFile(dir, "../com.evil") }
+    }
+
+    @Test
+    fun theOriginOfAnExtensionIsRecordedNextToItAndDeletedWithIt() {
+        val dir = tmpFolder.root
+        assertNull(ExtensionsStorage.readOrigin(dir, pkgName))
+
+        val origin = ExtensionOrigin(repoUrl = "https://example.com/repo")
+        ExtensionsStorage.writeOrigin(dir, pkgName, origin)
+        assertEquals(origin, ExtensionsStorage.readOrigin(dir, pkgName))
+        ExtensionsStorage.writeOrigin(dir, pkgName, ExtensionOrigin(manual = true))
+        assertEquals(ExtensionOrigin(manual = true), ExtensionsStorage.readOrigin(dir, pkgName))
+        // Not taken for an extension
+        assertEquals(emptyList<String>(), ExtensionsStorage.pkgNames(dir))
+
+        ExtensionsStorage.writeOrigin(dir, pkgName, null)
+        assertNull(ExtensionsStorage.readOrigin(dir, pkgName))
+
+        ExtensionsStorage.commit(dir, pkgName, ExtensionsStorage.newTmpFile(dir, pkgName).apply { writeText("v1") })
+        ExtensionsStorage.writeOrigin(dir, pkgName, origin)
+        ExtensionsStorage.delete(dir, pkgName)
+        assertNull(ExtensionsStorage.readOrigin(dir, pkgName))
+    }
+
+    @Test
+    fun anUnreadableOriginIsUnknown() {
+        val dir = tmpFolder.root
+        File(dir, "$pkgName.json").writeText("{not json")
+
+        assertNull(ExtensionsStorage.readOrigin(dir, pkgName))
+    }
+
+    @Test
+    fun theOriginsOfExtensionsNoLongerThereAreCleaned() {
+        val dir = tmpFolder.root
+        val other = "com.sf.tadami.extension.fr.voiranime"
+        ExtensionsStorage.commit(dir, pkgName, ExtensionsStorage.newTmpFile(dir, pkgName).apply { writeText("v1") })
+        ExtensionsStorage.writeOrigin(dir, pkgName, ExtensionOrigin(repoUrl = "https://a"))
+        ExtensionsStorage.writeOrigin(dir, other, ExtensionOrigin(repoUrl = "https://b"))
+
+        ExtensionsStorage.cleanOrphanOrigins(dir)
+
+        assertEquals(ExtensionOrigin(repoUrl = "https://a"), ExtensionsStorage.readOrigin(dir, pkgName))
+        assertFalse(File(dir, "$other.json").exists())
     }
 
     @Test

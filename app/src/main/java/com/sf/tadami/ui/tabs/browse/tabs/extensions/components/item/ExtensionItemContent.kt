@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.sf.tadami.R
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.extensionOrigin
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.model.InstallStep
 import com.sf.tadami.ui.animeinfos.details.infos.DotSeparatorNoSpaceText
@@ -82,6 +83,15 @@ fun ExtensionItemContent(
                     )
                 }
             }
+        }
+        extensionOrigin(extension)?.let { origin ->
+            Text(
+                modifier = Modifier.secondaryItemAlpha(),
+                text = origin,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
     }
 }

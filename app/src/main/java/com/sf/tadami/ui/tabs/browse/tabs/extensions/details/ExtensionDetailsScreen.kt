@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,8 +31,10 @@ import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.grid.EmptyScreen
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 import com.sf.tadami.ui.components.widgets.ContentLoader
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.LocalExtensionRepos
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.TrustExtensionDialog
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.UninstallExtensionDialog
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.rememberExtensionReposInfo
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -123,14 +126,16 @@ fun ExtensionDetailsScreen(
                 )
                 return@Scaffold
             }
-            ExtensionDetailsComponent(
-                contentPadding = it,
-                onClickUninstall = { showUninstallDialog = true },
-                onClickTrust = { showTrustDialog = true },
-                onClickRetry = extensionDetailsViewModel::retryExtension,
-                extension = uiState.extension!!,
-                isReloading = uiState.isReloading,
-            )
+            CompositionLocalProvider(LocalExtensionRepos provides rememberExtensionReposInfo()) {
+                ExtensionDetailsComponent(
+                    contentPadding = it,
+                    onClickUninstall = { showUninstallDialog = true },
+                    onClickTrust = { showTrustDialog = true },
+                    onClickRetry = extensionDetailsViewModel::retryExtension,
+                    extension = uiState.extension!!,
+                    isReloading = uiState.isReloading,
+                )
+            }
 
             if (showUninstallDialog) {
                 UninstallExtensionDialog(

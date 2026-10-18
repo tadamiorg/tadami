@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.sf.tadami.domain.source.Source
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.LocalExtensionRepos
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.extensionOrigin
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.item.BaseBrowseItem
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.secondaryItemAlpha
@@ -51,10 +53,13 @@ private val defaultContent: @Composable RowScope.(Source, String?) -> Unit = { s
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.bodyMedium,
         )
-        if (sourceLangString != null) {
+        // Where its extension comes from, in the sources tab
+        val origin = LocalExtensionRepos.current.installedBySource[source.id]?.let { extensionOrigin(it) }
+        val secondaryText = listOfNotNull(sourceLangString, origin).joinToString(" • ").takeIf { it.isNotEmpty() }
+        if (secondaryText != null) {
             Text(
                 modifier = Modifier.secondaryItemAlpha(),
-                text = sourceLangString,
+                text = secondaryText,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodySmall,

@@ -27,6 +27,7 @@ import com.sf.tadami.extension.model.LoadResult
 import com.sf.tadami.extension.util.ExtensionsGuard
 import com.sf.tadami.extension.util.ExtensionsInstaller
 import com.sf.tadami.extension.util.ExtensionsLoader
+import com.sf.tadami.extension.util.ExtensionOrigin
 import com.sf.tadami.extension.util.ExtensionsMigration
 import com.sf.tadami.extension.util.ExtensionsStorage
 import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerNotifier
@@ -172,6 +173,7 @@ class ExtensionManager(
         if (Application.getProcessName() == context.packageName) {
             ExtensionsStorage.cleanTmp(storageDir)
             ExtensionsStorage.cleanOrphanOatFiles(storageDir)
+            ExtensionsStorage.cleanOrphanOrigins(storageDir)
             ExtensionsGuard.checkPreviousExit(context)
         }
         val safeMode = ExtensionsGuard.isSafeMode(context)
@@ -321,8 +323,21 @@ class ExtensionManager(
             val mutInstalledExtensions = installedExtensions.toMutableList()
             var changed = false
 
-            for ((index, installedExt) in mutInstalledExtensions.withIndex()) {
-                val pkgName = installedExt.pkgName
+            for ((index, listedExt) in mutInstalledExtensions.withIndex()) {
+                val pkgName = listedExt.pkgName
+                // Installed before its origin was recorded: from the only repo that lists it, if any
+                val inferredRepoUrl = availableExtensions
+                    .filter { it.pkgName == pkgName }
+                    .map { it.repoUrl }
+                    .distinct()
+                    .singleOrNull()
+                    .takeIf { listedExt.repoUrl == null && !listedExt.isManual }
+                val installedExt = if (inferredRepoUrl != null) {
+                    changed = true
+                    listedExt.copy(repoUrl = inferredRepoUrl).also { mutInstalledExtensions[index] = it }
+                } else {
+                    listedExt
+                }
                 val availableExt = installedExt.listedIn(availableExtensions)
 
                 if (availableExt == null) {
@@ -336,15 +351,8 @@ class ExtensionManager(
                 } else {
                     val hasUpdate = installedExt.updateExists(availableExt)
 
-                    if (installedExt.hasUpdate != hasUpdate ||
-                        installedExt.isObsolete ||
-                        installedExt.repoUrl != availableExt.repoUrl
-                    ) {
-                        mutInstalledExtensions[index] = installedExt.copy(
-                            hasUpdate = hasUpdate,
-                            isObsolete = false,
-                            repoUrl = availableExt.repoUrl,
-                        )
+                    if (installedExt.hasUpdate != hasUpdate || installedExt.isObsolete) {
+                        mutInstalledExtensions[index] = installedExt.copy(hasUpdate = hasUpdate, isObsolete = false)
                         changed = true
                     }
                 }
@@ -436,7 +444,10 @@ class ExtensionManager(
                     // The same version can fix one that can't be used
                     val allowSameVersion = installed == null || installed.loadIssue != null
                     installer.verifyAndCommit(file, pkgName, listed, allowSameVersion).also {
-                        if (it == null) reloadExtension(pkgName)
+                        if (it != null) return@also
+                        // Updated from this repo only from now on, see Extension.Installed.listedIn
+                        ExtensionsStorage.writeOrigin(storageDir, pkgName, ExtensionOrigin(repoUrl = listed.repoUrl))
+                        reloadExtension(pkgName)
                     }
                 }
             }

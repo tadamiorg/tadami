@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.domain.extensions.Extensions
 import com.sf.tadami.extension.ExtensionManager
+import com.sf.tadami.extension.api.RepoExtensions
 import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
@@ -32,7 +33,8 @@ class GetExtensionsByType(
                 )
                 // An untrusted one is trusted first, then updated
                 .partition { it.hasUpdate && it.loadIssue != ExtensionLoadIssue.UNTRUSTED }
-            val available = _available
+            // Once per package, when several repos list it
+            val available = RepoExtensions.deduplicated(_available, _installed.associate { it.pkgName to it.repoUrl })
                 .filter { extension ->
                     _installed.none { it.pkgName == extension.pkgName }
                 }

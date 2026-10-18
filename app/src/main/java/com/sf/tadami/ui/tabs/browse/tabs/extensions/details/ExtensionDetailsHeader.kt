@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.extensionOrigin
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.ExtensionIcon
 import com.sf.tadami.ui.utils.padding
@@ -82,6 +83,16 @@ fun ExtensionDetailsHeader(
                 modifier = Modifier.weight(1f),
                 primaryText = stringResource(id = extension.lang?.getRes() ?: R.string.language_unknown),
                 secondaryText = stringResource(R.string.ext_info_language),
+            )
+        }
+
+        extensionOrigin(extension)?.let { origin ->
+            InfoText(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = MaterialTheme.padding.extraLarge, vertical = MaterialTheme.padding.small),
+                primaryText = origin,
+                secondaryText = stringResource(R.string.ext_info_repository),
             )
         }
 

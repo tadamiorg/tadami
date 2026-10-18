@@ -6,6 +6,7 @@ import androidx.compose.material.icons.outlined.TravelExplore
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -17,6 +18,8 @@ import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.screens.ScreenTabContent
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.LocalExtensionRepos
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.rememberExtensionReposInfo
 import com.sf.tadami.ui.tabs.browse.tabs.sources.components.SourcesComponent
 import com.sf.tadami.ui.themes.colorschemes.active
 import com.sf.tadami.utils.Lang
@@ -52,22 +55,24 @@ fun sourcesTab(
             Action.CastButton()
         ),
         content = { contentPadding, snackbarHostState ->
-            SourcesComponent(
-                uiState = uiState,
-                contentPadding = contentPadding,
-                onClickItem = { source ->
-                    navController.navigate("${DiscoverRoutes.SEARCH}/${source.id}")
-                },
-                onRecentClicked = { source ->
-                    navController.navigate("${DiscoverRoutes.RECENT}/${source.id}")
-                },
-                onOptionsClicked = { source ->
-                    navController.navigate("${SourcesRoutes.SETTINGS}/${source.id}")
-                },
-                onUnusableExtensionClicked = { extension ->
-                    navController.navigate("${DiscoverRoutes.EXTENSION_DETAILS}/${extension.pkgName}")
-                },
-            )
+            CompositionLocalProvider(LocalExtensionRepos provides rememberExtensionReposInfo(withSources = true)) {
+                SourcesComponent(
+                    uiState = uiState,
+                    contentPadding = contentPadding,
+                    onClickItem = { source ->
+                        navController.navigate("${DiscoverRoutes.SEARCH}/${source.id}")
+                    },
+                    onRecentClicked = { source ->
+                        navController.navigate("${DiscoverRoutes.RECENT}/${source.id}")
+                    },
+                    onOptionsClicked = { source ->
+                        navController.navigate("${SourcesRoutes.SETTINGS}/${source.id}")
+                    },
+                    onUnusableExtensionClicked = { extension ->
+                        navController.navigate("${DiscoverRoutes.EXTENSION_DETAILS}/${extension.pkgName}")
+                    },
+                )
+            }
         },
     )
 }

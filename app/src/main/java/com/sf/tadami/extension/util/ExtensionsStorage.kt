@@ -3,19 +3,25 @@ package com.sf.tadami.extension.util
 import android.content.Context
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
 /**
  * The installed extensions: one APK per extension, `filesDir/extensions/<pkgName>.apk`, read-only as
- * Android 14+ refuses to load code from a writable file.
+ * Android 14+ refuses to load code from a writable file, and where it was installed from next to it,
+ * `<pkgName>.json`, see [ExtensionOrigin].
  */
 internal object ExtensionsStorage {
 
     private const val DIR_NAME = "extensions"
     private const val APK_SUFFIX = ".apk"
     private const val TMP_SUFFIX = ".tmp"
+    private const val ORIGIN_SUFFIX = ".json"
+
+    private val json = Json { ignoreUnknownKeys = true }
 
     /** Where ART puts what it compiles of an APK of the folder: `oat/<isa>/<pkgName>.odex`... */
     private const val OAT_DIR_NAME = "oat"
@@ -62,9 +68,39 @@ internal object ExtensionsStorage {
         return target
     }
 
-    /** Deletes the APK of [pkgName] and what ART compiled of it. */
+    private fun originFile(dir: File, pkgName: String): File {
+        require(isValidPkgName(pkgName)) { "Invalid package name $pkgName" }
+        return File(dir, pkgName + ORIGIN_SUFFIX)
+    }
+
+    /** Where the extension [pkgName] was installed from, null when it's unknown. */
+    fun readOrigin(dir: File, pkgName: String): ExtensionOrigin? {
+        val file = originFile(dir, pkgName).takeIf { it.isFile } ?: return null
+        return runCatching { json.decodeFromString(ExtensionOrigin.serializer(), file.readText()) }.getOrNull()
+    }
+
+    /** Records where the extension [pkgName] was installed from, forgets it when [origin] is null. */
+    fun writeOrigin(dir: File, pkgName: String, origin: ExtensionOrigin?) {
+        val file = originFile(dir, pkgName)
+        if (origin == null) {
+            file.delete()
+        } else {
+            file.writeText(json.encodeToString(ExtensionOrigin.serializer(), origin))
+        }
+    }
+
+    /** Deletes the origins of the extensions whose APK isn't in [dir] anymore, see [readOrigin]. */
+    fun cleanOrphanOrigins(dir: File) {
+        dir.listFiles { file -> file.name.endsWith(ORIGIN_SUFFIX) }?.forEach { file ->
+            val pkgName = file.name.removeSuffix(ORIGIN_SUFFIX)
+            if (!isValidPkgName(pkgName) || !apkFile(dir, pkgName).exists()) file.delete()
+        }
+    }
+
+    /** Deletes the APK of [pkgName], where it was installed from and what ART compiled of it. */
     fun delete(dir: File, pkgName: String): Boolean {
         val deleted = apkFile(dir, pkgName).delete()
+        originFile(dir, pkgName).delete()
         val oatFiles = File(dir, OAT_DIR_NAME).listFiles().orEmpty()
         oatFiles
             .flatMap { it.listFiles().orEmpty().asList() }
@@ -106,3 +142,13 @@ internal object ExtensionsStorage {
         return locks.getOrPut(pkgName) { Mutex() }.withLock { block() }
     }
 }
+
+/**
+ * Where an installed extension comes from: the repo [repoUrl] it was installed or updated from, or
+ * [manual], installed with adb in a debug build.
+ */
+@Serializable
+internal data class ExtensionOrigin(
+    val repoUrl: String? = null,
+    val manual: Boolean = false,
+)

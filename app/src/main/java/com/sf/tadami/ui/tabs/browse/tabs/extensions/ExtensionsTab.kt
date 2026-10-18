@@ -5,6 +5,7 @@ import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,9 +31,11 @@ import com.sf.tadami.ui.components.screens.ScreenTabContent
 import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.ExtensionComponent
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.InstallExtensionDialog
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.LocalExtensionRepos
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.RemoveLegacyPackagesDialog
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.TrustExtensionDialog
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.UninstallExtensionDialog
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.rememberExtensionReposInfo
 import com.sf.tadami.ui.themes.colorschemes.active
 import com.sf.tadami.utils.Lang
 import java.net.URLEncoder
@@ -73,88 +76,90 @@ fun extensionsTab(
             ),
         )
     ) { contentPadding, _ ->
-        var installDialog by remember { mutableStateOf<Extension.Available?>(null) }
-        var uninstallDialog by remember { mutableStateOf<Extension.Installed?>(null) }
-        var trustDialog by remember { mutableStateOf<Extension.Installed?>(null) }
-        var showLegacyPackagesDialog by remember { mutableStateOf(false) }
+        CompositionLocalProvider(LocalExtensionRepos provides rememberExtensionReposInfo()) {
+            var installDialog by remember { mutableStateOf<Extension.Available?>(null) }
+            var uninstallDialog by remember { mutableStateOf<Extension.Installed?>(null) }
+            var trustDialog by remember { mutableStateOf<Extension.Installed?>(null) }
+            var showLegacyPackagesDialog by remember { mutableStateOf(false) }
 
-        // Back from the uninstall dialog of the system for instance
-        val lifecycleOwner = LocalLifecycleOwner.current
-        DisposableEffect(lifecycleOwner.lifecycle) {
-            val observer = object : DefaultLifecycleObserver {
-                override fun onResume(owner: LifecycleOwner) {
-                    extensionsViewModel.onResume()
+            // Back from the uninstall dialog of the system for instance
+            val lifecycleOwner = LocalLifecycleOwner.current
+            DisposableEffect(lifecycleOwner.lifecycle) {
+                val observer = object : DefaultLifecycleObserver {
+                    override fun onResume(owner: LifecycleOwner) {
+                        extensionsViewModel.onResume()
+                    }
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose {
+                    lifecycleOwner.lifecycle.removeObserver(observer)
                 }
             }
-            lifecycleOwner.lifecycle.addObserver(observer)
-            onDispose {
-                lifecycleOwner.lifecycle.removeObserver(observer)
+
+            ExtensionComponent(
+                state = uiState,
+                contentPadding = contentPadding,
+                searchQuery = uiState.searchQuery,
+                onLongClickItem = { extension ->
+                    when (extension) {
+                        is Extension.Available -> installDialog = extension
+                        is Extension.Installed -> uninstallDialog = extension
+                    }
+                },
+                onClickItemCancel = extensionsViewModel::cancelInstallUpdateExtension,
+                onClickUpdateAll = extensionsViewModel::updateAllExtensions,
+                onOpenWebView = { extension ->
+                    extension.sources.getOrNull(0)?.let { source ->
+                        val encodedUrl = URLEncoder.encode(
+                            source.baseUrl,
+                            StandardCharsets.UTF_8.toString()
+                        )
+                        navController.navigate("${SourcesRoutes.EXTENSIONS_WEBVIEW}/${source.id}/${source.name}/${encodedUrl}")
+                    }
+                },
+                onInstallExtension = { installDialog = it },
+                onOpenExtension = {
+                    navController.navigate("${DiscoverRoutes.EXTENSION_DETAILS}/${it.pkgName}")
+                },
+                onUninstallExtension = { uninstallDialog = it },
+                onTrustExtension = { trustDialog = it },
+                onRetryExtension = extensionsViewModel::retryExtension,
+                onUpdateExtension = extensionsViewModel::updateExtension,
+                onRemoveLegacyPackages = { showLegacyPackagesDialog = true },
+                onLoadExtensionsAgain = extensionsViewModel::loadExtensionsAgain,
+                onRefresh = extensionsViewModel::findAvailableExtensions,
+            )
+
+            installDialog?.let { extension ->
+                InstallExtensionDialog(
+                    extension = extension,
+                    onDismissRequest = { installDialog = null },
+                    onConfirm = { extensionsViewModel.installExtension(extension) },
+                )
             }
-        }
 
-        ExtensionComponent(
-            state = uiState,
-            contentPadding = contentPadding,
-            searchQuery = uiState.searchQuery,
-            onLongClickItem = { extension ->
-                when (extension) {
-                    is Extension.Available -> installDialog = extension
-                    is Extension.Installed -> uninstallDialog = extension
-                }
-            },
-            onClickItemCancel = extensionsViewModel::cancelInstallUpdateExtension,
-            onClickUpdateAll = extensionsViewModel::updateAllExtensions,
-            onOpenWebView = { extension ->
-                extension.sources.getOrNull(0)?.let { source ->
-                    val encodedUrl = URLEncoder.encode(
-                        source.baseUrl,
-                        StandardCharsets.UTF_8.toString()
-                    )
-                    navController.navigate("${SourcesRoutes.EXTENSIONS_WEBVIEW}/${source.id}/${source.name}/${encodedUrl}")
-                }
-            },
-            onInstallExtension = { installDialog = it },
-            onOpenExtension = {
-                navController.navigate("${DiscoverRoutes.EXTENSION_DETAILS}/${it.pkgName}")
-            },
-            onUninstallExtension = { uninstallDialog = it },
-            onTrustExtension = { trustDialog = it },
-            onRetryExtension = extensionsViewModel::retryExtension,
-            onUpdateExtension = extensionsViewModel::updateExtension,
-            onRemoveLegacyPackages = { showLegacyPackagesDialog = true },
-            onLoadExtensionsAgain = extensionsViewModel::loadExtensionsAgain,
-            onRefresh = extensionsViewModel::findAvailableExtensions,
-        )
+            uninstallDialog?.let { extension ->
+                UninstallExtensionDialog(
+                    extension = extension,
+                    onDismissRequest = { uninstallDialog = null },
+                    onConfirm = { extensionsViewModel.uninstallExtension(extension) },
+                )
+            }
 
-        installDialog?.let { extension ->
-            InstallExtensionDialog(
-                extension = extension,
-                onDismissRequest = { installDialog = null },
-                onConfirm = { extensionsViewModel.installExtension(extension) },
-            )
-        }
+            trustDialog?.let { extension ->
+                TrustExtensionDialog(
+                    extension = extension,
+                    onDismissRequest = { trustDialog = null },
+                    onConfirm = { extensionsViewModel.trustExtension(extension) },
+                )
+            }
 
-        uninstallDialog?.let { extension ->
-            UninstallExtensionDialog(
-                extension = extension,
-                onDismissRequest = { uninstallDialog = null },
-                onConfirm = { extensionsViewModel.uninstallExtension(extension) },
-            )
-        }
-
-        trustDialog?.let { extension ->
-            TrustExtensionDialog(
-                extension = extension,
-                onDismissRequest = { trustDialog = null },
-                onConfirm = { extensionsViewModel.trustExtension(extension) },
-            )
-        }
-
-        if (showLegacyPackagesDialog) {
-            RemoveLegacyPackagesDialog(
-                onDismissRequest = { showLegacyPackagesDialog = false },
-                onConfirm = extensionsViewModel::removeLegacyPackages,
-            )
+            if (showLegacyPackagesDialog) {
+                RemoveLegacyPackagesDialog(
+                    onDismissRequest = { showLegacyPackagesDialog = false },
+                    onConfirm = extensionsViewModel::removeLegacyPackages,
+                )
+            }
         }
     }
 }

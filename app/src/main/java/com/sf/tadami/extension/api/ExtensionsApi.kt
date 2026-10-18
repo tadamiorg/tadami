@@ -221,6 +221,9 @@ internal class RepoExtensions(
     /** All of them: one made for a lib version this app can't load is still in the repo, not removed. */
     val listedPkgNames = listed.mapTo(HashSet()) { it.pkgName }
 
+    /** [listedPkgNames] by repo. */
+    private val listedPkgNamesByRepo = listed.groupBy({ it.repoUrl }, { it.pkgName }).mapValues { it.value.toSet() }
+
     /**
      * Whether the installed extension [pkgName], from the repo [repoUrl] (null when unknown), was
      * removed from the repos. Null when it can't be told: it may come from a repo that failed.
@@ -228,6 +231,9 @@ internal class RepoExtensions(
     fun isObsolete(pkgName: String, repoUrl: String?): Boolean? = when {
         // From a repo removed since: still installed and usable, it's in no repo anymore
         repoUrl != null && repos != null && repoUrl !in repos -> false
+        repoUrl != null && repoUrl in failedRepos -> null
+        // Only its repo can update it, see Extension.Installed.listedIn
+        repoUrl != null && repos != null -> pkgName !in listedPkgNamesByRepo[repoUrl].orEmpty()
         pkgName in listedPkgNames -> false
         failedRepos.isEmpty() -> true
         repoUrl != null && repoUrl !in failedRepos -> true
@@ -235,6 +241,24 @@ internal class RepoExtensions(
     }
 
     companion object {
+        /**
+         * The entries of [available] once per package, when several repos list the same one: the
+         * entry of the repo its installed copy comes from, [installedRepos] by package name, else
+         * the one of the official repo, else the first one. The installed copy is only updated from
+         * its repo, see Extension.Installed.listedIn.
+         */
+        fun deduplicated(
+            available: List<Extension.Available>,
+            installedRepos: Map<String, String?> = emptyMap(),
+        ): List<Extension.Available> {
+            return available.groupBy { it.pkgName }.map { (pkgName, entries) ->
+                val installedRepo = installedRepos[pkgName]
+                entries.find { installedRepo != null && it.repoUrl == installedRepo }
+                    ?: entries.find { ExtensionRepos.isOfficial(it.repoUrl) }
+                    ?: entries.first()
+            }
+        }
+
         /**
          * @param byRepo The extensions of each repo, null for one that failed: it keeps its entries
          * of [previous], none on a cold start.

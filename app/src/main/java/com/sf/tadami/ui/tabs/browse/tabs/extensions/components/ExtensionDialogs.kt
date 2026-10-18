@@ -63,10 +63,13 @@ fun InstallExtensionDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small)) {
                 ExtensionDialogHeader(extension)
+                val repoName = LocalExtensionRepos.current.metas[extension.repoUrl]
+                    ?.let { "${it.name} (${ExtensionRepos.name(extension.repoUrl)})" }
+                    ?: ExtensionRepos.name(extension.repoUrl)
                 Text(
                     text = stringResource(
                         if (ExtensionRepos.isOfficial(extension.repoUrl)) R.string.ext_install_repo_official else R.string.ext_install_repo,
-                        ExtensionRepos.name(extension.repoUrl),
+                        repoName,
                     ),
                     style = MaterialTheme.typography.bodySmall,
                 )

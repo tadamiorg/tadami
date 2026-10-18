@@ -130,6 +130,11 @@ internal object ExtensionsMigration {
                 apk.copyTo(tmp, overwrite = true)
                 val rejection = installer.verifyAndCommit(tmp, pkgName, listed = null, allowSameVersion = BuildConfig.DEBUG)
                 rejection?.let { Log.d("ExtensionsMigration", "$pkgName refused: $it") }
+                if (rejection == null) {
+                    // From no repo: installed with adb in a debug build, unknown for an app installed before
+                    val origin = ExtensionOrigin(manual = true).takeIf { BuildConfig.DEBUG }
+                    ExtensionsStorage.writeOrigin(ExtensionsStorage.dir(context), pkgName, origin)
+                }
                 rejection == null
             } finally {
                 tmp.delete()
