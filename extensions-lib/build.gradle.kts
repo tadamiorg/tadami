@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("com.android.library")
     kotlin("plugin.serialization")
+    `maven-publish`
 }
 
 android {
@@ -14,6 +15,12 @@ android {
     buildFeatures {
         buildConfig = false
         androidResources = false
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
     }
 }
 
@@ -38,6 +45,36 @@ dependencies {
     api(platform(compose.bom))
     api(compose.ui)
     api(androidx.annotation)
+}
+
+// Published on JitPack from the tag lib-<extensionsLibVersion>, which JitPack passes in VERSION:
+// com.github.tadamiorg.tadami:extensions-lib:lib-X.Y.Z (see README.md)
+val extensionsLibVersion = property("extensionsLibVersion") as String
+val onJitPack = System.getenv("JITPACK") == "true"
+val publishedVersion = System.getenv("VERSION")?.takeIf { onJitPack } ?: "lib-$extensionsLibVersion"
+// JitPack builds any tag or commit asked for: a lib-* tag must be on a commit of that lib version
+if (onJitPack && publishedVersion.startsWith("lib-")) {
+    check(publishedVersion == "lib-$extensionsLibVersion") {
+        "Tag $publishedVersion, but extensions-lib/gradle.properties has extensionsLibVersion=$extensionsLibVersion"
+    }
+}
+
+publishing {
+    publications {
+        register<MavenPublication>("release") {
+            groupId = "com.github.tadamiorg.tadami"
+            artifactId = "extensions-lib"
+            version = publishedVersion
+            afterEvaluate {
+                from(components["release"])
+            }
+            pom {
+                name.set("Tadami extensions-lib")
+                description.set("The API Tadami extensions compile against (compileOnly), provided by the app at runtime")
+                url.set("https://github.com/tadamiorg/tadami")
+            }
+        }
+    }
 }
 
 // The compiled stub, for :app's ExtensionsApiCompatibilityTest (and its release keep rules)

@@ -1,0 +1,10 @@
+# JitPack builds extensions-lib only (settings.gradle.kts leaves :app out when JITPACK is true) and
+# publishes it as com.github.tadamiorg.tadami:extensions-lib:<tag>, from the tags lib-X.Y.Z.
+# See extensions-lib/README.md.
+jdk:
+  - openjdk17
+before_install:
+  # compileSdk 37 may be missing from JitPack's Android SDK (AGP can download it too, licenses permitting)
+  - yes | sdkmanager "platforms;android-37" || true
+install:
+  - ./gradlew :extensions-lib:publishReleasePublicationToMavenLocal
