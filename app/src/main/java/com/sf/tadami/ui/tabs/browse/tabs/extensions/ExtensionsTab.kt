@@ -27,6 +27,7 @@ import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.screens.ScreenTabContent
 import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.ExtensionComponent
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.InstallExtensionDialog
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.RemoveLegacyPackagesDialog
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.TrustExtensionDialog
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.UninstallExtensionDialog
@@ -60,6 +61,7 @@ fun extensionsTab(
             Action.CastButton()
         )
     ) { contentPadding, _ ->
+        var installDialog by remember { mutableStateOf<Extension.Available?>(null) }
         var uninstallDialog by remember { mutableStateOf<Extension.Installed?>(null) }
         var trustDialog by remember { mutableStateOf<Extension.Installed?>(null) }
         var showLegacyPackagesDialog by remember { mutableStateOf(false) }
@@ -84,7 +86,7 @@ fun extensionsTab(
             searchQuery = uiState.searchQuery,
             onLongClickItem = { extension ->
                 when (extension) {
-                    is Extension.Available -> extensionsViewModel.installExtension(extension)
+                    is Extension.Available -> installDialog = extension
                     is Extension.Installed -> uninstallDialog = extension
                 }
             },
@@ -99,7 +101,7 @@ fun extensionsTab(
                     navController.navigate("${SourcesRoutes.EXTENSIONS_WEBVIEW}/${source.id}/${source.name}/${encodedUrl}")
                 }
             },
-            onInstallExtension = extensionsViewModel::installExtension,
+            onInstallExtension = { installDialog = it },
             onOpenExtension = {
                 navController.navigate("${DiscoverRoutes.EXTENSION_DETAILS}/${it.pkgName}")
             },
@@ -111,6 +113,14 @@ fun extensionsTab(
             onLoadExtensionsAgain = extensionsViewModel::loadExtensionsAgain,
             onRefresh = extensionsViewModel::findAvailableExtensions,
         )
+
+        installDialog?.let { extension ->
+            InstallExtensionDialog(
+                extension = extension,
+                onDismissRequest = { installDialog = null },
+                onConfirm = { extensionsViewModel.installExtension(extension) },
+            )
+        }
 
         uninstallDialog?.let { extension ->
             UninstallExtensionDialog(

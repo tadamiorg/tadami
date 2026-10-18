@@ -2,18 +2,24 @@ package com.sf.tadami.ui.tabs.browse.tabs.extensions.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
 import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 import com.sf.tadami.ui.utils.padding
+import java.net.URI
 
 @Composable
 fun UninstallExtensionDialog(
@@ -27,6 +33,53 @@ fun UninstallExtensionDialog(
         text = { Text(text = stringResource(R.string.ext_uninstall_confirm, extensionName)) },
         confirmButton = {
             DefaultDialogConfirmButton(text = R.string.ext_uninstall) {
+                onConfirm()
+                onDismissRequest()
+            }
+        },
+        dismissButton = { DefaultDialogCancelButton() },
+    )
+}
+
+/** Before installing a new extension, as nothing asks the system for it. */
+@Composable
+fun InstallExtensionDialog(
+    extension: Extension.Available,
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    val repoHost = runCatching { URI(extension.repoUrl).host }.getOrNull() ?: extension.repoUrl
+    CustomAlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text(text = stringResource(R.string.ext_install_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
+                ) {
+                    ExtensionIcon(extension = extension, modifier = Modifier.size(40.dp))
+                    Column {
+                        Text(text = extension.name, style = MaterialTheme.typography.titleSmall)
+                        Text(
+                            text = stringResource(
+                                R.string.ext_install_version_lang,
+                                extension.versionName,
+                                stringResource(extension.lang.getRes()),
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+                Text(
+                    text = stringResource(R.string.ext_install_repo, repoHost),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Text(text = stringResource(R.string.ext_install_message))
+            }
+        },
+        confirmButton = {
+            DefaultDialogConfirmButton(text = R.string.ext_install) {
                 onConfirm()
                 onDismissRequest()
             }
