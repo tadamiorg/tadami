@@ -49,6 +49,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -86,6 +87,10 @@ private class WebViewWindow(
     val state = WebViewState(content)
     var currentUrl by mutableStateOf(initialUrl)
     var webView: WebView? = null
+    // Until the page the window opened finished loading, its navigations are its redirects
+    var initialLoadDone = false
+    // A popup opened on an ad closes, it has nothing else to show
+    var pageStarted = false
     lateinit var client: AccompanistWebViewClient
     lateinit var chromeClient: AccompanistWebChromeClient
 }
@@ -150,7 +155,7 @@ fun WebviewScreen(
         if (!visible) window.webView?.let(::destroy)
     }
 
-    fun createWebClient(window: WebViewWindow) =
+    fun createWebClient(window: WebViewWindow, openPopup: (String) -> Unit) =
         object : AccompanistWebViewClient() {
 
             override fun shouldInterceptRequest(
@@ -165,12 +170,19 @@ fun WebviewScreen(
             }
 
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
+                // An ad in a popup, the one shouldOverrideUrlLoading didn't see
+                if (window !== windows.firstOrNull() && WebViewAdBlocker.isBlocked(url?.toUri()?.host)) {
+                    if (window.pageStarted) view.stopLoading() else view.post { closeWindow(window) }
+                    return
+                }
+                window.pageStarted = true
                 super.onPageStarted(view, url, favicon)
                 url?.let { window.currentUrl = it }
             }
 
             override fun onPageFinished(view: WebView, url: String?) {
                 super.onPageFinished(view, url)
+                window.initialLoadDone = true
                 // The challenges are solved in the page the screen opened
                 if (window !== windows.firstOrNull()) return
                 val pageUrl = url ?: return
@@ -211,7 +223,33 @@ fun WebviewScreen(
                 if (scheme != "http" && scheme != "https") {
                     return true
                 }
-                if (!request.isForMainFrame || navigationHeaders.isEmpty()) {
+                if (!request.isForMainFrame) {
+                    return false
+                }
+                val decision = WebViewNavigationPolicy.decide(
+                    currentUrl = view?.url,
+                    targetUrl = target.toString(),
+                    isRedirect = request.isRedirect,
+                    initialLoadDone = window.initialLoadDone,
+                    isPopup = window !== windows.firstOrNull(),
+                    canOpenPopup = windows.size - 1 < WebViewNavigationPolicy.MAX_POPUPS,
+                    isAdHost = WebViewAdBlocker::isBlocked,
+                )
+                when (decision) {
+                    NavigationDecision.ALLOW -> {}
+                    NavigationDecision.POPUP -> {
+                        // Another site taking over the page (an ad script setting top.location): the page stays
+                        openPopup(target.toString())
+                        return true
+                    }
+                    NavigationDecision.BLOCK -> {
+                        if (window !== windows.firstOrNull() && !window.pageStarted) {
+                            view?.post { closeWindow(window) }
+                        }
+                        return true
+                    }
+                }
+                if (navigationHeaders.isEmpty()) {
                     return false
                 }
                 // Continue with request, but with custom headers
@@ -222,7 +260,9 @@ fun WebviewScreen(
 
     fun createWindow(content: WebContent, initialUrl: String, popupMessage: Message? = null): WebViewWindow =
         WebViewWindow(content, WebViewNavigator(coroutineScope), initialUrl, popupMessage).also { window ->
-            window.client = createWebClient(window)
+            window.client = createWebClient(window) { popupUrl ->
+                windows.add(createWindow(WebContent.Url(url = popupUrl), popupUrl))
+            }
             window.chromeClient = object : AccompanistWebChromeClient() {
                 override fun onCreateWindow(
                     view: WebView,
@@ -230,8 +270,8 @@ fun WebviewScreen(
                     isUserGesture: Boolean,
                     resultMsg: Message,
                 ): Boolean {
-                    // Like a browser's popup blocker: only the ones the user asked for
-                    if (!isUserGesture) return false
+                    // Like a browser's popup blocker: only the ones the user asked for, and not endlessly
+                    if (!isUserGesture || windows.size - 1 >= WebViewNavigationPolicy.MAX_POPUPS) return false
                     windows.add(createWindow(WebContent.NavigatorOnly, "", resultMsg))
                     return true
                 }
