@@ -609,18 +609,44 @@ class ExtensionManager(
     }
 
     /**
-     * Loads the extensions [pkgNames] from their files in parallel, each under its lock, see
-     * [reloadExtension]: one that hangs doesn't hold back the others.
+     * Loads the extensions [pkgNames] from their files in parallel, under their locks, see
+     * [reloadExtension], then registers them together: two of them with a source ID in common, both
+     * trusted at once for instance, are seen together, so that the one installed first gets it, see
+     * resolveSourceIdConflicts. One that hangs holds back the others a few seconds at most, see
+     * [ExtensionsLoader.reloadExtension].
      */
-    private suspend fun reloadExtensions(pkgNames: List<String>) = coroutineScope {
+    private suspend fun reloadExtensions(pkgNames: List<String>) {
         _reloadingFlow.update { it + pkgNames }
         try {
-            pkgNames
-                .map { pkgName -> async(Dispatchers.IO) { ExtensionsStorage.withLock(pkgName) { reloadExtension(pkgName) } } }
-                .awaitAll()
+            withLocks(pkgNames.distinct().sorted()) {
+                val results = coroutineScope {
+                    pkgNames.distinct()
+                        .map { pkgName ->
+                            async(Dispatchers.IO) {
+                                pkgName to ExtensionsLoader.reloadExtension(context, pkgName, ::onLateExtensionLoaded)
+                            }
+                        }
+                        .awaitAll()
+                }
+                updateInstalledExtensions { installedExtensions ->
+                    results.fold(installedExtensions) { extensions, (pkgName, result) ->
+                        val others = extensions.filterNot { it.pkgName == pkgName }
+                        when (result) {
+                            is LoadResult.Success -> others + result.extension.withUpdateCheck().withoutQuarantinedCode()
+                            LoadResult.Error -> others
+                        }
+                    }
+                }
+            }
         } finally {
             _reloadingFlow.update { it - pkgNames.toSet() }
         }
+    }
+
+    /** Runs [block] under the locks of [pkgNames], taken in this order, see [ExtensionsStorage.withLock]. */
+    private suspend fun <T> withLocks(pkgNames: List<String>, block: suspend () -> T): T {
+        if (pkgNames.isEmpty()) return block()
+        return ExtensionsStorage.withLock(pkgNames.first()) { withLocks(pkgNames.drop(1), block) }
     }
 
     /**
