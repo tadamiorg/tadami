@@ -13,6 +13,7 @@ import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.extension.model.LibVersion
 import com.sf.tadami.extension.model.LoadResult
+import com.sf.tadami.extension.model.SourceIdConflict
 import com.sf.tadami.preferences.extensions.TrustedExtensionsPreferences
 import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.source.Source
@@ -37,6 +38,8 @@ internal object ExtensionsLoader {
 
     private const val EXTENSION_FEATURE = "tadami.extension"
     private const val METADATA_SOURCE_CLASS = "tadami.extension.class"
+    /** The IDs of its sources, see [Extension.Installed.declaredSourceIds]. */
+    private const val METADATA_SOURCE_IDS = "tadami.extension.sourceIds"
     private const val EXTENSION_PACKAGE_PREFIX = "com.sf.tadami.extension."
     /** Stands for the lib version of an extension whose version name can't be parsed. */
     private val UNKNOWN_LIB_VERSION = LibVersion(0, 0)
@@ -74,49 +77,131 @@ internal object ExtensionsLoader {
             PackageManager.GET_SIGNING_CERTIFICATES
 
     /**
+     * Why extensions about to be loaded would be refused for their source IDs, from the IDs their
+     * manifest declares, before any of their code is loaded, see conflictsBeforeLoading.
+     */
+    fun interface SourceIdCheck {
+        /**
+         * @param claims the declared IDs of the extensions about to be loaded that would run their code
+         * @param loading the name of each extension about to be loaded, by package name
+         * @return the conflict of each one refused, by package name
+         */
+        fun conflicts(claims: List<SourceIdClaim>, loading: Map<String, String>): Map<String, SourceIdConflict>
+    }
+
+    /**
      * Return a list of all the extensions of [ExtensionsStorage] initialized concurrently. The
      * suspects of a crash are loaded one at a time after the others, see [ExtensionsGuard.isSuspect].
      *
      * @param context The application context.
      * @param safeMode Whether none of their code is loaded, see [ExtensionLoadIssue.SAFE_MODE].
+     * @param sourceIdCheck Refuses those declaring a source ID another extension owns.
      * @param onLateResult Gets the result of an extension listed as [ExtensionLoadIssue.TIMED_OUT]
      * once it finishes loading.
      */
     fun loadExtensions(
         context: Context,
-        safeMode: Boolean = false,
+        safeMode: Boolean,
+        sourceIdCheck: SourceIdCheck,
         onLateResult: (LoadResult) -> Unit = {},
     ): List<LoadResult> {
         val pkgNames = ExtensionsStorage.pkgNames(ExtensionsStorage.dir(context))
         if (pkgNames.isEmpty()) return emptyList()
 
         val trustedSignatures = trustedSignatures()
+        // All of them at once, the suspects too: an owner loaded later keeps its IDs
+        val conflicts = sourceIdConflictsBeforeLoading(context, pkgNames, trustedSignatures, safeMode, sourceIdCheck)
         val (suspects, others) = pkgNames.partition { ExtensionsGuard.isSuspect(context, it) }
 
         // Load each extension concurrently and wait for completion. Then each suspect alone: a
         // repeat crash comes from the one loading
-        return loadInParallel(context, others, trustedSignatures, safeMode, onLateResult) +
-            suspects.flatMap { loadInParallel(context, listOf(it), trustedSignatures, safeMode, onLateResult) }
+        return loadInParallel(context, others, trustedSignatures, safeMode, conflicts, onLateResult) +
+            suspects.flatMap { loadInParallel(context, listOf(it), trustedSignatures, safeMode, conflicts, onLateResult) }
     }
 
     /**
      * Loads the extension [pkgName] of [ExtensionsStorage] again: installed, updated, trusted or
      * retried. Listed as [ExtensionLoadIssue.TIMED_OUT] after [LOAD_TIMEOUT_MS], its result is then
      * given to [onLateResult] once it finishes loading, see [loadAll].
+     *
+     * @param sourceIdCheck Refuses it when it declares a source ID another extension owns.
      */
-    fun reloadExtension(context: Context, pkgName: String, onLateResult: (LoadResult) -> Unit): LoadResult {
-        return loadInParallel(context, listOf(pkgName), trustedSignatures(), safeMode = false, onLateResult).single()
+    fun reloadExtension(
+        context: Context,
+        pkgName: String,
+        sourceIdCheck: SourceIdCheck,
+        onLateResult: (LoadResult) -> Unit,
+    ): LoadResult = reloadExtensions(context, listOf(pkgName), sourceIdCheck, onLateResult).single()
+
+    /**
+     * Loads the extensions [pkgNames] of [ExtensionsStorage] again in parallel, see [reloadExtension]:
+     * their source IDs are checked together, so that two declaring the same one, trusted at once for
+     * instance, don't both run their code.
+     *
+     * @return The result of each of [pkgNames], in that order.
+     */
+    fun reloadExtensions(
+        context: Context,
+        pkgNames: List<String>,
+        sourceIdCheck: SourceIdCheck,
+        onLateResult: (LoadResult) -> Unit,
+    ): List<LoadResult> {
+        val trustedSignatures = trustedSignatures()
+        val conflicts = sourceIdConflictsBeforeLoading(context, pkgNames, trustedSignatures, safeMode = false, sourceIdCheck)
+        return loadInParallel(context, pkgNames, trustedSignatures, safeMode = false, conflicts, onLateResult)
+    }
+
+    /**
+     * The conflict of each of the extensions [pkgNames] of [ExtensionsStorage] refused by
+     * [sourceIdCheck], by package name: those whose manifest declares source IDs, and that would run
+     * their code, see [codeIssue]. It only reads their manifests.
+     */
+    private fun sourceIdConflictsBeforeLoading(
+        context: Context,
+        pkgNames: List<String>,
+        trustedSignatures: Set<String>,
+        safeMode: Boolean,
+        sourceIdCheck: SourceIdCheck,
+    ): Map<String, SourceIdConflict> {
+        val loading = mutableMapOf<String, String>()
+        val claims = mutableListOf<SourceIdClaim>()
+        for (pkgName in pkgNames) {
+            // A malformed package is listed as it is when it's loaded
+            runCatching {
+                val pkgInfo = getExtensionPackageInfo(context, pkgName) ?: return@runCatching
+                val appInfo = pkgInfo.applicationInfo ?: return@runCatching
+                loading[pkgName] = extensionName(context, appInfo)
+                val declared = declaredSourceIds(appInfo)?.takeIf { it.isNotEmpty() } ?: return@runCatching
+                val signatureHashes = signatureHashes(pkgInfo)
+                if (codeIssue(context, pkgInfo, signatureHashes, trustedSignatures, safeMode) != null) return@runCatching
+                claims += SourceIdClaim(
+                    pkgName = pkgName,
+                    ids = declared,
+                    official = signatureHashes.lastOrNull() == OFFICIAL_SIGNATURE_HASH,
+                    installedAt = ExtensionsStorage.apkFile(ExtensionsStorage.dir(context), pkgName).lastModified(),
+                )
+            }.onFailure { Log.d("LoadExtension", it.stackTraceToString()) }
+        }
+        if (claims.isEmpty()) return emptyMap()
+        // Checked again once they're loaded otherwise
+        return runCatching { sourceIdCheck.conflicts(claims, loading) }
+            .onFailure { Log.d("LoadExtension", it.stackTraceToString()) }
+            .getOrDefault(emptyMap())
     }
 
     /**
      * Loads the extensions [pkgNames] of [ExtensionsStorage] in parallel, each listed as
      * [ExtensionLoadIssue.TIMED_OUT] after [LOAD_TIMEOUT_MS], see [loadAll].
+     *
+     * @param sourceIdConflicts The extensions refused before their code is loaded, see
+     * [sourceIdConflictsBeforeLoading].
      */
     private fun loadInParallel(
         context: Context,
         pkgNames: List<String>,
         trustedSignatures: Set<String>,
         safeMode: Boolean,
+        sourceIdConflicts: Map<String, SourceIdConflict>,
         onLateResult: (LoadResult) -> Unit,
     ): List<LoadResult> {
         if (pkgNames.isEmpty()) return emptyList()
@@ -125,8 +210,10 @@ internal object ExtensionsLoader {
             timeoutMillis = LOAD_TIMEOUT_MS,
             // One malformed package must not prevent the others from loading
             load = {
-                runCatching { loadExtensionFromPkgName(context, it, trustedSignatures, safeMode).withOrigin(context, it) }
-                    .getOrDefault(LoadResult.Error)
+                runCatching {
+                    loadExtensionFromPkgName(context, it, trustedSignatures, safeMode, sourceIdConflicts[it])
+                        .withOrigin(context, it)
+                }.getOrDefault(LoadResult.Error)
             },
             timedOut = { pkgName ->
                 Log.d("LoadExtension", "Extension $pkgName timed out after ${LOAD_TIMEOUT_MS}ms")
@@ -179,19 +266,21 @@ internal object ExtensionsLoader {
      * contains the required feature flag before trying to load it.
      *
      * @param safeMode Whether none of its code is loaded, see [ExtensionLoadIssue.SAFE_MODE].
+     * @param sourceIdConflict Why it's refused before its code is loaded, if it is.
      */
     private fun loadExtensionFromPkgName(
         context: Context,
         pkgName: String,
         trustedSignatures: Set<String>,
         safeMode: Boolean,
+        sourceIdConflict: SourceIdConflict?,
     ): LoadResult {
         val pkgInfo = getExtensionPackageInfo(context, pkgName)
         if (pkgInfo == null) {
             Log.d("LoadExtensionFromPkgName","Extension package is not found ($pkgName)")
             return LoadResult.Error
         }
-        return loadExtension(context, pkgInfo, trustedSignatures, safeMode)
+        return loadExtension(context, pkgInfo, trustedSignatures, safeMode, sourceIdConflict)
     }
 
     /** The package of the extension [pkgName] of [ExtensionsStorage], null when it has none. */
@@ -220,15 +309,17 @@ internal object ExtensionsLoader {
      * @param pkgInfo The package of the extension to load.
      * @param trustedSignatures The signing keys the user trusted, see [isTrusted].
      * @param safeMode Whether none of its code is loaded, see [ExtensionLoadIssue.SAFE_MODE].
+     * @param sourceIdConflict Why it's refused before its code is loaded, if it is.
      */
     private fun loadExtension(
         context: Context,
         pkgInfo: PackageInfo,
         trustedSignatures: Set<String>,
         safeMode: Boolean,
+        sourceIdConflict: SourceIdConflict?,
     ): LoadResult {
         return try {
-            loadExtensionUnsafe(context, pkgInfo, trustedSignatures, safeMode)
+            loadExtensionUnsafe(context, pkgInfo, trustedSignatures, safeMode, sourceIdConflict)
         } catch (e: Throwable) {
             Log.d("LoadExtension","Extension load error: ${pkgInfo.packageName}")
             Log.d("LoadExtension Error",e.stackTraceToString())
@@ -241,12 +332,13 @@ internal object ExtensionsLoader {
         pkgInfo: PackageInfo,
         trustedSignatures: Set<String>,
         safeMode: Boolean,
+        sourceIdConflict: SourceIdConflict?,
     ): LoadResult {
         val pkgManager = context.packageManager
         val appInfo = pkgInfo.applicationInfo ?: return LoadResult.Error
         val pkgName = pkgInfo.packageName
 
-        val extName = pkgManager.getApplicationLabel(appInfo).toString().substringAfter("Tadami: ")
+        val extName = extensionName(context, appInfo)
         val versionName = pkgInfo.versionName
         val versionCode = PackageInfoCompat.getLongVersionCode(pkgInfo)
         val apiVersion = versionName?.let { LibVersion.fromVersionName(it) }
@@ -254,29 +346,24 @@ internal object ExtensionsLoader {
 
         fun unusable(issue: ExtensionLoadIssue) = unusableResult(context, pkgInfo, issue)
 
-        // Before anything of the package is loaded: the code of an untrusted one must never run
-        if (!isTrusted(signatureHashes, trustedSignatures)) {
-            return unusable(ExtensionLoadIssue.UNTRUSTED)
-        }
-
-        libVersionIssue(apiVersion)?.let {
-            Log.d("LoadExtension", "Lib version is $apiVersion, while only versions " +
-                    "$API_VERSION_MIN to $API_VERSION_MAX are allowed")
-            return unusable(it)
-        }
-
-        // Neither runs any of its code
-        if (ExtensionsGuard.isQuarantined(context, pkgName)) {
-            return unusable(ExtensionLoadIssue.QUARANTINED)
-        }
-        if (safeMode) {
-            return unusable(ExtensionLoadIssue.SAFE_MODE)
-        }
+        codeIssue(context, pkgInfo, signatureHashes, trustedSignatures, safeMode)?.let { return unusable(it) }
 
         val sourceClasses = appInfo.metaData?.getString(METADATA_SOURCE_CLASS)
         if (sourceClasses.isNullOrBlank()) {
             Log.d("LoadExtension","Missing $METADATA_SOURCE_CLASS meta-data for extension $extName")
             return unusable(ExtensionLoadIssue.LOAD_FAILED)
+        }
+
+        // Before any of its code runs: it must never run, nor open the preferences of the owner's source
+        val declaredSourceIds = declaredSourceIds(appInfo)
+        if (declaredSourceIds?.isEmpty() == true) {
+            Log.d("LoadExtension", "Malformed $METADATA_SOURCE_IDS meta-data for extension $extName ($pkgName)")
+            return unusable(ExtensionLoadIssue.LOAD_FAILED)
+        }
+        if (sourceIdConflict != null) {
+            Log.d("LoadExtension", "Extension $extName ($pkgName) refused before loading its code: " +
+                    "its source IDs $declaredSourceIds conflict, $sourceIdConflict")
+            return unusableResult(context, pkgInfo, ExtensionLoadIssue.SOURCE_ID_CONFLICT, sourceIdConflict)
         }
 
         // Its code runs until its sources are built: a suspect if the app crashes meanwhile
@@ -320,6 +407,13 @@ internal object ExtensionsLoader {
             ExtensionsGuard.clearInFlight(context, pkgName)
         }
 
+        // A lying manifest: it would claim some IDs before loading and register others
+        if (sourceIdsMismatch(declaredSourceIds, sources.map { it.id })) {
+            Log.w("LoadExtension", "Extension $extName ($pkgName) refused: its manifest declares the source IDs " +
+                    "$declaredSourceIds, but its sources have ${sources.map { it.id }}")
+            return unusable(ExtensionLoadIssue.LOAD_FAILED)
+        }
+
         val langs = sources.filterIsInstance<AnimeCatalogueSource>()
             .map { it.lang }
             .toSet()
@@ -335,20 +429,71 @@ internal object ExtensionsLoader {
             pkgFactory = null,
             icon = appInfo.loadIcon(pkgManager),
             signatureHash = signatureHashes.lastOrNull(),
+            declaredSourceIds = declaredSourceIds,
         )
         return LoadResult.Success(extension)
     }
 
-    /** Still listed, without its sources, so that the user sees why it can't be used */
+    /**
+     * Why the extension [pkgInfo] can't run any of its code, before anything of the package is
+     * loaded, or null when it can.
+     */
+    private fun codeIssue(
+        context: Context,
+        pkgInfo: PackageInfo,
+        signatureHashes: List<String>,
+        trustedSignatures: Set<String>,
+        safeMode: Boolean,
+    ): ExtensionLoadIssue? {
+        // The code of an untrusted one must never run
+        if (!isTrusted(signatureHashes, trustedSignatures)) {
+            return ExtensionLoadIssue.UNTRUSTED
+        }
+
+        val apiVersion = pkgInfo.versionName?.let { LibVersion.fromVersionName(it) }
+        libVersionIssue(apiVersion)?.let {
+            Log.d("LoadExtension", "Lib version is $apiVersion, while only versions " +
+                    "$API_VERSION_MIN to $API_VERSION_MAX are allowed")
+            return it
+        }
+
+        // Neither runs any of its code
+        if (ExtensionsGuard.isQuarantined(context, pkgInfo.packageName)) {
+            return ExtensionLoadIssue.QUARANTINED
+        }
+        if (safeMode) {
+            return ExtensionLoadIssue.SAFE_MODE
+        }
+        return null
+    }
+
+    /** The name of the extension of [appInfo], its label without the "Tadami: " prefix. */
+    private fun extensionName(context: Context, appInfo: ApplicationInfo): String =
+        context.packageManager.getApplicationLabel(appInfo).toString().substringAfter("Tadami: ")
+
+    /**
+     * The source IDs the manifest of [appInfo] declares, see [Extension.Installed.declaredSourceIds]:
+     * null when it declares none, empty when they can't be read. aapt2 stores a lone ID that fits in
+     * an int as an integer, so the value isn't always a string.
+     */
+    private fun declaredSourceIds(appInfo: ApplicationInfo): List<Long>? =
+        parseDeclaredSourceIds(appInfo.metaData?.get(METADATA_SOURCE_IDS)?.toString())
+
+    /**
+     * Still listed, without its sources, so that the user sees why it can't be used
+     *
+     * @param sourceIdConflict Why, with [ExtensionLoadIssue.SOURCE_ID_CONFLICT].
+     */
     private fun unusableResult(
         context: Context,
         pkgInfo: PackageInfo,
         issue: ExtensionLoadIssue,
+        sourceIdConflict: SourceIdConflict? = null,
     ): LoadResult {
         val pkgManager = context.packageManager
         val appInfo = pkgInfo.applicationInfo ?: return LoadResult.Error
         val pkgName = pkgInfo.packageName
-        val extName = pkgManager.getApplicationLabel(appInfo).toString().substringAfter("Tadami: ")
+        val extName = extensionName(context, appInfo)
         val versionName = pkgInfo.versionName
 
         Log.d("LoadExtension", "Extension $extName ($pkgName $versionName) can't be used: $issue")
@@ -365,6 +510,8 @@ internal object ExtensionsLoader {
                 icon = appInfo.loadIcon(pkgManager),
                 loadIssue = issue,
                 signatureHash = signatureHashes(pkgInfo).lastOrNull(),
+                sourceIdConflict = sourceIdConflict,
+                declaredSourceIds = runCatching { declaredSourceIds(appInfo) }.getOrNull(),
             ),
         )
     }

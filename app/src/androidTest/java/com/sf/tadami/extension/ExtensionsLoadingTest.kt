@@ -201,7 +201,8 @@ class ExtensionsLoadingTest {
         ExtensionsStorage.commit(storageDir, pkgName, tmp)
 
         val late = CompletableFuture<LoadResult>()
-        val result = ExtensionsLoader.reloadExtension(context, pkgName) { late.complete(it) }
+        // None of them conflicts: the source ID check is tested on its own
+        val result = ExtensionsLoader.reloadExtension(context, pkgName, { _, _ -> emptyMap() }) { late.complete(it) }
         val loaded = (result as? LoadResult.Success)?.extension
             ?.takeIf { it.loadIssue == ExtensionLoadIssue.TIMED_OUT }
             ?.let { late.get(60, TimeUnit.SECONDS) }

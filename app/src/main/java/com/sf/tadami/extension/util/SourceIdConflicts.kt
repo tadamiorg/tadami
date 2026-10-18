@@ -24,7 +24,9 @@ internal val OFFICIAL_SOURCE_IDS = setOf(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 11L, 15
  *
  * Applied again on each change of the extensions: a refused one keeps its sources aside, in
  * [Extension.Installed.refusedSources], and gets them back once its conflict is gone, its owner
- * uninstalled for instance.
+ * uninstalled for instance. One refused before its code was loaded, see [conflictsBeforeLoading],
+ * claims its [Extension.Installed.declaredSourceIds] instead, and is to be loaded once its conflict
+ * is gone, see [SourceIdResolution.toLoad].
  *
  * @param extensions every installed extension, usable or not
  * @param owners the owner, a package name, of each source ID
@@ -37,18 +39,10 @@ internal fun resolveSourceIdConflicts(
     owners: Map<Long, String>,
     isOfficial: (Extension.Installed) -> Boolean,
     installedAt: (String) -> Long,
-): Pair<List<Extension.Installed>, Map<Long, String>> {
-    val claims = extensions.mapNotNull { extension ->
-        extension.claimedSources().takeIf { it.isNotEmpty() }?.let { sources ->
-            SourceIdClaim(
-                pkgName = extension.pkgName,
-                ids = sources.map { it.id },
-                official = isOfficial(extension),
-                installedAt = installedAt(extension.pkgName),
-            )
-        }
-    }
+): SourceIdResolution {
+    val claims = extensions.mapNotNull { it.sourceIdClaim(isOfficial, installedAt) }
     val (conflicts, newOwners) = resolveClaims(claims, extensions.associate { it.pkgName to it.name }, owners)
+    val toLoad = mutableListOf<String>()
     val resolved = extensions.map { extension ->
         val conflict = conflicts[extension.pkgName]
         when {
@@ -58,17 +52,79 @@ internal fun resolveSourceIdConflicts(
                 loadIssue = ExtensionLoadIssue.SOURCE_ID_CONFLICT,
                 sourceIdConflict = conflict,
             )
-            extension.loadIssue == ExtensionLoadIssue.SOURCE_ID_CONFLICT -> extension.copy(
+            extension.loadIssue != ExtensionLoadIssue.SOURCE_ID_CONFLICT -> extension
+            // Refused before its code was loaded: without sources until it's loaded, asked once
+            extension.refusedSources.isEmpty() -> {
+                if (extension.sourceIdConflict != null) toLoad += extension.pkgName
+                extension.copy(sourceIdConflict = null)
+            }
+            else -> extension.copy(
                 sources = extension.refusedSources,
                 refusedSources = emptyList(),
                 loadIssue = null,
                 sourceIdConflict = null,
             )
-            else -> extension
         }
     }
-    return resolved to newOwners
+    return SourceIdResolution(resolved, newOwners, toLoad)
 }
+
+/**
+ * What [resolveSourceIdConflicts] gives.
+ *
+ * @property extensions the extensions with their conflicts set or cleared
+ * @property owners the owners to keep
+ * @property toLoad the extensions refused before their code was loaded whose conflict is gone, to
+ * load now: they're listed without sources until then
+ */
+internal data class SourceIdResolution(
+    val extensions: List<Extension.Installed>,
+    val owners: Map<Long, String>,
+    val toLoad: List<String>,
+)
+
+/**
+ * Why each extension about to be loaded, of [claims], would be refused, by package name, from the
+ * source IDs its manifest declares, so that its code is never loaded then: the rules of
+ * [resolveSourceIdConflicts], applied to these claims and to those of the [installed] extensions not
+ * being loaded. An extension that doesn't declare its IDs is only checked once loaded.
+ *
+ * @param claims the declared IDs of the extensions about to be loaded that would run their code
+ * @param loading the name of each extension about to be loaded, by package name, those of [claims]
+ * included: an owner among them, even one declaring no ID, keeps its IDs
+ * @param installed the extensions registered
+ */
+internal fun conflictsBeforeLoading(
+    claims: List<SourceIdClaim>,
+    loading: Map<String, String>,
+    installed: List<Extension.Installed>,
+    owners: Map<Long, String>,
+    isOfficial: (Extension.Installed) -> Boolean,
+    installedAt: (String) -> Long,
+): Map<String, SourceIdConflict> {
+    val declaring = claims.map { it.pkgName }.toSet()
+    val others = installed.filter { it.pkgName !in loading && it.pkgName !in declaring }
+    val allClaims = others.mapNotNull { it.sourceIdClaim(isOfficial, installedAt) } + claims
+    val names = others.associate { it.pkgName to it.name } + loading
+    return resolveClaims(allClaims, names, owners).first.filterKeys { it in declaring }
+}
+
+/**
+ * The source IDs of the meta-data value [value], decimal IDs separated by `;` or `,`, see
+ * [Extension.Installed.declaredSourceIds]: null when there's none, empty when one isn't an ID.
+ */
+internal fun parseDeclaredSourceIds(value: String?): List<Long>? {
+    if (value.isNullOrBlank()) return null
+    val ids = value.split(';', ',').map { it.trim().toLongOrNull() }
+    return if (ids.any { it == null }) emptyList() else ids.filterNotNull()
+}
+
+/**
+ * Whether the sources of IDs [loaded] aren't those the manifest declares, [declared]: a lying
+ * manifest, which may have passed the check made before its code was loaded.
+ */
+internal fun sourceIdsMismatch(declared: List<Long>?, loaded: List<Long>): Boolean =
+    declared != null && declared.sorted() != loaded.sorted()
 
 /**
  * Why the extension [pkgName] of the sources [sourceIds] would be refused once installed, in place
@@ -84,11 +140,8 @@ internal fun sourceIdConflictOf(
 ): SourceIdConflict? {
     val claims = extensions
         .filter { it.pkgName != pkgName }
-        .mapNotNull { extension ->
-            extension.claimedSources().takeIf { it.isNotEmpty() }?.let { sources ->
-                SourceIdClaim(extension.pkgName, sources.map { it.id }, isOfficial(extension), installedAt = 0L)
-            }
-        } + SourceIdClaim(pkgName, sourceIds, official, installedAt = Long.MAX_VALUE)
+        .mapNotNull { it.sourceIdClaim(isOfficial) { 0L } } +
+        SourceIdClaim(pkgName, sourceIds, official, installedAt = Long.MAX_VALUE)
     val names = extensions.associate { it.pkgName to it.name }
     return resolveClaims(claims, names + (pkgName to (names[pkgName] ?: pkgName)), owners).first[pkgName]
 }
@@ -144,4 +197,19 @@ private fun Extension.Installed.claimedSources(): List<Source> = when (loadIssue
     null -> sources
     ExtensionLoadIssue.SOURCE_ID_CONFLICT -> refusedSources
     else -> emptyList()
+}
+
+/**
+ * The claim of the source IDs this extension would register, see [claimedSources], or of its
+ * declared ones when it was refused before its code was loaded. Null when it has none.
+ */
+private fun Extension.Installed.sourceIdClaim(
+    isOfficial: (Extension.Installed) -> Boolean,
+    installedAt: (String) -> Long,
+): SourceIdClaim? {
+    val ids = claimedSources().map { it.id }.ifEmpty {
+        declaredSourceIds.takeIf { loadIssue == ExtensionLoadIssue.SOURCE_ID_CONFLICT }.orEmpty()
+    }
+    if (ids.isEmpty()) return null
+    return SourceIdClaim(pkgName, ids, isOfficial(this), installedAt(pkgName))
 }

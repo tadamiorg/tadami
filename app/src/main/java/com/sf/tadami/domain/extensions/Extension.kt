@@ -64,9 +64,16 @@ sealed class Extension {
         val sourceIdConflict: SourceIdConflict? = null,
         /**
          * Its sources, loaded but not registered because of [sourceIdConflict]: they replace [sources]
-         * once the conflict is gone, see resolveSourceIdConflicts.
+         * once the conflict is gone, see resolveSourceIdConflicts. Empty when it was refused before
+         * its code was loaded, from its [declaredSourceIds]: it's loaded once the conflict is gone.
          */
         val refusedSources: List<Source> = emptyList(),
+        /**
+         * The IDs of its sources its manifest declares, null when it declares none, the extensions
+         * published before generated source IDs: those are checked for a conflict before any of its
+         * code is loaded, see ExtensionsLoader.
+         */
+        val declaredSourceIds: List<Long>? = null,
     ) : Extension() {
 
         /**

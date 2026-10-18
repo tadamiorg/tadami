@@ -31,6 +31,7 @@ import com.sf.tadami.extension.util.ExtensionsLoader
 import com.sf.tadami.extension.util.ExtensionOrigin
 import com.sf.tadami.extension.util.ExtensionsMigration
 import com.sf.tadami.extension.util.ExtensionsStorage
+import com.sf.tadami.extension.util.conflictsBeforeLoading
 import com.sf.tadami.extension.util.resolveSourceIdConflicts
 import com.sf.tadami.extension.util.sourceIdConflictOf
 import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerNotifier
@@ -48,9 +49,6 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -206,7 +204,7 @@ class ExtensionManager(
             .onFailure { Log.d("ExtensionsMigration", it.stackTraceToString()) }
             .getOrDefault(emptyList())
 
-        val extensions = ExtensionsLoader.loadExtensions(context, safeMode, ::onLateExtensionLoaded)
+        val extensions = ExtensionsLoader.loadExtensions(context, safeMode, sourceIdCheck, ::onLateExtensionLoaded)
 
         val loadedExtensions = extensions
             .filterIsInstance<LoadResult.Success>()
@@ -613,20 +611,16 @@ class ExtensionManager(
      * [reloadExtension], then registers them together: two of them with a source ID in common, both
      * trusted at once for instance, are seen together, so that the one installed first gets it, see
      * resolveSourceIdConflicts. One that hangs holds back the others a few seconds at most, see
-     * [ExtensionsLoader.reloadExtension].
+     * [ExtensionsLoader.reloadExtensions].
      */
     private suspend fun reloadExtensions(pkgNames: List<String>) {
         _reloadingFlow.update { it + pkgNames }
         try {
             withLocks(pkgNames.distinct().sorted()) {
-                val results = coroutineScope {
-                    pkgNames.distinct()
-                        .map { pkgName ->
-                            async(Dispatchers.IO) {
-                                pkgName to ExtensionsLoader.reloadExtension(context, pkgName, ::onLateExtensionLoaded)
-                            }
-                        }
-                        .awaitAll()
+                val results = withContext(Dispatchers.IO) {
+                    pkgNames.distinct().let { distinct ->
+                        distinct.zip(ExtensionsLoader.reloadExtensions(context, distinct, sourceIdCheck, ::onLateExtensionLoaded))
+                    }
                 }
                 updateInstalledExtensions { installedExtensions ->
                     results.fold(installedExtensions) { extensions, (pkgName, result) ->
@@ -656,7 +650,7 @@ class ExtensionManager(
      * loaded, see [onLateExtensionLoaded].
      */
     private fun reloadExtension(pkgName: String) {
-        when (val result = ExtensionsLoader.reloadExtension(context, pkgName, ::onLateExtensionLoaded)) {
+        when (val result = ExtensionsLoader.reloadExtension(context, pkgName, sourceIdCheck, ::onLateExtensionLoaded)) {
             is LoadResult.Success -> registerUpdatedExtension(result.extension.withUpdateCheck())
             LoadResult.Error -> unregisterExtension(pkgName)
         }
@@ -724,21 +718,49 @@ class ExtensionManager(
     /**
      * Changes the installed extensions with [transform], then refuses those with a source ID another
      * one owns, or gives a refused one its sources back, see [resolveSourceIdConflicts]. The owners
-     * changed are saved.
+     * changed are saved. One refused before its code was loaded is loaded once its conflict is gone.
      */
     private fun updateInstalledExtensions(transform: (List<Extension.Installed>) -> List<Extension.Installed>) {
-        val ownersChanged = synchronized(installedLock) {
-            val (installed, owners) = resolveSourceIdConflicts(
+        val (ownersChanged, toLoad) = synchronized(installedLock) {
+            val (installed, owners, toLoad) = resolveSourceIdConflicts(
                 extensions = transform(_installedExtensionsFlow.value),
                 owners = sourceIdOwners,
                 isOfficial = ExtensionsLoader::isOfficial,
-                installedAt = { pkgName -> ExtensionsStorage.apkFile(storageDir, pkgName).lastModified() },
+                installedAt = ::installedAt,
             )
             _installedExtensionsFlow.value = installed
-            (owners != sourceIdOwners).also { sourceIdOwners = owners }
+            (owners != sourceIdOwners).also { sourceIdOwners = owners } to toLoad
         }
         if (ownersChanged) saveSourceIdOwners()
+        // Not under the lock of the package changed, which may be held here
+        if (toLoad.isNotEmpty()) {
+            scope.launch {
+                reloadExtensions(toLoad)
+                updatePendingUpdatesCount()
+            }
+        }
     }
+
+    /**
+     * Refuses the extensions about to be loaded whose manifest declares a source ID another one
+     * owns, before their code is loaded, see [conflictsBeforeLoading]. A getter: the extensions are
+     * loaded from init, before the properties declared after it are.
+     */
+    private val sourceIdCheck get() = ExtensionsLoader.SourceIdCheck { claims, loading ->
+        synchronized(installedLock) {
+            conflictsBeforeLoading(
+                claims = claims,
+                loading = loading,
+                installed = _installedExtensionsFlow.value,
+                owners = sourceIdOwners,
+                isOfficial = ExtensionsLoader::isOfficial,
+                installedAt = ::installedAt,
+            )
+        }
+    }
+
+    /** When the extension [pkgName] was installed or updated, to order them, see [resolveSourceIdConflicts]. */
+    private fun installedAt(pkgName: String): Long = ExtensionsStorage.apkFile(storageDir, pkgName).lastModified()
 
     /** Writes [sourceIdOwners], the latest ones whatever the order the writes run in. */
     private fun saveSourceIdOwners() {
