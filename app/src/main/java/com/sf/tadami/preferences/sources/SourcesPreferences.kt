@@ -27,13 +27,19 @@ data class SourcesPreferences(
         val LAST_EXT_CHECK = longPreferencesKey(CustomPreferences.appStateKey("last_ext_check"))
         val EXT_UPDATES_COUNT = intPreferencesKey("ext_updates_count")
 
+        /**
+         * The repos of the [stored] ones: the official one when none were ever stored. Once stored,
+         * the set is kept as it is, even empty: the official repo the user removed isn't added back.
+         */
+        fun extensionsReposOf(stored: Set<String>?): Set<String> = stored ?: setOf(DEFAULT_EXTENSIONS_REPO)
+
         override fun transform(preferences: Preferences): SourcesPreferences {
             return SourcesPreferences(
                 hiddenSources = preferences[HIDDEN_SOURCES] ?: emptySet(),
                 enabledLanguages = preferences[ENABLED_LANGUAGES] ?: Lang.getAllLangs().toPref(),
                 lastExtCheck = preferences[LAST_EXT_CHECK] ?: 0,
                 extensionUpdatesCount = preferences[EXT_UPDATES_COUNT] ?: 0,
-                extensionsRepos = preferences[EXTENSIONS_REPOS] ?: setOf(DEFAULT_EXTENSIONS_REPO)
+                extensionsRepos = extensionsReposOf(preferences[EXTENSIONS_REPOS])
             )
         }
 

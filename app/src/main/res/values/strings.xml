@@ -384,6 +384,8 @@
     <string name="ext_repo_trust_key">Trust the extensions signed with this key</string>
     <string name="ext_repo_confirm_warning">Its extensions run their code inside Tadami: add only a repository you trust.</string>
     <string name="ext_repo_remove">Remove</string>
+    <string name="ext_repo_add_official">Add the official repository</string>
+    <string name="ext_repo_remove_official_warning">The official extensions will no longer get updates nor be listed as available.</string>
     <string name="ext_repo_remove_title">Remove this repository?</string>
     <string name="ext_repo_remove_message">Its extensions disappear from the list. The installed ones stay installed, without updates.</string>
     <plurals name="ext_repo_extensions_count">

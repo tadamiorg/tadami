@@ -49,8 +49,8 @@ sealed class Extension {
         val hasUpdate: Boolean = false,
         val isObsolete: Boolean = false,
         /**
-         * The repo it was installed or updated from, recorded since, or the only repo that lists it,
-         * null when it's unknown, see [listedIn].
+         * The repo it was installed or updated from, recorded since, or the only repo that listed it,
+         * then recorded too, null when it's unknown, see [listedIn].
          */
         val repoUrl: String? = null,
         /** Whether it was installed with adb in a debug build, from no repo. */

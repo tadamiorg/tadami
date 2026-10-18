@@ -152,6 +152,16 @@ class RepoExtensionsTest {
     }
 
     @Test
+    fun withoutAnyRepoNoExtensionIsObsolete() {
+        val repo = RepoExtensions.of(emptyMap(), previous = listOf(available("official.ext", repoUrl = official)))
+
+        assertFalse(repo.hasRepos)
+        assertEquals(emptyList<Extension.Available>(), repo.available)
+        assertFalse(repo.isObsolete("official.ext", official)!!)
+        assertFalse(repo.isObsolete("official.ext", null)!!)
+    }
+
+    @Test
     fun anExtensionIsObsoleteWhenItsOwnRepoNoLongerListsIt() {
         val repo = RepoExtensions.of(
             mapOf(official to listOf(available("moved", repoUrl = official)), other to emptyList()),

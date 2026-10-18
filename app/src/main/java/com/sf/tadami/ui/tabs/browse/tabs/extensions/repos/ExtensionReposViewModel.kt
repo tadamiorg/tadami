@@ -91,6 +91,11 @@ class ExtensionReposViewModel(savedStateHandle: SavedStateHandle) : ViewModel() 
         viewModelScope.launchIO { extensionManager.addRepo(repo, trustKey) }
     }
 
+    /** Asks to add the official repo back, once the user removed it. */
+    fun addOfficialRepo() {
+        submit(SourcesPreferences.DEFAULT_EXTENSIONS_REPO)
+    }
+
     fun showRemoveDialog(repoUrl: String) {
         _dialog.value = RepoDialog.Remove(repoUrl)
     }

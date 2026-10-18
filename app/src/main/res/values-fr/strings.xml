@@ -385,6 +385,8 @@
     <string name="ext_repo_trust_key">Approuver les extensions signées avec cette clé</string>
     <string name="ext_repo_confirm_warning">Ses extensions exécutent leur code dans Tadami : n\'ajoutez qu\'un dépôt de confiance.</string>
     <string name="ext_repo_remove">Retirer</string>
+    <string name="ext_repo_add_official">Ajouter le dépôt officiel</string>
+    <string name="ext_repo_remove_official_warning">Les extensions officielles ne recevront plus de mises à jour et ne seront plus proposées.</string>
     <string name="ext_repo_remove_title">Retirer ce dépôt ?</string>
     <string name="ext_repo_remove_message">Ses extensions disparaissent de la liste. Celles installées le restent, sans mises à jour.</string>
     <plurals name="ext_repo_extensions_count">

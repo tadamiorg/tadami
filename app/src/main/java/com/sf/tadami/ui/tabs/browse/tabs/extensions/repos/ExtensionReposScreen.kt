@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -20,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -106,12 +108,29 @@ fun ExtensionReposScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
         ) {
+            if (repos.none(ExtensionRepos::isOfficial)) {
+                item(key = "add-official") {
+                    OutlinedButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateItem(),
+                        onClick = viewModel::addOfficialRepo,
+                    ) {
+                        Icon(imageVector = Icons.Outlined.Verified, contentDescription = null)
+                        Text(
+                            modifier = Modifier.padding(start = MaterialTheme.padding.small),
+                            text = stringResource(R.string.ext_repo_add_official),
+                        )
+                    }
+                }
+            }
             items(repos, key = { it }) { repoUrl ->
                 RepoListItem(
                     modifier = Modifier.animateItem(),
                     name = repoDisplayName(repoUrl, repoMetas[repoUrl]),
                     repoUrl = repoUrl,
-                    onRemove = { viewModel.showRemoveDialog(repoUrl) }.takeUnless { ExtensionRepos.isOfficial(repoUrl) },
+                    isOfficial = ExtensionRepos.isOfficial(repoUrl),
+                    onRemove = { viewModel.showRemoveDialog(repoUrl) },
                 )
             }
         }
@@ -130,6 +149,7 @@ fun ExtensionReposScreen(
         )
         is RepoDialog.Remove -> RemoveRepoDialog(
             name = repoDisplayName(current.repoUrl, repoMetas[current.repoUrl]),
+            isOfficial = ExtensionRepos.isOfficial(current.repoUrl),
             onDismissRequest = viewModel::dismissDialog,
             onConfirm = { viewModel.removeRepo(current.repoUrl) },
         )
@@ -137,12 +157,13 @@ fun ExtensionReposScreen(
     }
 }
 
-/** A repo, [onRemove] null for the official one, which can't be removed. */
+/** A repo, the official one marked as such. */
 @Composable
 private fun RepoListItem(
     name: String,
     repoUrl: String,
-    onRemove: (() -> Unit)?,
+    isOfficial: Boolean,
+    onRemove: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     ElevatedCard(modifier = modifier.fillMaxWidth()) {
@@ -155,7 +176,24 @@ private fun RepoListItem(
                     .weight(1f)
                     .padding(vertical = MaterialTheme.padding.medium),
             ) {
-                Text(text = name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(1f, fill = false),
+                        text = name,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (isOfficial) {
+                        Icon(
+                            modifier = Modifier
+                                .padding(start = MaterialTheme.padding.extraSmall)
+                                .size(18.dp),
+                            imageVector = Icons.Outlined.Verified,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
                 Text(
                     modifier = Modifier.secondaryItemAlpha(),
                     text = repoUrl,
@@ -164,14 +202,8 @@ private fun RepoListItem(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            if (onRemove != null) {
-                IconButton(onClick = onRemove) {
-                    Icon(imageVector = Icons.Outlined.Delete, contentDescription = stringResource(R.string.ext_repo_remove))
-                }
-            } else {
-                IconButton(onClick = {}, enabled = false) {
-                    Icon(imageVector = Icons.Outlined.Verified, contentDescription = stringResource(R.string.ext_repo_official))
-                }
+            IconButton(onClick = onRemove) {
+                Icon(imageVector = Icons.Outlined.Delete, contentDescription = stringResource(R.string.ext_repo_remove))
             }
         }
     }
@@ -278,9 +310,11 @@ private fun ConfirmAddRepoDialog(
     }
 }
 
+/** Before removing a repo, [isOfficial] for the official one, whose extensions are no longer updated then. */
 @Composable
 private fun RemoveRepoDialog(
     name: String,
+    isOfficial: Boolean,
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
 ) {
@@ -298,6 +332,9 @@ private fun RemoveRepoDialog(
         Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small)) {
             Text(text = name, style = MaterialTheme.typography.titleSmall)
             Text(text = stringResource(R.string.ext_repo_remove_message))
+            if (isOfficial) {
+                Text(text = stringResource(R.string.ext_repo_remove_official_warning), color = MaterialTheme.colorScheme.error)
+            }
         }
     }
 }

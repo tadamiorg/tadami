@@ -215,6 +215,9 @@ internal class RepoExtensions(
     /** The repos read or tried, null when unknown, see [isObsolete]. */
     private val repos: Set<String>? = null,
 ) {
+    /** Whether there is any repo to find extensions in: none once the user removed them all. */
+    val hasRepos: Boolean = repos == null || repos.isNotEmpty()
+
     /** The ones this app can load, the others can't be installed nor be an update. */
     val available = listed.filter { ExtensionsLoader.libVersionIssue(it.apiVersion) == null }
 
@@ -231,6 +234,8 @@ internal class RepoExtensions(
     fun isObsolete(pkgName: String, repoUrl: String?): Boolean? = when {
         // From a repo removed since: still installed and usable, it's in no repo anymore
         repoUrl != null && repos != null && repoUrl !in repos -> false
+        // No repo at all: no extension is in any repo
+        !hasRepos -> false
         repoUrl != null && repoUrl in failedRepos -> null
         // Only its repo can update it, see Extension.Installed.listedIn
         repoUrl != null && repos != null -> pkgName !in listedPkgNamesByRepo[repoUrl].orEmpty()

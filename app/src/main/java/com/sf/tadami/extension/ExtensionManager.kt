@@ -295,11 +295,11 @@ class ExtensionManager(
     }
 
     /**
-     * Removes the repo [repoUrl], but the official one. Its extensions installed stay installed and
-     * usable, in no repo anymore: neither obsolete nor updated, see [RepoExtensions.isObsolete].
+     * Removes the repo [repoUrl], the official one as well. Its extensions installed stay installed
+     * and usable, in no repo anymore: neither obsolete nor updated, see [RepoExtensions.isObsolete].
+     * The official signing key stays trusted.
      */
     suspend fun removeRepo(repoUrl: String) {
-        if (ExtensionRepos.isOfficial(repoUrl)) return
         dataStore.edit { preferences ->
             preferences[SourcesPreferences.EXTENSIONS_REPOS] =
                 SourcesPreferences.transform(preferences).extensionsRepos - repoUrl
@@ -316,12 +316,15 @@ class ExtensionManager(
      */
     private fun updatedInstalledExtensionsStatuses(repoExtensions: RepoExtensions) {
         val availableExtensions = repoExtensions.available
-        // Nothing to compare against, keep the current statuses and updates count
-        if (availableExtensions.isEmpty()) return
+        // Nothing to compare against, keep the current statuses and updates count. Without any repo,
+        // none is listed, updated nor obsolete
+        if (availableExtensions.isEmpty() && repoExtensions.hasRepos) return
 
+        var inferredRepos = emptyMap<String, String>()
         _installedExtensionsFlow.update { installedExtensions ->
             val mutInstalledExtensions = installedExtensions.toMutableList()
             var changed = false
+            val inferred = mutableMapOf<String, String>()
 
             for ((index, listedExt) in mutInstalledExtensions.withIndex()) {
                 val pkgName = listedExt.pkgName
@@ -334,6 +337,7 @@ class ExtensionManager(
                     .takeIf { listedExt.repoUrl == null && !listedExt.isManual }
                 val installedExt = if (inferredRepoUrl != null) {
                     changed = true
+                    inferred[pkgName] = inferredRepoUrl
                     listedExt.copy(repoUrl = inferredRepoUrl).also { mutInstalledExtensions[index] = it }
                 } else {
                     listedExt
@@ -357,9 +361,31 @@ class ExtensionManager(
                     }
                 }
             }
+            inferredRepos = inferred
             if (changed) mutInstalledExtensions else installedExtensions
         }
+        recordInferredOrigins(inferredRepos)
         updatePendingUpdatesCount()
+    }
+
+    /**
+     * Records the repos [inferredRepos] of the extensions installed before their origin was, by
+     * package name: they stay known once their repo is removed, see [RepoExtensions.isObsolete].
+     */
+    private fun recordInferredOrigins(inferredRepos: Map<String, String>) {
+        if (inferredRepos.isEmpty()) return
+        scope.launch {
+            inferredRepos.forEach { (pkgName, repoUrl) ->
+                ExtensionsStorage.withLock(pkgName) {
+                    // Still installed, still without a recorded origin
+                    if (ExtensionsStorage.apkFile(storageDir, pkgName).isFile &&
+                        ExtensionsStorage.readOrigin(storageDir, pkgName) == null
+                    ) {
+                        ExtensionsStorage.writeOrigin(storageDir, pkgName, ExtensionOrigin(repoUrl = repoUrl))
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -658,8 +684,8 @@ class ExtensionManager(
 
     private fun updatePendingUpdatesCount() {
         // The update statuses aren't known before the available extensions are, keep the count
-        // the startup check stored
-        if (_availableExtensionsFlow.value.isEmpty()) return
+        // the startup check stored. Without any repo, there's no update
+        if (_availableExtensionsFlow.value.isEmpty() && sourcesPreferences.extensionsRepos.isNotEmpty()) return
         // An untrusted one is trusted first, then updated
         val pendingUpdateCount = _installedExtensionsFlow.value
             .count { it.hasUpdate && it.loadIssue != ExtensionLoadIssue.UNTRUSTED }

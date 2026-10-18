@@ -1,5 +1,6 @@
 package com.sf.tadami.extension.api
 
+import com.sf.tadami.preferences.sources.SourcesPreferences
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -104,6 +105,20 @@ class ExtensionReposTest {
     fun aFingerprintThatIsNoSha256IsDropped() {
         val meta = ExtensionRepos.parseMeta(json, """{"meta":{"name":"Test","signingKeyFingerprint":"abcd"}}""")!!
         assertNull(meta.signingKeyFingerprint)
+    }
+
+    @Test
+    fun theOfficialRepoIsAddedByDefaultAndStaysRemovedOnceRemoved() {
+        val official = SourcesPreferences.DEFAULT_EXTENSIONS_REPO
+        // Never stored: the official one
+        assertEquals(setOf(official), SourcesPreferences.extensionsReposOf(null))
+        // Removed, the last one: an empty set stays empty
+        val removed = SourcesPreferences.extensionsReposOf(null) - official
+        assertEquals(emptySet<String>(), SourcesPreferences.extensionsReposOf(removed))
+        // Removed beside another one
+        assertEquals(setOf("https://example.com/repo"), SourcesPreferences.extensionsReposOf(setOf("https://example.com/repo")))
+        // Added back
+        assertEquals(setOf(official), SourcesPreferences.extensionsReposOf(removed + official))
     }
 
     @Test
