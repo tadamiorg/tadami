@@ -24,30 +24,13 @@
 -keep,allowoptimization class app.cash.quickjs.** { public protected *; }
 -keep,allowoptimization class uy.kohesive.injekt.** { public protected *; }
 
-# From extensions-lib
--keep,allowoptimization class com.sf.tadami.network.NetworkHelper { public protected *; }
--keep,allowoptimization class com.sf.tadami.network.OkHttpExtensionsKt { public protected *; }
--keep,allowoptimization class com.sf.tadami.network.RequestsKt { public protected *; }
--keep,allowoptimization class com.sf.tadami.network.WebViewResolver { public protected *; }
--keep,allowoptimization class com.sf.tadami.network.WebViewResolver$** { public protected *; }
--keep,allowoptimization class com.sf.tadami.domain.anime.Anime { public protected *; }
--keep,allowoptimization class com.sf.tadami.preferences.model.SourcePreference$** { public protected *; }
--keep,allowoptimization class com.sf.tadami.preferences.CommonKeys { public protected *; }
--keep,allowoptimization class com.sf.tadami.ui.tabs.browse.tabs.sources.preferences.SourcesPreferencesContent { public protected *; }
--keep,allowoptimization class com.sf.tadami.ui.components.data.Action { public protected *; }
--keep,allowoptimization class com.sf.tadami.ui.utils.** { public protected *; }
+# The classes of extensions-lib, with their public and protected members, are kept by the rules
+# :app:generateExtensionsApiKeepRules writes (build/generated/proguard/extensions-api.pro)
 
--keep,allowoptimization class com.sf.tadami.source.online.** { public protected *; }
--keep,allowoptimization class com.sf.tadami.source.model.** { public protected *; }
--keep class com.sf.tadami.source.** extends com.sf.tadami.source.Source { public protected *; }
--keep,allowoptimization class com.sf.tadami.source.AnimesPage { public protected *; }
--keep,allowoptimization interface com.sf.tadami.preferences.model.CustomPreferences {*;}
--keep,allowoptimization class com.sf.tadami.preferences.model.CustomPreferences$Companion {*;}
--keep,allowoptimization interface * extends com.sf.tadami.preferences.model.CustomPreferences
--keep,allowoptimization class com.sf.tadami.utils.DataStoreExtensionsKt { public protected *; }
--keep,allowoptimization enum com.sf.tadami.utils.Lang { public *; }
--keep,allowoptimization class com.sf.tadami.utils.Lang$Companion { public *; }
--keep,allowoptimization interface com.sf.tadami.source.Source { *; }
+# Methods JavaScript calls by name, like those of WebViewResolver's script bridge
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
 
 ##---------------Begin: proguard configuration for kotlinx.serialization  ----------
 -keepattributes *Annotation*, InnerClasses, EnclosingMethod, Signature

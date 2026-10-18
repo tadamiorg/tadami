@@ -29,4 +29,8 @@ class DropDownAction(
     val enabled: Boolean = true,
     // Shown with a checkbox when set
     val checked: Boolean? = null,
-)
+) {
+    // The constructor of extensions built before checked was added
+    @Deprecated("Kept for binary compatibility", level = DeprecationLevel.HIDDEN)
+    constructor(title: String, onClick: () -> Unit, enabled: Boolean = true) : this(title, onClick, enabled, null)
+}

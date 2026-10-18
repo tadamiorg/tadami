@@ -1,0 +1,23 @@
+# Lines of the baselines (<major.minor>.txt) the app no longer provides, which
+# ExtensionsApiCompatibilityTest skips: "<line without its flags> <reason>". Only for breaks no
+# published extension is affected by.
+
+# Anime: language, added after rawTitle, shifted the constructor, copy and the componentN from the 6th
+com/sf/tadami/domain/anime/Anime method <init>(JJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/sf/tadami/source/model/SAnimeStatus;Ljava/lang/String;Ljava/util/List;ZJJIZJJ)V Broken since the app added Anime.language (lib 1.6), unused: extensions only read the getters of Anime
+com/sf/tadami/domain/anime/Anime method copy(JJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/sf/tadami/source/model/SAnimeStatus;Ljava/lang/String;Ljava/util/List;ZJJIZJJ)Lcom/sf/tadami/domain/anime/Anime; Broken since the app added Anime.language (lib 1.6), unused: extensions only read the getters of Anime
+com/sf/tadami/domain/anime/Anime method copy$default(Lcom/sf/tadami/domain/anime/Anime;JJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/sf/tadami/source/model/SAnimeStatus;Ljava/lang/String;Ljava/util/List;ZJJIZJJILjava/lang/Object;)Lcom/sf/tadami/domain/anime/Anime; Broken since the app added Anime.language (lib 1.6), unused: extensions only read the getters of Anime
+com/sf/tadami/domain/anime/Anime method component10()Lcom/sf/tadami/source/model/SAnimeStatus; Broken since the app added Anime.language (lib 1.6), unused: extensions only read the getters of Anime
+com/sf/tadami/domain/anime/Anime method component11()Ljava/lang/String; Broken since the app added Anime.language (lib 1.6), unused: extensions only read the getters of Anime
+com/sf/tadami/domain/anime/Anime method component12()Ljava/util/List; Broken since the app added Anime.language (lib 1.6), unused: extensions only read the getters of Anime
+com/sf/tadami/domain/anime/Anime method component13()Z Broken since the app added Anime.language (lib 1.6), unused: extensions only read the getters of Anime
+com/sf/tadami/domain/anime/Anime method component14()J Broken since the app added Anime.language (lib 1.6), unused: extensions only read the getters of Anime
+com/sf/tadami/domain/anime/Anime method component16()I Broken since the app added Anime.language (lib 1.6), unused: extensions only read the getters of Anime
+com/sf/tadami/domain/anime/Anime method component17()Z Broken since the app added Anime.language (lib 1.6), unused: extensions only read the getters of Anime
+com/sf/tadami/domain/anime/Anime method component18()J Broken since the app added Anime.language (lib 1.6), unused: extensions only read the getters of Anime
+
+# App.getAppContext() and App.getLocale(), in the lib 1.5 stub only
+com/sf/tadami/App field Companion:Lcom/sf/tadami/App$Companion; Removed from the app before lib 1.6, no published extension calls it
+com/sf/tadami/App$Companion class Removed from the app before lib 1.6, no published extension calls it
+
+# The stub's body made it return Void (an inferred Nothing), the app's returns void
+com/sf/tadami/source/model/OkhttpHeadersSerializer method serialize(Lkotlinx/serialization/encoding/Encoder;Lokhttp3/Headers;)Ljava/lang/Void; Stub mistake, fixed in lib 1.6.0: extensions don't call it, StreamSource's serializer does

@@ -1,0 +1,679 @@
+# extensions-lib 1.5: the classes and members extensions built against it may link against.
+# The app must keep them (ExtensionsApiCompatibilityTest). Written with -Ptadami.updateApiBaseline=1.5,
+# which only adds lines: list a removed member in known-breaks.txt instead of deleting it here.
+com/sf/tadami/App class public
+com/sf/tadami/App extends android/app/Application
+com/sf/tadami/App field Companion:Lcom/sf/tadami/App$Companion; public static final
+com/sf/tadami/App method <init>()V public
+com/sf/tadami/App$Companion class public final
+com/sf/tadami/App$Companion method getAppContext()Landroid/content/Context; public final
+com/sf/tadami/App$Companion method getLocale()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime class public final
+com/sf/tadami/domain/anime/Anime method <init>(JJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/sf/tadami/source/model/SAnimeStatus;Ljava/lang/String;Ljava/util/List;ZJJIZJJ)V public
+com/sf/tadami/domain/anime/Anime method component1()J public final
+com/sf/tadami/domain/anime/Anime method component10()Lcom/sf/tadami/source/model/SAnimeStatus; public final
+com/sf/tadami/domain/anime/Anime method component11()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method component12()Ljava/util/List; public final
+com/sf/tadami/domain/anime/Anime method component13()Z public final
+com/sf/tadami/domain/anime/Anime method component14()J public final
+com/sf/tadami/domain/anime/Anime method component15()J public final
+com/sf/tadami/domain/anime/Anime method component16()I public final
+com/sf/tadami/domain/anime/Anime method component17()Z public final
+com/sf/tadami/domain/anime/Anime method component18()J public final
+com/sf/tadami/domain/anime/Anime method component19()J public final
+com/sf/tadami/domain/anime/Anime method component2()J public final
+com/sf/tadami/domain/anime/Anime method component3()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method component4()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method component5()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method component6()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method component7()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method component8()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method component9()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method copy$default(Lcom/sf/tadami/domain/anime/Anime;JJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/sf/tadami/source/model/SAnimeStatus;Ljava/lang/String;Ljava/util/List;ZJJIZJJILjava/lang/Object;)Lcom/sf/tadami/domain/anime/Anime; public static
+com/sf/tadami/domain/anime/Anime method copy(JJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/sf/tadami/source/model/SAnimeStatus;Ljava/lang/String;Ljava/util/List;ZJJIZJJ)Lcom/sf/tadami/domain/anime/Anime; public final
+com/sf/tadami/domain/anime/Anime method equals(Ljava/lang/Object;)Z public
+com/sf/tadami/domain/anime/Anime method getAuthor()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method getDateAdded()J public final
+com/sf/tadami/domain/anime/Anime method getDescription()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method getEpisodeFlags()J public final
+com/sf/tadami/domain/anime/Anime method getFavorite()Z public final
+com/sf/tadami/domain/anime/Anime method getFetchInterval()I public final
+com/sf/tadami/domain/anime/Anime method getGenres()Ljava/util/List; public final
+com/sf/tadami/domain/anime/Anime method getId()J public final
+com/sf/tadami/domain/anime/Anime method getInitialized()Z public final
+com/sf/tadami/domain/anime/Anime method getLastUpdate()J public final
+com/sf/tadami/domain/anime/Anime method getNextUpdate()J public final
+com/sf/tadami/domain/anime/Anime method getRawTitle()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method getRelease()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method getSource()J public final
+com/sf/tadami/domain/anime/Anime method getStatus()Lcom/sf/tadami/source/model/SAnimeStatus; public final
+com/sf/tadami/domain/anime/Anime method getStudio()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method getThumbnailUrl()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method getTitle()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method getUrl()Ljava/lang/String; public final
+com/sf/tadami/domain/anime/Anime method hashCode()I public
+com/sf/tadami/domain/anime/Anime method setDateAdded(J)V public final
+com/sf/tadami/domain/anime/Anime method toString()Ljava/lang/String; public
+com/sf/tadami/network/NetworkHelper class public final
+com/sf/tadami/network/NetworkHelper field Companion:Lcom/sf/tadami/network/NetworkHelper$Companion; public static final
+com/sf/tadami/network/NetworkHelper field DEFAULT_USER_AGENT:Ljava/lang/String; public static final
+com/sf/tadami/network/NetworkHelper method <init>(Landroid/content/Context;)V public
+com/sf/tadami/network/NetworkHelper method getClient()Lokhttp3/OkHttpClient; public final
+com/sf/tadami/network/NetworkHelper method getCloudflareClient()Lokhttp3/OkHttpClient; public final
+com/sf/tadami/network/NetworkHelper method getNonCloudflareClient()Lokhttp3/OkHttpClient; public final
+com/sf/tadami/network/NetworkHelper$Companion class public final
+com/sf/tadami/network/OkHttpExtensionsKt class public final
+com/sf/tadami/network/OkHttpExtensionsKt method asCancelableObservable(Lokhttp3/Call;)Lio/reactivex/rxjava3/core/Observable; public static final
+com/sf/tadami/network/OkHttpExtensionsKt method asJsoup$default(Lokhttp3/Response;Ljava/lang/String;ILjava/lang/Object;)Lorg/jsoup/nodes/Document; public static
+com/sf/tadami/network/OkHttpExtensionsKt method asJsoup(Lokhttp3/Response;Ljava/lang/String;)Lorg/jsoup/nodes/Document; public static final
+com/sf/tadami/network/OkHttpExtensionsKt method asObservable(Lokhttp3/Call;)Lio/reactivex/rxjava3/core/Observable; public static final
+com/sf/tadami/network/OkHttpExtensionsKt method asObservableSuccess(Lokhttp3/Call;)Lio/reactivex/rxjava3/core/Observable; public static final
+com/sf/tadami/network/OkHttpExtensionsKt method await(Lokhttp3/Call;Lkotlin/coroutines/Continuation;)Ljava/lang/Object; public static final
+com/sf/tadami/network/OkHttpExtensionsKt method handleErrors(Lokhttp3/Response;)Lokhttp3/Response; public static final
+com/sf/tadami/network/OkHttpExtensionsKt method shortTimeOutBuilder$default(Lokhttp3/OkHttpClient;JILjava/lang/Object;)Lokhttp3/OkHttpClient; public static
+com/sf/tadami/network/OkHttpExtensionsKt method shortTimeOutBuilder(Lokhttp3/OkHttpClient;J)Lokhttp3/OkHttpClient; public static final
+com/sf/tadami/network/RequestsKt class public final
+com/sf/tadami/network/RequestsKt method GET$default(Ljava/lang/String;Lokhttp3/Headers;Lokhttp3/CacheControl;ILjava/lang/Object;)Lokhttp3/Request; public static
+com/sf/tadami/network/RequestsKt method GET(Ljava/lang/String;Lokhttp3/Headers;Lokhttp3/CacheControl;)Lokhttp3/Request; public static final
+com/sf/tadami/network/RequestsKt method HEAD$default(Ljava/lang/String;Lokhttp3/Headers;Lokhttp3/CacheControl;ILjava/lang/Object;)Lokhttp3/Request; public static
+com/sf/tadami/network/RequestsKt method HEAD(Ljava/lang/String;Lokhttp3/Headers;Lokhttp3/CacheControl;)Lokhttp3/Request; public static final
+com/sf/tadami/network/RequestsKt method POST$default(Ljava/lang/String;Lokhttp3/Headers;Lokhttp3/RequestBody;Lokhttp3/CacheControl;ILjava/lang/Object;)Lokhttp3/Request; public static
+com/sf/tadami/network/RequestsKt method POST(Ljava/lang/String;Lokhttp3/Headers;Lokhttp3/RequestBody;Lokhttp3/CacheControl;)Lokhttp3/Request; public static final
+com/sf/tadami/preferences/CommonKeys class public final
+com/sf/tadami/preferences/CommonKeys field INSTANCE:Lcom/sf/tadami/preferences/CommonKeys; public static final
+com/sf/tadami/preferences/CommonKeys method getSHOULD_SHOW_EPISODE_TOOLTIP()Landroidx/datastore/preferences/core/Preferences$Key; public final
+com/sf/tadami/preferences/model/CustomPreferences class public abstract interface
+com/sf/tadami/preferences/model/CustomPreferences field Companion:Lcom/sf/tadami/preferences/model/CustomPreferences$Companion; public static final
+com/sf/tadami/preferences/model/CustomPreferences method setPrefs(Ljava/lang/Object;Landroidx/datastore/preferences/core/MutablePreferences;)V public abstract
+com/sf/tadami/preferences/model/CustomPreferences method transform(Landroidx/datastore/preferences/core/Preferences;)Ljava/lang/Object; public abstract
+com/sf/tadami/preferences/model/CustomPreferences$Companion class public final
+com/sf/tadami/preferences/model/CustomPreferences$Companion method appStateKey(Ljava/lang/String;)Ljava/lang/String; public final
+com/sf/tadami/preferences/model/CustomPreferences$Companion method isAppState(Ljava/lang/String;)Z public final
+com/sf/tadami/preferences/model/CustomPreferences$Companion method isPrivate(Ljava/lang/String;)Z public final
+com/sf/tadami/preferences/model/CustomPreferences$Companion method privateKey(Ljava/lang/String;)Ljava/lang/String; public final
+com/sf/tadami/preferences/model/CustomPreferencesIdentifier class public abstract interface
+com/sf/tadami/preferences/model/SourcePreference class public abstract
+com/sf/tadami/preferences/model/SourcePreference method getEnabled()Z public abstract
+com/sf/tadami/preferences/model/SourcePreference method getTitle()Ljava/lang/String; public abstract
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory class public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory extends com/sf/tadami/preferences/model/SourcePreference
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method <init>(Ljava/lang/String;ZZLjava/util/List;)V public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method <init>(Ljava/lang/String;ZZLjava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method component1()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method component2()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method component3()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method component4()Ljava/util/List; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method copy$default(Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceCategory;Ljava/lang/String;ZZLjava/util/List;ILjava/lang/Object;)Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceCategory; public static
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method copy(Ljava/lang/String;ZZLjava/util/List;)Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceCategory; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method equals(Ljava/lang/Object;)Z public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method getEnabled()Z public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method getPreferenceItems()Ljava/util/List; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method getTitle()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method getVideoCategory()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method hashCode()I public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceCategory method toString()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem class public abstract
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem extends com/sf/tadami/preferences/model/SourcePreference
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem method getIcon()Landroidx/compose/ui/graphics/vector/ImageVector; public abstract
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem method getOnValueChanged()Lkotlin/jvm/functions/Function1; public abstract
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem method getSubtitle()Ljava/lang/String; public abstract
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference class public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference extends com/sf/tadami/preferences/model/SourcePreference$PreferenceItem
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method <init>(Ljava/lang/String;Landroidx/datastore/preferences/core/Preferences$Key;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZLkotlin/jvm/functions/Function1;)V public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method <init>(Ljava/lang/String;Landroidx/datastore/preferences/core/Preferences$Key;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZLkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method component1()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method component2()Landroidx/datastore/preferences/core/Preferences$Key; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method component3()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method component4()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method component5()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method component6()Landroidx/compose/ui/graphics/vector/ImageVector; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method component7()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method component8()Lkotlin/jvm/functions/Function1; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method copy$default(Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference;Ljava/lang/String;Landroidx/datastore/preferences/core/Preferences$Key;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference; public static
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method copy(Ljava/lang/String;Landroidx/datastore/preferences/core/Preferences$Key;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZLkotlin/jvm/functions/Function1;)Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method equals(Ljava/lang/Object;)Z public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method getDefaultValue()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method getEnabled()Z public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method getIcon()Landroidx/compose/ui/graphics/vector/ImageVector; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method getKey()Landroidx/datastore/preferences/core/Preferences$Key; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method getOnValueChanged()Lkotlin/jvm/functions/Function1; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method getSubtitle()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method getTitle()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method getValue()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method hashCode()I public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method setValue(Ljava/lang/String;)V public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$EditTextPreference method toString()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference class public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference extends com/sf/tadami/preferences/model/SourcePreference$PreferenceItem
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method <init>(Landroidx/datastore/preferences/core/Preferences$Key;Ljava/util/Set;Ljava/util/Map;Ljava/util/Set;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZZLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method <init>(Landroidx/datastore/preferences/core/Preferences$Key;Ljava/util/Set;Ljava/util/Map;Ljava/util/Set;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZZLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method component1()Landroidx/datastore/preferences/core/Preferences$Key; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method component10()Lkotlin/jvm/functions/Function1; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method component11()Lkotlin/jvm/functions/Function1; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method component2()Ljava/util/Set; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method component3()Ljava/util/Map; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method component4()Ljava/util/Set; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method component5()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method component6()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method component7()Landroidx/compose/ui/graphics/vector/ImageVector; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method component8()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method component9()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method copy$default(Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference;Landroidx/datastore/preferences/core/Preferences$Key;Ljava/util/Set;Ljava/util/Map;Ljava/util/Set;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZZLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference; public static
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method copy(Landroidx/datastore/preferences/core/Preferences$Key;Ljava/util/Set;Ljava/util/Map;Ljava/util/Set;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZZLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method equals(Ljava/lang/Object;)Z public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method getDefaultValue()Ljava/util/Set; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method getEnabled()Z public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method getIcon()Landroidx/compose/ui/graphics/vector/ImageVector; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method getItems()Ljava/util/Map; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method getKey()Landroidx/datastore/preferences/core/Preferences$Key; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method getOnValueChanged()Lkotlin/jvm/functions/Function1; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method getOverrideOkButton()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method getSubtitle()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method getSubtitleProvider()Lkotlin/jvm/functions/Function1; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method getTitle()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method getValue()Ljava/util/Set; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method hashCode()I public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method setItems(Ljava/util/Map;)V public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method setValue(Ljava/util/Set;)V public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$MultiSelectPreference method toString()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference class public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference extends com/sf/tadami/preferences/model/SourcePreference$PreferenceItem
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method <init>(Landroidx/datastore/preferences/core/Preferences$Key;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZZLkotlin/jvm/functions/Function1;)V public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method <init>(Landroidx/datastore/preferences/core/Preferences$Key;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZZLkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method component1()Landroidx/datastore/preferences/core/Preferences$Key; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method component10()Lkotlin/jvm/functions/Function1; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method component2()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method component3()Ljava/util/Map; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method component4()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method component5()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method component6()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method component7()Landroidx/compose/ui/graphics/vector/ImageVector; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method component8()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method component9()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method copy$default(Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference;Landroidx/datastore/preferences/core/Preferences$Key;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference; public static
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method copy(Landroidx/datastore/preferences/core/Preferences$Key;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZZLkotlin/jvm/functions/Function1;)Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method equals(Ljava/lang/Object;)Z public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method getDefaultValue()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method getEnabled()Z public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method getIcon()Landroidx/compose/ui/graphics/vector/ImageVector; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method getItems()Ljava/util/Map; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method getKey()Landroidx/datastore/preferences/core/Preferences$Key; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method getOnValueChanged()Lkotlin/jvm/functions/Function1; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method getOverrideOkButton()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method getSubtitle()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method getTitle()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method getValue()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method hashCode()I public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method setItems(Ljava/util/Map;)V public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method setValue(Ljava/lang/String;)V public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$ReorderStringPreference method toString()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference class public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference extends com/sf/tadami/preferences/model/SourcePreference$PreferenceItem
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method <init>(Ljava/lang/Object;Landroidx/datastore/preferences/core/Preferences$Key;Ljava/lang/Object;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)V public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method <init>(Ljava/lang/Object;Landroidx/datastore/preferences/core/Preferences$Key;Ljava/lang/Object;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method castedOnValueChanged(Ljava/lang/Object;)Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method component1()Ljava/lang/Object; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method component10()Lkotlin/jvm/functions/Function0; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method component2()Landroidx/datastore/preferences/core/Preferences$Key; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method component3()Ljava/lang/Object; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method component4()Ljava/util/Map; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method component5()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method component6()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method component7()Landroidx/compose/ui/graphics/vector/ImageVector; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method component8()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method component9()Lkotlin/jvm/functions/Function1; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method copy$default(Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference;Ljava/lang/Object;Landroidx/datastore/preferences/core/Preferences$Key;Ljava/lang/Object;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference; public static
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method copy(Ljava/lang/Object;Landroidx/datastore/preferences/core/Preferences$Key;Ljava/lang/Object;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method equals(Ljava/lang/Object;)Z public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method getDefaultValue()Ljava/lang/Object; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method getEnabled()Z public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method getIcon()Landroidx/compose/ui/graphics/vector/ImageVector; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method getItems()Ljava/util/Map; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method getKey()Landroidx/datastore/preferences/core/Preferences$Key; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method getOnValueChanged()Lkotlin/jvm/functions/Function1; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method getSubtitle()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method getSubtitleProvider()Lkotlin/jvm/functions/Function0; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method getTitle()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method getValue()Ljava/lang/Object; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method hashCode()I public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method setItems(Ljava/util/Map;)V public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method setValue(Ljava/lang/Object;)V public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$SelectPreference method toString()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference class public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference extends com/sf/tadami/preferences/model/SourcePreference$PreferenceItem
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method <init>(ZLandroidx/datastore/preferences/core/Preferences$Key;ZLjava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZLkotlin/jvm/functions/Function1;)V public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method <init>(ZLandroidx/datastore/preferences/core/Preferences$Key;ZLjava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZLkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method component1()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method component2()Landroidx/datastore/preferences/core/Preferences$Key; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method component3()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method component4()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method component5()Ljava/lang/String; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method component6()Landroidx/compose/ui/graphics/vector/ImageVector; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method component7()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method component8()Lkotlin/jvm/functions/Function1; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method copy$default(Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference;ZLandroidx/datastore/preferences/core/Preferences$Key;ZLjava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference; public static
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method copy(ZLandroidx/datastore/preferences/core/Preferences$Key;ZLjava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZLkotlin/jvm/functions/Function1;)Lcom/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method equals(Ljava/lang/Object;)Z public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method getDefaultValue()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method getEnabled()Z public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method getIcon()Landroidx/compose/ui/graphics/vector/ImageVector; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method getKey()Landroidx/datastore/preferences/core/Preferences$Key; public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method getOnValueChanged()Lkotlin/jvm/functions/Function1; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method getSubtitle()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method getTitle()Ljava/lang/String; public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method getValue()Z public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method hashCode()I public
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method setValue(Z)V public final
+com/sf/tadami/preferences/model/SourcePreference$PreferenceItem$TogglePreference method toString()Ljava/lang/String; public
+com/sf/tadami/source/AnimeCatalogueSource class public abstract interface
+com/sf/tadami/source/AnimeCatalogueSource implements com/sf/tadami/source/Source
+com/sf/tadami/source/AnimeCatalogueSource method fetchLatest(I)Lio/reactivex/rxjava3/core/Observable; public abstract
+com/sf/tadami/source/AnimeCatalogueSource method fetchSearch$default(Lcom/sf/tadami/source/AnimeCatalogueSource;ILjava/lang/String;Lcom/sf/tadami/source/model/AnimeFilterList;ZILjava/lang/Object;)Lio/reactivex/rxjava3/core/Observable; public static
+com/sf/tadami/source/AnimeCatalogueSource method fetchSearch(ILjava/lang/String;Lcom/sf/tadami/source/model/AnimeFilterList;Z)Lio/reactivex/rxjava3/core/Observable; public abstract
+com/sf/tadami/source/AnimeCatalogueSource method getFilterList()Lcom/sf/tadami/source/model/AnimeFilterList; public abstract
+com/sf/tadami/source/AnimeCatalogueSource method getLang()Lcom/sf/tadami/utils/Lang; public abstract
+com/sf/tadami/source/AnimeCatalogueSource method getSupportEpisodeTooltip()Z public
+com/sf/tadami/source/AnimeCatalogueSource method getSupportRecent()Z public
+com/sf/tadami/source/AnimeCatalogueSource method getSupportSearch()Z public
+com/sf/tadami/source/AnimeCatalogueSource$DefaultImpls class public final
+com/sf/tadami/source/AnimeCatalogueSource$DefaultImpls method fetchAnimeDetails(Lcom/sf/tadami/source/AnimeCatalogueSource;Lcom/sf/tadami/domain/anime/Anime;)Lio/reactivex/rxjava3/core/Observable; public static
+com/sf/tadami/source/AnimeCatalogueSource$DefaultImpls method fetchEpisode(Lcom/sf/tadami/source/AnimeCatalogueSource;Ljava/lang/String;)Lio/reactivex/rxjava3/core/Observable; public static
+com/sf/tadami/source/AnimeCatalogueSource$DefaultImpls method fetchEpisodeSources(Lcom/sf/tadami/source/AnimeCatalogueSource;Ljava/lang/String;)Lio/reactivex/rxjava3/core/Observable; public static
+com/sf/tadami/source/AnimeCatalogueSource$DefaultImpls method fetchEpisodesList(Lcom/sf/tadami/source/AnimeCatalogueSource;Lcom/sf/tadami/domain/anime/Anime;)Lio/reactivex/rxjava3/core/Observable; public static
+com/sf/tadami/source/AnimeCatalogueSource$DefaultImpls method fetchSearch$default(Lcom/sf/tadami/source/AnimeCatalogueSource;ILjava/lang/String;Lcom/sf/tadami/source/model/AnimeFilterList;ZILjava/lang/Object;)Lio/reactivex/rxjava3/core/Observable; public static
+com/sf/tadami/source/AnimeCatalogueSource$DefaultImpls method getIconRes(Lcom/sf/tadami/source/AnimeCatalogueSource;)Ljava/lang/Integer; public static
+com/sf/tadami/source/AnimeCatalogueSource$DefaultImpls method getSupportEpisodeTooltip(Lcom/sf/tadami/source/AnimeCatalogueSource;)Z public static
+com/sf/tadami/source/AnimeCatalogueSource$DefaultImpls method getSupportRecent(Lcom/sf/tadami/source/AnimeCatalogueSource;)Z public static
+com/sf/tadami/source/AnimeCatalogueSource$DefaultImpls method getSupportSearch(Lcom/sf/tadami/source/AnimeCatalogueSource;)Z public static
+com/sf/tadami/source/AnimesPage class public final
+com/sf/tadami/source/AnimesPage method <init>(Ljava/util/List;Z)V public
+com/sf/tadami/source/AnimesPage method component1()Ljava/util/List; public final
+com/sf/tadami/source/AnimesPage method component2()Z public final
+com/sf/tadami/source/AnimesPage method copy$default(Lcom/sf/tadami/source/AnimesPage;Ljava/util/List;ZILjava/lang/Object;)Lcom/sf/tadami/source/AnimesPage; public static
+com/sf/tadami/source/AnimesPage method copy(Ljava/util/List;Z)Lcom/sf/tadami/source/AnimesPage; public final
+com/sf/tadami/source/AnimesPage method equals(Ljava/lang/Object;)Z public
+com/sf/tadami/source/AnimesPage method getAnimes()Ljava/util/List; public final
+com/sf/tadami/source/AnimesPage method getHasNextPage()Z public final
+com/sf/tadami/source/AnimesPage method hashCode()I public
+com/sf/tadami/source/AnimesPage method toString()Ljava/lang/String; public
+com/sf/tadami/source/Source class public abstract interface
+com/sf/tadami/source/Source method fetchAnimeDetails(Lcom/sf/tadami/domain/anime/Anime;)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/Source method fetchEpisode(Ljava/lang/String;)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/Source method fetchEpisodeSources(Ljava/lang/String;)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/Source method fetchEpisodesList(Lcom/sf/tadami/domain/anime/Anime;)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/Source method getIconRes()Ljava/lang/Integer; public
+com/sf/tadami/source/Source method getId()J public abstract
+com/sf/tadami/source/Source method getLang()Lcom/sf/tadami/utils/Lang; public abstract
+com/sf/tadami/source/Source method getName()Ljava/lang/String; public abstract
+com/sf/tadami/source/Source$DefaultImpls class public final
+com/sf/tadami/source/Source$DefaultImpls method fetchAnimeDetails(Lcom/sf/tadami/source/Source;Lcom/sf/tadami/domain/anime/Anime;)Lio/reactivex/rxjava3/core/Observable; public static
+com/sf/tadami/source/Source$DefaultImpls method fetchEpisode(Lcom/sf/tadami/source/Source;Ljava/lang/String;)Lio/reactivex/rxjava3/core/Observable; public static
+com/sf/tadami/source/Source$DefaultImpls method fetchEpisodeSources(Lcom/sf/tadami/source/Source;Ljava/lang/String;)Lio/reactivex/rxjava3/core/Observable; public static
+com/sf/tadami/source/Source$DefaultImpls method fetchEpisodesList(Lcom/sf/tadami/source/Source;Lcom/sf/tadami/domain/anime/Anime;)Lio/reactivex/rxjava3/core/Observable; public static
+com/sf/tadami/source/Source$DefaultImpls method getIconRes(Lcom/sf/tadami/source/Source;)Ljava/lang/Integer; public static
+com/sf/tadami/source/StubSource class public final
+com/sf/tadami/source/StubSource field Companion:Lcom/sf/tadami/source/StubSource$Companion; public static final
+com/sf/tadami/source/StubSource implements com/sf/tadami/source/AnimeCatalogueSource
+com/sf/tadami/source/StubSource method <init>(JLjava/lang/String;Lcom/sf/tadami/utils/Lang;)V public
+com/sf/tadami/source/StubSource method <init>(JLjava/lang/String;Lcom/sf/tadami/utils/Lang;ILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/source/StubSource method fetchAnimeDetails(Lcom/sf/tadami/domain/anime/Anime;)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/StubSource method fetchEpisode(Ljava/lang/String;)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/StubSource method fetchEpisodesList(Lcom/sf/tadami/domain/anime/Anime;)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/StubSource method fetchLatest(I)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/StubSource method fetchSearch(ILjava/lang/String;Lcom/sf/tadami/source/model/AnimeFilterList;Z)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/StubSource method getFilterList()Lcom/sf/tadami/source/model/AnimeFilterList; public
+com/sf/tadami/source/StubSource method getId()J public
+com/sf/tadami/source/StubSource method getLang()Lcom/sf/tadami/utils/Lang; public
+com/sf/tadami/source/StubSource method getName()Ljava/lang/String; public
+com/sf/tadami/source/StubSource$Companion class public final
+com/sf/tadami/source/StubSource$Companion method from(Lcom/sf/tadami/source/Source;)Lcom/sf/tadami/source/StubSource; public final
+com/sf/tadami/source/StubSource$SourceNotInstalledException class public final
+com/sf/tadami/source/StubSource$SourceNotInstalledException extends java/lang/Exception
+com/sf/tadami/source/StubSource$SourceNotInstalledException method <init>(Lcom/sf/tadami/source/StubSource;)V public
+com/sf/tadami/source/model/AnimeFilter class public abstract
+com/sf/tadami/source/model/AnimeFilter method getName()Ljava/lang/String; public final
+com/sf/tadami/source/model/AnimeFilter$CheckBox class public abstract
+com/sf/tadami/source/model/AnimeFilter$CheckBox extends com/sf/tadami/source/model/AnimeFilter
+com/sf/tadami/source/model/AnimeFilter$CheckBox method <init>(Ljava/lang/String;Z)V public
+com/sf/tadami/source/model/AnimeFilter$CheckBox method <init>(Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/source/model/AnimeFilter$CheckBox method getState()Z public final
+com/sf/tadami/source/model/AnimeFilter$CheckBox method setState(Z)V public final
+com/sf/tadami/source/model/AnimeFilter$CheckBoxGroup class public abstract
+com/sf/tadami/source/model/AnimeFilter$CheckBoxGroup extends com/sf/tadami/source/model/AnimeFilter
+com/sf/tadami/source/model/AnimeFilter$CheckBoxGroup method <init>(Ljava/lang/String;Ljava/util/List;)V public
+com/sf/tadami/source/model/AnimeFilter$CheckBoxGroup method getState()Ljava/util/List; public final
+com/sf/tadami/source/model/AnimeFilter$CheckBoxGroup method setState(Ljava/util/List;)V public final
+com/sf/tadami/source/model/AnimeFilter$Header class public final
+com/sf/tadami/source/model/AnimeFilter$Header extends com/sf/tadami/source/model/AnimeFilter
+com/sf/tadami/source/model/AnimeFilter$Header method <init>(Ljava/lang/String;)V public
+com/sf/tadami/source/model/AnimeFilter$Select class public abstract
+com/sf/tadami/source/model/AnimeFilter$Select extends com/sf/tadami/source/model/AnimeFilter
+com/sf/tadami/source/model/AnimeFilter$Select method <init>(Ljava/lang/String;[Ljava/lang/String;I)V public
+com/sf/tadami/source/model/AnimeFilter$Select method <init>(Ljava/lang/String;[Ljava/lang/String;IILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/source/model/AnimeFilter$Select method getState()I public final
+com/sf/tadami/source/model/AnimeFilter$Select method getValues()[Ljava/lang/String; public final
+com/sf/tadami/source/model/AnimeFilter$Select method setState(I)V public final
+com/sf/tadami/source/model/AnimeFilterList class public final
+com/sf/tadami/source/model/AnimeFilterList implements java/util/List
+com/sf/tadami/source/model/AnimeFilterList implements kotlin/jvm/internal/markers/KMutableList
+com/sf/tadami/source/model/AnimeFilterList method <init>(Ljava/util/List;)V public
+com/sf/tadami/source/model/AnimeFilterList method <init>([Lcom/sf/tadami/source/model/AnimeFilter;)V public
+com/sf/tadami/source/model/AnimeFilterList method add(ILcom/sf/tadami/source/model/AnimeFilter;)V public
+com/sf/tadami/source/model/AnimeFilterList method add(Lcom/sf/tadami/source/model/AnimeFilter;)Z public
+com/sf/tadami/source/model/AnimeFilterList method addAll(ILjava/util/Collection;)Z public
+com/sf/tadami/source/model/AnimeFilterList method addAll(Ljava/util/Collection;)Z public
+com/sf/tadami/source/model/AnimeFilterList method clear()V public
+com/sf/tadami/source/model/AnimeFilterList method contains(Lcom/sf/tadami/source/model/AnimeFilter;)Z public
+com/sf/tadami/source/model/AnimeFilterList method containsAll(Ljava/util/Collection;)Z public
+com/sf/tadami/source/model/AnimeFilterList method equals(Ljava/lang/Object;)Z public
+com/sf/tadami/source/model/AnimeFilterList method get(I)Lcom/sf/tadami/source/model/AnimeFilter; public
+com/sf/tadami/source/model/AnimeFilterList method getFilters()Ljava/util/List; public final
+com/sf/tadami/source/model/AnimeFilterList method getSize()I public
+com/sf/tadami/source/model/AnimeFilterList method hashCode()I public
+com/sf/tadami/source/model/AnimeFilterList method indexOf(Lcom/sf/tadami/source/model/AnimeFilter;)I public
+com/sf/tadami/source/model/AnimeFilterList method isEmpty()Z public
+com/sf/tadami/source/model/AnimeFilterList method iterator()Ljava/util/Iterator; public
+com/sf/tadami/source/model/AnimeFilterList method lastIndexOf(Lcom/sf/tadami/source/model/AnimeFilter;)I public
+com/sf/tadami/source/model/AnimeFilterList method listIterator()Ljava/util/ListIterator; public
+com/sf/tadami/source/model/AnimeFilterList method listIterator(I)Ljava/util/ListIterator; public
+com/sf/tadami/source/model/AnimeFilterList method remove(Lcom/sf/tadami/source/model/AnimeFilter;)Z public
+com/sf/tadami/source/model/AnimeFilterList method removeAll(Ljava/util/Collection;)Z public
+com/sf/tadami/source/model/AnimeFilterList method removeAt(I)Lcom/sf/tadami/source/model/AnimeFilter; public
+com/sf/tadami/source/model/AnimeFilterList method retainAll(Ljava/util/Collection;)Z public
+com/sf/tadami/source/model/AnimeFilterList method set(ILcom/sf/tadami/source/model/AnimeFilter;)Lcom/sf/tadami/source/model/AnimeFilter; public
+com/sf/tadami/source/model/AnimeFilterList method subList(II)Ljava/util/List; public
+com/sf/tadami/source/model/AnimeFilterList method toArray()[Ljava/lang/Object; public
+com/sf/tadami/source/model/AnimeFilterList method toArray([Ljava/lang/Object;)[Ljava/lang/Object; public
+com/sf/tadami/source/model/OkhttpHeadersSerializer class public final
+com/sf/tadami/source/model/OkhttpHeadersSerializer field INSTANCE:Lcom/sf/tadami/source/model/OkhttpHeadersSerializer; public static final
+com/sf/tadami/source/model/OkhttpHeadersSerializer implements kotlinx/serialization/KSerializer
+com/sf/tadami/source/model/OkhttpHeadersSerializer method deserialize(Lkotlinx/serialization/encoding/Decoder;)Lokhttp3/Headers; public
+com/sf/tadami/source/model/OkhttpHeadersSerializer method getDescriptor()Lkotlinx/serialization/descriptors/SerialDescriptor; public
+com/sf/tadami/source/model/OkhttpHeadersSerializer method serialize(Lkotlinx/serialization/encoding/Encoder;Lokhttp3/Headers;)Ljava/lang/Void; public
+com/sf/tadami/source/model/SAnime class public abstract interface
+com/sf/tadami/source/model/SAnime field Companion:Lcom/sf/tadami/source/model/SAnime$Companion; public static final
+com/sf/tadami/source/model/SAnime method getAuthor()Ljava/lang/String; public abstract
+com/sf/tadami/source/model/SAnime method getDescription()Ljava/lang/String; public abstract
+com/sf/tadami/source/model/SAnime method getGenres()Ljava/util/List; public abstract
+com/sf/tadami/source/model/SAnime method getInitialized()Z public abstract
+com/sf/tadami/source/model/SAnime method getRawTitle()Ljava/lang/String; public abstract
+com/sf/tadami/source/model/SAnime method getRelease()Ljava/lang/String; public abstract
+com/sf/tadami/source/model/SAnime method getStatus()Lcom/sf/tadami/source/model/SAnimeStatus; public abstract
+com/sf/tadami/source/model/SAnime method getStudio()Ljava/lang/String; public abstract
+com/sf/tadami/source/model/SAnime method getThumbnailUrl()Ljava/lang/String; public abstract
+com/sf/tadami/source/model/SAnime method getTitle()Ljava/lang/String; public abstract
+com/sf/tadami/source/model/SAnime method getUrl()Ljava/lang/String; public abstract
+com/sf/tadami/source/model/SAnime method setAuthor(Ljava/lang/String;)V public abstract
+com/sf/tadami/source/model/SAnime method setDescription(Ljava/lang/String;)V public abstract
+com/sf/tadami/source/model/SAnime method setGenres(Ljava/util/List;)V public abstract
+com/sf/tadami/source/model/SAnime method setInitialized(Z)V public abstract
+com/sf/tadami/source/model/SAnime method setRawTitle(Ljava/lang/String;)V public abstract
+com/sf/tadami/source/model/SAnime method setRelease(Ljava/lang/String;)V public abstract
+com/sf/tadami/source/model/SAnime method setStatus(Lcom/sf/tadami/source/model/SAnimeStatus;)V public abstract
+com/sf/tadami/source/model/SAnime method setStudio(Ljava/lang/String;)V public abstract
+com/sf/tadami/source/model/SAnime method setThumbnailUrl(Ljava/lang/String;)V public abstract
+com/sf/tadami/source/model/SAnime method setTitle(Ljava/lang/String;)V public abstract
+com/sf/tadami/source/model/SAnime method setUrl(Ljava/lang/String;)V public abstract
+com/sf/tadami/source/model/SAnime$Companion class public final
+com/sf/tadami/source/model/SAnime$Companion method create()Lcom/sf/tadami/source/model/SAnime; public final
+com/sf/tadami/source/model/SAnimeStatus class public final enum
+com/sf/tadami/source/model/SAnimeStatus extends java/lang/Enum
+com/sf/tadami/source/model/SAnimeStatus field CANCELLED:Lcom/sf/tadami/source/model/SAnimeStatus; public static final
+com/sf/tadami/source/model/SAnimeStatus field COMPLETED:Lcom/sf/tadami/source/model/SAnimeStatus; public static final
+com/sf/tadami/source/model/SAnimeStatus field ONGOING:Lcom/sf/tadami/source/model/SAnimeStatus; public static final
+com/sf/tadami/source/model/SAnimeStatus field ON_HIATUS:Lcom/sf/tadami/source/model/SAnimeStatus; public static final
+com/sf/tadami/source/model/SAnimeStatus field UNKNOWN:Lcom/sf/tadami/source/model/SAnimeStatus; public static final
+com/sf/tadami/source/model/SAnimeStatus method getEntries()Lkotlin/enums/EnumEntries; public static
+com/sf/tadami/source/model/SAnimeStatus method valueOf(Ljava/lang/String;)Lcom/sf/tadami/source/model/SAnimeStatus; public static
+com/sf/tadami/source/model/SAnimeStatus method values()[Lcom/sf/tadami/source/model/SAnimeStatus; public static
+com/sf/tadami/source/model/SEpisode class public abstract interface
+com/sf/tadami/source/model/SEpisode field Companion:Lcom/sf/tadami/source/model/SEpisode$Companion; public static final
+com/sf/tadami/source/model/SEpisode method getDateUpload()J public abstract
+com/sf/tadami/source/model/SEpisode method getEpisodeNumber()F public abstract
+com/sf/tadami/source/model/SEpisode method getLanguages()Ljava/lang/String; public abstract
+com/sf/tadami/source/model/SEpisode method getName()Ljava/lang/String; public abstract
+com/sf/tadami/source/model/SEpisode method getUrl()Ljava/lang/String; public abstract
+com/sf/tadami/source/model/SEpisode method setDateUpload(J)V public abstract
+com/sf/tadami/source/model/SEpisode method setEpisodeNumber(F)V public abstract
+com/sf/tadami/source/model/SEpisode method setLanguages(Ljava/lang/String;)V public abstract
+com/sf/tadami/source/model/SEpisode method setName(Ljava/lang/String;)V public abstract
+com/sf/tadami/source/model/SEpisode method setUrl(Ljava/lang/String;)V public abstract
+com/sf/tadami/source/model/SEpisode$Companion class public final
+com/sf/tadami/source/model/SEpisode$Companion method create()Lcom/sf/tadami/source/model/SEpisode; public final
+com/sf/tadami/source/model/StreamSource class public final
+com/sf/tadami/source/model/StreamSource field Companion:Lcom/sf/tadami/source/model/StreamSource$Companion; public static final
+com/sf/tadami/source/model/StreamSource method <init>()V public
+com/sf/tadami/source/model/StreamSource method <init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lokhttp3/Headers;Ljava/util/List;Ljava/util/List;)V public
+com/sf/tadami/source/model/StreamSource method <init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lokhttp3/Headers;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/source/model/StreamSource method component1()Ljava/lang/String; public final
+com/sf/tadami/source/model/StreamSource method component2()Ljava/lang/String; public final
+com/sf/tadami/source/model/StreamSource method component3()Ljava/lang/String; public final
+com/sf/tadami/source/model/StreamSource method component4()Ljava/lang/String; public final
+com/sf/tadami/source/model/StreamSource method component5()Lokhttp3/Headers; public final
+com/sf/tadami/source/model/StreamSource method component6()Ljava/util/List; public final
+com/sf/tadami/source/model/StreamSource method component7()Ljava/util/List; public final
+com/sf/tadami/source/model/StreamSource method copy$default(Lcom/sf/tadami/source/model/StreamSource;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lokhttp3/Headers;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lcom/sf/tadami/source/model/StreamSource; public static
+com/sf/tadami/source/model/StreamSource method copy(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lokhttp3/Headers;Ljava/util/List;Ljava/util/List;)Lcom/sf/tadami/source/model/StreamSource; public final
+com/sf/tadami/source/model/StreamSource method equals(Ljava/lang/Object;)Z public
+com/sf/tadami/source/model/StreamSource method getAudioTracks()Ljava/util/List; public final
+com/sf/tadami/source/model/StreamSource method getFullName()Ljava/lang/String; public final
+com/sf/tadami/source/model/StreamSource method getHeaders()Lokhttp3/Headers; public final
+com/sf/tadami/source/model/StreamSource method getQuality()Ljava/lang/String; public final
+com/sf/tadami/source/model/StreamSource method getServer()Ljava/lang/String; public final
+com/sf/tadami/source/model/StreamSource method getSubtitleTracks()Ljava/util/List; public final
+com/sf/tadami/source/model/StreamSource method getUrl()Ljava/lang/String; public final
+com/sf/tadami/source/model/StreamSource method hashCode()I public
+com/sf/tadami/source/model/StreamSource method toString()Ljava/lang/String; public
+com/sf/tadami/source/model/StreamSource$$serializer class public final
+com/sf/tadami/source/model/StreamSource$$serializer field INSTANCE:Lcom/sf/tadami/source/model/StreamSource$$serializer; public static final
+com/sf/tadami/source/model/StreamSource$$serializer implements kotlinx/serialization/internal/GeneratedSerializer
+com/sf/tadami/source/model/StreamSource$$serializer method childSerializers()[Lkotlinx/serialization/KSerializer; public final
+com/sf/tadami/source/model/StreamSource$$serializer method deserialize(Lkotlinx/serialization/encoding/Decoder;)Lcom/sf/tadami/source/model/StreamSource; public final
+com/sf/tadami/source/model/StreamSource$$serializer method getDescriptor()Lkotlinx/serialization/descriptors/SerialDescriptor; public final
+com/sf/tadami/source/model/StreamSource$$serializer method serialize(Lkotlinx/serialization/encoding/Encoder;Lcom/sf/tadami/source/model/StreamSource;)V public final
+com/sf/tadami/source/model/StreamSource$Companion class public final
+com/sf/tadami/source/model/StreamSource$Companion method serializer()Lkotlinx/serialization/KSerializer; public final
+com/sf/tadami/source/model/Track class public abstract
+com/sf/tadami/source/model/Track method getLang()Ljava/lang/String; public abstract
+com/sf/tadami/source/model/Track method getUrl()Ljava/lang/String; public abstract
+com/sf/tadami/source/model/Track$AudioTrack class public final
+com/sf/tadami/source/model/Track$AudioTrack extends com/sf/tadami/source/model/Track
+com/sf/tadami/source/model/Track$AudioTrack field Companion:Lcom/sf/tadami/source/model/Track$AudioTrack$Companion; public static final
+com/sf/tadami/source/model/Track$AudioTrack method <init>(Ljava/lang/String;Ljava/lang/String;)V public
+com/sf/tadami/source/model/Track$AudioTrack method component1()Ljava/lang/String; public final
+com/sf/tadami/source/model/Track$AudioTrack method component2()Ljava/lang/String; public final
+com/sf/tadami/source/model/Track$AudioTrack method copy$default(Lcom/sf/tadami/source/model/Track$AudioTrack;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/sf/tadami/source/model/Track$AudioTrack; public static
+com/sf/tadami/source/model/Track$AudioTrack method copy(Ljava/lang/String;Ljava/lang/String;)Lcom/sf/tadami/source/model/Track$AudioTrack; public final
+com/sf/tadami/source/model/Track$AudioTrack method equals(Ljava/lang/Object;)Z public
+com/sf/tadami/source/model/Track$AudioTrack method getLang()Ljava/lang/String; public
+com/sf/tadami/source/model/Track$AudioTrack method getUrl()Ljava/lang/String; public
+com/sf/tadami/source/model/Track$AudioTrack method hashCode()I public
+com/sf/tadami/source/model/Track$AudioTrack method toString()Ljava/lang/String; public
+com/sf/tadami/source/model/Track$AudioTrack$$serializer class public final
+com/sf/tadami/source/model/Track$AudioTrack$$serializer field INSTANCE:Lcom/sf/tadami/source/model/Track$AudioTrack$$serializer; public static final
+com/sf/tadami/source/model/Track$AudioTrack$$serializer implements kotlinx/serialization/internal/GeneratedSerializer
+com/sf/tadami/source/model/Track$AudioTrack$$serializer method childSerializers()[Lkotlinx/serialization/KSerializer; public final
+com/sf/tadami/source/model/Track$AudioTrack$$serializer method deserialize(Lkotlinx/serialization/encoding/Decoder;)Lcom/sf/tadami/source/model/Track$AudioTrack; public final
+com/sf/tadami/source/model/Track$AudioTrack$$serializer method getDescriptor()Lkotlinx/serialization/descriptors/SerialDescriptor; public final
+com/sf/tadami/source/model/Track$AudioTrack$$serializer method serialize(Lkotlinx/serialization/encoding/Encoder;Lcom/sf/tadami/source/model/Track$AudioTrack;)V public final
+com/sf/tadami/source/model/Track$AudioTrack$Companion class public final
+com/sf/tadami/source/model/Track$AudioTrack$Companion method serializer()Lkotlinx/serialization/KSerializer; public final
+com/sf/tadami/source/model/Track$SubtitleTrack class public final
+com/sf/tadami/source/model/Track$SubtitleTrack extends com/sf/tadami/source/model/Track
+com/sf/tadami/source/model/Track$SubtitleTrack field Companion:Lcom/sf/tadami/source/model/Track$SubtitleTrack$Companion; public static final
+com/sf/tadami/source/model/Track$SubtitleTrack method <init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V public
+com/sf/tadami/source/model/Track$SubtitleTrack method <init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/source/model/Track$SubtitleTrack method component1()Ljava/lang/String; public final
+com/sf/tadami/source/model/Track$SubtitleTrack method component2()Ljava/lang/String; public final
+com/sf/tadami/source/model/Track$SubtitleTrack method component3()Ljava/lang/String; public final
+com/sf/tadami/source/model/Track$SubtitleTrack method copy$default(Lcom/sf/tadami/source/model/Track$SubtitleTrack;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/sf/tadami/source/model/Track$SubtitleTrack; public static
+com/sf/tadami/source/model/Track$SubtitleTrack method copy(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/sf/tadami/source/model/Track$SubtitleTrack; public final
+com/sf/tadami/source/model/Track$SubtitleTrack method equals(Ljava/lang/Object;)Z public
+com/sf/tadami/source/model/Track$SubtitleTrack method getLang()Ljava/lang/String; public
+com/sf/tadami/source/model/Track$SubtitleTrack method getMimeType()Ljava/lang/String; public final
+com/sf/tadami/source/model/Track$SubtitleTrack method getUrl()Ljava/lang/String; public
+com/sf/tadami/source/model/Track$SubtitleTrack method hashCode()I public
+com/sf/tadami/source/model/Track$SubtitleTrack method toString()Ljava/lang/String; public
+com/sf/tadami/source/model/Track$SubtitleTrack$$serializer class public final
+com/sf/tadami/source/model/Track$SubtitleTrack$$serializer field INSTANCE:Lcom/sf/tadami/source/model/Track$SubtitleTrack$$serializer; public static final
+com/sf/tadami/source/model/Track$SubtitleTrack$$serializer implements kotlinx/serialization/internal/GeneratedSerializer
+com/sf/tadami/source/model/Track$SubtitleTrack$$serializer method childSerializers()[Lkotlinx/serialization/KSerializer; public final
+com/sf/tadami/source/model/Track$SubtitleTrack$$serializer method deserialize(Lkotlinx/serialization/encoding/Decoder;)Lcom/sf/tadami/source/model/Track$SubtitleTrack; public final
+com/sf/tadami/source/model/Track$SubtitleTrack$$serializer method getDescriptor()Lkotlinx/serialization/descriptors/SerialDescriptor; public final
+com/sf/tadami/source/model/Track$SubtitleTrack$$serializer method serialize(Lkotlinx/serialization/encoding/Encoder;Lcom/sf/tadami/source/model/Track$SubtitleTrack;)V public final
+com/sf/tadami/source/model/Track$SubtitleTrack$Companion class public final
+com/sf/tadami/source/model/Track$SubtitleTrack$Companion method serializer()Lkotlinx/serialization/KSerializer; public final
+com/sf/tadami/source/online/AnimeHttpSource class public abstract
+com/sf/tadami/source/online/AnimeHttpSource implements com/sf/tadami/source/AnimeCatalogueSource
+com/sf/tadami/source/online/AnimeHttpSource method <init>()V public
+com/sf/tadami/source/online/AnimeHttpSource method animeDetailsParse(Lokhttp3/Response;)Lcom/sf/tadami/source/model/SAnime; protected abstract
+com/sf/tadami/source/online/AnimeHttpSource method animeDetailsRequest(Lcom/sf/tadami/domain/anime/Anime;)Lokhttp3/Request; protected
+com/sf/tadami/source/online/AnimeHttpSource method episodeRequest(Ljava/lang/String;)Lokhttp3/Request; protected
+com/sf/tadami/source/online/AnimeHttpSource method episodeSourcesParse(Lokhttp3/Response;)Ljava/util/List; protected abstract
+com/sf/tadami/source/online/AnimeHttpSource method episodeSourcesRequest(Ljava/lang/String;)Lokhttp3/Request; protected
+com/sf/tadami/source/online/AnimeHttpSource method episodesListParse(Lokhttp3/Response;)Ljava/util/List; protected abstract
+com/sf/tadami/source/online/AnimeHttpSource method episodesListRequest(Lcom/sf/tadami/domain/anime/Anime;)Lokhttp3/Request; protected
+com/sf/tadami/source/online/AnimeHttpSource method episodesParse(Lokhttp3/Response;)Ljava/util/List; protected
+com/sf/tadami/source/online/AnimeHttpSource method episodesRequest(Lcom/sf/tadami/domain/anime/Anime;)Lokhttp3/Request; protected
+com/sf/tadami/source/online/AnimeHttpSource method fetchAnimeDetails(Lcom/sf/tadami/domain/anime/Anime;)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/online/AnimeHttpSource method fetchEpisode(Ljava/lang/String;)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/online/AnimeHttpSource method fetchEpisodeSources(Ljava/lang/String;)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/online/AnimeHttpSource method fetchEpisodesList(Lcom/sf/tadami/domain/anime/Anime;)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/online/AnimeHttpSource method fetchLatest(I)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/online/AnimeHttpSource method fetchSearch(ILjava/lang/String;Lcom/sf/tadami/source/model/AnimeFilterList;Z)Lio/reactivex/rxjava3/core/Observable; public
+com/sf/tadami/source/online/AnimeHttpSource method getBaseUrl()Ljava/lang/String; public abstract
+com/sf/tadami/source/online/AnimeHttpSource method getClient()Lokhttp3/OkHttpClient; public
+com/sf/tadami/source/online/AnimeHttpSource method getEpisodeUrl(Lcom/sf/tadami/source/model/SEpisode;)Ljava/lang/String; public
+com/sf/tadami/source/online/AnimeHttpSource method getFilterList()Lcom/sf/tadami/source/model/AnimeFilterList; public
+com/sf/tadami/source/online/AnimeHttpSource method getHeaders()Lokhttp3/Headers; public final
+com/sf/tadami/source/online/AnimeHttpSource method getNetwork()Lcom/sf/tadami/network/NetworkHelper; protected final
+com/sf/tadami/source/online/AnimeHttpSource method headersBuilder()Lokhttp3/Headers$Builder; protected
+com/sf/tadami/source/online/AnimeHttpSource method latestAnimeParse(Lokhttp3/Response;)Lcom/sf/tadami/source/AnimesPage; protected abstract
+com/sf/tadami/source/online/AnimeHttpSource method latestAnimesRequest(I)Lokhttp3/Request; protected abstract
+com/sf/tadami/source/online/AnimeHttpSource method searchAnimeParse(Lokhttp3/Response;)Lcom/sf/tadami/source/AnimesPage; protected abstract
+com/sf/tadami/source/online/AnimeHttpSource method searchAnimeRequest(ILjava/lang/String;Lcom/sf/tadami/source/model/AnimeFilterList;Z)Lokhttp3/Request; protected abstract
+com/sf/tadami/source/online/AnimeHttpSource method setUrlWithoutDomain(Lcom/sf/tadami/source/model/SAnime;Ljava/lang/String;)V public final
+com/sf/tadami/source/online/AnimeHttpSource method setUrlWithoutDomain(Lcom/sf/tadami/source/model/SEpisode;Ljava/lang/String;)V public final
+com/sf/tadami/source/online/AnimeHttpSource method sort(Ljava/util/List;)Ljava/util/List; protected
+com/sf/tadami/source/online/ConfigurableParsedHttpAnimeSource class public abstract
+com/sf/tadami/source/online/ConfigurableParsedHttpAnimeSource extends com/sf/tadami/source/online/ParsedAnimeHttpSource
+com/sf/tadami/source/online/ConfigurableParsedHttpAnimeSource method <init>(JLcom/sf/tadami/preferences/model/CustomPreferences;)V public
+com/sf/tadami/source/online/ConfigurableParsedHttpAnimeSource method getDataStore()Landroidx/datastore/core/DataStore; public final
+com/sf/tadami/source/online/ConfigurableParsedHttpAnimeSource method getPreferenceScreen()Lcom/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent; public abstract
+com/sf/tadami/source/online/ConfigurableParsedHttpAnimeSource method getPreferences()Lcom/sf/tadami/preferences/model/CustomPreferencesIdentifier; public final
+com/sf/tadami/source/online/ConfigurableParsedHttpAnimeSource method getPreferencesState()Lkotlinx/coroutines/flow/StateFlow; public final
+com/sf/tadami/source/online/ParsedAnimeHttpSource class public abstract
+com/sf/tadami/source/online/ParsedAnimeHttpSource extends com/sf/tadami/source/online/AnimeHttpSource
+com/sf/tadami/source/online/ParsedAnimeHttpSource method <init>(J)V public
+com/sf/tadami/source/online/ParsedAnimeHttpSource method animeDetailsParse(Lokhttp3/Response;)Lcom/sf/tadami/source/model/SAnime; protected
+com/sf/tadami/source/online/ParsedAnimeHttpSource method animeDetailsParse(Lorg/jsoup/nodes/Document;)Lcom/sf/tadami/source/model/SAnime; protected abstract
+com/sf/tadami/source/online/ParsedAnimeHttpSource method episodeFromElement(Lorg/jsoup/nodes/Element;)Lcom/sf/tadami/source/model/SEpisode; protected abstract
+com/sf/tadami/source/online/ParsedAnimeHttpSource method episodeSourcesFromElement(Lorg/jsoup/nodes/Element;)Ljava/util/List; protected abstract
+com/sf/tadami/source/online/ParsedAnimeHttpSource method episodeSourcesParse(Lokhttp3/Response;)Ljava/util/List; protected
+com/sf/tadami/source/online/ParsedAnimeHttpSource method episodeSourcesSelector()Ljava/lang/String; protected abstract
+com/sf/tadami/source/online/ParsedAnimeHttpSource method episodesListParse(Lokhttp3/Response;)Ljava/util/List; protected
+com/sf/tadami/source/online/ParsedAnimeHttpSource method episodesListSelector()Ljava/lang/String; protected abstract
+com/sf/tadami/source/online/ParsedAnimeHttpSource method episodesParse(Lokhttp3/Response;)Ljava/util/List; protected
+com/sf/tadami/source/online/ParsedAnimeHttpSource method episodesSelector()Ljava/lang/String; protected
+com/sf/tadami/source/online/ParsedAnimeHttpSource method getEpisodeTooltip()Ljava/lang/String; public
+com/sf/tadami/source/online/ParsedAnimeHttpSource method getId()J public
+com/sf/tadami/source/online/ParsedAnimeHttpSource method latestAnimeFromElement(Lorg/jsoup/nodes/Element;)Lcom/sf/tadami/source/model/SAnime; protected abstract
+com/sf/tadami/source/online/ParsedAnimeHttpSource method latestAnimeNextPageSelector()Ljava/lang/String; protected abstract
+com/sf/tadami/source/online/ParsedAnimeHttpSource method latestAnimeParse(Lokhttp3/Response;)Lcom/sf/tadami/source/AnimesPage; protected
+com/sf/tadami/source/online/ParsedAnimeHttpSource method latestSelector()Ljava/lang/String; protected abstract
+com/sf/tadami/source/online/ParsedAnimeHttpSource method searchAnimeFromElement(Lorg/jsoup/nodes/Element;)Lcom/sf/tadami/source/model/SAnime; protected abstract
+com/sf/tadami/source/online/ParsedAnimeHttpSource method searchAnimeNextPageSelector()Ljava/lang/String; protected abstract
+com/sf/tadami/source/online/ParsedAnimeHttpSource method searchAnimeParse(Lokhttp3/Response;)Lcom/sf/tadami/source/AnimesPage; protected
+com/sf/tadami/source/online/ParsedAnimeHttpSource method searchSelector()Ljava/lang/String; protected abstract
+com/sf/tadami/source/online/ParsedAnimeHttpSource method streamSourcesFromElement(Lorg/jsoup/nodes/Element;)Ljava/util/List; protected
+com/sf/tadami/source/online/ParsedAnimeHttpSource method streamSourcesSelector()Ljava/lang/String; protected
+com/sf/tadami/ui/components/data/Action class public abstract
+com/sf/tadami/ui/components/data/Action method getEnabled()Z public final
+com/sf/tadami/ui/components/data/Action method getOnClick()Lkotlin/jvm/functions/Function0; public final
+com/sf/tadami/ui/components/data/Action method getTint-QN2ZGVo()Landroidx/compose/ui/graphics/Color; public final
+com/sf/tadami/ui/components/data/Action method getTitle()I public final
+com/sf/tadami/ui/components/data/Action$CastButton class public final
+com/sf/tadami/ui/components/data/Action$CastButton extends com/sf/tadami/ui/components/data/Action
+com/sf/tadami/ui/components/data/Action$CastButton method <init>()V public
+com/sf/tadami/ui/components/data/Action$CastButton method <init>(ILkotlin/jvm/functions/Function0;ZLandroidx/compose/ui/graphics/Color;ILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/ui/components/data/Action$Drawable class public final
+com/sf/tadami/ui/components/data/Action$Drawable extends com/sf/tadami/ui/components/data/Action
+com/sf/tadami/ui/components/data/Action$Drawable method <init>(IILkotlin/jvm/functions/Function0;ZLandroidx/compose/ui/graphics/Color;ILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/ui/components/data/Action$Drawable method getIcon()I public final
+com/sf/tadami/ui/components/data/Action$DropDownDrawable class public final
+com/sf/tadami/ui/components/data/Action$DropDownDrawable extends com/sf/tadami/ui/components/data/Action
+com/sf/tadami/ui/components/data/Action$DropDownDrawable method <init>(IILkotlin/jvm/functions/Function0;ZLandroidx/compose/ui/graphics/Color;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/ui/components/data/Action$DropDownDrawable method getIcon()I public final
+com/sf/tadami/ui/components/data/Action$DropDownDrawable method getItems()Ljava/util/List; public final
+com/sf/tadami/ui/components/data/Action$DropDownVector class public final
+com/sf/tadami/ui/components/data/Action$DropDownVector extends com/sf/tadami/ui/components/data/Action
+com/sf/tadami/ui/components/data/Action$DropDownVector method <init>(ILandroidx/compose/ui/graphics/vector/ImageVector;Lkotlin/jvm/functions/Function0;ZLandroidx/compose/ui/graphics/Color;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/ui/components/data/Action$DropDownVector method getIcon()Landroidx/compose/ui/graphics/vector/ImageVector; public final
+com/sf/tadami/ui/components/data/Action$DropDownVector method getItems()Ljava/util/List; public final
+com/sf/tadami/ui/components/data/Action$Vector class public final
+com/sf/tadami/ui/components/data/Action$Vector extends com/sf/tadami/ui/components/data/Action
+com/sf/tadami/ui/components/data/Action$Vector method <init>(ILandroidx/compose/ui/graphics/vector/ImageVector;Lkotlin/jvm/functions/Function0;ZLandroidx/compose/ui/graphics/Color;ILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/ui/components/data/Action$Vector method getIcon()Landroidx/compose/ui/graphics/vector/ImageVector; public final
+com/sf/tadami/ui/components/data/DropDownAction class public final
+com/sf/tadami/ui/components/data/DropDownAction method <init>(Ljava/lang/String;Lkotlin/jvm/functions/Function0;Z)V public
+com/sf/tadami/ui/components/data/DropDownAction method <init>(Ljava/lang/String;Lkotlin/jvm/functions/Function0;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V public
+com/sf/tadami/ui/components/data/DropDownAction method getEnabled()Z public final
+com/sf/tadami/ui/components/data/DropDownAction method getOnClick()Lkotlin/jvm/functions/Function0; public final
+com/sf/tadami/ui/components/data/DropDownAction method getTitle()Ljava/lang/String; public final
+com/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent class public final
+com/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent method <init>(Ljava/lang/String;Ljava/util/List;)V public
+com/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent method component1()Ljava/lang/String; public final
+com/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent method component2()Ljava/util/List; public final
+com/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent method copy$default(Lcom/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lcom/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent; public static
+com/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent method copy(Ljava/lang/String;Ljava/util/List;)Lcom/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent; public final
+com/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent method equals(Ljava/lang/Object;)Z public
+com/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent method getPreferences()Ljava/util/List; public final
+com/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent method getTitle()Ljava/lang/String; public final
+com/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent method hashCode()I public
+com/sf/tadami/ui/tabs/browse/tabs/sources/preferences/SourcesPreferencesContent method toString()Ljava/lang/String; public
+com/sf/tadami/ui/utils/IterableExtensionsKt class public final
+com/sf/tadami/ui/utils/IterableExtensionsKt method parallelMap(Ljava/lang/Iterable;Lkotlin/jvm/functions/Function2;)Ljava/util/List; public static final
+com/sf/tadami/ui/utils/IterableExtensionsKt method parallelMapIndexed(Ljava/lang/Iterable;Lkotlin/jvm/functions/Function3;)Ljava/util/List; public static final
+com/sf/tadami/ui/utils/StringExtensionsKt class public final
+com/sf/tadami/ui/utils/StringExtensionsKt method capFirstLetter(Ljava/lang/String;)Ljava/lang/String; public static final
+com/sf/tadami/ui/utils/StringExtensionsKt method chop$default(Ljava/lang/String;ILjava/lang/String;ILjava/lang/Object;)Ljava/lang/String; public static
+com/sf/tadami/ui/utils/StringExtensionsKt method chop(Ljava/lang/String;ILjava/lang/String;)Ljava/lang/String; public static final
+com/sf/tadami/ui/utils/StringExtensionsKt method lowFirstLetter(Ljava/lang/String;)Ljava/lang/String; public static final
+com/sf/tadami/ui/utils/SubtitleFormats class public final
+com/sf/tadami/ui/utils/SubtitleFormats field INSTANCE:Lcom/sf/tadami/ui/utils/SubtitleFormats; public static final
+com/sf/tadami/ui/utils/SubtitleFormats method getUnknownFormat()Ljava/lang/String; public final
+com/sf/tadami/ui/utils/SubtitlesUtilsKt class public final
+com/sf/tadami/ui/utils/SubtitlesUtilsKt method detectSubtitleFormat(Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object; public static final
+com/sf/tadami/ui/utils/UiToasts class public final
+com/sf/tadami/ui/utils/UiToasts field INSTANCE:Lcom/sf/tadami/ui/utils/UiToasts; public static final
+com/sf/tadami/ui/utils/UiToasts method showToast$default(Lcom/sf/tadami/ui/utils/UiToasts;II[Ljava/lang/Object;ILjava/lang/Object;)V public static
+com/sf/tadami/ui/utils/UiToasts method showToast$default(Lcom/sf/tadami/ui/utils/UiToasts;Ljava/lang/String;IILjava/lang/Object;)V public static
+com/sf/tadami/ui/utils/UiToasts method showToast(II[Ljava/lang/Object;)V public final
+com/sf/tadami/ui/utils/UiToasts method showToast(Ljava/lang/String;I)V public final
+com/sf/tadami/utils/DataStoreExtensionsKt class public final
+com/sf/tadami/utils/DataStoreExtensionsKt method clearAllPreferences(Landroidx/datastore/core/DataStore;Lkotlin/coroutines/Continuation;)Ljava/lang/Object; public static final
+com/sf/tadami/utils/DataStoreExtensionsKt method clearPreferences(Landroidx/datastore/core/DataStore;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object; public static final
+com/sf/tadami/utils/DataStoreExtensionsKt method createPreference(Landroidx/datastore/core/DataStore;Landroidx/datastore/preferences/core/Preferences$Key;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object; public static final
+com/sf/tadami/utils/DataStoreExtensionsKt method editPreference(Landroidx/datastore/core/DataStore;Ljava/lang/Object;Landroidx/datastore/preferences/core/Preferences$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object; public static final
+com/sf/tadami/utils/DataStoreExtensionsKt method editPreferences$default(Landroidx/datastore/core/DataStore;Lcom/sf/tadami/preferences/model/CustomPreferencesIdentifier;Lcom/sf/tadami/preferences/model/CustomPreferences;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object; public static
+com/sf/tadami/utils/DataStoreExtensionsKt method editPreferences(Landroidx/datastore/core/DataStore;Lcom/sf/tadami/preferences/model/CustomPreferencesIdentifier;Lcom/sf/tadami/preferences/model/CustomPreferences;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object; public static final
+com/sf/tadami/utils/DataStoreExtensionsKt method getDataStoreValues(Landroidx/datastore/core/DataStore;Lkotlin/coroutines/Continuation;)Ljava/lang/Object; public static final
+com/sf/tadami/utils/DataStoreExtensionsKt method getPreferencesGroup(Landroidx/datastore/core/DataStore;Lcom/sf/tadami/preferences/model/CustomPreferences;Lkotlin/coroutines/Continuation;)Ljava/lang/Object; public static final
+com/sf/tadami/utils/DataStoreExtensionsKt method getPreferencesGroupAsFlow(Landroidx/datastore/core/DataStore;Lcom/sf/tadami/preferences/model/CustomPreferences;)Lkotlinx/coroutines/flow/Flow; public static final
+com/sf/tadami/utils/DataStoreExtensionsKt method replacePreferences$default(Landroidx/datastore/core/DataStore;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object; public static
+com/sf/tadami/utils/DataStoreExtensionsKt method replacePreferences(Landroidx/datastore/core/DataStore;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object; public static final
+com/sf/tadami/utils/Lang class public final enum
+com/sf/tadami/utils/Lang extends java/lang/Enum
+com/sf/tadami/utils/Lang field Companion:Lcom/sf/tadami/utils/Lang$Companion; public static final
+com/sf/tadami/utils/Lang field ENGLISH:Lcom/sf/tadami/utils/Lang; public static final
+com/sf/tadami/utils/Lang field FRENCH:Lcom/sf/tadami/utils/Lang; public static final
+com/sf/tadami/utils/Lang field UNKNOWN:Lcom/sf/tadami/utils/Lang; public static final
+com/sf/tadami/utils/Lang method getEntries()Lkotlin/enums/EnumEntries; public static
+com/sf/tadami/utils/Lang method getRes()I public final
+com/sf/tadami/utils/Lang method valueOf(Ljava/lang/String;)Lcom/sf/tadami/utils/Lang; public static
+com/sf/tadami/utils/Lang method values()[Lcom/sf/tadami/utils/Lang; public static
+com/sf/tadami/utils/Lang$Companion class public final
+com/sf/tadami/utils/Lang$Companion method getAllLangs()Ljava/util/Set; public final
+com/sf/tadami/utils/Lang$Companion method getLangByName(Ljava/lang/String;)Lcom/sf/tadami/utils/Lang; public final
+com/sf/tadami/utils/Lang$Companion method toPref(Ljava/util/Set;)Ljava/util/Set; public final
+com/sf/tadami/utils/Lang$Companion method valueOfOrDefault(Ljava/lang/String;)Lcom/sf/tadami/utils/Lang; public final

@@ -1,0 +1,180 @@
+name: Release extensions-lib
+
+# Tags lib-<extensionsLibVersion> (extensions-lib/gradle.properties) on main once the lib passes the drift
+# test, has its baseline committed and builds the way JitPack does, then has JitPack build the tag and
+# waits for com.github.tadamiorg.tadami:extensions-lib:lib-X.Y.Z. Independent of the app's release.yml,
+# whose versions only come from the vX.Y.Z tags. See extensions-lib/README.md and docs/RELEASING.md.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-extensions-lib
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Tag and publish on JitPack
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Check the branch
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::The lib is released from main, not ${GITHUB_REF#refs/heads/}. Pick main in \"Use workflow from\"."
+          exit 1
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # The tags, to refuse an existing one
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Read the version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(sed -n 's/^extensionsLibVersion=//p' extensions-lib/gradle.properties | tr -d '[:space:]')
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::extensionsLibVersion in extensions-lib/gradle.properties is '$VERSION', not X.Y.Z."
+            exit 1
+          fi
+          TAG="lib-$VERSION"
+          EXISTS="The tag $TAG already exists. Raise extensionsLibVersion in extensions-lib/gradle.properties to release the lib again."
+          if git rev-parse -q --verify "refs/tags/$TAG" > /dev/null; then
+            echo "::error::$EXISTS"
+            exit 1
+          fi
+          # Also on the remote, in case it was pushed since the checkout: --exit-code exits with 2 when absent
+          LS_REMOTE=0
+          git ls-remote --exit-code --tags "https://x-access-token:$GH_TOKEN@github.com/$GITHUB_REPOSITORY.git" \
+            "refs/tags/$TAG" > /dev/null || LS_REMOTE=$?
+          case "$LS_REMOTE" in
+            0)
+              echo "::error::$EXISTS"
+              exit 1
+              ;;
+            2) ;;
+            *)
+              echo "::error::Couldn't list the tags of $GITHUB_REPOSITORY (git ls-remote exited with $LS_REMOTE)."
+              exit 1
+              ;;
+          esac
+          echo "$TAG, from extensionsLibVersion=$VERSION"
+          {
+            echo "version=$VERSION"
+            echo "tag=$TAG"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      # The drift test also checks ExtensionsLoader.API_VERSION_MAX is the lib's major.minor. Run with
+      # -Ptadami.updateApiBaseline, it adds the stub to extensions-lib/api/<major.minor>.txt: that baseline
+      # must already be committed, it freezes what extensions built against this version link against.
+      - name: Drift test and baseline
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          ./gradlew :app:testDebugUnitTest --tests '*ExtensionsApiCompatibilityTest*' \
+            -Ptadami.updateApiBaseline="${VERSION%.*}"
+          if [ -n "$(git status --porcelain -- extensions-lib/api)" ]; then
+            git status --short -- extensions-lib/api
+            git diff -- extensions-lib/api
+            echo "::error::extensions-lib/api/${VERSION%.*}.txt isn't up to date: run ./gradlew :app:testDebugUnitTest --tests '*ExtensionsApiCompatibilityTest*' -Ptadami.updateApiBaseline=${VERSION%.*}, commit the baseline and run this workflow again."
+            exit 1
+          fi
+
+      # JITPACK=true leaves :app out of the build, as on JitPack, which passes the tag in VERSION
+      - name: Build like JitPack
+        env:
+          JITPACK: 'true'
+          VERSION: ${{ steps.version.outputs.tag }}
+        run: |
+          ./gradlew :extensions-lib:publishReleasePublicationToMavenLocal
+          ls -l "$HOME/.m2/repository/com/github/tadamiorg/tadami/extensions-lib/$VERSION"
+
+      - name: Tag the release
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            tag -a "$TAG" -m "extensions-lib $VERSION" "$GITHUB_SHA"
+          git push "https://x-access-token:$GH_TOKEN@github.com/$GITHUB_REPOSITORY.git" "refs/tags/$TAG"
+
+      # Asking JitPack for the POM starts the build of the tag; JitPack serves it once the build passed.
+      # A failed build keeps the tag (see the summary).
+      - name: Publish on JitPack
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          JITPACK_URL: https://jitpack.io
+          WAIT_MINUTES: 20
+          POLL_SECONDS: 30
+        run: |
+          OWNER=${GITHUB_REPOSITORY%%/*}
+          REPO=${GITHUB_REPOSITORY#*/}
+          COORDINATES="com.github.$OWNER.$REPO:extensions-lib:$TAG"
+          POM="$JITPACK_URL/com/github/$OWNER/$REPO/extensions-lib/$TAG/extensions-lib-$TAG.pom"
+          LOG="$JITPACK_URL/com/github/$OWNER/$REPO/$TAG/build.log"
+          STATUS_API="$JITPACK_URL/api/builds/com.github.$OWNER/$REPO/$TAG"
+          PAGE="https://jitpack.io/#$OWNER/$REPO/$TAG"
+
+          fail() {
+            echo "::error::$1 Build log: $LOG"
+            {
+              echo "## extensions-lib $TAG: JitPack failed"
+              echo
+              echo "$1"
+              echo
+              echo "- Build log: $LOG"
+              echo "- The tag $TAG stays in place: once the cause is fixed on JitPack's side (a missing SDK, a timeout...), rebuild it from $PAGE."
+              echo "- If the lib itself must change, fix it on main, raise the patch of extensionsLibVersion and run this workflow again."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
+
+          deadline=$((SECONDS + WAIT_MINUTES * 60))
+          while :; do
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' -m 60 "$POM" || true)
+            [ "$CODE" = 200 ] && break
+            STATUS=$(curl -s -m 30 "$STATUS_API" | sed -n 's/.*"status" *: *"\([^"]*\)".*/\1/p' | head -n 1 || true)
+            echo "POM: HTTP $CODE, JitPack build: ${STATUS:-unknown}"
+            case "$STATUS" in
+              Error | gitError) fail "JitPack couldn't build $TAG ($STATUS)." ;;
+            esac
+            [ "$SECONDS" -ge "$deadline" ] && fail "JitPack didn't serve $COORDINATES within $WAIT_MINUTES minutes."
+            sleep "$POLL_SECONDS"
+          done
+
+          echo "Published $COORDINATES"
+          {
+            echo "## extensions-lib $TAG published on JitPack"
+            echo
+            echo "\`$COORDINATES\`"
+            echo
+            echo '```kotlin'
+            echo 'repositories {'
+            echo '    maven("https://jitpack.io")'
+            echo '}'
+            echo 'dependencies {'
+            echo "    compileOnly(\"$COORDINATES\")"
+            echo '}'
+            echo '```'
+            echo
+            echo "Build log: $LOG"
+          } >> "$GITHUB_STEP_SUMMARY"

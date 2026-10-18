@@ -86,8 +86,11 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
         return episodesRequest(anime)
     }
 
+    // Open with a throwing default rather than abstract: extensions built against extensions-lib
+    // may not implement it, and only override episodesListParse
     @Deprecated("Use episodesListParse instead", ReplaceWith("episodesListParse(response)"))
-    protected abstract fun episodesParse(response: Response): List<SEpisode>
+    protected open fun episodesParse(response: Response): List<SEpisode> =
+        throw IllegalStateException("Not used: override episodesListParse")
 
     @Suppress("DEPRECATION")
     protected open fun episodesListParse(response: Response): List<SEpisode> {

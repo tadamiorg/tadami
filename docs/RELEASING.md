@@ -31,6 +31,8 @@ Real environment variables take precedence over `.env`. When the keystore file e
 - **build**: unit tests, debug build and unsigned release build. It uploads the debug APK and the test reports. Lint also runs, but it is informational only: lint errors do not fail the job (download the lint report artifact to see them).
 - **instrumented**: the `androidTest` suite on an API 34 emulator, once the build job has passed.
 
+`.github/workflows/extensions-lib.yml` (Extensions lib) runs on pushes and pull requests to `develop` that change `extensions-lib/`, the Gradle files or `jitpack.yml`: it builds the lib and publishes it to the local Maven repository the way JitPack does. The drift test between the lib and the app, `ExtensionsApiCompatibilityTest`, runs with the unit tests.
+
 CI never uses the signing secrets.
 
 ## Release workflow
@@ -86,6 +88,21 @@ Set them in Settings > Secrets and variables > Actions > Variables:
 3. Once the run is green, open the draft release, check it and publish it (see above). The release is then live: the app checks for updates at launch (at most every 3 days), or right away from More > About > Check for updates.
 
 If the run fails before the "Tag the release" step, nothing was created: fix the cause and run it again. If it fails after, the tag exists, so a new run would see no commits since it: delete the tag (`git push --delete origin v1.10.0`) and run it again. Discarding a draft release works the same way: delete the draft and its tag, or the next release skips that version.
+
+## Releasing extensions-lib
+
+The extension API, `extensions-lib/`, is released on its own: the tag `lib-X.Y.Z`, which JitPack builds into `com.github.tadamiorg.tadami:extensions-lib:lib-X.Y.Z`. These tags never count as app releases: the app's versions only come from the `vX.Y.Z` tags.
+
+1. On `develop`, set the version: `extensionsLibVersion` in `extensions-lib/gradle.properties`, and for an API change `ExtensionsLoader.API_VERSION_MAX`, to its `major.minor` (the drift test checks they match). Add the stub to the baseline of the version and commit `extensions-lib/api/X.Y.txt`:
+   ```
+   ./gradlew :app:testDebugUnitTest --tests '*ExtensionsApiCompatibilityTest*' -Ptadami.updateApiBaseline=X.Y
+   ```
+2. When `API_VERSION_MAX` changed, release the app first: extensions built against the new lib need an app that accepts them.
+3. Bring `main` up to `develop`, then Actions > Release extensions-lib > Run workflow, with "Use workflow from" on `main`. It fails when the tag `lib-X.Y.Z` already exists. Otherwise it runs the drift test, checks the baseline is committed, builds the lib the way JitPack does, pushes the annotated tag `lib-X.Y.Z`, then asks JitPack for the artifact and waits for it, up to 20 minutes. The run summary gives the coordinates and the `compileOnly` line.
+
+When JitPack fails or times out, the run fails with the link to the build log, `https://jitpack.io/com/github/tadamiorg/tadami/lib-X.Y.Z/build.log`, and the tag stays. Start the build again from [jitpack.io](https://jitpack.io/#tadamiorg/tadami) once the cause is fixed on JitPack's side, or fix the lib, raise the patch of `extensionsLibVersion` and run the workflow again.
+
+What the lib must follow, and how to fix a drift test failure, is in [extensions-lib/README.md](../extensions-lib/README.md).
 
 ## In-app updater contract
 

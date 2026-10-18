@@ -66,8 +66,11 @@ abstract class ParsedAnimeHttpSource(sourceId : Long) : AnimeHttpSource() {
 
     // Episodes List
 
+    // The deprecated hooks below are open with a throwing default rather than abstract: extensions
+    // built against extensions-lib may not implement them, and only override their replacement
     @Deprecated("Use episodesListSelector instead", ReplaceWith("episodesListSelector()"))
-    protected abstract fun episodesSelector(): String
+    protected open fun episodesSelector(): String =
+        throw IllegalStateException("Not used: override episodesListSelector")
 
     @Suppress("DEPRECATION")
     protected open fun episodesListSelector() : String {
@@ -90,7 +93,8 @@ abstract class ParsedAnimeHttpSource(sourceId : Long) : AnimeHttpSource() {
     // Episodes Sources
 
     @Deprecated("Use episodeSourcesSelector instead", ReplaceWith("episodeSourcesSelector()"))
-    protected abstract fun streamSourcesSelector(): String
+    protected open fun streamSourcesSelector(): String =
+        throw IllegalStateException("Not used: override episodeSourcesSelector")
 
     @Suppress("DEPRECATION")
     protected open fun episodeSourcesSelector(): String {
@@ -98,7 +102,8 @@ abstract class ParsedAnimeHttpSource(sourceId : Long) : AnimeHttpSource() {
     }
 
     @Deprecated("Use episodeSourcesFromElement instead", ReplaceWith("episodeSourcesFromElement()"))
-    protected abstract fun streamSourcesFromElement(element: Element): List<StreamSource>
+    protected open fun streamSourcesFromElement(element: Element): List<StreamSource> =
+        throw IllegalStateException("Not used: override episodeSourcesFromElement")
 
     @Suppress("DEPRECATION")
     protected open fun episodeSourcesFromElement(element: Element): List<StreamSource> {

@@ -25,4 +25,8 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "Tadami"
-include (":app")
+// JitPack only builds and publishes extensions-lib (see jitpack.yml)
+if (System.getenv("JITPACK") != "true") {
+    include(":app")
+}
+include(":extensions-lib")
