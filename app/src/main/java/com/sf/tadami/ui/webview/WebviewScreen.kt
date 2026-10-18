@@ -429,6 +429,9 @@ fun WebviewScreen(
     val currentWindow = windows.last()
     val state = currentWindow.state
     val navigator = currentWindow.navigator
+    // Straight to the WebView, not through the navigator: it replays its last event to the WebView
+    // composable of a window shown again, a refresh would reload the page when a popup above it closes
+    fun currentWebView(): WebView? = currentWindow.webView
     val currentUrl = currentWindow.currentUrl
 
     LaunchedEffect(currentUrl) {
@@ -492,7 +495,7 @@ fun WebviewScreen(
                                     icon = Icons.AutoMirrored.Outlined.ArrowBack,
                                     onClick = {
                                         if (navigator.canGoBack) {
-                                            navigator.navigateBack()
+                                            currentWebView()?.goBack()
                                         }
                                     },
                                     enabled = navigator.canGoBack,
@@ -502,7 +505,7 @@ fun WebviewScreen(
                                     icon = Icons.AutoMirrored.Outlined.ArrowForward,
                                     onClick = {
                                         if (navigator.canGoForward) {
-                                            navigator.navigateForward()
+                                            currentWebView()?.goForward()
                                         }
                                     },
                                     enabled = navigator.canGoForward,
@@ -515,7 +518,7 @@ fun WebviewScreen(
                                         DropDownAction(
                                             title = stringResource(id = R.string.refresh),
                                             onClick = {
-                                                navigator.reload()
+                                                currentWebView()?.reload()
                                             }
                                         ),
                                         DropDownAction(
@@ -535,7 +538,7 @@ fun WebviewScreen(
                                             checked = adBlockOn,
                                             onClick = {
                                                 adBlockOn = !adBlockOn
-                                                navigator.reload()
+                                                currentWebView()?.reload()
                                             }
                                         ),
                                     )
@@ -577,7 +580,7 @@ fun WebviewScreen(
                     AdBlockerHint(
                         onTurnOff = {
                             adBlockOn = false
-                            navigator.reload()
+                            currentWebView()?.reload()
                         },
                     )
                 }
