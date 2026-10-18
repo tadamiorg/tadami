@@ -13,9 +13,17 @@ import com.sf.tadami.ui.tabs.browse.tabs.sources.preferences.SourcesPreferencesC
  */
 interface ConfigurableSource : Source {
 
-    /** Where its preferences are stored, the file `anime_source_<id>`. */
+    /**
+     * Where its preferences are stored, the file `anime_source_<id>`.
+     *
+     * @since extensions-lib 1.7
+     */
     val dataStore: DataStore<Preferences>
 
-    /** The settings screen of the source: its title and its preferences. */
+    /**
+     * The settings screen of the source: its title and its preferences.
+     *
+     * @since extensions-lib 1.7
+     */
     fun getPreferenceScreen(): SourcesPreferencesContent
 }

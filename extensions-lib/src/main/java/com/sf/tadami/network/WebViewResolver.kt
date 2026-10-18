@@ -6,7 +6,7 @@ import okhttp3.Headers
  * Loads a page in a headless WebView that shares the app's cookies (Cloudflare clearance included)
  * and user agent, for pages whose content only exists once JavaScript has run. Cloudflare
  * challenges met on the way are waited through, and their clearance is reused by the OkHttp
- * clients.
+ * clients. Get it from [NetworkHelper.webViewResolver].
  *
  * Blocking: call it from a background thread, never from the main thread.
  *
@@ -15,11 +15,14 @@ import okhttp3.Headers
 class WebViewResolver private constructor() {
 
     /**
+     * What [load] got.
+     *
      * @property url the last page loaded in the main frame
      * @property html the final DOM of that page, or null if it never finished loading
      * @property scriptResult what the script evaluated to (JSON for non-string values), or null
      * @property interceptedUrl the first request accepted by `interceptRequest`, or null
      * @property timedOut whether [load] gave up before getting what it waited for
+     * @since extensions-lib 1.6
      */
     class Result private constructor() {
         val url: String = throw Exception("Stub!")
@@ -37,7 +40,9 @@ class WebViewResolver private constructor() {
      * @param script a JavaScript expression evaluated once the page has loaded (again after each
      * navigation). It may evaluate to a Promise, e.g. one polling for an iframe added later.
      * @param interceptRequest called for every request the page makes (from a background thread)
+     * @param timeoutSeconds how long to wait at most, after which [Result.timedOut] is true
      * @throws java.io.IOException if the WebView can't be created or the thread is interrupted
+     * @since extensions-lib 1.6
      */
     fun load(
         url: String,
@@ -48,6 +53,11 @@ class WebViewResolver private constructor() {
     ): Result = throw Exception("Stub!")
 
     companion object {
+        /**
+         * How long [load] waits by default.
+         *
+         * @since extensions-lib 1.6
+         */
         const val DEFAULT_TIMEOUT_SECONDS = 30L
     }
 }

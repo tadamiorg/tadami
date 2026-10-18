@@ -39,14 +39,27 @@ A tag `lib-X.Y.Z`:
 
 | Package | Classes |
 | --- | --- |
-| `com.sf.tadami.source` | `Source`, `AnimeCatalogueSource`, `AnimesPage` |
-| `com.sf.tadami.source.online` | `AnimeHttpSource`, `ParsedAnimeHttpSource` (Jsoup selectors), `ConfigurableParsedHttpAnimeSource` (with preferences) |
+| `com.sf.tadami.source` | `Source`, `AnimeCatalogueSource`, `ConfigurableSource` (1.7), `AnimesPage` |
+| `com.sf.tadami.source.online` | `AnimeHttpSource`, `ParsedAnimeHttpSource` (Jsoup selectors), `ConfigurableParsedHttpAnimeSource` (with preferences), `ConfigurableAnimeHttpSource` (1.7, with preferences, without the selectors) |
 | `com.sf.tadami.source.model` | `SAnime`, `SAnimeStatus`, `SEpisode`, `StreamSource`, `Track`, `AnimeFilter`, `AnimeFilterList` |
-| `com.sf.tadami.network` | `NetworkHelper` (`client`, `cloudflareClient`, `webViewResolver`), `GET`/`POST`/`HEAD`, `asJsoup`, `asCancelableObservable`, `await`, `WebViewResolver` |
+| `com.sf.tadami.network` | `NetworkHelper` (`client`, `webViewResolver`), `GET`/`POST`/`HEAD`, `PUT`/`DELETE` (1.7), `asJsoup`, `asCancelableObservable`, `await`, `awaitSuccess` and `HttpException` (1.7), `WebViewResolver` |
 | `com.sf.tadami.preferences` | `CustomPreferences`, `CustomPreferencesIdentifier`, `SourcePreference` (the preference screen items), `CommonKeys` |
 | `com.sf.tadami.utils`, `com.sf.tadami.ui.utils` | DataStore helpers (`editPreference`, `getPreferencesGroup`...), `Lang`, `parallelMap`, `detectSubtitleFormat` |
 
-The sources return RxJava `Observable`s (`fetchSearch`, `fetchLatest`, `fetchAnimeDetails`, `fetchEpisodesList`, `fetchEpisodeSources`). Through Injekt (`Injekt.get<T>()` or `injectLazy()`), the app provides the `NetworkHelper` and a `kotlinx.serialization.json.Json`.
+Every member has a KDoc with the lib version that added it: `@since extensions-lib 1.5` means 1.5 or earlier, the oldest version the app accepts. An extension using a member of a later version must declare that version.
+
+Through Injekt (`Injekt.get<T>()` or `injectLazy()`), the app provides the `NetworkHelper` and a `kotlinx.serialization.json.Json`.
+
+### Suspend methods or Rx fetches
+
+The app calls the suspend methods of the sources, from a background thread: `getSearchAnime`, `getLatestAnime`, `getAnimeDetails`, `getEpisodeList` and `getEpisodeSources`. Each one defaults to its RxJava fetch, the API before lib 1.7: `fetchSearch`, `fetchLatest`, `fetchAnimeDetails`, `fetchEpisodesList` and `fetchEpisodeSources`, which `AnimeHttpSource` implements with its `...Request` and `...Parse` methods. So:
+
+- an extension built against an older lib, which overrides the Rx fetches or the request and parse methods, works as before;
+- a new extension (lib 1.7) overrides the suspend methods it needs, and calls `client.newCall(request).awaitSuccess()`. The Rx fetches are deprecated: they're the defaults of the suspend methods, not what the app calls. `fetchSearch` and `fetchLatest` stay abstract in `AnimeCatalogueSource`, and the request and parse methods in `AnimeHttpSource`: a source implementing only the suspend methods gives them a throwing body.
+
+The Rx fetches take the app's `Anime`, the suspend methods an `SAnime`. A source with preferences is a `ConfigurableSource`: extend `ConfigurableParsedHttpAnimeSource` or, without the Jsoup selectors, `ConfigurableAnimeHttpSource`.
+
+`NetworkHelper.cloudflareClient` is deprecated: `client` already solves the Cloudflare challenges.
 
 ## Rules for the stub
 
@@ -56,7 +69,9 @@ The app links extensions against its own classes, so the stub must never promise
 - bodies throw `Exception("Stub!")`; the declared types are explicit (an inferred `Nothing` changes the JVM signature);
 - no public `inline` function: its stub body would be compiled into the extensions;
 - `jvmDefault` stays `ENABLE` in the lib and in `:app`: interface methods with a body are JVM default methods, plus `DefaultImpls` for the extensions compiled without them;
-- a change of the app or of the stub must keep working for the extensions already published, built against an older lib.
+- a change of the app or of the stub must keep working for the extensions already published, built against an older lib;
+- a member added to an interface has a body, so the extensions built before it still implement the interface;
+- the suspend methods default to the Rx fetches, and `AnimeHttpSource` and `ParsedAnimeHttpSource` never override them with their own requests: the published extensions overriding the Rx fetches would be bypassed.
 
 `ExtensionsApiCompatibilityTest` (`:app`, run with the unit tests) checks it by reading the class files, without loading them. For every public or protected class and member of the stub, and of each released lib version (the baselines `api/<major.minor>.txt`), the app must have:
 
@@ -65,7 +80,7 @@ The app links extensions against its own classes, so the stub must never promise
 3. each method, resolved like the JVM does (the class, its superclasses, then its interfaces), with the same name, descriptor and static-ness, at least as visible, not final where the stub's is overridable, not abstract where the stub's has a body;
 4. each field, likewise, not final where the stub's is writable, with the same constant value.
 
-It also checks the stub has no public `inline` function, and that `ExtensionsLoader.API_VERSION_MAX` is the lib's `major.minor` (`extensionsLibVersion` in `gradle.properties`).
+It also checks the stub has no public `inline` function, that `ExtensionsLoader.API_VERSION_MAX` is the lib's `major.minor` (`extensionsLibVersion` in `gradle.properties`), and that no class of the app outside `com.sf.tadami.source` calls the Rx fetches of a source: the app calls the suspend methods, see above.
 
 The release build keeps the same classes: `:app:generateExtensionsApiKeepRules` writes an R8 rule keeping each class of the lib with its public and protected members. Don't add hand-written keep rules for them.
 

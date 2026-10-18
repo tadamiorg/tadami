@@ -21,14 +21,32 @@ abstract class ConfigurableAnimeHttpSource<T : CustomPreferencesIdentifier>(
     prefGroup: CustomPreferences<T>,
 ) : AnimeHttpSource(), ConfigurableSource {
 
+    /**
+     * Where its preferences are stored, the file `anime_source_<id>`.
+     *
+     * @since extensions-lib 1.7
+     */
     final override val dataStore: DataStore<Preferences>
         get() = throw Exception("Stub!")
 
-    /** Its preferences, updated when the user edits them. */
+    /**
+     * Its preferences, updated when the user edits them.
+     *
+     * @since extensions-lib 1.7
+     */
     val preferencesState: StateFlow<T> = throw Exception("Stub!")
 
-    /** Its preferences now, see [preferencesState]. */
+    /**
+     * Its preferences now, see [preferencesState]. Already read in the init blocks of the subclasses.
+     *
+     * @since extensions-lib 1.7
+     */
     val preferences: T = throw Exception("Stub!")
 
+    /**
+     * The settings screen of the source: its title and its preferences.
+     *
+     * @since extensions-lib 1.7
+     */
     abstract override fun getPreferenceScreen(): SourcesPreferencesContent
 }

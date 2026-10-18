@@ -9,6 +9,11 @@ private val DEFAULT_CACHE_CONTROL : CacheControl = throw Exception("Stub!")
 private val DEFAULT_HEADERS : Headers = throw Exception("Stub!")
 private val DEFAULT_BODY: RequestBody = throw Exception("Stub!")
 
+/**
+ * A GET request. By default without headers, cached 10 minutes.
+ *
+ * @since extensions-lib 1.5
+ */
 fun GET(
     url: String,
     headers: Headers = DEFAULT_HEADERS,
@@ -17,6 +22,11 @@ fun GET(
     throw Exception("Stub!")
 }
 
+/**
+ * A HEAD request. By default without headers, cached 10 minutes.
+ *
+ * @since extensions-lib 1.5
+ */
 fun HEAD(
     url: String,
     headers: Headers = DEFAULT_HEADERS,
@@ -25,6 +35,11 @@ fun HEAD(
     throw Exception("Stub!")
 }
 
+/**
+ * A POST request of [body], by default an empty form.
+ *
+ * @since extensions-lib 1.5
+ */
 fun POST(
     url: String,
     headers: Headers = DEFAULT_HEADERS,
@@ -35,7 +50,7 @@ fun POST(
 }
 
 /**
- * A PUT request of [body].
+ * A PUT request of [body], by default an empty form.
  *
  * @since extensions-lib 1.7
  */
@@ -49,7 +64,7 @@ fun PUT(
 }
 
 /**
- * A DELETE request, of [body] when it isn't empty.
+ * A DELETE request of [body], by default an empty form.
  *
  * @since extensions-lib 1.7
  */
