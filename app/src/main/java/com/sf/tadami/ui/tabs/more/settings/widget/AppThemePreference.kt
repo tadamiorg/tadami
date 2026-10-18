@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.tabs.more.settings.widget
 
-import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -34,12 +33,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import com.sf.tadami.R
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeCover
 import com.sf.tadami.ui.themes.AppTheme
@@ -72,7 +69,6 @@ private fun AppThemesList(
     amoled: Boolean,
     onItemClick: (AppTheme) -> Unit,
 ) {
-    val context = LocalContext.current
     val appThemes = remember {
         AppTheme.entries
             .filterNot { it.titleRes == null }
@@ -96,10 +92,7 @@ private fun AppThemesList(
                 ) {
                     AppThemePreviewItem(
                         selected = currentTheme == appTheme,
-                        onClick = {
-                            onItemClick(appTheme)
-                            (context as? Activity)?.let { ActivityCompat.recreate(it) }
-                        },
+                        onClick = { onItemClick(appTheme) },
                     )
                 }
 

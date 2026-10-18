@@ -1,10 +1,8 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.appearance
 
-import android.app.Activity
-import android.content.Context
-import android.content.res.Configuration
 import android.view.MotionEvent
 import androidx.annotation.OptIn
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,17 +31,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInteropFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.preferences.appearance.AppearancePreferences
-import com.sf.tadami.preferences.appearance.ThemeMode
 import com.sf.tadami.preferences.appearance.setAppCompatDelegateThemeMode
 import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
@@ -86,7 +81,6 @@ class AppearancePreferencesScreen(
         prefState: DataStoreState<AppearancePreferences>,
         prefs: AppearancePreferences
     ): Preference.PreferenceCategory {
-        val context = LocalContext.current
         return Preference.PreferenceCategory(
             title = stringResource(id = R.string.label_theme),
             preferenceItems = listOf(
@@ -112,9 +106,8 @@ class AppearancePreferencesScreen(
                 Preference.PreferenceItem.TogglePreference(
                     title = stringResource(id = R.string.dark_theme_pure_black),
                     value = prefs.themeDarkAmoled,
-                    enabled = isDarkMode(context,prefs),
+                    enabled = isSystemInDarkTheme(),
                     onValueChanged = { themeDarkAmoled ->
-                        (context as? Activity)?.let { ActivityCompat.recreate(it) }
                         prefState.setValue(prefs.copy(themeDarkAmoled = themeDarkAmoled))
                         true
                     }
@@ -170,15 +163,6 @@ class AppearancePreferencesScreen(
                 },
             )
         )
-    }
-}
-
-private fun isDarkMode(context : Context,prefs : AppearancePreferences) : Boolean{
-    val currentNightMode: Int = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-    return when{
-        prefs.themeMode == ThemeMode.DARK -> true
-        prefs.themeMode == ThemeMode.SYSTEM && currentNightMode == Configuration.UI_MODE_NIGHT_YES -> true
-        else -> false
     }
 }
 

@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -153,7 +154,8 @@ class MainActivity : AppCompatActivity() {
             }
             val isSystemInDarkTheme = isSystemInDarkTheme()
 
-            LaunchedEffect(isSystemInDarkTheme, statusBarBackgroundColor) {
+            // Before the frame is drawn: the bar icons change along with the theme
+            DisposableEffect(isSystemInDarkTheme, statusBarBackgroundColor) {
                 // Draw edge-to-edge and set system bars color to transparent
                 val lightStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.BLACK)
                 val darkStyle = SystemBarStyle.dark(Color.TRANSPARENT)
@@ -161,6 +163,7 @@ class MainActivity : AppCompatActivity() {
                     statusBarStyle = if (statusBarBackgroundColor.luminance() > 0.5) lightStyle else darkStyle,
                     navigationBarStyle = if (isSystemInDarkTheme) darkStyle else lightStyle,
                 )
+                onDispose {}
             }
             val navController = rememberNavController()
 
