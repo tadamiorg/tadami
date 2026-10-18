@@ -415,6 +415,9 @@
     <string name="webview_challenge_pending">Complete the verification below. The source will use it once you go back.</string>
     <string name="webview_challenge_solved">Verification complete, you can go back to the app.</string>
     <string name="webview_challenge_done">Done</string>
+    <string name="action_webview_block_ads">Block ads</string>
+    <string name="webview_cloudflare_adblock_hint">Stuck on the verification? Try turning off the ad blocker</string>
+    <string name="webview_cloudflare_adblock_turn_off">Turn off</string>
     <string name="pref_category_webview_adblock">WebView ad blocker</string>
     <string name="pref_webview_adblock">Block ads in the WebView</string>
     <string name="pref_webview_adblock_summary">Blocks ads, trackers and ad popups with the filter lists below</string>

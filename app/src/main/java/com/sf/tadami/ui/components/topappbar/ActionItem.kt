@@ -1,6 +1,7 @@
 package com.sf.tadami.ui.components.topappbar
 
 import android.app.Activity
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -120,7 +121,10 @@ fun ActionItem(
                             showMenu = false
                         },
                         text = { Text(it.title, fontWeight = FontWeight.Normal) },
-                        enabled = it.enabled
+                        enabled = it.enabled,
+                        trailingIcon = it.checked?.let { checked ->
+                            { Checkbox(checked = checked, onCheckedChange = null) }
+                        },
                     )
                 }
             }
@@ -153,7 +157,10 @@ fun ActionItem(
                             showMenu = false
                         },
                         text = { Text(it.title, fontWeight = FontWeight.Normal) },
-                        enabled = it.enabled
+                        enabled = it.enabled,
+                        trailingIcon = it.checked?.let { checked ->
+                            { Checkbox(checked = checked, onCheckedChange = null) }
+                        },
                     )
                 }
             }

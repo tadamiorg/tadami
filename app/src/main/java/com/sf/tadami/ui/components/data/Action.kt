@@ -26,5 +26,7 @@ sealed class Action(@StringRes val title: Int, val onClick: () -> Unit, val enab
 class DropDownAction(
     val title : String,
     val onClick: () -> Unit,
-    val enabled: Boolean = true
+    val enabled: Boolean = true,
+    // Shown with a checkbox when set
+    val checked: Boolean? = null,
 )

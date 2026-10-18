@@ -101,6 +101,8 @@ private class WebViewWindow(
     var currentUrl by mutableStateOf(initialUrl)
     // The host of its page, for the ad blocker off the main thread
     @Volatile var pageHost: String? = initialUrl.toHttpUrlOrNull()?.host
+    // Its page looks like a Cloudflare challenge
+    var cloudflareHint by mutableStateOf(false)
     var webView: WebView? = null
     // Until the page the window opened finished loading, its navigations are its redirects
     var initialLoadDone = false
@@ -129,16 +131,18 @@ fun WebviewScreen(
     var solvedUrl by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
+    // Can be turned off for this screen only, from its menu: the setting applies again to the next one
+    var adBlockOn by remember { mutableStateOf(adBlockEnabled) }
     // Whatever the lists say, the source's own site always loads
     val sourceSite = remember(url) { url.toHttpUrlOrNull()?.let { it.topPrivateDomain() ?: it.host } }
 
-    LaunchedEffect(Unit) {
-        if (adBlockEnabled) withContext(Dispatchers.IO) { WebViewAdBlocker.load(context.applicationContext) }
+    LaunchedEffect(adBlockOn) {
+        if (adBlockOn) withContext(Dispatchers.IO) { WebViewAdBlocker.load(context.applicationContext) }
     }
 
     // Also called off the main thread
     fun isAd(url: HttpUrl, kind: RequestKind, contextHost: String?, pageHost: String? = null): Boolean {
-        if (!adBlockEnabled) return false
+        if (!adBlockOn) return false
         return WebViewAdBlocker.isBlocked(AdBlockRequest.of(url, kind, contextHost, pageHost)) &&
             (url.topPrivateDomain() ?: url.host) != sourceSite
     }
@@ -253,6 +257,7 @@ fun WebviewScreen(
             override fun onPageFinished(view: WebView, url: String?) {
                 super.onPageFinished(view, url)
                 window.initialLoadDone = true
+                view.evaluateJavascript(CLOUDFLARE_HINT_PROBE) { result -> window.cloudflareHint = result == "true" }
                 // The challenges are solved in the page the screen opened
                 if (window !== windows.firstOrNull()) return
                 val pageUrl = url ?: return
@@ -523,7 +528,15 @@ fun WebviewScreen(
                                             onClick = {
                                                 onClearCookies(currentUrl)
                                             }
-                                        )
+                                        ),
+                                        DropDownAction(
+                                            title = stringResource(id = R.string.action_webview_block_ads),
+                                            checked = adBlockOn,
+                                            onClick = {
+                                                adBlockOn = !adBlockOn
+                                                navigator.reload()
+                                            }
+                                        ),
                                     )
                                 )
                             )
@@ -557,6 +570,14 @@ fun WebviewScreen(
                     ChallengeBanner(
                         solved = challengeState == ChallengeState.SOLVED,
                         onDone = onNavigateUp,
+                    )
+                }
+                if (adBlockOn && currentWindow.cloudflareHint) {
+                    AdBlockerHint(
+                        onTurnOff = {
+                            adBlockOn = false
+                            navigator.reload()
+                        },
                     )
                 }
                 // Keyed to the window: showing another window creates the composable again with its WebView
@@ -642,6 +663,29 @@ private fun ChallengeBanner(solved: Boolean, onDone: () -> Unit) {
     }
 }
 
+/** On a Cloudflare page, whose challenge the blocker might keep from passing. */
+@Composable
+private fun AdBlockerHint(onTurnOff: () -> Unit) {
+    Surface(
+        color = MaterialTheme.colorScheme.tertiaryContainer,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.webview_cloudflare_adblock_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = onTurnOff) {
+                Text(text = stringResource(R.string.webview_cloudflare_adblock_turn_off))
+            }
+        }
+    }
+}
+
 /**
  * [view] over the whole screen on a black background, the system bars hidden (a swipe shows them for
  * a moment) and any orientation allowed. Leaving it restores the bars and the orientation.
@@ -682,5 +726,10 @@ private fun FullscreenView(view: View, onExit: () -> Unit) {
 private enum class ChallengeState { NONE, PENDING, SOLVED }
 
 private const val TAG = "WebviewScreen"
+
+/** Mihon's check for a Cloudflare page: a challenge, or one of its error pages. */
+private const val CLOUDFLARE_HINT_PROBE =
+    "(function () { var html = document.documentElement.outerHTML; " +
+        "return html.indexOf('window._cf_chl_opt') >= 0 || html.indexOf('Ray ID is') >= 0; })()"
 
 /** Cheap check for a Cloudflare challenge page, instead of pulling the whole DOM over the bridge. */
