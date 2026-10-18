@@ -13,9 +13,19 @@ import uy.kohesive.injekt.api.get
 suspend fun <T : Any> Observable<T>.awaitSingleOrNull(
     printErrors: Boolean = true,
     onError: (() -> Unit)? = null
+): T? = awaitOrNull(printErrors, onError) { singleOrError().await() }
+
+/**
+ * What [block] returns, or null when it fails: then [onError] runs, and the error is shown in a toast
+ * when [printErrors].
+ */
+suspend fun <T : Any> awaitOrNull(
+    printErrors: Boolean = true,
+    onError: (() -> Unit)? = null,
+    block: suspend () -> T,
 ): T? {
     return try {
-        this.singleOrError().await()
+        block()
     } catch (e: Exception) {
         onError?.invoke()
         if (printErrors) {
@@ -23,7 +33,7 @@ suspend fun <T : Any> Observable<T>.awaitSingleOrNull(
                 Log.d("AwaitSingleOrNull", "Cancellation : ${e.message}")
             } else {
                 UiToasts.showToast(msg = with(Injekt.get<Application>()) { e.formattedMessage })
-                if (!e.isKnownError()) logcat(LogPriority.ERROR, e)
+                if (!e.isKnownError()) e.logcat(LogPriority.ERROR, e, tag = "AwaitSingleOrNull")
             }
         }
         null

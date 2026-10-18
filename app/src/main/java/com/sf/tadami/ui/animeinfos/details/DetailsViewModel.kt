@@ -12,10 +12,11 @@ import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.data.interactors.category.GetCategories
 import com.sf.tadami.data.interactors.category.SetAnimeCategories
 import com.sf.tadami.domain.anime.Anime
+import com.sf.tadami.domain.anime.toSAnime
 import com.sf.tadami.domain.category.DefaultCategoryChoice
 import com.sf.tadami.domain.category.defaultCategoryChoice
 import com.sf.tadami.domain.episode.Episode
-import com.sf.tadami.extension.util.fetchGuarded
+import com.sf.tadami.extension.util.callGuarded
 import com.sf.tadami.preferences.app.BasePreferences
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.ui.animeinfos.details.episodes.DetailsDownloadAction
@@ -26,7 +27,7 @@ import com.sf.tadami.ui.components.data.EpisodeItem
 import com.sf.tadami.ui.discover.migrate.MigrateHelperState
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.addOrRemove
-import com.sf.tadami.ui.utils.awaitSingleOrNull
+import com.sf.tadami.ui.utils.awaitOrNull
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import kotlinx.coroutines.Dispatchers
@@ -174,8 +175,9 @@ class DetailsViewModel(
     // Update anime details functions
 
     private suspend fun fetchAnimeDetailsFromSource(anime: Anime) {
-        val networkDetails = source.fetchGuarded { fetchAnimeDetails(anime) }
-            .awaitSingleOrNull { _detailsRefreshing.update { false } }
+        val networkDetails = awaitOrNull(onError = { _detailsRefreshing.update { false } }) {
+            source.callGuarded { getAnimeDetails(anime.toSAnime()) }
+        }
         networkDetails?.let {
             updateAnimeInteractor.awaitUpdateFromSource(anime, it)
             _detailsRefreshing.update { false }
@@ -183,8 +185,9 @@ class DetailsViewModel(
     }
 
     private suspend fun fetchEpisodesFromSource(anime: Anime, manualFetch : Boolean = false) {
-        val networkEpisodes = source.fetchGuarded { fetchEpisodesList(anime) }
-            .awaitSingleOrNull { _episodesRefreshing.update { false } }
+        val networkEpisodes = awaitOrNull(onError = { _episodesRefreshing.update { false } }) {
+            source.callGuarded { getEpisodeList(anime.toSAnime()) }
+        }
         networkEpisodes?.let {
             updateAnimeInteractor.awaitEpisodesSyncFromSource(anime, networkEpisodes,source,manualFetch)
             _episodesRefreshing.update { false }

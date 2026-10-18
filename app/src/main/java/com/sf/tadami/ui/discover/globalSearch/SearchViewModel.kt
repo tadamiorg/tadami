@@ -7,12 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.domain.anime.toDomainAnime
-import com.sf.tadami.extension.util.fetchGuarded
+import com.sf.tadami.extension.util.callGuarded
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchItemResult
 import com.sf.tadami.ui.tabs.browse.SourceManager
-import com.sf.tadami.ui.utils.awaitSingleOrError
 import com.sf.tadami.utils.getPreferencesGroup
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -89,8 +88,7 @@ open class GlobalSearchViewModelBase(
             enabledSources.map { source ->
                 async {
                     try {
-                        val page = source.fetchGuarded { fetchSearch(1, query, getFilterList(), true) }
-                            .awaitSingleOrError()
+                        val page = source.callGuarded { getSearchAnime(1, query, getFilterList(), true) }
                         val titles = page.animes.map { sAnime ->
                             animeRepository.insertNetworkToLocalAnime(sAnime.toDomainAnime(source.id))
                         }

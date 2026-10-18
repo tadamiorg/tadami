@@ -10,12 +10,12 @@ import com.sf.tadami.data.interactors.category.GetCategories
 import com.sf.tadami.data.interactors.category.SetAnimeCategories
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.UpdateAnime
+import com.sf.tadami.domain.anime.toSAnime
 import com.sf.tadami.domain.episode.toUpdateEpisode
-import com.sf.tadami.extension.util.fetchGuarded
+import com.sf.tadami.extension.util.callGuarded
 import com.sf.tadami.source.Source
 import com.sf.tadami.source.model.SEpisode
 import com.sf.tadami.ui.tabs.browse.SourceManager
-import com.sf.tadami.ui.utils.awaitSingleOrError
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -49,7 +49,7 @@ class MigrateDialogViewModel : ViewModel() {
         _state.update { it.copy(migrationState = MigrationState.RUNNING) }
 
         try {
-            val episodes = source.fetchGuarded { fetchEpisodesList(newAnime) }.awaitSingleOrError()
+            val episodes = source.callGuarded { getEpisodeList(newAnime.toSAnime()) }
 
             migrateAnimeInternal(
                 oldSource = prevSource,
