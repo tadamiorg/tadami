@@ -293,8 +293,17 @@ fun LibraryScreen(
                 },
                 isRefreshing = isRefreshing,
                 onRefresh = {
-                    val started = libraryViewModel.refreshLibrary(context)
-                    val msgRes = if (started) context.getString(R.string.update_starting) else context.getString(R.string.update_running)
+                    // The category shown, as Mihon. Without any category, the library
+                    val category = activeTab?.category?.takeIf { categories.isNotEmpty() }
+                    val started = libraryViewModel.refreshLibrary(context, category?.id)
+                    val msgRes = when {
+                        !started -> context.getString(R.string.update_running)
+                        category != null -> context.getString(
+                            R.string.update_starting_category,
+                            if (category.isSystemCategory) context.getString(R.string.category_default) else category.name
+                        )
+                        else -> context.getString(R.string.update_starting)
+                    }
                     coroutineScope.launch {
                         snackBarHostState.currentSnackbarData?.dismiss()
                         snackBarHostState.showSnackbar(msgRes)

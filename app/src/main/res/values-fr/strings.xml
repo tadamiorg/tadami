@@ -61,6 +61,7 @@
         <item quantity="other">Pour %d entrées</item>
     </plurals>
     <string name="update_starting">Mise à jour de la bibliothèque</string>
+    <string name="update_starting_category">Mise à jour de la catégorie %s</string>
     <string name="update_running">Mise à jour déja en cours</string>
     <string name="action_sort">Trier</string>
     <string name="filter_unseen">Non vus</string>

@@ -128,9 +128,10 @@ class LibraryViewModel : ViewModel() {
             _isRefreshing.update { false }
         }
     }
-    fun refreshLibrary(context: Context): Boolean {
+    // The anime of [categoryId] only, null for the whole library
+    fun refreshLibrary(context: Context, categoryId: Long?): Boolean {
         toggleRefreshIndicator()
-        return LibraryUpdateWorker.startNow(context)
+        return LibraryUpdateWorker.startNow(context, categoryId)
     }
 
     fun toggleSelected(libraryItem: LibraryItem, selected: Boolean) {

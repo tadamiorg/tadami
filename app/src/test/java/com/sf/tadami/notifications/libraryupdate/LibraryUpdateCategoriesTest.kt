@@ -46,4 +46,16 @@ class LibraryUpdateCategoriesTest {
     fun excludingAloneKeepsTheOtherCategories() {
         assertEquals(listOf(11L, 12L, 13L), library.inUpdateCategories(emptySet(), setOf("0")).ids())
     }
+
+    @Test
+    fun updatingOneCategoryIgnoresTheSettings() {
+        // As Mihon's update of the category shown
+        assertEquals(listOf(11L, 13L), library.toUpdate(1L, setOf("2"), setOf("1")).ids())
+        assertEquals(listOf(10L), library.toUpdate(Category.UNCATEGORIZED_ID, setOf("1"), emptySet()).ids())
+    }
+
+    @Test
+    fun updatingTheLibraryFollowsTheSettings() {
+        assertEquals(listOf(11L), library.toUpdate(null, setOf("1"), setOf("2")).ids())
+    }
 }

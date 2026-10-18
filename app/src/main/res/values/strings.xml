@@ -87,6 +87,7 @@
         <item quantity="other">For %d entries</item>
     </plurals>
     <string name="update_starting">Updating library</string>
+    <string name="update_starting_category">Updating the category %s</string>
     <string name="update_running">Update already running</string>
     <string name="action_sort">Sort</string>
     <string name="filter_unseen">Unseen</string>

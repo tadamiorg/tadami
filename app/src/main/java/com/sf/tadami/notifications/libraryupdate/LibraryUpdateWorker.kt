@@ -19,6 +19,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.sf.tadami.R
 import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.anime.FetchIntervalInteractor
@@ -135,8 +136,9 @@ class LibraryUpdateWorker(
 
     private fun addAnimesToQueue() {
         val libraryAnimes = runBlocking { libraryInteractor.await() }
+        val categoryId = inputData.getLong(KEY_CATEGORY, -1L).takeIf { it >= 0L }
         val listToUpdate = libraryAnimes
-            .inUpdateCategories(libraryPreferences.updateCategories, libraryPreferences.updateCategoriesExclude)
+            .toUpdate(categoryId, libraryPreferences.updateCategories, libraryPreferences.updateCategoriesExclude)
             .sortedBy { it.title }
 
         val skippedUpdates = mutableListOf<Pair<Anime, String?>>()
@@ -307,6 +309,7 @@ class LibraryUpdateWorker(
         private const val TAG = "LibraryUpdate"
         private const val WORK_NAME_MANUAL = "library_update_work_manual"
         private const val WORK_NAME_AUTO = "library_update_work_auto"
+        private const val KEY_CATEGORY = "category"
 
         fun setupTask(
             context: Context,
@@ -347,8 +350,10 @@ class LibraryUpdateWorker(
             }
         }
 
+        /** Updates the library, or only the anime of [categoryId] */
         fun startNow(
             context: Context,
+            categoryId: Long? = null,
         ): Boolean {
             val wm = context.workManager
             if (wm.isRunning(TAG)) {
@@ -358,6 +363,7 @@ class LibraryUpdateWorker(
             val request = OneTimeWorkRequestBuilder<LibraryUpdateWorker>()
                 .addTag(TAG)
                 .addTag(WORK_NAME_MANUAL)
+                .setInputData(workDataOf(KEY_CATEGORY to (categoryId ?: -1L)))
                 .build()
             wm.enqueueUniqueWork(WORK_NAME_MANUAL, ExistingWorkPolicy.KEEP, request)
 
