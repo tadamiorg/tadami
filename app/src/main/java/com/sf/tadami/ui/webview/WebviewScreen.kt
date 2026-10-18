@@ -6,6 +6,8 @@ import android.graphics.Bitmap
 import android.os.Message
 import android.util.Log
 import android.view.View
+import android.webkit.JsPromptResult
+import android.webkit.JsResult
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -133,6 +135,10 @@ fun WebviewScreen(
     val destroyedWebViews = remember { mutableSetOf<WebView>() }
     var screenActive by remember { mutableStateOf(true) }
     var rendererGoneReported by remember { mutableStateOf(false) }
+    val activity = remember(context) { context.findActivity() }
+
+    // Closed, or closing: the activity finishes before the screen leaves the composition
+    fun isClosed() = !screenActive || activity.isFinishing
 
     // A web video player in fullscreen (HTML5 <video> or an embedded player), shown over the screen
     var fullscreenView by remember { mutableStateOf<View?>(null) }
@@ -310,6 +316,37 @@ fun WebviewScreen(
                 override fun onCloseWindow(view: WebView) {
                     // window.close()
                     windows.find { it.webView === view }?.let(::closeWindow)
+                }
+
+                // A page's dialog once the screen is closing would flash over the app and leak its window
+                override fun onJsAlert(view: WebView, url: String?, message: String?, result: JsResult): Boolean {
+                    if (isClosed()) {
+                        result.confirm()
+                        return true
+                    }
+                    return super.onJsAlert(view, url, message, result)
+                }
+
+                override fun onJsConfirm(view: WebView, url: String?, message: String?, result: JsResult): Boolean {
+                    if (isClosed()) {
+                        result.cancel()
+                        return true
+                    }
+                    return super.onJsConfirm(view, url, message, result)
+                }
+
+                override fun onJsPrompt(
+                    view: WebView,
+                    url: String?,
+                    message: String?,
+                    defaultValue: String?,
+                    result: JsPromptResult,
+                ): Boolean {
+                    if (isClosed()) {
+                        result.cancel()
+                        return true
+                    }
+                    return super.onJsPrompt(view, url, message, defaultValue, result)
                 }
 
                 override fun onShowCustomView(view: View, callback: WebChromeClient.CustomViewCallback) {
