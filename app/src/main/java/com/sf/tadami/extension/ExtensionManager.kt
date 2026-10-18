@@ -300,6 +300,9 @@ class ExtensionManager(
      * The official signing key stays trusted.
      */
     suspend fun removeRepo(repoUrl: String) {
+        // Not found yet in this session: found first, so that the extensions installed before their
+        // origin was recorded get the one inferred from it, see updatedInstalledExtensionsStatuses
+        if (_availableExtensionsFlow.value.isEmpty()) findAvailableExtensions()
         dataStore.edit { preferences ->
             preferences[SourcesPreferences.EXTENSIONS_REPOS] =
                 SourcesPreferences.transform(preferences).extensionsRepos - repoUrl

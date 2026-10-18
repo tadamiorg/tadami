@@ -70,6 +70,8 @@ fun extensionOrigin(repoUrl: String?, isManual: Boolean = false): String? {
     val info = LocalExtensionRepos.current
     return when {
         isManual -> stringResource(R.string.ext_origin_manual)
+        // Without any repo, none is in a repo, wherever it comes from
+        info.repos?.isEmpty() == true -> stringResource(R.string.ext_origin_no_repo)
         repoUrl == null -> null
         info.repos != null && repoUrl !in info.repos -> stringResource(R.string.ext_origin_no_repo)
         else -> repoDisplayName(repoUrl, info.metas[repoUrl])
