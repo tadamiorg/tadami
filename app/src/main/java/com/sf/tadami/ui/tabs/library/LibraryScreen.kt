@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.RemoveDone
@@ -47,6 +48,8 @@ import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
+import com.sf.tadami.ui.category.CategoryCheckbox
+import com.sf.tadami.ui.category.SetCategoriesDialog
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.LibraryItem
@@ -133,6 +136,15 @@ fun LibraryScreen(
         mutableStateOf(false)
     }
 
+    var setCategoriesSelection by remember { mutableStateOf<List<CategoryCheckbox>?>(null) }
+    setCategoriesSelection?.let { selection ->
+        SetCategoriesDialog(
+            initialSelection = selection,
+            onDismissRequest = { setCategoriesSelection = null },
+            onConfirm = { add, remove -> libraryViewModel.setSelectedCategories(add, remove) }
+        )
+    }
+
     val isRefreshing by libraryViewModel.isRefreshing.collectAsState()
     val scaffoldInsets =  WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
 
@@ -181,6 +193,13 @@ fun LibraryScreen(
                 modifier = Modifier.windowInsetsPadding(scaffoldInsets),
                 visible = libraryList.fastAny { it.selected },
                 actions = listOf(
+                    Action.Vector(
+                        title = R.string.action_set_categories,
+                        icon = Icons.AutoMirrored.Outlined.Label,
+                        onClick = {
+                            setCategoriesSelection = libraryViewModel.selectedCategoryCheckboxes()
+                        },
+                    ),
                     Action.Vector(
                         title = R.string.stub_text,
                         icon = Icons.Outlined.DoneAll,

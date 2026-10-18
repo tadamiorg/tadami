@@ -493,5 +493,7 @@
     <string name="category_default">Default</string>
     <string name="library_category_empty">This category is empty.</string>
     <string name="library_display_number_of_items">Show the number of items</string>
+    <string name="action_set_categories">Set categories</string>
+    <string name="set_categories_none">You have no categories yet.</string>
 
 </resources>

@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.data.interactors.category.GetCategories
+import com.sf.tadami.data.interactors.category.SetAnimeCategories
 import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.toAnime
@@ -16,6 +17,8 @@ import com.sf.tadami.domain.category.Category
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.app.BasePreferences
 import com.sf.tadami.preferences.library.LibraryPreferences
+import com.sf.tadami.ui.category.CategoryCheckbox
+import com.sf.tadami.ui.category.categoryCheckboxes
 import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.utils.addOrRemove
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
@@ -36,6 +39,7 @@ import uy.kohesive.injekt.api.get
 class LibraryViewModel : ViewModel() {
     private val libraryInteractor: LibraryInteractor = Injekt.get()
     private val getCategories: GetCategories = Injekt.get()
+    private val setAnimeCategories: SetAnimeCategories = Injekt.get()
     private val updateAnimeInteractor : UpdateAnimeInteractor = Injekt.get()
     private val downloadManager : TadamiDownloadManager = Injekt.get()
     private val dataStore : DataStore<Preferences> = Injekt.get()
@@ -184,6 +188,19 @@ class LibraryViewModel : ViewModel() {
             toggleAllSelected(false)
         }
     }
+    // The set categories dialog rows for the selected anime
+    fun selectedCategoryCheckboxes(): List<CategoryCheckbox> {
+        val selectedCategories = libraryList.value.filter { it.selected }.map { it.anime.categories }
+        return categoryCheckboxes(categories.value, selectedCategories)
+    }
+
+    fun setSelectedCategories(add: List<Long>, remove: List<Long>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            setAnimeCategories.await(selectedIds.toList(), add, remove)
+            toggleAllSelected(false)
+        }
+    }
+
     fun unFavorite(){
         viewModelScope.launch(Dispatchers.IO) {
             updateAnimeInteractor.updateLibrary(selectedIds,false)
