@@ -212,6 +212,7 @@ fun LibraryAnimeGrid(
     modifier: Modifier = Modifier,
     animeList: List<LibraryItem>,
     librarySize: Int,
+    categoryEmpty: Boolean = false,
     initLoaded : Boolean,
     onAnimeClicked: (anime: LibraryItem) -> Unit,
     onAnimeLongClicked: (anime: LibraryItem) -> Unit,
@@ -276,6 +277,8 @@ fun LibraryAnimeGrid(
                     )
                 )
             )
+        } else if (categoryEmpty && initLoaded) {
+            EmptyScreen(message = stringResource(id = R.string.library_category_empty))
         }
     }
 }

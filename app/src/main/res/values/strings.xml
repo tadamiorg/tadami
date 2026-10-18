@@ -490,5 +490,8 @@
     <string name="preferences_download_delete_after_watched">Delete after watching</string>
     <string name="preferences_download_delete_after_watched_subtitle">Deletes a downloaded episode once it is marked as seen, when you leave it</string>
     <string name="preferences_download_location">Download location</string>
+    <string name="category_default">Default</string>
+    <string name="library_category_empty">This category is empty.</string>
+    <string name="library_display_number_of_items">Show the number of items</string>
 
 </resources>

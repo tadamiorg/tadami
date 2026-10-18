@@ -1,7 +1,10 @@
 package com.sf.tadami.ui.tabs.library
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
@@ -32,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.fastAny
@@ -67,13 +71,24 @@ fun LibraryScreen(
 
     val initLoaded by libraryViewModel.initLoaded.collectAsState()
     val libraryList by libraryViewModel.libraryList.collectAsState()
+    val categories by libraryViewModel.categories.collectAsState()
+    val activeCategoryId by libraryViewModel.activeCategoryId.collectAsState()
     val searchFilter by libraryViewModel.searchFilter.collectAsState()
     val downloadedIds by libraryViewModel.downloadedIds.collectAsState()
     val libraryPreferences by rememberDataStoreState(customPrefs = LibraryPreferences).value.collectAsState()
-    val displayedList = remember(libraryList, libraryPreferences, searchFilter, downloadedIds) {
-        libraryList.addFilters(libraryPreferences, searchFilter, downloadedIds)
+    val tabs = remember(libraryList, categories) { libraryTabs(categories, libraryList) }
+    // The search and the filters apply inside each tab
+    val displayedTabs = remember(tabs, libraryPreferences, searchFilter, downloadedIds) {
+        tabs.map { it.copy(items = it.items.addFilters(libraryPreferences, searchFilter, downloadedIds)) }
     }
-    val displayedIds = remember(displayedList) { displayedList.mapTo(HashSet()) { it.anime.id } }
+    val displayedIds = remember(displayedTabs) {
+        displayedTabs.flatMapTo(HashSet()) { tab -> tab.items.map { it.anime.id } }
+    }
+    // Select all and invert act on the tab shown
+    val pageIds = remember(displayedTabs, activeCategoryId) {
+        (displayedTabs.find { it.category.id == activeCategoryId } ?: displayedTabs.firstOrNull())
+            ?.items.orEmpty().mapTo(HashSet()) { it.anime.id }
+    }
     LaunchedEffect(displayedIds) {
         libraryViewModel.keepDisplayedSelected(displayedIds)
     }
@@ -144,10 +159,10 @@ fun LibraryScreen(
                     libraryViewModel.toggleAllSelected(false)
                 },
                 onToggleAll = {
-                    libraryViewModel.selectAllDisplayed(displayedIds)
+                    libraryViewModel.selectAllDisplayed(displayedIds, pageIds)
                 },
                 onInverseAll = {
-                    libraryViewModel.inverseSelected(displayedIds)
+                    libraryViewModel.inverseSelected(displayedIds, pageIds)
                 },
                 onSearchChange = {
                     libraryViewModel.updateSearchFilter(it)
@@ -192,53 +207,84 @@ fun LibraryScreen(
         },
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
     ) { contentPadding ->
-        LibraryComponent(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding).consumeWindowInsets(contentPadding),
-            libraryList = displayedList,
-            librarySize = libraryList.size,
-            initLoaded = initLoaded,
-            onAnimeClicked = { libraryItem ->
-                when {
-                    libraryItem.selected -> {
-                        libraryViewModel.toggleSelected(libraryItem, false)
+        val layoutDirection = LocalLayoutDirection.current
+        val pageModifier = Modifier
+            .fillMaxSize()
+            .padding(
+                start = contentPadding.calculateStartPadding(layoutDirection),
+                end = contentPadding.calculateEndPadding(layoutDirection),
+                bottom = contentPadding.calculateBottomPadding(),
+            )
+        // Before the search and the filters: an empty category says so, a search without results doesn't
+        val categorySizes = remember(tabs) { tabs.associate { it.category.id to it.items.size } }
+        val libraryPage: @Composable (LibraryTab?) -> Unit = { tab ->
+            LibraryComponent(
+                modifier = pageModifier,
+                libraryList = tab?.items.orEmpty(),
+                librarySize = libraryList.size,
+                categoryEmpty = tab != null && categorySizes[tab.category.id] == 0,
+                initLoaded = initLoaded,
+                onAnimeClicked = { libraryItem ->
+                    when {
+                        libraryItem.selected -> {
+                            libraryViewModel.toggleSelected(libraryItem, false)
+                        }
+
+                        libraryList.fastAny { it.selected } -> {
+                            libraryViewModel.toggleSelected(libraryItem, true)
+                        }
+
+                        else -> {
+                            navController.navigate("${AnimeInfosRoutes.DETAILS}/${libraryItem.anime.source}/${libraryItem.anime.id}")
+                        }
+                    }
+                },
+                onAnimeLongCLicked = { libraryItem ->
+                    setNavDisplay(false)
+                    libraryViewModel.toggleSelected(libraryItem, true)
+                },
+                isRefreshing = isRefreshing,
+                onRefresh = {
+                    val started = libraryViewModel.refreshLibrary(context)
+                    val msgRes = if (started) context.getString(R.string.update_starting) else context.getString(R.string.update_running)
+                    coroutineScope.launch {
+                        snackBarHostState.currentSnackbarData?.dismiss()
+                        snackBarHostState.showSnackbar(msgRes)
+                    }
+                },
+                onEmptyRefreshClicked = {
+                    navController.navigate(HomeNavItems.Browse.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
                     }
 
-                    libraryList.fastAny { it.selected } -> {
-                        libraryViewModel.toggleSelected(libraryItem, true)
-                    }
+                }
+            )
+        }
 
-                    else -> {
-                        navController.navigate("${AnimeInfosRoutes.DETAILS}/${libraryItem.anime.source}/${libraryItem.anime.id}")
-                    }
-                }
-            },
-            onAnimeLongCLicked = { libraryItem ->
-                setNavDisplay(false)
-                libraryViewModel.toggleSelected(libraryItem, true)
-            },
-            isRefreshing = isRefreshing,
-            indicatorPadding = contentPadding,
-            onRefresh = {
-                val started = libraryViewModel.refreshLibrary(context)
-                val msgRes = if (started) context.getString(R.string.update_starting) else context.getString(R.string.update_running)
-                coroutineScope.launch {
-                    snackBarHostState.currentSnackbarData?.dismiss()
-                    snackBarHostState.showSnackbar(msgRes)
-                }
-            },
-            onEmptyRefreshClicked = {
-                navController.navigate(HomeNavItems.Browse.route) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-
+        val tabsModifier = Modifier
+            .padding(top = contentPadding.calculateTopPadding())
+            .consumeWindowInsets(contentPadding)
+        if (!initLoaded) {
+            // The loading indicator, until the library and the categories are read
+            Box(modifier = tabsModifier) {
+                libraryPage(null)
             }
-        )
+        } else {
+            LibraryPager(
+                modifier = tabsModifier,
+                tabs = displayedTabs,
+                activeCategoryId = activeCategoryId,
+                onActiveCategoryChanged = libraryViewModel::setActiveCategory,
+                badgeCount = { tab ->
+                    tab.badgeCount(libraryPreferences.showCategoryNumberOfItems, searching = searchFilter.isNotEmpty())
+                },
+                pageContent = { tab -> libraryPage(tab) }
+            )
+        }
     }
 }
 

@@ -13,6 +13,8 @@ fun LibraryComponent(
     modifier: Modifier = Modifier,
     libraryList: List<LibraryItem>,
     librarySize : Int,
+    // The category of the tab has no anime, not counting the search and the filters
+    categoryEmpty : Boolean = false,
     initLoaded : Boolean,
     onAnimeClicked: (anime: LibraryItem) -> Unit,
     onAnimeLongCLicked: (anime: LibraryItem) -> Unit,
@@ -31,6 +33,7 @@ fun LibraryComponent(
             animeList = libraryList,
             initLoaded = initLoaded,
             librarySize = librarySize,
+            categoryEmpty = categoryEmpty,
             onAnimeClicked = onAnimeClicked,
             onEmptyRefreshClicked = onEmptyRefreshClicked,
             onAnimeLongClicked = onAnimeLongCLicked,

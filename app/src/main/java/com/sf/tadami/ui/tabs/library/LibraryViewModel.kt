@@ -4,14 +4,18 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.viewModelScope
 import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
+import com.sf.tadami.data.interactors.category.GetCategories
 import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.toAnime
+import com.sf.tadami.domain.category.Category
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.app.BasePreferences
+import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.utils.addOrRemove
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
@@ -22,6 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -30,12 +35,21 @@ import uy.kohesive.injekt.api.get
 
 class LibraryViewModel : ViewModel() {
     private val libraryInteractor: LibraryInteractor = Injekt.get()
+    private val getCategories: GetCategories = Injekt.get()
     private val updateAnimeInteractor : UpdateAnimeInteractor = Injekt.get()
     private val downloadManager : TadamiDownloadManager = Injekt.get()
     private val dataStore : DataStore<Preferences> = Injekt.get()
 
     private val _libraryList : MutableStateFlow<List<LibraryItem>> = MutableStateFlow(emptyList())
     val libraryList = _libraryList.asStateFlow()
+
+    // The user's categories, without the Default one
+    private val _categories : MutableStateFlow<List<Category>> = MutableStateFlow(emptyList())
+    val categories = _categories.asStateFlow()
+
+    // The category of the tab shown, the last one used at start
+    private val _activeCategoryId : MutableStateFlow<Long> = MutableStateFlow(Category.UNCATEGORIZED_ID)
+    val activeCategoryId = _activeCategoryId.asStateFlow()
 
     private val _searchFilter : MutableStateFlow<String> = MutableStateFlow("")
     val searchFilter = _searchFilter.asStateFlow()
@@ -54,8 +68,18 @@ class LibraryViewModel : ViewModel() {
 
     init {
         viewModelScope.launch(Dispatchers.IO){
-            libraryInteractor.subscribe().collectLatest { libraryList ->
+            // Read before the first load, the tabs open on it
+            _activeCategoryId.update {
+                dataStore.data.first()[LibraryPreferences.LAST_USED_CATEGORY] ?: Category.UNCATEGORIZED_ID
+            }
+            combine(
+                libraryInteractor.subscribe(),
+                getCategories.subscribe(),
+            ) { libraryList, categories ->
+                libraryList to categories
+            }.collectLatest { (libraryList, categories) ->
                 _libraryList.update { libraryList.toLibraryItems() }
+                _categories.update { categories }
                 if(!_initLoaded.value){
                     _initLoaded.update { true }
                 }
@@ -81,6 +105,14 @@ class LibraryViewModel : ViewModel() {
 
     fun updateSearchFilter(value : String){
         _searchFilter.update {value}
+    }
+
+    fun setActiveCategory(categoryId: Long) {
+        if (_activeCategoryId.value == categoryId) return
+        _activeCategoryId.update { categoryId }
+        viewModelScope.launch(Dispatchers.IO) {
+            dataStore.edit { it[LibraryPreferences.LAST_USED_CATEGORY] = categoryId }
+        }
     }
 
     private fun toggleRefreshIndicator(){
@@ -110,12 +142,13 @@ class LibraryViewModel : ViewModel() {
         _libraryList.update{ newLibraryItems }
     }
 
-    fun inverseSelected(displayedIds: Set<Long>) {
-        updateDisplayedSelection(displayedIds) { !it.selected }
+    // On the tab shown, [pageIds], the anime selected in the other tabs stay selected
+    fun inverseSelected(displayedIds: Set<Long>, pageIds: Set<Long>) {
+        updateDisplayedSelection(displayedIds, pageIds) { !it.selected }
     }
 
-    fun selectAllDisplayed(displayedIds: Set<Long>) {
-        updateDisplayedSelection(displayedIds) { true }
+    fun selectAllDisplayed(displayedIds: Set<Long>, pageIds: Set<Long>) {
+        updateDisplayedSelection(displayedIds, pageIds) { true }
     }
 
     // Called when the search or the filters change: an anime no longer displayed can't stay selected
@@ -123,9 +156,13 @@ class LibraryViewModel : ViewModel() {
         updateDisplayedSelection(displayedIds) { it.selected }
     }
 
-    private fun updateDisplayedSelection(displayedIds: Set<Long>, selected: (LibraryItem) -> Boolean) {
+    private fun updateDisplayedSelection(
+        displayedIds: Set<Long>,
+        pageIds: Set<Long> = displayedIds,
+        selected: (LibraryItem) -> Boolean
+    ) {
         _libraryList.update { currentState ->
-            currentState.selectDisplayed(displayedIds, selected).also { items ->
+            currentState.selectDisplayed(displayedIds, pageIds, selected).also { items ->
                 selectedIds.clear()
                 items.filter { it.selected }.mapTo(selectedIds) { it.anime.id }
             }
@@ -164,10 +201,19 @@ class LibraryViewModel : ViewModel() {
     }
 }
 
-// Select all and invert act on the displayed items only, the hidden ones end up unselected
+// Select all and invert act on the displayed items of the tab shown, [pageIds]: the hidden ones end up
+// unselected, the ones displayed in other tabs keep their selection
 internal fun List<LibraryItem>.selectDisplayed(
     displayedIds: Set<Long>,
+    pageIds: Set<Long> = displayedIds,
     selected: (LibraryItem) -> Boolean
 ): List<LibraryItem> {
-    return map { it.copy(selected = it.anime.id in displayedIds && selected(it)) }
+    return map {
+        val isSelected = when (it.anime.id) {
+            in pageIds -> selected(it)
+            in displayedIds -> it.selected
+            else -> false
+        }
+        it.copy(selected = isSelected)
+    }
 }

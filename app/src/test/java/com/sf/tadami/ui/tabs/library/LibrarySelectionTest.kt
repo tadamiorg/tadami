@@ -40,6 +40,25 @@ class LibrarySelectionTest {
     }
 
     @Test
+    fun selectAllOnATabKeepsTheSelectionOfTheOtherTabs() {
+        val library = listOf(item(1L, selected = true), item(2L), item(3L), item(4L, selected = true))
+
+        // 1 and 2 shown in another tab, 3 on the tab shown, 4 hidden by the filters
+        val result = library.selectDisplayed(setOf(1L, 2L, 3L), pageIds = setOf(3L)) { true }
+
+        assertEquals(listOf(1L, 3L), result.selectedIds())
+    }
+
+    @Test
+    fun invertOnATabOnlyInvertsItsItems() {
+        val library = listOf(item(1L, selected = true), item(2L, selected = true), item(3L))
+
+        val result = library.selectDisplayed(setOf(1L, 2L, 3L), pageIds = setOf(2L, 3L)) { !it.selected }
+
+        assertEquals(listOf(1L, 3L), result.selectedIds())
+    }
+
+    @Test
     fun aHiddenItemDoesNotStaySelected() {
         val library = listOf(item(1L, selected = true), item(2L, selected = true), item(3L))
 

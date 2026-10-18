@@ -2,6 +2,7 @@ package com.sf.tadami.preferences.library
 
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
@@ -21,7 +22,9 @@ data class LibraryPreferences(
     val defaultCategory : Int,
     // Category ids as strings, the Default category's included. No category to include updates them all
     val updateCategories : Set<String>,
-    val updateCategoriesExclude : Set<String>
+    val updateCategoriesExclude : Set<String>,
+    // The item count on each category tab
+    val showCategoryNumberOfItems : Boolean
 ) : CustomPreferencesIdentifier {
 
     object AutoUpdateRestrictionItems {
@@ -52,6 +55,10 @@ data class LibraryPreferences(
         val UPDATE_CATEGORIES = stringSetPreferencesKey("library_update_categories")
         val UPDATE_CATEGORIES_EXCLUDE = stringSetPreferencesKey("library_update_categories_exclude")
 
+        private val CATEGORY_NUMBER_OF_ITEMS = booleanPreferencesKey("library_category_number_of_items")
+        // The category of the tab last shown
+        val LAST_USED_CATEGORY = longPreferencesKey(CustomPreferences.appStateKey("library_last_used_category"))
+
         const val DEFAULT_CATEGORY_ASK = -1
 
         // Flags
@@ -72,7 +79,8 @@ data class LibraryPreferences(
                 newUpdatesCount = preferences[NEW_UPDATES_COUNT] ?: 0,
                 defaultCategory = preferences[DEFAULT_CATEGORY] ?: DEFAULT_CATEGORY_ASK,
                 updateCategories = preferences[UPDATE_CATEGORIES] ?: emptySet(),
-                updateCategoriesExclude = preferences[UPDATE_CATEGORIES_EXCLUDE] ?: emptySet()
+                updateCategoriesExclude = preferences[UPDATE_CATEGORIES_EXCLUDE] ?: emptySet(),
+                showCategoryNumberOfItems = preferences[CATEGORY_NUMBER_OF_ITEMS] ?: false
             )
         }
 
@@ -88,6 +96,7 @@ data class LibraryPreferences(
             preferences[DEFAULT_CATEGORY] = newValue.defaultCategory
             preferences[UPDATE_CATEGORIES] = newValue.updateCategories
             preferences[UPDATE_CATEGORIES_EXCLUDE] = newValue.updateCategoriesExclude
+            preferences[CATEGORY_NUMBER_OF_ITEMS] = newValue.showCategoryNumberOfItems
         }
 
 

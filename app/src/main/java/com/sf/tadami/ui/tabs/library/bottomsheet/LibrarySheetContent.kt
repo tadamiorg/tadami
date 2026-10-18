@@ -59,6 +59,18 @@ fun LibrarySheetContent() {
                         )
                     }
                 )
+            },
+            TabContent(
+                titleRes = R.string.title_display
+            ) {
+                DisplayTab(
+                    showNumberOfItems = libraryPreferencesState.showCategoryNumberOfItems,
+                    setShowNumberOfItems = {
+                        libraryPreferencesStore.setValue(
+                            libraryPreferencesState.copy(showCategoryNumberOfItems = it)
+                        )
+                    }
+                )
             }
         )
     )

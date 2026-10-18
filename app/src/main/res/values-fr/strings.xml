@@ -500,5 +500,8 @@
     <string name="preferences_download_delete_after_watched">Supprimer après visionnage</string>
     <string name="preferences_download_delete_after_watched_subtitle">Supprime un épisode téléchargé une fois marqué comme vu, quand vous le quittez</string>
     <string name="preferences_download_location">Emplacement des téléchargements</string>
+    <string name="category_default">Par défaut</string>
+    <string name="library_category_empty">Cette catégorie est vide.</string>
+    <string name="library_display_number_of_items">Afficher le nombre d\'éléments</string>
 
 </resources>
