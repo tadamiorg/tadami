@@ -526,6 +526,8 @@
     <string name="category_name_exists">Une catégorie porte déjà ce nom</string>
     <string name="category_error">Les catégories n\'ont pas pu être modifiées</string>
     <string name="categories_empty">Vous n\'avez aucune catégorie. Appuyez sur le bouton plus pour en créer une et organiser votre bibliothèque.</string>
+    <string name="preferences_library_categorized_sort">Tri par catégorie</string>
+    <string name="preferences_library_categorized_sort_subtitle">Le tri choisi dans la bibliothèque s\'applique seulement à la catégorie affichée</string>
     <plurals name="preferences_library_categories_count">
         <item quantity="one">%d catégorie</item>
         <item quantity="many">%d catégories</item>

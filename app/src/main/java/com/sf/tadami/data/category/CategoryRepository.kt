@@ -19,6 +19,8 @@ interface CategoryRepository {
 
     suspend fun updateName(categoryId: Long, name: String)
 
+    suspend fun updateFlags(categoryId: Long, flags: Long)
+
     /** Orders the categories as [orderedIds], the ones missing from it after them */
     suspend fun updateAllOrders(orderedIds: List<Long>)
 
@@ -64,6 +66,10 @@ class CategoryRepositoryImpl(
 
     override suspend fun updateName(categoryId: Long, name: String) {
         handler.await { categoriesQueries.updateName(name = name, categoryId = categoryId) }
+    }
+
+    override suspend fun updateFlags(categoryId: Long, flags: Long) {
+        handler.await { categoriesQueries.updateFlags(flags = flags, categoryId = categoryId) }
     }
 
     override suspend fun updateAllOrders(orderedIds: List<Long>) {

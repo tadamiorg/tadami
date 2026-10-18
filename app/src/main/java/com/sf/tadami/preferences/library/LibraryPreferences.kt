@@ -24,7 +24,11 @@ data class LibraryPreferences(
     val updateCategories : Set<String>,
     val updateCategoriesExclude : Set<String>,
     // The item count on each category tab
-    val showCategoryNumberOfItems : Boolean
+    val showCategoryNumberOfItems : Boolean,
+    // Each category has its own sort, kept in its flags, instead of the library one
+    val categorizedSort : Boolean,
+    // The Default category's sort with the per category sort, as it isn't stored. 0 until one is chosen
+    val defaultCategorySortFlags : Long
 ) : CustomPreferencesIdentifier {
 
     object AutoUpdateRestrictionItems {
@@ -56,6 +60,8 @@ data class LibraryPreferences(
         val UPDATE_CATEGORIES_EXCLUDE = stringSetPreferencesKey("library_update_categories_exclude")
 
         private val CATEGORY_NUMBER_OF_ITEMS = booleanPreferencesKey("library_category_number_of_items")
+        private val CATEGORIZED_SORT = booleanPreferencesKey("library_categorized_sort")
+        val DEFAULT_CATEGORY_FLAGS = longPreferencesKey("library_default_category_flags")
         // The category of the tab last shown
         val LAST_USED_CATEGORY = longPreferencesKey(CustomPreferences.appStateKey("library_last_used_category"))
 
@@ -80,7 +86,9 @@ data class LibraryPreferences(
                 defaultCategory = preferences[DEFAULT_CATEGORY] ?: DEFAULT_CATEGORY_ASK,
                 updateCategories = preferences[UPDATE_CATEGORIES] ?: emptySet(),
                 updateCategoriesExclude = preferences[UPDATE_CATEGORIES_EXCLUDE] ?: emptySet(),
-                showCategoryNumberOfItems = preferences[CATEGORY_NUMBER_OF_ITEMS] ?: false
+                showCategoryNumberOfItems = preferences[CATEGORY_NUMBER_OF_ITEMS] ?: false,
+                categorizedSort = preferences[CATEGORIZED_SORT] ?: false,
+                defaultCategorySortFlags = preferences[DEFAULT_CATEGORY_FLAGS] ?: 0L
             )
         }
 
@@ -97,6 +105,8 @@ data class LibraryPreferences(
             preferences[UPDATE_CATEGORIES] = newValue.updateCategories
             preferences[UPDATE_CATEGORIES_EXCLUDE] = newValue.updateCategoriesExclude
             preferences[CATEGORY_NUMBER_OF_ITEMS] = newValue.showCategoryNumberOfItems
+            preferences[CATEGORIZED_SORT] = newValue.categorizedSort
+            preferences[DEFAULT_CATEGORY_FLAGS] = newValue.defaultCategorySortFlags
         }
 
 

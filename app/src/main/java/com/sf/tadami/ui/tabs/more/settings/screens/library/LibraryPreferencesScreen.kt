@@ -104,6 +104,19 @@ class LibraryPreferencesScreen(
                         )
                         true
                     }
+                ),
+                Preference.PreferenceItem.TogglePreference(
+                    value = prefs.categorizedSort,
+                    title = stringResource(id = R.string.preferences_library_categorized_sort),
+                    subtitle = stringResource(id = R.string.preferences_library_categorized_sort_subtitle),
+                    onValueChanged = {
+                        prefState.setValue(
+                            prefs.copy(
+                                categorizedSort = it
+                            )
+                        )
+                        true
+                    }
                 )
             )
         )

@@ -10,6 +10,7 @@ import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.data.interactors.category.GetCategories
 import com.sf.tadami.data.interactors.category.SetAnimeCategories
+import com.sf.tadami.data.interactors.category.SetCategorySort
 import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.toAnime
@@ -40,6 +41,7 @@ class LibraryViewModel : ViewModel() {
     private val libraryInteractor: LibraryInteractor = Injekt.get()
     private val getCategories: GetCategories = Injekt.get()
     private val setAnimeCategories: SetAnimeCategories = Injekt.get()
+    private val setCategorySort: SetCategorySort = Injekt.get()
     private val updateAnimeInteractor : UpdateAnimeInteractor = Injekt.get()
     private val downloadManager : TadamiDownloadManager = Injekt.get()
     private val dataStore : DataStore<Preferences> = Injekt.get()
@@ -198,6 +200,12 @@ class LibraryViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             setAnimeCategories.await(selectedIds.toList(), add, remove)
             toggleAllSelected(false)
+        }
+    }
+
+    fun setCategorySort(category: Category, sortFlags: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            setCategorySort.await(category.id, sortFlags)
         }
     }
 

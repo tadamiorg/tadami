@@ -29,6 +29,11 @@ UPDATE categories
 SET name = :name
 WHERE _id = :categoryId;
 
+updateFlags:
+UPDATE categories
+SET flags = :flags
+WHERE _id = :categoryId;
+
 updateSort:
 UPDATE categories
 SET sort = :sort

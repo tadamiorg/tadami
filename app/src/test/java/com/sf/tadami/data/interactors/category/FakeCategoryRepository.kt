@@ -33,6 +33,10 @@ class FakeCategoryRepository(categories: List<Category> = emptyList()) : Categor
         categories.value = categories.value.map { if (it.id == categoryId) it.copy(name = name) else it }
     }
 
+    override suspend fun updateFlags(categoryId: Long, flags: Long) {
+        categories.value = categories.value.map { if (it.id == categoryId) it.copy(flags = flags) else it }
+    }
+
     override suspend fun updateAllOrders(orderedIds: List<Long>) {
         val current = getAll().map { it.id }
         val ids = orderedIds.filter { it in current } + current.filterNot { it in orderedIds }

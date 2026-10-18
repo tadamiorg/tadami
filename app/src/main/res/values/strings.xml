@@ -516,6 +516,8 @@
     <string name="category_name_exists">A category with this name already exists</string>
     <string name="category_error">The categories couldn\'t be changed</string>
     <string name="categories_empty">You have no categories. Tap the plus button to create one for organizing your library.</string>
+    <string name="preferences_library_categorized_sort">Per-category sort</string>
+    <string name="preferences_library_categorized_sort_subtitle">The sort chosen in the library applies to the category shown only</string>
     <plurals name="preferences_library_categories_count">
         <item quantity="one">%d category</item>
         <item quantity="other">%d categories</item>

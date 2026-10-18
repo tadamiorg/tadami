@@ -134,4 +134,17 @@ class CategoryInteractorsTest {
         assertEquals(listOf(1L, 3L), repository.getCategoriesByAnimeId(10L).map { it.id })
         assertEquals(listOf(3L), repository.getCategoriesByAnimeId(11L).map { it.id })
     }
+
+    @Test
+    fun theDefaultCategorySortGoesToItsSetting() = runBlocking {
+        val repository = repository()
+        val dataStore = InMemoryDataStore()
+        val setSort = SetCategorySort(repository, dataStore)
+
+        setSort.await(2L, 0x2L)
+        setSort.await(Category.UNCATEGORIZED_ID, 0x80000004L)
+
+        assertEquals(listOf(0L, 0x2L, 0L), repository.getAll().map { it.flags })
+        assertEquals(0x80000004L, LibraryPreferences.transform(dataStore.data.first()).defaultCategorySortFlags)
+    }
 }

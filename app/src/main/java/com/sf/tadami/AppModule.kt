@@ -28,6 +28,7 @@ import com.sf.tadami.data.interactors.category.GetCategories
 import com.sf.tadami.data.interactors.category.RenameCategory
 import com.sf.tadami.data.interactors.category.ReorderCategory
 import com.sf.tadami.data.interactors.category.SetAnimeCategories
+import com.sf.tadami.data.interactors.category.SetCategorySort
 import com.sf.tadami.data.interactors.extension.GetExtensionLanguages
 import com.sf.tadami.data.interactors.extension.GetExtensionsByType
 import com.sf.tadami.data.interactors.history.GetHistoryInteractor
@@ -232,6 +233,10 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
 
         addSingletonFactory {
             SetAnimeCategories(get())
+        }
+
+        addSingletonFactory {
+            SetCategorySort(get(),get())
         }
 
         // Sources interactors

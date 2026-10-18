@@ -48,6 +48,7 @@ import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
 import com.sf.tadami.preferences.library.LibraryPreferences
+import com.sf.tadami.preferences.library.LibrarySort
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.category.CategoryCheckbox
 import com.sf.tadami.ui.category.SetCategoriesDialog
@@ -81,17 +82,27 @@ fun LibraryScreen(
     val downloadedIds by libraryViewModel.downloadedIds.collectAsState()
     val libraryPreferences by rememberDataStoreState(customPrefs = LibraryPreferences).value.collectAsState()
     val tabs = remember(libraryList, categories) { libraryTabs(categories, libraryList) }
-    // The search and the filters apply inside each tab
+    // The search, the filters and the sort apply inside each tab
     val displayedTabs = remember(tabs, libraryPreferences, searchFilter, downloadedIds) {
-        tabs.map { it.copy(items = it.items.addFilters(libraryPreferences, searchFilter, downloadedIds)) }
+        tabs.map { tab ->
+            val sort = categorySort(
+                category = tab.category,
+                perCategory = libraryPreferences.categorizedSort,
+                librarySort = libraryPreferences.sortFlags,
+                defaultCategoryFlags = libraryPreferences.defaultCategorySortFlags
+            )
+            tab.copy(items = tab.items.addFilters(libraryPreferences, sort, searchFilter, downloadedIds))
+        }
     }
     val displayedIds = remember(displayedTabs) {
         displayedTabs.flatMapTo(HashSet()) { tab -> tab.items.map { it.anime.id } }
     }
+    val activeTab = remember(displayedTabs, activeCategoryId) {
+        displayedTabs.find { it.category.id == activeCategoryId } ?: displayedTabs.firstOrNull()
+    }
     // Select all and invert act on the tab shown
-    val pageIds = remember(displayedTabs, activeCategoryId) {
-        (displayedTabs.find { it.category.id == activeCategoryId } ?: displayedTabs.firstOrNull())
-            ?.items.orEmpty().mapTo(HashSet()) { it.anime.id }
+    val pageIds = remember(activeTab) {
+        activeTab?.items.orEmpty().mapTo(HashSet()) { it.anime.id }
     }
     LaunchedEffect(displayedIds) {
         libraryViewModel.keepDisplayedSelected(displayedIds)
@@ -158,7 +169,10 @@ fun LibraryScreen(
             showBottomSheet = false
         },
         sheetContent = {
-            LibrarySheetContent()
+            LibrarySheetContent(
+                activeCategory = activeTab?.category,
+                onCategorySortSelected = libraryViewModel::setCategorySort
+            )
         },
         topBar = {
             ContextualSearchTopAppBar(
@@ -311,6 +325,7 @@ fun LibraryScreen(
 
 private fun List<LibraryItem>.addFilters(
     prefs: LibraryPreferences,
+    sort: LibrarySort,
     searchFilter: String,
     downloadedIds: Set<Long>?
 ): List<LibraryItem> {
@@ -320,5 +335,5 @@ private fun List<LibraryItem>.addFilters(
         }
         .downloadedOnly(downloadedIds)
         .libraryFilters(prefs.filterFlags)
-        .sortedWith { a1, a2 -> sortComparator(prefs.sortFlags).invoke(a1, a2) }
+        .sortedWith { a1, a2 -> sortComparator(sort).invoke(a1, a2) }
 }

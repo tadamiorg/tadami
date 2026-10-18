@@ -4,22 +4,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.sf.tadami.R
+import com.sf.tadami.domain.category.Category
 import com.sf.tadami.preferences.library.LibraryPreferences
-import com.sf.tadami.preferences.library.LibrarySort.Companion.SORT_DIRECTION
-import com.sf.tadami.preferences.library.LibrarySort.Companion.SORT_DIRECTION_MASK
-import com.sf.tadami.preferences.library.LibrarySort.Companion.SORT_TYPE_MASK
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.components.dialog.sheets.TabContent
 import com.sf.tadami.ui.components.dialog.sheets.TabbedBottomSheet
+import com.sf.tadami.ui.tabs.library.categorySort
+import com.sf.tadami.ui.tabs.library.select
 
 fun Long.setFlags(flag: Long, mask: Long): Long {
     return this and mask.inv() or flag
 }
 
+/**
+ * The filters, sort and display of the library. With the per category sort, the sort is the one of the
+ * [activeCategory] tab, [onCategorySortSelected] saves it.
+ */
 @Composable
-fun LibrarySheetContent() {
+fun LibrarySheetContent(
+    activeCategory: Category?,
+    onCategorySortSelected: (category: Category, sortFlags: Long) -> Unit,
+) {
     val libraryPreferencesStore = rememberDataStoreState(customPrefs = LibraryPreferences)
     val libraryPreferencesState by libraryPreferencesStore.value.collectAsState()
+    val categorySortCategory = activeCategory?.takeIf { libraryPreferencesState.categorizedSort }
 
     TabbedBottomSheet(
         tabs = listOf(
@@ -42,21 +50,24 @@ fun LibrarySheetContent() {
             TabContent(
                 titleRes = R.string.action_sort
             ) {
-                SortTab(sort = libraryPreferencesState.sortFlags,
+                val sort = categorySortCategory?.let {
+                    categorySort(
+                        category = it,
+                        perCategory = true,
+                        librarySort = libraryPreferencesState.sortFlags,
+                        defaultCategoryFlags = libraryPreferencesState.defaultCategorySortFlags
+                    )
+                } ?: libraryPreferencesState.sortFlags
+                SortTab(sort = sort,
                     onItemSelected = {
-                        val sortFlags = libraryPreferencesState.sortFlags
-                        val sortType = sortFlags.sortType.flag
-                        libraryPreferencesStore.setValue(
-                            libraryPreferencesState.copy(
-                                sortFlags = libraryPreferencesState.sortFlags.copy(
-                                    flags = if(it == sortType){
-                                        sortFlags.flags.setFlags(if(sortFlags.isAscending) 0L else SORT_DIRECTION, SORT_DIRECTION_MASK)
-                                    }else{
-                                        sortFlags.flags.setFlags(it,SORT_TYPE_MASK)
-                                    }
-                                )
+                        val newSort = sort.select(it)
+                        if (categorySortCategory != null) {
+                            onCategorySortSelected(categorySortCategory, newSort.flags)
+                        } else {
+                            libraryPreferencesStore.setValue(
+                                libraryPreferencesState.copy(sortFlags = newSort)
                             )
-                        )
+                        }
                     }
                 )
             },
