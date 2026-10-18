@@ -27,8 +27,20 @@ internal fun libraryTabs(categories: List<Category>, library: List<LibraryItem>)
     return listOfNotNull(defaultTab) + userCategories.map { LibraryTab(it, itemsByCategory[it.id].orEmpty()) }
 }
 
-/** The tab row is only worth showing with more than one tab */
-internal fun List<LibraryTab>.showTabRow(): Boolean = size > 1
+/** The tab row is only worth showing with more than one tab. Hidden by the setting, it is back while searching */
+internal fun List<LibraryTab>.showTabRow(showCategoryTabs: Boolean = true, searching: Boolean = false): Boolean {
+    return size > 1 && (showCategoryTabs || searching)
+}
+
+/**
+ * The category the title names, null for the library title: the one shown, when no tab row names it. Alone
+ * without any user category, the Default tab is the whole library.
+ */
+internal fun List<LibraryTab>.titleCategory(activeCategoryId: Long, tabRowShown: Boolean): Category? {
+    if (tabRowShown) return null
+    val tab = find { it.category.id == activeCategoryId } ?: firstOrNull() ?: return null
+    return tab.category.takeUnless { size == 1 && it.isSystemCategory }
+}
 
 /** The item count of a tab, shown with the number of items setting on or while searching */
 internal fun LibraryTab.badgeCount(showNumberOfItems: Boolean, searching: Boolean): Int? {

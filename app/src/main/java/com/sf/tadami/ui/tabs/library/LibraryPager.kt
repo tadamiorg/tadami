@@ -22,11 +22,12 @@ import com.sf.tadami.ui.category.visualName
 import com.sf.tadami.ui.components.screens.TabText
 import kotlinx.coroutines.launch
 
-/** The category tabs of the library, swipeable, with the tab row hidden when there is only one */
+/** The category tabs of the library, swipeable, with the tab row when [showTabRow] */
 @Composable
 fun LibraryPager(
     modifier: Modifier = Modifier,
     tabs: List<LibraryTab>,
+    showTabRow: Boolean,
     activeCategoryId: Long,
     onActiveCategoryChanged: (categoryId: Long) -> Unit,
     badgeCount: (LibraryTab) -> Int?,
@@ -56,7 +57,7 @@ fun LibraryPager(
     }
 
     Column(modifier = modifier) {
-        if (tabs.showTabRow()) {
+        if (showTabRow) {
             PrimaryScrollableTabRow(
                 selectedTabIndex = pagerState.currentPage.coerceIn(0, tabs.lastIndex),
                 modifier = Modifier.zIndex(1f),

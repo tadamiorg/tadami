@@ -25,6 +25,8 @@ data class LibraryPreferences(
     val updateCategoriesExclude : Set<String>,
     // The item count on each category tab
     val showCategoryNumberOfItems : Boolean,
+    // The category tab row, the title names the category shown without it
+    val showCategoryTabs : Boolean,
     // Each category has its own sort, kept in its flags, instead of the library one
     val categorizedSort : Boolean,
     // The Default category's sort with the per category sort, as it isn't stored. 0 until one is chosen
@@ -60,6 +62,7 @@ data class LibraryPreferences(
         val UPDATE_CATEGORIES_EXCLUDE = stringSetPreferencesKey("library_update_categories_exclude")
 
         private val CATEGORY_NUMBER_OF_ITEMS = booleanPreferencesKey("library_category_number_of_items")
+        private val CATEGORY_TABS = booleanPreferencesKey("library_display_category_tabs")
         private val CATEGORIZED_SORT = booleanPreferencesKey("library_categorized_sort")
         val DEFAULT_CATEGORY_FLAGS = longPreferencesKey("library_default_category_flags")
         // The category of the tab last shown
@@ -87,6 +90,7 @@ data class LibraryPreferences(
                 updateCategories = preferences[UPDATE_CATEGORIES] ?: emptySet(),
                 updateCategoriesExclude = preferences[UPDATE_CATEGORIES_EXCLUDE] ?: emptySet(),
                 showCategoryNumberOfItems = preferences[CATEGORY_NUMBER_OF_ITEMS] ?: false,
+                showCategoryTabs = preferences[CATEGORY_TABS] ?: true,
                 categorizedSort = preferences[CATEGORIZED_SORT] ?: false,
                 defaultCategorySortFlags = preferences[DEFAULT_CATEGORY_FLAGS] ?: 0L
             )
@@ -105,6 +109,7 @@ data class LibraryPreferences(
             preferences[UPDATE_CATEGORIES] = newValue.updateCategories
             preferences[UPDATE_CATEGORIES_EXCLUDE] = newValue.updateCategoriesExclude
             preferences[CATEGORY_NUMBER_OF_ITEMS] = newValue.showCategoryNumberOfItems
+            preferences[CATEGORY_TABS] = newValue.showCategoryTabs
             preferences[CATEGORIZED_SORT] = newValue.categorizedSort
             preferences[DEFAULT_CATEGORY_FLAGS] = newValue.defaultCategorySortFlags
         }

@@ -502,6 +502,7 @@
     <string name="preferences_download_location">Emplacement des téléchargements</string>
     <string name="category_default">Par défaut</string>
     <string name="library_category_empty">Cette catégorie est vide.</string>
+    <string name="library_display_category_tabs">Afficher les onglets de catégorie</string>
     <string name="library_display_number_of_items">Afficher le nombre d\'éléments</string>
     <string name="action_set_categories">Définir les catégories</string>
     <string name="set_categories_none">Vous n\'avez encore aucune catégorie.</string>

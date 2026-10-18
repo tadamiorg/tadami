@@ -75,6 +75,12 @@ fun LibrarySheetContent(
                 titleRes = R.string.title_display
             ) {
                 DisplayTab(
+                    showCategoryTabs = libraryPreferencesState.showCategoryTabs,
+                    setShowCategoryTabs = {
+                        libraryPreferencesStore.setValue(
+                            libraryPreferencesState.copy(showCategoryTabs = it)
+                        )
+                    },
                     showNumberOfItems = libraryPreferencesState.showCategoryNumberOfItems,
                     setShowNumberOfItems = {
                         libraryPreferencesStore.setValue(

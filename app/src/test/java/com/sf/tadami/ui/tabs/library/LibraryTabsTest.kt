@@ -87,4 +87,47 @@ class LibraryTabsTest {
         assertEquals(2, tab.badgeCount(showNumberOfItems = true, searching = false))
         assertEquals(2, tab.badgeCount(showNumberOfItems = false, searching = true))
     }
+
+    @Test
+    fun anEmptyLibraryWithCategoriesHasNoDefaultTab() {
+        // As Mihon: the Default tab is there for the anime in no category
+        assertEquals(
+            listOf(1L to emptyList<Long>(), 2L to emptyList<Long>()),
+            libraryTabs(listOf(action, drama), emptyList()).summary()
+        )
+    }
+
+    @Test
+    fun theSettingHidesTheTabRowExceptWhileSearching() {
+        val tabs = libraryTabs(listOf(action, drama), listOf(item(10L, 1L), item(11L, 2L)))
+
+        assertFalse(tabs.showTabRow(showCategoryTabs = false, searching = false))
+        assertTrue(tabs.showTabRow(showCategoryTabs = false, searching = true))
+        assertTrue(tabs.showTabRow(showCategoryTabs = true, searching = false))
+    }
+
+    @Test
+    fun withoutTheTabRowTheTitleNamesTheCategoryShown() {
+        val tabs = libraryTabs(listOf(action, drama), listOf(item(10L), item(11L, 2L)))
+
+        assertNull(tabs.titleCategory(activeCategoryId = 2L, tabRowShown = true))
+        assertEquals(drama, tabs.titleCategory(activeCategoryId = 2L, tabRowShown = false))
+        assertEquals(Category.default(), tabs.titleCategory(activeCategoryId = 0L, tabRowShown = false))
+        // A category no longer shown: the first tab is
+        assertEquals(Category.default(), tabs.titleCategory(activeCategoryId = 42L, tabRowShown = false))
+    }
+
+    @Test
+    fun aSingleCategoryIsNamedInTheTitle() {
+        val tabs = libraryTabs(listOf(action), listOf(item(10L, 1L)))
+
+        assertEquals(action, tabs.titleCategory(activeCategoryId = 1L, tabRowShown = tabs.showTabRow()))
+    }
+
+    @Test
+    fun withoutCategoriesTheTitleIsTheLibrary() {
+        val tabs = libraryTabs(emptyList(), listOf(item(10L)))
+
+        assertNull(tabs.titleCategory(activeCategoryId = 0L, tabRowShown = tabs.showTabRow()))
+    }
 }

@@ -52,10 +52,12 @@ import com.sf.tadami.preferences.library.LibrarySort
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.category.CategoryCheckbox
 import com.sf.tadami.ui.category.SetCategoriesDialog
+import com.sf.tadami.ui.category.visualName
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.components.filters.TadaBottomSheetScaffold
+import com.sf.tadami.ui.components.screens.TabText
 import com.sf.tadami.ui.components.topappbar.ContextualSearchTopAppBar
 import com.sf.tadami.ui.tabs.library.bottomsheet.LibrarySheetContent
 import com.sf.tadami.ui.tabs.library.bottomsheet.downloadedOnly
@@ -100,6 +102,13 @@ fun LibraryScreen(
     val activeTab = remember(displayedTabs, activeCategoryId) {
         displayedTabs.find { it.category.id == activeCategoryId } ?: displayedTabs.firstOrNull()
     }
+    val searching = searchFilter.isNotEmpty()
+    val showTabRow = displayedTabs.showTabRow(libraryPreferences.showCategoryTabs, searching)
+    val badgeCount: (LibraryTab) -> Int? = { tab ->
+        tab.badgeCount(libraryPreferences.showCategoryNumberOfItems, searching)
+    }
+    // Without the tab row, the title names the category shown
+    val titleTab = displayedTabs.titleCategory(activeCategoryId, showTabRow)?.let { activeTab }
     // Select all and invert act on the tab shown
     val pageIds = remember(activeTab) {
         activeTab?.items.orEmpty().mapTo(HashSet()) { it.anime.id }
@@ -177,9 +186,13 @@ fun LibraryScreen(
         topBar = {
             ContextualSearchTopAppBar(
                 title = {
-                    Text(
-                        text = stringResource(id = R.string.library_tab_title)
-                    )
+                    if (titleTab != null) {
+                        TabText(text = titleTab.category.visualName(), badgeCount = badgeCount(titleTab))
+                    } else {
+                        Text(
+                            text = stringResource(id = R.string.library_tab_title)
+                        )
+                    }
                 },
                 actions = actions,
                 actionModeCounter = isActionMode,
@@ -312,11 +325,10 @@ fun LibraryScreen(
             LibraryPager(
                 modifier = tabsModifier,
                 tabs = displayedTabs,
+                showTabRow = showTabRow,
                 activeCategoryId = activeCategoryId,
                 onActiveCategoryChanged = libraryViewModel::setActiveCategory,
-                badgeCount = { tab ->
-                    tab.badgeCount(libraryPreferences.showCategoryNumberOfItems, searching = searchFilter.isNotEmpty())
-                },
+                badgeCount = badgeCount,
                 pageContent = { tab -> libraryPage(tab) }
             )
         }
