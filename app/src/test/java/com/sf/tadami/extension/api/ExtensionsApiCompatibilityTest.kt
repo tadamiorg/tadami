@@ -19,8 +19,10 @@ import org.objectweb.asm.Opcodes.ACC_STATIC
 import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.FieldNode
+import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.MethodNode
 import java.io.File
+import java.util.jar.JarFile
 import kotlin.metadata.KmDeclarationContainer
 import kotlin.metadata.Visibility
 import kotlin.metadata.isInline
@@ -86,6 +88,31 @@ class ExtensionsApiCompatibilityTest {
                 "($libVersion, in extensions-lib/gradle.properties)",
             majorMinor(libVersion),
             ExtensionsLoader.API_VERSION_MAX.toString(),
+        )
+    }
+
+    /**
+     * The app calls the sources through their suspend methods, whose defaults call the Rx fetches:
+     * calling a fetch would bypass a source of lib 1.7 or later implementing only the suspend ones.
+     * Only the sources themselves, in com.sf.tadami.source, call the fetches.
+     */
+    @Test
+    fun appCallsTheSourcesThroughTheirSuspendMethods() {
+        val calls = appClassFiles()
+            .filterNot { (name, _) -> name.startsWith(SOURCE_PACKAGE) }
+            .flatMap { (name, bytes) ->
+                val node = ClassNode().also { ClassReader(bytes).accept(it, ClassReader.SKIP_FRAMES) }
+                node.methods.flatMap { method ->
+                    method.instructions.filterIsInstance<MethodInsnNode>()
+                        .filter { it.name.removeSuffix("\$default") in RX_FETCHES && isSourceType(it.owner) }
+                        .map { "$name.${method.name}: calls ${it.owner}.${it.name}" }
+                }
+            }
+            .distinct()
+            .toList()
+        assertTrue(
+            calls.joinToString("\n", "Call the suspend methods of the sources (getSearchAnime...) instead:\n"),
+            calls.isEmpty(),
         )
     }
 
@@ -206,6 +233,25 @@ class ExtensionsApiCompatibilityTest {
         node.fields.firstOrNull { it.name == name && it.desc == desc }?.let { return Resolved(it.access, it.value) }
         node.interfaces.firstNotNullOfOrNull { resolveField(it, name, desc) }?.let { return it }
         return node.superName?.let { resolveField(it, name, desc) }
+    }
+
+    /** Whether [owner] is a source, or the DefaultImpls of a source interface */
+    private fun isSourceType(owner: String): Boolean {
+        val type = owner.removeSuffix("\$DefaultImpls")
+        return type == SOURCE || SOURCE in appSupertypes(type)
+    }
+
+    /** The class files of the app itself, by internal name, not those of its libraries */
+    private fun appClassFiles(): Sequence<Pair<String, ByteArray>> {
+        val root = File(ExtensionsLoader::class.java.protectionDomain!!.codeSource.location.toURI())
+        return if (root.isDirectory) {
+            root.walk().filter { it.isFile && it.extension == "class" }
+                .map { it.relativeTo(root).invariantSeparatorsPath.removeSuffix(".class") to it.readBytes() }
+        } else {
+            val jar = JarFile(root)
+            jar.entries().asSequence().filter { it.name.endsWith(".class") }
+                .map { it.name.removeSuffix(".class") to jar.getInputStream(it).use { input -> input.readBytes() } }
+        }.filter { (name, _) -> name.startsWith("com/sf/tadami/") }
     }
 
     /** Every superclass and interface of an app class, as far as the test classpath has them */
@@ -414,6 +460,11 @@ class ExtensionsApiCompatibilityTest {
 
     companion object {
         private const val KNOWN_BREAKS = "known-breaks.txt"
+        private const val SOURCE_PACKAGE = "com/sf/tadami/source/"
+        private const val SOURCE = "com/sf/tadami/source/Source"
+        private val RX_FETCHES = setOf(
+            "fetchSearch", "fetchLatest", "fetchAnimeDetails", "fetchEpisodesList", "fetchEpisode", "fetchEpisodeSources",
+        )
         private val BASELINE_NAME = Regex("""\d+\.\d+\.txt""")
         private const val DEFAULT_ARGUMENTS_CONSTRUCTOR = "ILkotlin/jvm/internal/DefaultConstructorMarker;)V"
 
