@@ -15,7 +15,7 @@ import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
-import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
+import com.sf.tadami.source.ConfigurableSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.webview.adblock.AdBlockUpdateWorker
 import com.sf.tadami.utils.Lang
@@ -131,7 +131,7 @@ object Migrations {
         preferences: Set<Preferences.Key<*>>
     ) {
         val source =
-            (sourcesManager.getOrStub(sourceId)) as ConfigurableParsedHttpAnimeSource<*>
+            (sourcesManager.getOrStub(sourceId)) as ConfigurableSource
         deletePreferences(source.dataStore, preferences)
     }
 
@@ -140,7 +140,7 @@ object Migrations {
         sourcesManager: SourceManager,
     ) {
         val source =
-            (sourcesManager.getOrStub(sourceId)) as ConfigurableParsedHttpAnimeSource<*>
+            (sourcesManager.getOrStub(sourceId)) as ConfigurableSource
         source.dataStore.clearAllPreferences()
     }
 
@@ -152,7 +152,7 @@ object Migrations {
         newKey: (Preferences.Key<*>) -> String,
     ) {
         val source =
-            (sourcesManager.getOrStub(sourceId)) as ConfigurableParsedHttpAnimeSource<*>
+            (sourcesManager.getOrStub(sourceId)) as ConfigurableSource
         source.dataStore.replacePreferences(filterPredicate, newValue, newKey)
     }
 

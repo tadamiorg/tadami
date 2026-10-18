@@ -9,6 +9,7 @@ import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.source.Source
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.source.online.AnimeHttpSource
+import com.sf.tadami.source.online.ConfigurableAnimeHttpSource
 import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -68,7 +69,10 @@ class SourceManagerImplementation(
                         // Stop the preferences updates of replaced or removed instances. Their
                         // preferences are kept on disk so they survive a reinstall.
                         if (mutableMap[id] !== source) {
-                            (source as? ConfigurableParsedHttpAnimeSource<*>)?.cancelPreferencesUpdates()
+                            when (source) {
+                                is ConfigurableParsedHttpAnimeSource<*> -> source.cancelPreferencesUpdates()
+                                is ConfigurableAnimeHttpSource<*> -> source.cancelPreferencesUpdates()
+                            }
                         }
                     }
                     sourcesMapFlow.value = mutableMap

@@ -34,7 +34,7 @@ import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.preferences.storage.StoragePreferences
 import com.sf.tadami.source.Source
-import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
+import com.sf.tadami.source.ConfigurableSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.getDataStoreValues
@@ -211,7 +211,7 @@ class BackupCreator(
     private suspend fun backupSourcePreferences(options: BackupOptions): List<BackupSourcePreferences> {
         if (!options.sourcesSettings) return emptyList()
         return sourceManager.getCatalogueSources()
-            .filterIsInstance<ConfigurableParsedHttpAnimeSource<*>>()
+            .filterIsInstance<ConfigurableSource>()
             .map {
                 BackupSourcePreferences(
                     it.id,

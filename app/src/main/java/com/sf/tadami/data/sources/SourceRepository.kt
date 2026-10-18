@@ -4,7 +4,7 @@ import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.source.Source
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.source.online.AnimeHttpSource
-import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
+import com.sf.tadami.source.ConfigurableSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -31,7 +31,7 @@ class SourceRepositoryImpl(
             sources.map {
                 mapSourceToDomainSource(it).copy(
                     supportsLatest = it.supportRecent,
-                    isConfigurable = it is ConfigurableParsedHttpAnimeSource<*>
+                    isConfigurable = it is ConfigurableSource
                 )
             }
         }

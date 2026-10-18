@@ -28,7 +28,9 @@ import com.sf.tadami.preferences.download.DownloadPreferences
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.source.model.Track
-import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
+import com.sf.tadami.source.AnimeCatalogueSource
+import com.sf.tadami.source.ConfigurableSource
+import com.sf.tadami.source.online.ParsedAnimeHttpSource
 import com.sf.tadami.ui.animeinfos.episode.EpisodeUiState
 import com.sf.tadami.ui.animeinfos.episode.cast.CastRemoteState
 import com.sf.tadami.ui.tabs.browse.SourceManager
@@ -86,27 +88,28 @@ class PlayerViewModel(
 
     val source = sourcesManager.getOrStub(sourceId)
 
-    val sourceDataStore = if(source is ConfigurableParsedHttpAnimeSource<*>) {
+    val sourceDataStore = if(source is ConfigurableSource) {
         source.dataStore
     } else null
 
-    val sourceDataStoreScreen = if(source is ConfigurableParsedHttpAnimeSource<*>) {
+    val sourceDataStoreScreen = if(source is ConfigurableSource) {
         source.getPreferenceScreen().preferences
     } else emptyList()
 
     // Handle tooltip infos to be shown during playback
 
-    val sourceTooltipAuto = if(source is ConfigurableParsedHttpAnimeSource<*> && sourceDataStore != null ) {
+    val sourceTooltipAuto = if(source is ConfigurableSource && sourceDataStore != null ) {
         runBlocking {
             source.dataStore.data.first()[CommonKeys.SHOULD_SHOW_EPISODE_TOOLTIP] ?: false
         }
     } else null
 
-    val sourceSupportTooltip = if(source is ConfigurableParsedHttpAnimeSource<*>) {
+    val sourceSupportTooltip = if(source is ConfigurableSource && source is AnimeCatalogueSource) {
         source.supportEpisodeTooltip
     } else null
 
-    val sourceTooltipContent = if(source is ConfigurableParsedHttpAnimeSource<*> && sourceSupportTooltip == true) {
+    // Only the parsed sources have a tooltip
+    val sourceTooltipContent = if(source is ParsedAnimeHttpSource && source is ConfigurableSource && sourceSupportTooltip == true) {
         source.getEpisodeTooltip()
     } else null
 

@@ -2,7 +2,7 @@ package com.sf.tadami.ui.tabs.browse.tabs.sources.preferences
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.sf.tadami.source.online.ConfigurableParsedHttpAnimeSource
+import com.sf.tadami.source.ConfigurableSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +16,7 @@ class SourcePreferencesViewModel(
     private val sourceId: Long = checkNotNull(stateHandle["sourceId"])
 
     // Null when its extension was uninstalled, while the app was in background for instance
-    private val source = sourcesManager.get(sourceId) as? ConfigurableParsedHttpAnimeSource<*>
+    private val source = sourcesManager.get(sourceId) as? ConfigurableSource
     private var _uiState = MutableStateFlow(
         SourcePreferencesUiState(source?.name.orEmpty(), source?.getPreferenceScreen()?.preferences.orEmpty())
     )
