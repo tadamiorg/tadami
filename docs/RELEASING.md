@@ -91,7 +91,7 @@ If the run fails before the "Tag the release" step, nothing was created: fix the
 
 ## Releasing extensions-lib
 
-The extension API, `extensions-lib/`, is released on its own: the tag `lib-X.Y.Z`, which JitPack builds into `com.github.tadamiorg.tadami:extensions-lib:lib-X.Y.Z`. These tags never count as app releases: the app's versions only come from the `vX.Y.Z` tags.
+The extension API, `extensions-lib/`, is released on its own: the tag `lib-X.Y.Z`, which JitPack builds into `com.github.tadamiorg:tadami:lib-X.Y.Z`. These tags never count as app releases: the app's versions only come from the `vX.Y.Z` tags.
 
 1. On `develop`, set the version: `extensionsLibVersion` in `extensions-lib/gradle.properties`, and for an API change `ExtensionsLoader.API_VERSION_MAX`, to its `major.minor` (the drift test checks they match). Add the stub to the baseline of the version and commit `extensions-lib/api/X.Y.txt`:
    ```

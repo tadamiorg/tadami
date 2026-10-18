@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.github.tadamiorg.tadami:extensions-lib:lib-1.6.0")
+    compileOnly("com.github.tadamiorg:tadami:lib-1.6.0")
 }
 ```
 
@@ -111,4 +111,4 @@ When JitPack fails, the tag stays: the build log is at `https://jitpack.io/com/g
 ./gradlew :extensions-lib:publishToMavenLocal
 ```
 
-publishes `com.github.tadamiorg.tadami:extensions-lib:lib-<extensionsLibVersion>` to `~/.m2`. Builds that list `mavenLocal()` before JitPack then use it instead of the released one: remove it from `~/.m2/repository/com/github/tadamiorg` afterwards.
+publishes `com.github.tadamiorg:tadami:lib-<extensionsLibVersion>` to `~/.m2`. Builds that list `mavenLocal()` before JitPack then use it instead of the released one: remove it from `~/.m2/repository/com/github/tadamiorg` afterwards.

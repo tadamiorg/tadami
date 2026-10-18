@@ -1,5 +1,5 @@
 # JitPack builds extensions-lib only (settings.gradle.kts leaves :app out when JITPACK is true) and
-# publishes it as com.github.tadamiorg.tadami:extensions-lib:<tag>, from the tags lib-X.Y.Z.
+# publishes it as com.github.tadamiorg:tadami:<tag>, from the tags lib-X.Y.Z.
 # See extensions-lib/README.md.
 jdk:
   - openjdk17

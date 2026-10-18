@@ -49,7 +49,7 @@ Secrets go in the repo's **Settings > Secrets and variables > Actions > Secrets*
 
 **Extensions lib** builds extensions-lib and publishes it to the local Maven repository the way JitPack does (`JITPACK=true`, `jitpack.yml`).
 
-**Release extensions-lib** releases the extension API as `com.github.tadamiorg.tadami:extensions-lib:lib-X.Y.Z` on JitPack: it runs the drift test, pushes the tag `lib-X.Y.Z` and waits for JitPack's build (RELEASING.md, "Releasing extensions-lib").
+**Release extensions-lib** releases the extension API as `com.github.tadamiorg:tadami:lib-X.Y.Z` on JitPack: it runs the drift test, pushes the tag `lib-X.Y.Z` and waits for JitPack's build (RELEASING.md, "Releasing extensions-lib").
 
 ### Run options
 

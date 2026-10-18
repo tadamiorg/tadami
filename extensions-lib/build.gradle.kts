@@ -48,7 +48,7 @@ dependencies {
 }
 
 // Published on JitPack from the tag lib-<extensionsLibVersion>, which JitPack passes in VERSION:
-// com.github.tadamiorg.tadami:extensions-lib:lib-X.Y.Z (see README.md)
+// com.github.tadamiorg:tadami:lib-X.Y.Z (see README.md)
 val extensionsLibVersion = property("extensionsLibVersion") as String
 val onJitPack = System.getenv("JITPACK") == "true"
 val publishedVersion = System.getenv("VERSION")?.takeIf { onJitPack } ?: "lib-$extensionsLibVersion"
@@ -62,8 +62,10 @@ if (onJitPack && publishedVersion.startsWith("lib-")) {
 publishing {
     publications {
         register<MavenPublication>("release") {
-            groupId = "com.github.tadamiorg.tadami"
-            artifactId = "extensions-lib"
+            // JitPack serves the only module of a build as com.github.<owner>:<repo>: the same here,
+            // so a lib published to mavenLocal replaces the released one
+            groupId = "com.github.tadamiorg"
+            artifactId = "tadami"
             version = publishedVersion
             afterEvaluate {
                 from(components["release"])

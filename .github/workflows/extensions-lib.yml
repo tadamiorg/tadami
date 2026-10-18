@@ -64,4 +64,4 @@ jobs:
           VERSION="lib-$(sed -n 's/^extensionsLibVersion=//p' extensions-lib/gradle.properties | tr -d '[:space:]')"
           export VERSION
           ./gradlew :extensions-lib:publishReleasePublicationToMavenLocal
-          ls -l "$HOME/.m2/repository/com/github/tadamiorg/tadami/extensions-lib/$VERSION"
+          ls -l "$HOME/.m2/repository/com/github/tadamiorg/tadami/$VERSION"

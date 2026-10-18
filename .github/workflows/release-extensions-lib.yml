@@ -2,7 +2,7 @@ name: Release extensions-lib
 
 # Tags lib-<extensionsLibVersion> (extensions-lib/gradle.properties) on main once the lib passes the drift
 # test, has its baseline committed and builds the way JitPack does, then has JitPack build the tag and
-# waits for com.github.tadamiorg.tadami:extensions-lib:lib-X.Y.Z. Independent of the app's release.yml,
+# waits for com.github.tadamiorg:tadami:lib-X.Y.Z. Independent of the app's release.yml,
 # whose versions only come from the vX.Y.Z tags. See extensions-lib/README.md and docs/RELEASING.md.
 on:
   workflow_dispatch:
@@ -105,7 +105,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.tag }}
         run: |
           ./gradlew :extensions-lib:publishReleasePublicationToMavenLocal
-          ls -l "$HOME/.m2/repository/com/github/tadamiorg/tadami/extensions-lib/$VERSION"
+          ls -l "$HOME/.m2/repository/com/github/tadamiorg/tadami/$VERSION"
 
       - name: Tag the release
         env:
@@ -128,8 +128,8 @@ jobs:
         run: |
           OWNER=${GITHUB_REPOSITORY%%/*}
           REPO=${GITHUB_REPOSITORY#*/}
-          COORDINATES="com.github.$OWNER.$REPO:extensions-lib:$TAG"
-          POM="$JITPACK_URL/com/github/$OWNER/$REPO/extensions-lib/$TAG/extensions-lib-$TAG.pom"
+          COORDINATES="com.github.$OWNER:$REPO:$TAG"
+          POM="$JITPACK_URL/com/github/$OWNER/$REPO/$TAG/$REPO-$TAG.pom"
           LOG="$JITPACK_URL/com/github/$OWNER/$REPO/$TAG/build.log"
           STATUS_API="$JITPACK_URL/api/builds/com.github.$OWNER/$REPO/$TAG"
           PAGE="https://jitpack.io/#$OWNER/$REPO/$TAG"
