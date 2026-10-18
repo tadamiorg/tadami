@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-feature android:name="tadami.extension" />
+
+    <application android:allowBackup="false" android:label="Tadami: Lib sample">
+        <meta-data android:name="tadami.extension.class" android:value=".LibSample" />
+    </application>
+
+</manifest>

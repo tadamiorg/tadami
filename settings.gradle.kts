@@ -28,5 +28,7 @@ rootProject.name = "Tadami"
 // JitPack only builds and publishes extensions-lib (see jitpack.yml)
 if (System.getenv("JITPACK") != "true") {
     include(":app")
+    // An extension built against the lib, for :app's instrumented tests
+    include(":extensions-lib:sample")
 }
 include(":extensions-lib")

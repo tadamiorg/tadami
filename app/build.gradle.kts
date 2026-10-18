@@ -163,6 +163,42 @@ tasks.withType<Test>().configureEach {
     }
 }
 
+// The instrumented tests load the APK of :extensions-lib:sample, an extension of the current lib
+// version, from their assets (lib-sample.apk)
+val extensionsLibSample = configurations.dependencyScope("extensionsLibSample")
+val extensionsLibSampleFiles = configurations.resolvable("extensionsLibSampleFiles") {
+    extendsFrom(extensionsLibSample.get())
+}
+
+abstract class CopyAssets : DefaultTask() {
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    abstract val sources: ConfigurableFileCollection
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @get:Inject
+    abstract val files: FileSystemOperations
+
+    @TaskAction
+    fun copy() {
+        files.sync {
+            from(sources)
+            into(outputDir)
+        }
+    }
+}
+
+val extensionsLibSampleAssets = tasks.register<CopyAssets>("extensionsLibSampleAssets") {
+    sources.from(extensionsLibSampleFiles)
+}
+androidComponents {
+    onVariants(selector().withBuildType("debug")) { variant ->
+        variant.androidTest?.sources?.assets?.addGeneratedSourceDirectory(extensionsLibSampleAssets, CopyAssets::outputDir)
+    }
+}
+
 // :app:extensionsLinkageCheck downloads the APKs of the published extensions and resolves every class,
 // method and field they reference against the app's classes (ExtensionsLinkageCheck). It needs the
 // network, so it isn't one of the unit tests: CI runs it in a step of its own.
@@ -323,6 +359,7 @@ dependencies {
     testImplementation(kotlinx.metadata.jvm)
     testImplementation(libs.dexlib2)
     extensionsApiClasses(project(":extensions-lib", "apiClassesElements"))
+    extensionsLibSample(project(":extensions-lib:sample", "sampleApkElements"))
 
     // SQLite
     implementation(libs.bundles.sqlite)

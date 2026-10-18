@@ -406,11 +406,16 @@ internal object ExtensionsLoader {
     /** Whether [extension] is signed with the official key, see [Extension.Installed.signatureHash]. */
     internal fun isOfficial(extension: Extension.Installed): Boolean = extension.signatureHash == OFFICIAL_SIGNATURE_HASH
 
-    /** Why an extension built against [libVersion] can't be loaded, or null when it can. */
-    internal fun libVersionIssue(libVersion: LibVersion?): ExtensionLoadIssue? = when {
+    /**
+     * Why an extension built against [libVersion] can't be loaded, or null when it can.
+     *
+     * @param max the newest lib version accepted, another one than [API_VERSION_MAX] to tell what an
+     * older app does
+     */
+    internal fun libVersionIssue(libVersion: LibVersion?, max: LibVersion = API_VERSION_MAX): ExtensionLoadIssue? = when {
         libVersion == null -> ExtensionLoadIssue.INVALID_VERSION
         libVersion < API_VERSION_MIN -> ExtensionLoadIssue.LIB_TOO_OLD
-        libVersion > API_VERSION_MAX -> ExtensionLoadIssue.LIB_TOO_NEW
+        libVersion > max -> ExtensionLoadIssue.LIB_TOO_NEW
         else -> null
     }
 
