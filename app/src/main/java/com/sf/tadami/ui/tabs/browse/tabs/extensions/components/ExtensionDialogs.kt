@@ -144,9 +144,12 @@ fun TrustExtensionDialog(
     )
 }
 
+/** The repo [repoUrl] without its index file and trailing slashes. */
+private fun trimmedRepo(repoUrl: String): String =
+    repoUrl.trim().trimEnd('/').removeSuffix("/index.min.json").trimEnd('/')
+
 /** The repo [repoUrl] without its scheme, index file and trailing slashes. */
-private fun normalizedRepo(repoUrl: String): String =
-    repoUrl.trim().trimEnd('/').removeSuffix("/index.min.json").trimEnd('/').substringAfter("://")
+private fun normalizedRepo(repoUrl: String): String = trimmedRepo(repoUrl).substringAfter("://")
 
 /** A readable name of the extension repo [repoUrl]: `owner/repo` on GitHub, its host and path otherwise. */
 internal fun repoName(repoUrl: String): String {
@@ -157,9 +160,12 @@ internal fun repoName(repoUrl: String): String {
     return if (onGitHub && parts.size >= 3) "${parts[1]}/${parts[2]}" else repo
 }
 
-/** Whether [repoUrl] is the official extension repo. */
+/**
+ * Whether [repoUrl] is the official extension repo: only the app's own URL of it, scheme included,
+ * so that no other repo can be shown as the official one.
+ */
 internal fun isOfficialRepo(repoUrl: String): Boolean =
-    normalizedRepo(repoUrl) == normalizedRepo(SourcesPreferences.DEFAULT_EXTENSIONS_REPO)
+    trimmedRepo(repoUrl) == trimmedRepo(SourcesPreferences.DEFAULT_EXTENSIONS_REPO)
 
 /** [hex], a SHA-256 fingerprint, uppercase in groups of 4 characters. */
 internal fun groupedFingerprint(hex: String): String = hex.uppercase().chunked(4).joinToString(" ")
