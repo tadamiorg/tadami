@@ -1,7 +1,9 @@
 package com.sf.tadami.ui.components.widgets
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -19,6 +21,7 @@ import androidx.compose.ui.unit.dp
  * @param onRefresh Lambda which is invoked when a swipe to refresh gesture is completed.
  * @param enabled Whether the the layout should react to swipe gestures or not.
  * @param indicatorPadding Content padding for the indicator, to inset the indicator in if required.
+ * @param refreshingFooter Shown under the indicator while refreshing.
  * @param content The content containing a vertically scrollable composable.
  *
  * Code reference: [Accompanist SwipeRefresh](https://github.com/google/accompanist/blob/677bc4ca0ee74677a8ba73793d04d85fe4ab55fb/swiperefresh/src/main/java/com/google/accompanist/swiperefresh/SwipeRefresh.kt#L265-L283)
@@ -30,6 +33,7 @@ fun PullRefresh(
     onRefresh: () -> Unit,
     enabled: Boolean = true,
     indicatorPadding: PaddingValues = PaddingValues(0.dp),
+    refreshingFooter: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     val state = rememberPullRefreshState(
@@ -54,6 +58,12 @@ fun PullRefresh(
                 backgroundColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             )
+            if (refreshing) {
+                // Under the indicator, which rests 16 dp from the top and is 40 dp high
+                Column(Modifier.align(Alignment.TopCenter).offset(y = 64.dp)) {
+                    refreshingFooter()
+                }
+            }
         }
     }
 }

@@ -195,6 +195,7 @@ fun SearchScreen(
                 contentPadding = innerPadding,
                 animeList = animeList,
                 snackbarHostState = snackbarHostState,
+                sourceBaseUrl = remember { runCatching { searchViewModel.source.baseUrl }.getOrNull() },
                 onOpenInWebView = { url ->
                     val source = searchViewModel.source
                     val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())

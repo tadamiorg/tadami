@@ -10,6 +10,7 @@
     <string name="discover_recents_screen_title">Recents</string>
     <string name="request_error_response">Could not scrape source. Error Code : %1$s</string>
     <string name="request_bypass_cloudflare_failure">Failed to bypass Cloudflare. Open the source in WebView to solve the challenge</string>
+    <string name="cloudflare_verification">Cloudflare verification…</string>
     <string name="exception_offline">No Internet connection</string>
     <string name="exception_unknown_host">Couldn\&apos;t reach %s</string>
     <string name="backup_restore_content_full">You may need to install any missing extensions afterwards to use them.</string>

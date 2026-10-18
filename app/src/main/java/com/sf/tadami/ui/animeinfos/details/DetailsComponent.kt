@@ -4,14 +4,18 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.dp
 import com.sf.tadami.data.download.model.Download
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.source.model.SAnimeStatus
@@ -22,6 +26,7 @@ import com.sf.tadami.ui.animeinfos.details.episodes.episodeItems
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeInfosBox
 import com.sf.tadami.ui.animeinfos.details.infos.description.ExpandableAnimeDescription
 import com.sf.tadami.ui.components.data.EpisodeItem
+import com.sf.tadami.ui.components.widgets.CloudflareVerificationLine
 import com.sf.tadami.ui.components.widgets.PullRefresh
 import com.sf.tadami.ui.components.widgets.VerticalFastScroller
 
@@ -33,6 +38,7 @@ fun DetailsComponent(
     uiState : DetailsUiState,
     sourceName : String,
     isStubSource : Boolean,
+    sourceBaseUrl : String?,
     onRefresh : () -> Unit,
     onAddToLibraryClicked : () -> Unit,
     onWebViewClicked : () -> Unit,
@@ -55,6 +61,14 @@ fun DetailsComponent(
         refreshing = isRefreshing,
         onRefresh = onRefresh,
         indicatorPadding = contentPadding,
+        refreshingFooter = {
+            Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+                CloudflareVerificationLine(
+                    sourceBaseUrl,
+                    Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
+                )
+            }
+        },
     ) {
         val layoutDirection = LocalLayoutDirection.current
         VerticalFastScroller(

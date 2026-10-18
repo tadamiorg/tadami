@@ -8,6 +8,7 @@
     <string name="language_unknown">Inconnue</string>
     <string name="request_error_response">Impossible de récupérer les données de la source. Code d\'erreur : %1$s</string>
     <string name="request_bypass_cloudflare_failure">Impossible de contourner Cloudflare. Ouvrez la source dans la WebView pour valider la vérification</string>
+    <string name="cloudflare_verification">Vérification Cloudflare…</string>
     <string name="discover_recents_screen_title">Récents</string>
     <string name="anime_sources_screen_recents_btn">Récents</string>
     <string name="information_no_recent_episodes">Aucun épisodes récents</string>

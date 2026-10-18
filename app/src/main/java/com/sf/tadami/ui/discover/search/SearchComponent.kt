@@ -17,6 +17,7 @@ fun SearchComponent(
     onAnimeLongClicked: (anime: Anime) -> Unit = onAnimeClicked,
     snackbarHostState: SnackbarHostState,
     onOpenInWebView: ((url: String) -> Unit)? = null,
+    sourceBaseUrl: String? = null,
 ) {
     InfiniteAnimeGrid(
         modifier = modifier,
@@ -26,5 +27,6 @@ fun SearchComponent(
         onAnimeClicked = onAnimeClicked,
         onAnimeLongClicked = onAnimeLongClicked,
         onOpenInWebView = onOpenInWebView,
+        sourceBaseUrl = sourceBaseUrl,
     )
 }

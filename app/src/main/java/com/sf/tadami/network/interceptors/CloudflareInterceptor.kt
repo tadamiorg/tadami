@@ -15,6 +15,7 @@ import android.widget.Toast
 import com.sf.tadami.R
 import com.sf.tadami.network.AndroidCookieJar
 import com.sf.tadami.network.CloudflareChallengeException
+import com.sf.tadami.network.SolvingHosts
 import com.sf.tadami.network.utils.CLOUDFLARE_CHALLENGE_PROBE
 import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.ui.utils.UiToasts
@@ -89,7 +90,11 @@ class CloudflareInterceptor @JvmOverloads constructor(
                     cookieManager.remove(challenged.url, COOKIE_NAMES, 0)
                 }
 
-                if (resolveWithWebView(chain, challenged, current) == Outcome.FAILED) {
+                // The requested host too: the challenge may be on a mirror it redirected to
+                val outcome = solvingHosts.solving(listOf(request.url.host, challenged.url.host)) {
+                    resolveWithWebView(chain, challenged, current)
+                }
+                if (outcome == Outcome.FAILED) {
                     failedUntil[site] = SystemClock.elapsedRealtime() + FAILURE_BACKOFF_MILLIS
                     // Prompt user to update WebView if it seems too outdated
                     if (WebViewUtil.isOutdated()) {
@@ -278,6 +283,9 @@ class CloudflareInterceptor @JvmOverloads constructor(
 
     companion object {
         const val DEFAULT_TIMEOUT_SECONDS = 30L
+
+        /** The hosts whose challenge a WebView is solving right now, app-wide. */
+        val solvingHosts = SolvingHosts()
     }
 }
 
