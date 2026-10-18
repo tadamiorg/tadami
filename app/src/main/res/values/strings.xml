@@ -425,7 +425,7 @@
     <string name="pref_webview_adblock_summary">Blocks ads, trackers and ad popups with the filter lists below</string>
     <string name="pref_webview_adblock_list_not_downloaded">Not downloaded yet</string>
     <string name="pref_webview_adblock_update_now">Update filter lists now</string>
-    <string name="pref_webview_adblock_never_updated">Not downloaded yet, the built-in list is used</string>
+    <string name="pref_webview_adblock_never_updated">Not downloaded yet, nothing is blocked until then</string>
     <string name="pref_webview_adblock_last_update">Last update: %1$s · %2$s</string>
     <string name="pref_webview_adblock_last_attempt_failed">%1$s (the last attempt failed)</string>
     <string name="pref_webview_adblock_updating">Updating…</string>

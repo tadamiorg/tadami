@@ -3,14 +3,12 @@ package com.sf.tadami.ui.webview
 import android.content.Context
 import android.os.SystemClock
 import android.util.Log
-import com.sf.tadami.R
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.ui.webview.adblock.AdBlockRequest
 import com.sf.tadami.ui.webview.adblock.AdBlockRules
 import com.sf.tadami.ui.webview.adblock.AdBlockState
 import com.sf.tadami.ui.webview.adblock.AdBlockUpdater
 import com.sf.tadami.ui.webview.adblock.FilterList
-import com.sf.tadami.ui.webview.adblock.FilterParser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,8 +17,8 @@ import uy.kohesive.injekt.api.get
 import java.io.File
 
 /**
- * App-wide ad blocker of the WebView screen: the rules compiled from the filter lists, or the bundled
- * host list until the lists were downloaded once. Loaded the first time a WebView needs it.
+ * App-wide ad blocker of the WebView screen: the rules compiled from the filter lists. Until they were
+ * downloaded once, it blocks nothing. Loaded the first time a WebView needs it.
  */
 object WebViewAdBlocker {
 
@@ -46,11 +44,11 @@ object WebViewAdBlocker {
         if (rules != null) return
         val start = SystemClock.elapsedRealtime()
         val compiled = updater(context).readRules()
-        val loaded = compiled ?: readBundled(context)
+        val loaded = compiled ?: AdBlockRules.EMPTY
         rules = loaded
         Log.i(
             TAG,
-            "Loaded ${if (compiled != null) "the filter lists" else "the bundled list"}: " +
+            "Loaded ${if (compiled != null) "the filter lists" else "no rules, the lists aren't downloaded yet"}: " +
                 "${loaded.blocks.size} blocked hosts, ${loaded.exceptions.size} exception hosts, " +
                 "${(loaded.blocks.byteSize + loaded.exceptions.byteSize) / 1024} KiB of tables, " +
                 "in ${SystemClock.elapsedRealtime() - start} ms",
@@ -80,15 +78,4 @@ object WebViewAdBlocker {
     }
 
     private fun updater(context: Context) = AdBlockUpdater(File(context.filesDir, "adblock"), client)
-
-    private fun readBundled(context: Context): AdBlockRules {
-        return try {
-            context.resources.openRawResource(R.raw.adservers).bufferedReader().useLines { lines ->
-                FilterParser().apply { addAll(lines) }.build()
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Could not read the ad servers list", e)
-            AdBlockRules.EMPTY
-        }
-    }
 }

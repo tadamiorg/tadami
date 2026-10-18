@@ -22,6 +22,7 @@ import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.preferences.appearance.setAppCompatDelegateThemeMode
+import com.sf.tadami.ui.webview.adblock.AdBlockUpdateWorker
 import com.sf.tadami.utils.animatorDurationScale
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.logcat
@@ -37,6 +38,7 @@ import logcat.LogcatLogger
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.IOException
+import kotlin.concurrent.thread
 
 open class App : Application(), ImageLoaderFactory {
 
@@ -63,6 +65,17 @@ open class App : Application(), ImageLoaderFactory {
         Injekt.importModule(AppModule(this, warmUp = isMainProcess))
         Injekt.importModule(PreferencesModule(this))
         createNotificationChannels()
+
+        if (isMainProcess) {
+            // The WebView ad blocker blocks nothing until its lists are downloaded
+            thread(name = "AdBlockStartup") {
+                try {
+                    AdBlockUpdateWorker.downloadIfNeeded(this)
+                } catch (e: Exception) {
+                    logcat(LogPriority.WARN, e) { "Could not check the ad block lists" }
+                }
+            }
+        }
 
         val dataStore: DataStore<Preferences> = Injekt.get()
         val appearancePreferences: AppearancePreferences = runBlocking {

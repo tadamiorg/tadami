@@ -26,7 +26,7 @@ data class FilterListState(
 )
 
 /**
- * @property compiledLists the lists in the compiled rules, null while the bundled list is used
+ * @property compiledLists the lists in the compiled rules, null until they were compiled once
  * @property lastSuccess when every list was last fetched (or found unchanged) and compiled
  */
 @Serializable
@@ -211,10 +211,14 @@ class AdBlockUpdater(
         private val LOCK = Any()
         private val json = Json { ignoreUnknownKeys = true }
 
+        /** Whether the app should download the lists as it starts: never compiled, or other lists. */
+        fun needsDownload(state: AdBlockState, lists: List<FilterList>): Boolean =
+            state.compiledLists != lists.map { it.id }
+
         /** Whether opening the WebView should update the lists: never compiled, other lists, or stale. */
         fun needsUpdate(state: AdBlockState, lists: List<FilterList>, now: Long): Boolean {
             if (state.lastAttempt in (now - RETRY_AFTER_MILLIS + 1)..now) return false
-            if (state.compiledLists != lists.map { it.id }) return true
+            if (needsDownload(state, lists)) return true
             // A clock set back counts as stale
             return now - state.lastSuccess !in 0 until STALE_AFTER_MILLIS
         }

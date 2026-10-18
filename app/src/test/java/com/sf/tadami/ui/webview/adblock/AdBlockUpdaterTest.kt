@@ -208,6 +208,18 @@ class AdBlockUpdaterTest {
     }
 
     @Test
+    fun theAppDownloadsListsNeverCompiledOrChangedAsItStarts() {
+        val day = TimeUnit.DAYS.toMillis(1)
+        val compiled = AdBlockState(compiledLists = lists.map { it.id }, lastSuccess = 1, lastAttempt = 1)
+
+        assertTrue(AdBlockUpdater.needsDownload(AdBlockState(), lists))
+        assertTrue(AdBlockUpdater.needsDownload(compiled, listOf(FilterList.EASYLIST)))
+        // Stale rules wait for the periodic update, or for the WebView to open
+        assertFalse(AdBlockUpdater.needsDownload(compiled.copy(lastSuccess = 1 - 30 * day), lists))
+        assertFalse(AdBlockUpdater.needsDownload(compiled, lists))
+    }
+
+    @Test
     fun theWebViewWaitsBeforeRetryingAFailedUpdate() {
         val hour = TimeUnit.HOURS.toMillis(1)
         val now = 1000 * hour

@@ -103,6 +103,20 @@ class AdBlockUpdateWorker(
             )
         }
 
+        /**
+         * As the app starts: the lists were never compiled, or other lists are enabled. The blocker
+         * blocks nothing until then. Blocking.
+         */
+        fun downloadIfNeeded(context: Context) {
+            val preferences = runBlocking {
+                Injekt.get<DataStore<Preferences>>().getPreferencesGroup(AdBlockPreferences)
+            }
+            if (!preferences.enabled) return
+            if (AdBlockUpdater.needsDownload(WebViewAdBlocker.readState(context), preferences.lists)) {
+                startNow(context, manual = false)
+            }
+        }
+
         /** When the WebView opens: the lists were never fetched, changed, or are stale. Blocking. */
         fun updateIfNeeded(context: Context, preferences: AdBlockPreferences) {
             if (!preferences.enabled) return

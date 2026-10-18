@@ -432,7 +432,7 @@
     <string name="pref_webview_adblock_summary">Bloque les pubs, les traqueurs et les popups publicitaires avec les listes de filtres ci-dessous</string>
     <string name="pref_webview_adblock_list_not_downloaded">Pas encore téléchargée</string>
     <string name="pref_webview_adblock_update_now">Mettre à jour les listes de filtres</string>
-    <string name="pref_webview_adblock_never_updated">Pas encore téléchargées, la liste intégrée est utilisée</string>
+    <string name="pref_webview_adblock_never_updated">Pas encore téléchargées, rien n\'est bloqué d\'ici là</string>
     <string name="pref_webview_adblock_last_update">Dernière mise à jour : %1$s · %2$s</string>
     <string name="pref_webview_adblock_last_attempt_failed">%1$s (la dernière tentative a échoué)</string>
     <string name="pref_webview_adblock_updating">Mise à jour…</string>
