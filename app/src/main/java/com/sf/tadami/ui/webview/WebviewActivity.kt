@@ -22,6 +22,9 @@ import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.preferences.advanced.AdBlockPreferences
 import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.source.online.AnimeHttpSource
+import com.sf.tadami.ui.animeinfos.episode.player.ACTION_MEDIA_CONTROL
+import com.sf.tadami.ui.animeinfos.episode.player.EXTRA_CONTROL_TYPE
+import com.sf.tadami.ui.animeinfos.episode.player.PIP_PAUSE
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.setComposeContent
@@ -60,6 +63,15 @@ class WebViewActivity : AppCompatActivity() {
             return
         }
         assistUrl = url
+
+        if (savedInstanceState == null) {
+            // The episode player keeps playing in picture-in-picture, over the page and its own videos
+            sendBroadcast(
+                Intent(ACTION_MEDIA_CONTROL)
+                    .setPackage(packageName)
+                    .putExtra(EXTRA_CONTROL_TYPE, PIP_PAUSE),
+            )
+        }
 
         var headers = emptyMap<String, String>()
         (sourceManager.get(intent.extras!!.getLong(SOURCE_KEY)) as? AnimeHttpSource)?.let { source ->
