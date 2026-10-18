@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.github.tadamiorg:tadami:lib-1.6.0")
+    compileOnly("com.github.tadamiorg:tadami:lib-1.7.0")
 }
 ```
 
@@ -32,6 +32,7 @@ A tag `lib-X.Y.Z`:
 | --- | --- |
 | 1.5 | `SAnime.status` is an `SAnimeStatus`, no longer a `String`. The oldest version the app accepts. |
 | 1.6 | `SAnime.language`, `NetworkHelper.webViewResolver` (`WebViewResolver`). Needs the app 1.10.0 or later: 1.9.3 accepts up to 1.5. |
+| 1.7 | The suspend source methods (`getSearchAnime`, `getLatestAnime`, `getAnimeDetails`, `getEpisodeList`, `getEpisodeSources`), which default to the Rx fetches, now deprecated. `ConfigurableSource`, `ConfigurableAnimeHttpSource`, `awaitSuccess`, `HttpException`, `PUT`, `DELETE`. `NetworkHelper.cloudflareClient` is deprecated. Needs an app accepting lib 1.7: the first release after 1.11. |
 
 `lib-1.6.0` is the first version published as a library: before, extensions compiled against a copy of the stub in tadami-extensions-source. Compared to that copy, it fixes the stub where it had drifted from the app: `Anime` only has its getters (`language` included), `DropDownAction` has `checked`, `OkhttpHeadersSerializer.serialize` returns `Unit`. `App`, `StubSource`, `UiToasts`, `Action` and `DropDownAction` are deprecated: they're part of the app, not of the extension API, and will leave the lib.
 

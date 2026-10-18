@@ -44,8 +44,9 @@ internal object ExtensionsLoader {
     val API_VERSION_MIN = LibVersion(1, 5)
     // Bump with each extension API addition, and have the extensions using it declare that lib
     // version: older apps refuse lib versions above their own max instead of crashing on a missing
-    // member. 1.6: SAnime.language (released 1.9.3 accepts up to 1.5).
-    val API_VERSION_MAX = LibVersion(1, 6)
+    // member. 1.6: SAnime.language (released 1.9.3 accepts up to 1.5). 1.7: the suspend source
+    // methods, ConfigurableSource, ConfigurableAnimeHttpSource, awaitSuccess, PUT and DELETE.
+    val API_VERSION_MAX = LibVersion(1, 7)
 
     /** SHA-256 fingerprint of the key the official extensions are signed with. */
     private const val OFFICIAL_SIGNATURE_HASH =
