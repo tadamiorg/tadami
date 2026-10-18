@@ -19,13 +19,13 @@ import com.sf.tadami.data.download.stream.StreamFailedException
 import com.sf.tadami.data.download.stream.StreamFallback
 import com.sf.tadami.data.download.stream.StreamFailure
 import com.sf.tadami.data.episode.EpisodeRepository
-import com.sf.tadami.extension.util.fetchGuarded
+import com.sf.tadami.domain.episode.toSEpisode
+import com.sf.tadami.extension.util.callGuarded
 import com.sf.tadami.network.HttpException
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.preferences.download.DownloadPreferences
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
-import com.sf.tadami.ui.utils.awaitSingleOrError
 import com.sf.tadami.ui.utils.formattedMessage
 import com.sf.tadami.utils.DiskUtil
 import com.sf.tadami.utils.getPreferencesGroup
@@ -313,7 +313,7 @@ class Downloader(
             ?: throw noStorage()
 
         val streams = try {
-            source.fetchGuarded { fetchEpisodeSources(download.episode.url) }.awaitSingleOrError()
+            source.callGuarded { getEpisodeSources(download.episode.toSEpisode()) }
         } catch (e: CancellationException) {
             throw e
         } catch (e: IOException) {

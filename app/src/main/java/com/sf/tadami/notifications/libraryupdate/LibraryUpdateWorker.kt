@@ -28,13 +28,13 @@ import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.toAnime
+import com.sf.tadami.domain.anime.toSAnime
 import com.sf.tadami.domain.episode.Episode
-import com.sf.tadami.extension.util.fetchGuarded
+import com.sf.tadami.extension.util.callGuarded
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.source.StubSource
 import com.sf.tadami.ui.tabs.browse.SourceManager
-import com.sf.tadami.ui.utils.awaitSingleOrError
 import com.sf.tadami.ui.utils.getUriCompat
 import com.sf.tadami.utils.createFileInCacheDir
 import com.sf.tadami.utils.editPreferences
@@ -246,7 +246,7 @@ class LibraryUpdateWorker(
     private suspend fun updateAnime(anime: Anime, fetchWindow: Pair<Long, Long>): List<Episode> {
         val source = sourcesManager.getOrStub(anime.source)
         if (source is StubSource) return emptyList()
-        val episodes = source.fetchGuarded { fetchEpisodesList(anime) }.awaitSingleOrError()
+        val episodes = source.callGuarded { getEpisodeList(anime.toSAnime()) }
         val dbAnime = animeWithEpisodesInteractor.awaitAnime(anime.id).takeIf { it.favorite }
             ?: return emptyList()
 
