@@ -12,6 +12,7 @@ fun loadIssueMessage(extension: Extension.Installed): String? {
     val issue = extension.loadIssue ?: return null
     return when (val conflict = extension.sourceIdConflict) {
         SourceIdConflict.Duplicate -> stringResource(R.string.ext_issue_source_id_duplicate_message)
+        SourceIdConflict.Reserved -> stringResource(R.string.ext_issue_source_id_reserved_message)
         is SourceIdConflict.TakenBy -> stringResource(issue.messageRes, conflict.ownerName)
         null -> stringResource(issue.messageRes)
     }

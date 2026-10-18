@@ -349,6 +349,8 @@
     <string name="ext_issue_source_id_conflict">Source ID conflict</string>
     <string name="ext_issue_source_id_conflict_message">One of its sources has the ID of a source of %1$s, which would mix up their anime: uninstall one of the two extensions.</string>
     <string name="ext_issue_source_id_duplicate_message">Two of its sources have the same ID: update the extension.</string>
+    <string name="ext_issue_source_id_reserved_message">One of its sources has the ID of an official Tadami source, but it isn\'t signed by Tadami: uninstall it.</string>
+    <string name="ext_install_source_id_reserved">It won\'t be usable: one of its sources has the ID of an official Tadami source, which only the extensions signed by Tadami can use.</string>
     <string name="ext_install_source_id_conflict">It won\'t be usable: one of its sources has the ID of a source of %1$s, already installed.</string>
     <string name="ext_safe_mode_banner">Safe mode: Tadami started without extensions after crashing. They stay unloaded until you load them again.</string>
     <string name="ext_safe_mode_load">Load extensions again</string>

@@ -350,6 +350,8 @@
     <string name="ext_issue_source_id_conflict">Conflit d\'ID de source</string>
     <string name="ext_issue_source_id_conflict_message">Une de ses sources a l\'ID d\'une source de %1$s, leurs animes seraient mélangés : désinstallez l\'une des deux extensions.</string>
     <string name="ext_issue_source_id_duplicate_message">Deux de ses sources ont le même ID : mettez l\'extension à jour.</string>
+    <string name="ext_issue_source_id_reserved_message">Une de ses sources a l\'ID d\'une source officielle de Tadami, mais elle n\'est pas signée par Tadami : désinstallez-la.</string>
+    <string name="ext_install_source_id_reserved">Elle ne sera pas utilisable : une de ses sources a l\'ID d\'une source officielle de Tadami, que seules les extensions signées par Tadami peuvent utiliser.</string>
     <string name="ext_install_source_id_conflict">Elle ne sera pas utilisable : une de ses sources a l\'ID d\'une source de %1$s, déjà installée.</string>
     <string name="ext_safe_mode_banner">Mode sans échec : Tadami a démarré sans extensions après avoir planté. Elles restent non chargées jusqu\'à ce que vous les chargiez à nouveau.</string>
     <string name="ext_safe_mode_load">Charger à nouveau les extensions</string>

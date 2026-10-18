@@ -83,6 +83,7 @@ fun InstallExtensionDialog(
                 Text(text = stringResource(R.string.ext_install_message))
                 val conflictMessage = when (sourceIdConflict) {
                     SourceIdConflict.Duplicate -> stringResource(R.string.ext_issue_source_id_duplicate_message)
+                    SourceIdConflict.Reserved -> stringResource(R.string.ext_install_source_id_reserved)
                     is SourceIdConflict.TakenBy -> stringResource(R.string.ext_install_source_id_conflict, sourceIdConflict.ownerName)
                     null -> null
                 }

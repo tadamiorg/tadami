@@ -10,6 +10,12 @@ sealed interface SourceIdConflict {
     /** Two of its sources have the same ID. */
     data object Duplicate : SourceIdConflict
 
+    /**
+     * One of its sources has an ID of an official source, see
+     * [com.sf.tadami.extension.util.OFFICIAL_SOURCE_IDS], without the official signing key.
+     */
+    data object Reserved : SourceIdConflict
+
     /** A source of the extension [ownerPkgName], named [ownerName], has the ID of one of its sources. */
     data class TakenBy(val ownerPkgName: String, val ownerName: String) : SourceIdConflict
 }

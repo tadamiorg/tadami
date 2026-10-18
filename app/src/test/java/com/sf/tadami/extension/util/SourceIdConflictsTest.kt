@@ -50,24 +50,24 @@ class SourceIdConflictsTest {
 
     @Test
     fun extensionsWithoutConflictKeepTheirSourcesAndOwnTheirIds() {
-        val (extensions, owners) = resolve(listOf(extension("a.one", 1, 2), extension("a.two", 3)))
+        val (extensions, owners) = resolve(listOf(extension("a.one", 1001, 1002), extension("a.two", 1003)))
 
         assertTrue(extensions.all { it.loadIssue == null && it.sourceIdConflict == null })
-        assertEquals(listOf(1L, 2L), extensions.byPkg("a.one").sources.map { it.id })
-        assertEquals(mapOf(1L to "a.one", 2L to "a.one", 3L to "a.two"), owners)
+        assertEquals(listOf(1001L, 1002L), extensions.byPkg("a.one").sources.map { it.id })
+        assertEquals(mapOf(1001L to "a.one", 1002L to "a.one", 1003L to "a.two"), owners)
     }
 
     @Test
     fun anExtensionWithTwoSourcesOfTheSameIdIsRefused() {
-        val (extensions, owners) = resolve(listOf(extension("a.dup", 9, 9), extension("a.two", 3)))
+        val (extensions, owners) = resolve(listOf(extension("a.dup", 1009, 1009), extension("a.two", 1003)))
 
         val refused = extensions.byPkg("a.dup")
         assertEquals(ExtensionLoadIssue.SOURCE_ID_CONFLICT, refused.loadIssue)
         assertEquals(SourceIdConflict.Duplicate, refused.sourceIdConflict)
         assertTrue(refused.sources.isEmpty())
-        assertEquals(listOf(9L, 9L), refused.refusedSources.map { it.id })
+        assertEquals(listOf(1009L, 1009L), refused.refusedSources.map { it.id })
         // It owns nothing
-        assertEquals(mapOf(3L to "a.two"), owners)
+        assertEquals(mapOf(1003L to "a.two"), owners)
     }
 
     @Test
@@ -90,11 +90,11 @@ class SourceIdConflictsTest {
         installedAt["b.later"] = 20L
         installedAt["c.earlier"] = 10L
 
-        val (extensions, owners) = resolve(listOf(extension("b.later", 7), extension("c.earlier", 7)))
+        val (extensions, owners) = resolve(listOf(extension("b.later", 1007), extension("c.earlier", 1007)))
 
         assertNull(extensions.byPkg("c.earlier").loadIssue)
         assertEquals(SourceIdConflict.TakenBy("c.earlier", "Earlier"), extensions.byPkg("b.later").sourceIdConflict)
-        assertEquals(mapOf(7L to "c.earlier"), owners)
+        assertEquals(mapOf(1007L to "c.earlier"), owners)
     }
 
     @Test
@@ -102,29 +102,29 @@ class SourceIdConflictsTest {
         official += "official.ext"
 
         val (extensions, owners) = resolve(
-            listOf(extension("official.ext", 5), extension("third.party", 5)),
-            owners = mapOf(5L to "third.party"),
+            listOf(extension("official.ext", 1005), extension("third.party", 1005)),
+            owners = mapOf(1005L to "third.party"),
         )
 
         assertNull(extensions.byPkg("third.party").loadIssue)
         assertEquals(SourceIdConflict.TakenBy("third.party", "Party"), extensions.byPkg("official.ext").sourceIdConflict)
-        assertEquals(mapOf(5L to "third.party"), owners)
+        assertEquals(mapOf(1005L to "third.party"), owners)
     }
 
     @Test
     fun anOwnerThatCantBeUsedStaysTheOwnerWhileInstalled() {
         val untrusted = extension("a.owner", loadIssue = ExtensionLoadIssue.UNTRUSTED)
 
-        val (extensions, owners) = resolve(listOf(untrusted, extension("a.newcomer", 4)), owners = mapOf(4L to "a.owner"))
+        val (extensions, owners) = resolve(listOf(untrusted, extension("a.newcomer", 1004)), owners = mapOf(1004L to "a.owner"))
 
         assertEquals(SourceIdConflict.TakenBy("a.owner", "Owner"), extensions.byPkg("a.newcomer").sourceIdConflict)
         assertEquals(ExtensionLoadIssue.UNTRUSTED, extensions.byPkg("a.owner").loadIssue)
-        assertEquals(mapOf(4L to "a.owner"), owners)
+        assertEquals(mapOf(1004L to "a.owner"), owners)
     }
 
     @Test
     fun aRefusedExtensionGetsItsSourcesBackOnceItsOwnerIsUninstalled() {
-        val (refused, owners) = resolve(listOf(extension("a.owner", 4), extension("a.newcomer", 4, 6)), mapOf(4L to "a.owner"))
+        val (refused, owners) = resolve(listOf(extension("a.owner", 1004), extension("a.newcomer", 1004, 1006)), mapOf(1004L to "a.owner"))
         assertEquals(ExtensionLoadIssue.SOURCE_ID_CONFLICT, refused.byPkg("a.newcomer").loadIssue)
 
         // Unchanged while the owner is installed
@@ -136,33 +136,73 @@ class SourceIdConflictsTest {
         val newcomer = restored.single()
         assertNull(newcomer.loadIssue)
         assertNull(newcomer.sourceIdConflict)
-        assertEquals(listOf(4L, 6L), newcomer.sources.map { it.id })
+        assertEquals(listOf(1004L, 1006L), newcomer.sources.map { it.id })
         assertTrue(newcomer.refusedSources.isEmpty())
-        assertEquals(mapOf(4L to "a.newcomer", 6L to "a.newcomer"), newOwners)
+        assertEquals(mapOf(1004L to "a.newcomer", 1006L to "a.newcomer"), newOwners)
     }
 
     @Test
     fun anUpdateKeepsTheIdsOfItsPackage() {
-        val (extensions, owners) = resolve(listOf(extension("a.ext", 1, 2, 3)), owners = mapOf(1L to "a.ext", 2L to "a.ext"))
+        val (extensions, owners) = resolve(listOf(extension("a.ext", 1001, 1002, 1003)), owners = mapOf(1001L to "a.ext", 1002L to "a.ext"))
 
         assertNull(extensions.single().loadIssue)
-        assertEquals(mapOf(1L to "a.ext", 2L to "a.ext", 3L to "a.ext"), owners)
+        assertEquals(mapOf(1001L to "a.ext", 1002L to "a.ext", 1003L to "a.ext"), owners)
     }
 
     @Test
     fun theInstallOfAnExtensionTellsItsConflict() {
-        val installed = listOf(extension("a.owner", 4), extension("a.other", 8))
-        val owners = mapOf(4L to "a.owner", 8L to "a.other")
+        val installed = listOf(extension("a.owner", 1004), extension("a.other", 1008))
+        val owners = mapOf(1004L to "a.owner", 1008L to "a.other")
         fun conflictOf(pkgName: String, vararg ids: Long, official: Boolean = false) =
             sourceIdConflictOf(pkgName, ids.toList(), official, installed, owners) { false }
 
-        assertEquals(SourceIdConflict.TakenBy("a.owner", "Owner"), conflictOf("a.newcomer", 10, 4))
+        assertEquals(SourceIdConflict.TakenBy("a.owner", "Owner"), conflictOf("a.newcomer", 1010, 1004))
         // An official extension doesn't take an owned ID either
-        assertEquals(SourceIdConflict.TakenBy("a.other", "Other"), conflictOf("a.newcomer", 8, official = true))
-        assertEquals(SourceIdConflict.Duplicate, conflictOf("a.newcomer", 11, 11))
-        assertNull(conflictOf("a.newcomer", 10, 11))
+        assertEquals(SourceIdConflict.TakenBy("a.other", "Other"), conflictOf("a.newcomer", 1008, official = true))
+        assertEquals(SourceIdConflict.Duplicate, conflictOf("a.newcomer", 1011, 1011))
+        assertNull(conflictOf("a.newcomer", 1010, 1011))
         // The update of an installed one, which keeps its IDs
-        assertNull(conflictOf("a.owner", 4, 5))
+        assertNull(conflictOf("a.owner", 1004, 1005))
+    }
+
+    @Test
+    fun anExtensionNotSignedByTadamiUsingAnOfficialIdIsRefused() {
+        official += "com.sf.tadami.extension.fr.animesama"
+
+        val (extensions, owners) = resolve(
+            listOf(extension("com.sf.tadami.extension.fr.animesama", 2), extension("fake.animesama", 2), extension("fake.pahe", 7, 2000)),
+        )
+
+        assertNull(extensions.byPkg("com.sf.tadami.extension.fr.animesama").loadIssue)
+        assertEquals(SourceIdConflict.Reserved, extensions.byPkg("fake.animesama").sourceIdConflict)
+        // Even with no official extension of that ID installed
+        assertEquals(SourceIdConflict.Reserved, extensions.byPkg("fake.pahe").sourceIdConflict)
+        assertEquals(mapOf(2L to "com.sf.tadami.extension.fr.animesama"), owners)
+    }
+
+    @Test
+    fun theOfficialIdsAreReservedEvenToTheirOwner() {
+        // Owned before the official IDs were reserved, re-signed since with another key
+        val (extensions, owners) = resolve(listOf(extension("a.resigned", 101)), owners = mapOf(101L to "a.resigned"))
+
+        assertEquals(SourceIdConflict.Reserved, extensions.single().sourceIdConflict)
+        // Still its owner while installed: an official one can't take its anime either
+        assertEquals(mapOf(101L to "a.resigned"), owners)
+    }
+
+    @Test
+    fun theInstallOfAnExtensionUsingAnOfficialIdTellsItsConflict() {
+        fun conflictOf(vararg ids: Long, official: Boolean) =
+            sourceIdConflictOf("a.newcomer", ids.toList(), official, emptyList(), emptyMap()) { false }
+
+        assertEquals(SourceIdConflict.Reserved, conflictOf(15, official = false))
+        assertNull(conflictOf(15, official = true))
+        assertNull(conflictOf(16, official = false))
+    }
+
+    @Test
+    fun theOfficialIdsAreThoseOfTheOfficialSources() {
+        assertEquals(setOf(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 11L, 15L, 101L, 102L), OFFICIAL_SOURCE_IDS)
     }
 
     @Test

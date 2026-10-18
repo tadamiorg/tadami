@@ -6,10 +6,19 @@ import com.sf.tadami.extension.model.SourceIdConflict
 import com.sf.tadami.source.Source
 
 /**
+ * The IDs of the official sources, set by hand before the IDs were generated from the repo, the
+ * package and the source class: only an extension signed with the official key may use them.
+ * gogoanime 1, animesama 2, vostfree 3, voiranime 4, otakufr 5, anisama 6, animepahe 7, hianime 8,
+ * jetanime 11, franime 15, kickassanime 101, ianimes 102.
+ */
+internal val OFFICIAL_SOURCE_IDS = setOf(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 11L, 15L, 101L, 102L)
+
+/**
  * The extensions whose sources can be registered, the others refused as
  * [ExtensionLoadIssue.SOURCE_ID_CONFLICT], and who owns each source ID after them. Rules, in order:
  * 1. an extension with two sources of the same ID is refused;
- * 2. an ID has one owner, the extension that has it, kept in [owners] while installed: another
+ * 2. an extension not signed with the official key using one of the [OFFICIAL_SOURCE_IDS] is refused;
+ * 3. an ID has one owner, the extension that has it, kept in [owners] while installed: another
  *    extension with a source of that ID is refused. On first sight, the extension signed with the
  *    official key gets the ID, then the one installed first.
  *
@@ -108,6 +117,7 @@ internal fun resolveClaims(
     val candidates = claims.filter { claim ->
         val conflict = when {
             claim.ids.size != claim.ids.toSet().size -> SourceIdConflict.Duplicate
+            !claim.official && claim.ids.any { it in OFFICIAL_SOURCE_IDS } -> SourceIdConflict.Reserved
             else -> null
         }
         conflict?.let { conflicts[claim.pkgName] = it }
