@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
@@ -28,6 +29,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.mediarouter.app.MediaRouteButton
 import com.google.android.gms.cast.framework.CastButtonFactory
 import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
+import com.sf.tadami.ui.animeinfos.episode.cast.setCastIconTint
 import com.sf.tadami.R
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.components.material.IconButton
@@ -108,6 +110,7 @@ fun TopControl(
                 tint = MaterialTheme.colorScheme.onSurface)
         }
 
+        val castIconTint = MaterialTheme.colorScheme.onSurface.toArgb()
         // No cast button without working Google Play services
         if (remember { castContextOrNull(context) != null }) AndroidView(
             modifier = Modifier.size(36.dp + MaterialTheme.padding.medium),
@@ -119,6 +122,7 @@ fun TopControl(
                     (context as EpisodeActivity).applicationContext,
                     mediaButton
                 )
+                mediaButton.setCastIconTint(castIconTint)
             }
         )
     }

@@ -10,6 +10,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -18,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -31,6 +33,7 @@ import com.sf.tadami.navigation.graphs.more.MORE_ROUTES
 import com.sf.tadami.preferences.app.BasePreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
+import com.sf.tadami.ui.animeinfos.episode.cast.setCastIconTint
 import com.sf.tadami.ui.components.widgets.LogoHeader
 import com.sf.tadami.ui.components.widgets.ScrollbarLazyColumn
 import com.sf.tadami.ui.tabs.more.settings.widget.TextPreference
@@ -66,6 +69,7 @@ fun MoreScreen(
                         enabled = true,
                         onClick = {},
                     ) {
+                        val tint = LocalContentColor.current.toArgb()
                         AndroidView(
                             factory = {
                                 MediaRouteButton(context)
@@ -75,6 +79,7 @@ fun MoreScreen(
                                     (context as Activity).applicationContext,
                                     mediaButton
                                 )
+                                mediaButton.setCastIconTint(tint)
                             }
                         )
                     }

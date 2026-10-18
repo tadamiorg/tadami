@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -20,6 +21,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.mediarouter.app.MediaRouteButton
 import com.google.android.gms.cast.framework.CastButtonFactory
 import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
+import com.sf.tadami.ui.animeinfos.episode.cast.setCastIconTint
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.material.DropdownMenu
 
@@ -79,6 +81,7 @@ fun ActionItem(
                     action.onClick()
                 },
             ) {
+                val tint = LocalContentColor.current.toArgb()
                 AndroidView(
                     factory = {
                         MediaRouteButton(context)
@@ -88,6 +91,7 @@ fun ActionItem(
                             (context as Activity).applicationContext,
                             mediaButton
                         )
+                        mediaButton.setCastIconTint(tint)
                     }
                 )
             }

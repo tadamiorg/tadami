@@ -5,6 +5,9 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
+import androidx.annotation.ColorInt
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.mediarouter.app.MediaRouteButton
 import com.google.android.gms.cast.CastStatusCodes
 import com.google.android.gms.cast.MediaStatus
 import com.google.android.gms.cast.MediaTrack
@@ -32,6 +35,19 @@ fun castContextOrNull(context: Context): CastContext? {
         Log.w("CastContext", "Cast is unavailable", e)
         null
     }
+}
+
+/**
+ * Tints the cast button icon. Its own icon follows the theme the button was created with, and a theme
+ * change doesn't recreate the screens: the icon takes the given colour instead, from the Compose theme.
+ */
+@SuppressLint("PrivateResource")
+fun MediaRouteButton.setCastIconTint(@ColorInt color: Int) {
+    if (tag == color) return
+    tag = color
+    // The animated icon of the library, any variant: the tint replaces its colour
+    val icon = AppCompatResources.getDrawable(context, androidx.mediarouter.R.drawable.mr_button_dark) ?: return
+    setRemoteIndicatorDrawable(icon.mutate().apply { setTint(color) })
 }
 
 /** The media played to its end (not stopped, replaced or failed). */

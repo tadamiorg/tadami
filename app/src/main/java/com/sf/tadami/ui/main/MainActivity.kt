@@ -1,6 +1,7 @@
 package com.sf.tadami.ui.main
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -20,8 +21,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
+import androidx.mediarouter.app.MediaRouteChooserDialogFragment
+import androidx.mediarouter.app.MediaRouteControllerDialogFragment
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.cast.framework.CastContext
@@ -59,12 +63,16 @@ import com.sf.tadami.ui.components.banners.DownloadedOnlyBannerBackgroundColor
 import com.sf.tadami.ui.tabs.browse.BROWSE_TAB_KEY
 import com.sf.tadami.ui.tabs.browse.EXTENSIONS_TAB
 import com.sf.tadami.ui.tabs.browse.SourceManager
+import com.sf.tadami.ui.themes.AppTheme
 import com.sf.tadami.ui.utils.setComposeContent
 import com.sf.tadami.utils.editPreference
 import com.sf.tadami.utils.editPreferences
 import com.sf.tadami.utils.getPreferencesGroup
+import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import uy.kohesive.injekt.Injekt
@@ -84,6 +92,7 @@ class MainActivity : AppCompatActivity() {
     private val openExtensionsRequests = Channel<Unit>(Channel.CONFLATED)
     private val openBackupSettingsRequests = Channel<Unit>(Channel.CONFLATED)
     private val openDownloadsRequests = Channel<Unit>(Channel.CONFLATED)
+    private var nightMode = Configuration.UI_MODE_NIGHT_UNDEFINED
 
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,23 +103,19 @@ class MainActivity : AppCompatActivity() {
         val prefTheme =
             runBlocking { dataStore.getPreferencesGroup(AppearancePreferences).appTheme }
 
-        val theme = when (prefTheme.name) {
-            "DEFAULT" -> R.style.Theme_Tadami
-            "GREEN_APPLE" -> R.style.Theme_Tadami_GreenApple
-            "LAVENDER" -> R.style.Theme_Tadami_Lavender
-            "MIDNIGHT_DUSK" -> R.style.Theme_Tadami_MidnightDusk
-            "STRAWBERRY_DAIQUIRI" -> R.style.Theme_Tadami_Strawberry
-            "TAKO" -> R.style.Theme_Tadami_Tako
-            "TEALTURQUOISE" -> R.style.Theme_Tadami_TealTurquoise
-            "TIDAL_WAVE" -> R.style.Theme_Tadami_TidalWave
-            "YINYANG" -> R.style.Theme_Tadami_YinYang
-            "YOTSUBA" -> R.style.Theme_Tadami_Yotsuba
-            "DOOM" -> R.style.Theme_Tadami_Doom
-            else -> R.style.Theme_Tadami
-        }
-        setTheme(theme)
+        setTheme(themeStyle(prefTheme))
 
         super.onCreate(savedInstanceState)
+
+        // The views (the cast dialogs) take the colours of a scheme chosen later, without recreating the
+        // activity. setTheme also keeps the style AppCompat applies again on a light/dark change.
+        lifecycleScope.launch {
+            dataStore.getPreferencesGroupAsFlow(AppearancePreferences)
+                .map { themeStyle(it.appTheme) }
+                .distinctUntilChanged()
+                .collect { setTheme(it) }
+        }
+        nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
 
         if (isLaunch) {
             lifecycleScope.launch(Dispatchers.IO) {
@@ -237,6 +242,34 @@ class MainActivity : AppCompatActivity() {
         splashScreen?.setKeepOnScreenCondition {
             val elapsed = System.currentTimeMillis() - startTime
             elapsed <= SPLASH_MIN_DURATION || (!ready && elapsed <= SPLASH_MAX_DURATION)
+        }
+    }
+
+    private fun themeStyle(appTheme: AppTheme): Int = when (appTheme.name) {
+        "DEFAULT" -> R.style.Theme_Tadami
+        "GREEN_APPLE" -> R.style.Theme_Tadami_GreenApple
+        "LAVENDER" -> R.style.Theme_Tadami_Lavender
+        "MIDNIGHT_DUSK" -> R.style.Theme_Tadami_MidnightDusk
+        "STRAWBERRY_DAIQUIRI" -> R.style.Theme_Tadami_Strawberry
+        "TAKO" -> R.style.Theme_Tadami_Tako
+        "TEALTURQUOISE" -> R.style.Theme_Tadami_TealTurquoise
+        "TIDAL_WAVE" -> R.style.Theme_Tadami_TidalWave
+        "YINYANG" -> R.style.Theme_Tadami_YinYang
+        "YOTSUBA" -> R.style.Theme_Tadami_Yotsuba
+        "DOOM" -> R.style.Theme_Tadami_Doom
+        else -> R.style.Theme_Tadami
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // AppCompat has applied the light/dark mode to the resources and the theme by now
+        val newNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        if (newNightMode != nightMode) {
+            nightMode = newNightMode
+            // An open cast dialog keeps the look it was created with: close it, the next one is right
+            supportFragmentManager.fragments
+                .filter { it is MediaRouteChooserDialogFragment || it is MediaRouteControllerDialogFragment }
+                .forEach { (it as DialogFragment).dismissAllowingStateLoss() }
         }
     }
 
