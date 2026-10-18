@@ -42,6 +42,8 @@ nanohttpd = "org.nanohttpd:nanohttpd:2.3.1"
 junit = "junit:junit:4.13.2"
 asm = { group = "org.ow2.asm", name = "asm", version.ref = "asm-version" }
 asm-tree = { group = "org.ow2.asm", name = "asm-tree", version.ref = "asm-version" }
+# Reads the dex of the published extensions, :app:extensionsLinkageCheck
+dexlib2 = "com.android.tools.smali:smali-dexlib2:3.0.10"
 
 # SQLITE
 sqlite-framework = { module = "androidx.sqlite:sqlite-framework", version.ref = "sqlite" }

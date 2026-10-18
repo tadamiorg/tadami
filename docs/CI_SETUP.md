@@ -38,7 +38,7 @@ Secrets go in the repo's **Settings > Secrets and variables > Actions > Secrets*
 | Release extensions-lib | `.github/workflows/release-extensions-lib.yml` | Actions > Release extensions-lib > Run workflow, on `main` | No: it pushes the `lib-X.Y.Z` tag with the workflow's token |
 | Dependabot | `.github/dependabot.yml` | Monthly | No: it opens pull requests on `develop` updating the workflow actions |
 
-**CI** runs the unit tests, builds the debug APK and an unsigned release APK (R8 included), runs lint (informational: lint errors don't fail it), then the instrumented tests on an Android 14 emulator. It uploads the debug APK and the test and lint reports as artifacts. It never uses the signing secrets.
+**CI** runs the unit tests, builds the debug APK and an unsigned release APK (R8 included), checks the published extensions link against the app (`:app:extensionsLinkageCheck`, which downloads them; the workflow token only raises the GitHub API rate limit), runs lint (informational: lint errors don't fail it), then the instrumented tests on an Android 14 emulator. It uploads the debug APK and the test and lint reports as artifacts. It never uses the signing secrets.
 
 **Release**:
 1. computes the version from the commits since the last `vX.Y.Z` tag (RELEASING.md, "Versions");

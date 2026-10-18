@@ -83,6 +83,10 @@ The app links extensions against its own classes, so the stub must never promise
 
 It also checks the stub has no public `inline` function, that `ExtensionsLoader.API_VERSION_MAX` is the lib's `major.minor` (`extensionsLibVersion` in `gradle.properties`), and that no class of the app outside `com.sf.tadami.source` calls the Rx fetches of a source: the app calls the suspend methods, see above.
 
+### Linkage check
+
+`./gradlew :app:extensionsLinkageCheck` (`ExtensionsLinkageCheck`) downloads every APK of the published repo, tadamiorg/tadami-extensions (`-Ptadami.extensionsRepo=<raw URL>` for another one), and resolves each class, method and field their code references against the classes of the app, of its libraries and of Android, the way ART links them. The extensions the app accepts must all resolve, and implement every abstract method of the app's classes they extend; the older ones must be refused as `LIB_TOO_OLD`. It also fails on a method of an extension that has, by accident, the name and descriptor of an app method its lib version doesn't have: the app would call it in place of its own. It needs the network, so it isn't one of the unit tests: CI runs it in a step of its own, and writes `app/build/extensions-linkage/report.txt`.
+
 The release build keeps the same classes: `:app:generateExtensionsApiKeepRules` writes an R8 rule keeping each class of the lib with its public and protected members. Don't add hand-written keep rules for them.
 
 ### When the test fails

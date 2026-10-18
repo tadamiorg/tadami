@@ -163,6 +163,29 @@ tasks.withType<Test>().configureEach {
     }
 }
 
+// :app:extensionsLinkageCheck downloads the APKs of the published extensions and resolves every class,
+// method and field they reference against the app's classes (ExtensionsLinkageCheck). It needs the
+// network, so it isn't one of the unit tests: CI runs it in a step of its own.
+// -Ptadami.extensionsRepo=<raw URL of a repo> checks another repo than tadamiorg/tadami-extensions.
+val extensionsLinkageCheckClass = "com.sf.tadami.extension.api.ExtensionsLinkageCheck"
+tasks.withType<Test>().configureEach {
+    if (name != "extensionsLinkageCheck") filter.excludeTestsMatching(extensionsLinkageCheckClass)
+}
+tasks.register<Test>("extensionsLinkageCheck") {
+    description = "Checks the published extensions link against the app's classes (needs the network)"
+    group = "verification"
+    val unitTests = tasks.named<Test>("testDebugUnitTest").get()
+    testClassesDirs = unitTests.testClassesDirs
+    classpath = unitTests.classpath
+    useJUnit()
+    filter.includeTestsMatching(extensionsLinkageCheckClass)
+    providers.gradleProperty("tadami.extensionsRepo").orNull?.let { systemProperty("tadami.extensionsRepo", it) }
+    systemProperty("tadami.linkageDir", layout.buildDirectory.dir("extensions-linkage").get().asFile.absolutePath)
+    testLogging.showStandardStreams = true
+    // What the repo publishes changes without the build knowing
+    outputs.upToDateWhen { false }
+}
+
 // R8 keeps what extensions link against: every class of :extensions-lib, with its public and protected
 // members. Replaces hand-written rules, which drifted from the stub like the classes did. Without
 // allowoptimization: with it, R8 makes final the open methods no app class overrides, which extensions do.
@@ -298,6 +321,7 @@ dependencies {
     testImplementation(libs.asm)
     testImplementation(libs.asm.tree)
     testImplementation(kotlinx.metadata.jvm)
+    testImplementation(libs.dexlib2)
     extensionsApiClasses(project(":extensions-lib", "apiClassesElements"))
 
     // SQLite

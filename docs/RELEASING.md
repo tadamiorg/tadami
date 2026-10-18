@@ -28,7 +28,7 @@ Real environment variables take precedence over `.env`. When the keystore file e
 
 `.github/workflows/ci.yml` runs on pushes and pull requests to `develop` (and manually):
 
-- **build**: unit tests, debug build and unsigned release build. It uploads the debug APK and the test reports. Lint also runs, but it is informational only: lint errors do not fail the job (download the lint report artifact to see them).
+- **build**: unit tests, debug build and unsigned release build, then `:app:extensionsLinkageCheck`, which downloads the published extensions and checks every class, method and field they use exists in the app. It uploads the debug APK and the test reports, the linkage report included. Lint also runs, but it is informational only: lint errors do not fail the job (download the lint report artifact to see them).
 - **instrumented**: the `androidTest` suite on an API 34 emulator, once the build job has passed.
 
 `.github/workflows/extensions-lib.yml` (Extensions lib) runs on pushes and pull requests to `develop` that change `extensions-lib/`, the Gradle files or `jitpack.yml`: it builds the lib and publishes it to the local Maven repository the way JitPack does. The drift test between the lib and the app, `ExtensionsApiCompatibilityTest`, runs with the unit tests.
