@@ -566,6 +566,8 @@
     <string name="preferences_library_default_category_ask">Always ask</string>
     <string name="preferences_library_update_categories_include">Categories to update</string>
     <string name="preferences_library_update_categories_exclude">Categories not to update</string>
+    <string name="preferences_library_auto_update_metadata">Refresh metadata during library updates</string>
+    <string name="preferences_library_auto_update_metadata_subtitle">Check for new covers and details when updating the library</string>
     <string name="preferences_library_update_categories_all">All</string>
     <string name="label_categories">Categories</string>
     <string name="action_add">Add</string>

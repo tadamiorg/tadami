@@ -16,19 +16,27 @@ class LibraryUpdateTargetTest {
     }
 
     @Test
-    fun theEpisodesUpdateDoesntFetchTheDetails() {
+    fun theEpisodesUpdateDoesntFetchTheDetailsByDefault() {
         assertEquals(
             LibraryUpdateParts(episodes = true, details = false, refreshCovers = false),
-            LibraryUpdateTarget.EPISODES.parts(),
+            LibraryUpdateTarget.EPISODES.parts(autoUpdateMetadata = false),
         )
     }
 
     @Test
-    fun theDetailsRefreshFetchesTheDetailsAndCoversOnly() {
+    fun theEpisodesUpdateFetchesTheDetailsWithTheSetting() {
+        // A cover is only downloaded again when its URL changes
         assertEquals(
-            LibraryUpdateParts(episodes = false, details = true, refreshCovers = true),
-            LibraryUpdateTarget.DETAILS.parts(),
+            LibraryUpdateParts(episodes = true, details = true, refreshCovers = false),
+            LibraryUpdateTarget.EPISODES.parts(autoUpdateMetadata = true),
         )
+    }
+
+    @Test
+    fun theDetailsRefreshFetchesTheDetailsAndCoversOnlyWhateverTheSetting() {
+        val detailsOnly = LibraryUpdateParts(episodes = false, details = true, refreshCovers = true)
+        assertEquals(detailsOnly, LibraryUpdateTarget.DETAILS.parts(autoUpdateMetadata = false))
+        assertEquals(detailsOnly, LibraryUpdateTarget.DETAILS.parts(autoUpdateMetadata = true))
     }
 
     private fun anime(id: Long, vararg categories: Long) = LibraryAnime(

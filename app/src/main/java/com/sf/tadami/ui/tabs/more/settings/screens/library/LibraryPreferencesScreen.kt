@@ -180,6 +180,19 @@ class LibraryPreferencesScreen(
                     }
 
                 ),
+                Preference.PreferenceItem.TogglePreference(
+                    value = prefs.autoUpdateMetadata,
+                    title = stringResource(id = R.string.preferences_library_auto_update_metadata),
+                    subtitle = stringResource(id = R.string.preferences_library_auto_update_metadata_subtitle),
+                    onValueChanged = {
+                        prefState.setValue(
+                            prefs.copy(
+                                autoUpdateMetadata = it
+                            )
+                        )
+                        true
+                    }
+                ),
                 Preference.PreferenceItem.MultiSelectPreference(
                     value = prefs.updateCategories.filterTo(HashSet()) { it in categoryItems },
                     title = stringResource(id = R.string.preferences_library_update_categories_include),

@@ -22,7 +22,11 @@ internal data class LibraryUpdateParts(
     val refreshCovers: Boolean,
 )
 
-internal fun LibraryUpdateTarget.parts(): LibraryUpdateParts = when (this) {
-    LibraryUpdateTarget.EPISODES -> LibraryUpdateParts(episodes = true, details = false, refreshCovers = false)
+/**
+ * The episodes update fetches the details too with [autoUpdateMetadata], its cover only downloaded again when its URL
+ * changes, as Mihon's
+ */
+internal fun LibraryUpdateTarget.parts(autoUpdateMetadata: Boolean): LibraryUpdateParts = when (this) {
+    LibraryUpdateTarget.EPISODES -> LibraryUpdateParts(episodes = true, details = autoUpdateMetadata, refreshCovers = false)
     LibraryUpdateTarget.DETAILS -> LibraryUpdateParts(episodes = false, details = true, refreshCovers = true)
 }

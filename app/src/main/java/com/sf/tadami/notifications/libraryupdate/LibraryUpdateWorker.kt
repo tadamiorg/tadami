@@ -80,7 +80,7 @@ class LibraryUpdateWorker(
         dataStore.getPreferencesGroup(LibraryPreferences)
     }
     private val target = LibraryUpdateTarget.of(params.inputData.getString(KEY_TARGET))
-    private val parts = target.parts()
+    private val parts = target.parts(libraryPreferences.autoUpdateMetadata)
     private val progressTitle = when (target) {
         LibraryUpdateTarget.EPISODES -> R.string.notification_updating_library
         LibraryUpdateTarget.DETAILS -> R.string.notification_refreshing_library_details
