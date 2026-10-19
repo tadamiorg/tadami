@@ -20,6 +20,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import coil.imageLoader
 import com.sf.tadami.R
 import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.anime.FetchIntervalInteractor
@@ -39,6 +40,7 @@ import com.sf.tadami.ui.utils.getUriCompat
 import com.sf.tadami.utils.createFileInCacheDir
 import com.sf.tadami.utils.editPreferences
 import com.sf.tadami.utils.getPreferencesGroup
+import com.sf.tadami.utils.invalidate
 import com.sf.tadami.utils.isConnectedToWifi
 import com.sf.tadami.utils.isRunning
 import com.sf.tadami.utils.workManager
@@ -77,6 +79,12 @@ class LibraryUpdateWorker(
     private val libraryPreferences = runBlocking {
         dataStore.getPreferencesGroup(LibraryPreferences)
     }
+    private val target = LibraryUpdateTarget.of(params.inputData.getString(KEY_TARGET))
+    private val parts = target.parts()
+    private val progressTitle = when (target) {
+        LibraryUpdateTarget.EPISODES -> R.string.notification_updating_library
+        LibraryUpdateTarget.DETAILS -> R.string.notification_refreshing_library_details
+    }
 
     override suspend fun doWork(): Result {
         if (tags.contains(WORK_NAME_AUTO)) {
@@ -97,10 +105,13 @@ class LibraryUpdateWorker(
             Log.d("Worker error", "Job could not be set in foreground", e)
         }
 
-        dataStore.editPreferences(
-            libraryPreferences.copy(lastUpdatedTimestamp = Date().time),
-            LibraryPreferences
-        )
+        // A refresh of the details isn't a library update
+        if (target == LibraryUpdateTarget.EPISODES) {
+            dataStore.editPreferences(
+                libraryPreferences.copy(lastUpdatedTimestamp = Date().time),
+                LibraryPreferences
+            )
+        }
 
         addAnimesToQueue()
 
@@ -137,6 +148,11 @@ class LibraryUpdateWorker(
     private fun addAnimesToQueue() {
         val libraryAnimes = runBlocking { libraryInteractor.await() }
         val categoryId = inputData.getLong(KEY_CATEGORY, -1L).takeIf { it >= 0L }
+        // The details of every anime, without the update settings nor the not caught up ones skipped, as Mihon
+        if (target == LibraryUpdateTarget.DETAILS) {
+            animesToUpdate = libraryAnimes.toRefresh(categoryId).sortedBy { it.title }
+            return
+        }
         val listToUpdate = libraryAnimes
             .toUpdate(categoryId, libraryPreferences.updateCategories, libraryPreferences.updateCategoriesExclude)
             .sortedBy { it.title }
@@ -231,6 +247,7 @@ class LibraryUpdateWorker(
                 notifier.showProgressNotification(
                     completed.get(),
                     animesToUpdate.size,
+                    progressTitle,
                 )
             }
             block()
@@ -239,6 +256,7 @@ class LibraryUpdateWorker(
             notifier.showProgressNotification(
                 completed.get(),
                 animesToUpdate.size,
+                progressTitle,
             )
         }
     }
@@ -246,6 +264,18 @@ class LibraryUpdateWorker(
     private suspend fun updateAnime(anime: Anime, fetchWindow: Pair<Long, Long>): List<Episode> {
         val source = sourcesManager.getOrStub(anime.source)
         if (source is StubSource) return emptyList()
+        if (parts.details) {
+            val dbAnime = animeWithEpisodesInteractor.awaitAnime(anime.id).takeIf { it.favorite }
+                ?: return emptyList()
+            val details = source.callGuarded { getAnimeDetails(dbAnime.toSAnime()) }
+            updateAnimeInteractor.awaitUpdateFromSource(dbAnime, details)
+            if (parts.refreshCovers) {
+                // The cover shown now, the new one or the stored one when the source has none
+                (details.thumbnailUrl?.takeIf { it.isNotEmpty() } ?: dbAnime.thumbnailUrl)
+                    ?.let { context.imageLoader.invalidate(it) }
+            }
+        }
+        if (!parts.episodes) return emptyList()
         val episodes = source.callGuarded { getEpisodeList(anime.toSAnime()) }
         val dbAnime = animeWithEpisodesInteractor.awaitAnime(anime.id).takeIf { it.favorite }
             ?: return emptyList()
@@ -310,6 +340,7 @@ class LibraryUpdateWorker(
         private const val WORK_NAME_MANUAL = "library_update_work_manual"
         private const val WORK_NAME_AUTO = "library_update_work_auto"
         private const val KEY_CATEGORY = "category"
+        private const val KEY_TARGET = "target"
 
         fun setupTask(
             context: Context,
@@ -350,10 +381,11 @@ class LibraryUpdateWorker(
             }
         }
 
-        /** Updates the library, or only the anime of [categoryId] */
+        /** Updates the library, or only the anime of [categoryId], fetching [target] */
         fun startNow(
             context: Context,
             categoryId: Long? = null,
+            target: LibraryUpdateTarget = LibraryUpdateTarget.EPISODES,
         ): Boolean {
             val wm = context.workManager
             if (wm.isRunning(TAG)) {
@@ -363,7 +395,7 @@ class LibraryUpdateWorker(
             val request = OneTimeWorkRequestBuilder<LibraryUpdateWorker>()
                 .addTag(TAG)
                 .addTag(WORK_NAME_MANUAL)
-                .setInputData(workDataOf(KEY_CATEGORY to (categoryId ?: -1L)))
+                .setInputData(workDataOf(KEY_CATEGORY to (categoryId ?: -1L), KEY_TARGET to target.name))
                 .build()
             wm.enqueueUniqueWork(WORK_NAME_MANUAL, ExistingWorkPolicy.KEEP, request)
 

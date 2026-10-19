@@ -9,9 +9,42 @@ import com.sf.tadami.domain.episode.UpdateEpisode
 import com.sf.tadami.domain.episode.copyFromSEpisode
 import com.sf.tadami.source.Source
 import com.sf.tadami.source.model.SAnime
+import com.sf.tadami.source.model.SAnimeStatus
 import com.sf.tadami.source.model.SEpisode
 import java.time.Instant
 import java.time.ZonedDateTime
+
+/**
+ * The details of [this] fetched anime to store in the anime [id]. A null field, an empty title or thumbnail URL and
+ * an unknown status keep the stored value. Only the details: the library state, the episodes and the update dates
+ * are left alone.
+ */
+internal fun SAnime.toDetailsUpdate(id: Long): UpdateAnime {
+    val remoteTitle = try {
+        title
+    } catch (_: UninitializedPropertyAccessException) {
+        ""
+    }
+
+    // if the anime isn't a favorite, set its title from source and update in db
+    val newTitle = remoteTitle.ifEmpty { null }
+    val newThumbnailUrl = thumbnailUrl?.takeIf { it.isNotEmpty() }
+
+    return UpdateAnime(
+        id = id,
+        title = newTitle,
+        rawTitle = rawTitle,
+        language = language,
+        description = description,
+        genres = genres,
+        thumbnailUrl = newThumbnailUrl,
+        release = release,
+        studio = studio,
+        author = author,
+        status = status.takeIf { it != SAnimeStatus.UNKNOWN },
+        initialized = true,
+    )
+}
 
 class UpdateAnimeInteractor(
     private val animeRepository: AnimeRepository,
@@ -48,32 +81,7 @@ class UpdateAnimeInteractor(
         localAnime: Anime,
         remoteAnime: SAnime,
     ): Boolean {
-        val remoteTitle = try {
-            remoteAnime.title
-        } catch (_: UninitializedPropertyAccessException) {
-            ""
-        }
-
-        // if the anime isn't a favorite, set its title from source and update in db
-        val title = remoteTitle.ifEmpty { null }
-        val thumbnailUrl = remoteAnime.thumbnailUrl?.takeIf { it.isNotEmpty() }
-
-        return animeRepository.updateAnime(
-            UpdateAnime(
-                id = localAnime.id,
-                title = title,
-                rawTitle = remoteAnime.rawTitle,
-                language = remoteAnime.language,
-                description = remoteAnime.description,
-                genres = remoteAnime.genres,
-                thumbnailUrl = thumbnailUrl,
-                release = remoteAnime.release,
-                studio = remoteAnime.studio,
-                author = remoteAnime.author,
-                status = remoteAnime.status,
-                initialized = true,
-            )
-        )
+        return animeRepository.updateAnime(remoteAnime.toDetailsUpdate(localAnime.id))
     }
 
     suspend fun awaitUpdateFetchInterval(

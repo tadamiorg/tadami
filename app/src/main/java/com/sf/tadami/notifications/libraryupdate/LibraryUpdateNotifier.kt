@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.sf.tadami.R
@@ -35,10 +36,10 @@ class LibraryUpdateNotifier(private val context: Context) {
         }
     }
 
-    fun showProgressNotification(current: Int, total: Int) {
+    fun showProgressNotification(current: Int, total: Int, @StringRes title: Int = R.string.notification_updating_library) {
         progressNotificationBuilder.setContentTitle(
             context.getString(
-                R.string.notification_updating_library,
+                title,
                 current,
                 total
             )

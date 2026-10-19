@@ -27,6 +27,8 @@ import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
 import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.utils.setDefaultSettings
+import com.sf.tadami.notifications.libraryupdate.LibraryUpdateTarget
+import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.advanced.AdBlockPreferences
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
 import com.sf.tadami.preferences.model.DataStoreState
@@ -95,6 +97,13 @@ class AdvancedPreferencesScreen(
                     subtitle = stringResource(R.string.pref_clear_database_summary),
                     onClick = {
                         navController.navigate(AdvancedSettingsRoutes.CLEAR_DATABASE)
+                    },
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(R.string.action_refresh_library_details),
+                    onClick = {
+                        val started = LibraryUpdateWorker.startNow(context, target = LibraryUpdateTarget.DETAILS)
+                        UiToasts.showToast(if (started) R.string.refresh_details_starting else R.string.update_running)
                     },
                 ),
                 Preference.PreferenceItem.TextPreference(

@@ -64,6 +64,10 @@
     <string name="update_starting">Mise à jour de la bibliothèque</string>
     <string name="update_starting_category">Mise à jour de la catégorie %s</string>
     <string name="update_running">Mise à jour déja en cours</string>
+    <string name="action_refresh_library_details">Actualiser les couvertures et détails de la bibliothèque</string>
+    <string name="notification_refreshing_library_details">Actualisation des détails et couvertures… (%1$d/%2$d)</string>
+    <string name="refresh_details_starting">Actualisation des couvertures et détails de la bibliothèque</string>
+    <string name="refresh_details_starting_category">Actualisation des couvertures et détails de la catégorie %s</string>
     <string name="action_sort">Trier</string>
     <string name="filter_unseen">Non vus</string>
     <string name="filter_started">Commencé</string>

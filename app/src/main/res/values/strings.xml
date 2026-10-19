@@ -90,6 +90,10 @@
     <string name="update_starting">Updating library</string>
     <string name="update_starting_category">Updating the category %s</string>
     <string name="update_running">Update already running</string>
+    <string name="action_refresh_library_details">Refresh library covers and details</string>
+    <string name="notification_refreshing_library_details">Refreshing details and covers… (%1$d/%2$d)</string>
+    <string name="refresh_details_starting">Refreshing the covers and details of the library</string>
+    <string name="refresh_details_starting_category">Refreshing the covers and details of the category %s</string>
     <string name="action_sort">Sort</string>
     <string name="filter_unseen">Unseen</string>
     <string name="filter_started">Started</string>

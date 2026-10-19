@@ -15,6 +15,7 @@ import com.sf.tadami.data.interactors.library.LibraryInteractor
 import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.domain.category.Category
+import com.sf.tadami.notifications.libraryupdate.LibraryUpdateTarget
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.app.BasePreferences
 import com.sf.tadami.preferences.library.LibraryPreferences
@@ -132,6 +133,11 @@ class LibraryViewModel : ViewModel() {
     fun refreshLibrary(context: Context, categoryId: Long?): Boolean {
         toggleRefreshIndicator()
         return LibraryUpdateWorker.startNow(context, categoryId)
+    }
+
+    // The details and covers of the anime of [categoryId] only, null for the whole library
+    fun refreshLibraryDetails(context: Context, categoryId: Long?): Boolean {
+        return LibraryUpdateWorker.startNow(context, categoryId, LibraryUpdateTarget.DETAILS)
     }
 
     fun toggleSelected(libraryItem: LibraryItem, selected: Boolean) {

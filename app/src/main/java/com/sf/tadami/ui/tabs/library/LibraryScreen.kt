@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.DoneAll
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.RemoveDone
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
@@ -55,6 +56,7 @@ import com.sf.tadami.ui.category.SetCategoriesDialog
 import com.sf.tadami.ui.category.visualName
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
+import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.components.filters.TadaBottomSheetScaffold
 import com.sf.tadami.ui.components.screens.TabText
@@ -126,7 +128,25 @@ fun LibraryScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
 
     val filterTint = if (libraryPreferences.filterFlags.isFiltered) MaterialTheme.colorScheme.active else LocalContentColor.current
-    val actions = remember(libraryPreferences.filterFlags.isFiltered) {
+    // The category shown, as the pull to refresh. Without any category, the library
+    val refreshDetails: () -> Unit = {
+        val category = activeTab?.category?.takeIf { categories.isNotEmpty() }
+        val started = libraryViewModel.refreshLibraryDetails(context, category?.id)
+        val msg = when {
+            !started -> context.getString(R.string.update_running)
+            category != null -> context.getString(
+                R.string.refresh_details_starting_category,
+                if (category.isSystemCategory) context.getString(R.string.category_default) else category.name
+            )
+            else -> context.getString(R.string.refresh_details_starting)
+        }
+        coroutineScope.launch {
+            snackBarHostState.currentSnackbarData?.dismiss()
+            snackBarHostState.showSnackbar(msg)
+        }
+    }
+    val refreshDetailsTitle = stringResource(R.string.action_refresh_library_details)
+    val actions = remember(libraryPreferences.filterFlags.isFiltered, activeTab, categories) {
         listOf(
             Action.Drawable(
                 title = R.string.stub_text,
@@ -138,7 +158,18 @@ fun LibraryScreen(
                     showBottomSheet = true
                 }
             ),
-            Action.CastButton()
+            Action.CastButton(),
+            Action.DropDownVector(
+                title = R.string.stub_text,
+                icon = Icons.Outlined.MoreVert,
+                onClick = {},
+                items = listOf(
+                    DropDownAction(
+                        title = refreshDetailsTitle,
+                        onClick = refreshDetails,
+                    ),
+                ),
+            ),
         )
     }
 

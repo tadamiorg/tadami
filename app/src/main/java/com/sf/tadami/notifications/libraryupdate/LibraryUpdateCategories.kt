@@ -12,6 +12,11 @@ internal fun List<LibraryAnime>.toUpdate(categoryId: Long?, include: Set<String>
     return if (categoryId != null) filter { categoryId in it.categories } else inUpdateCategories(include, exclude)
 }
 
+/** The anime of [categoryId] when the refresh is for one category, else the whole library, whatever the settings */
+internal fun List<LibraryAnime>.toRefresh(categoryId: Long?): List<LibraryAnime> {
+    return if (categoryId != null) filter { categoryId in it.categories } else this
+}
+
 internal fun List<LibraryAnime>.inUpdateCategories(include: Set<String>, exclude: Set<String>): List<LibraryAnime> {
     val included = include.mapNotNullTo(HashSet()) { it.toLongOrNull() }
     val excluded = exclude.mapNotNullTo(HashSet()) { it.toLongOrNull() }
