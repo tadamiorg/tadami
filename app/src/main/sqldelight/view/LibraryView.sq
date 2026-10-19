@@ -20,6 +20,7 @@ Anime.studio,
 Anime.author,
 Anime.raw_title,
 Anime.language,
+Anime.cover_last_modified,
 COUNT(Episode._id) AS episodes,
 TOTAL(Episode.seen = 0) AS unseen_episodes,
 -- The anime's category ids, comma separated: 0, the Default category, when it is in none

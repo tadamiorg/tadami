@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
+import com.sf.tadami.domain.anime.AnimeCoverData
 import com.sf.tadami.domain.updates.UpdatesWithRelations
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeCover
 import com.sf.tadami.ui.animeinfos.details.infos.DotSeparatorText
@@ -66,7 +67,7 @@ fun UpdatesUiItem(
             modifier = Modifier
                 .padding(vertical = 6.dp)
                 .fillMaxHeight(),
-            data = update.thumbnailUrl,
+            data = AnimeCoverData.of(update.thumbnailUrl, update.coverLastModified),
             onClick = onClickCover,
         )
 

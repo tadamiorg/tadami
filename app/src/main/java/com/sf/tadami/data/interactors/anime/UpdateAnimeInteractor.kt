@@ -15,11 +15,16 @@ import java.time.Instant
 import java.time.ZonedDateTime
 
 /**
- * The details of [this] fetched anime to store in the anime [id]. A null field, an empty title or thumbnail URL and
+ * The details of [this] fetched anime to store in the [local] anime. A null field, an empty title or thumbnail URL and
  * an unknown status keep the stored value. Only the details: the library state, the episodes and the update dates
- * are left alone.
+ * are left alone. The cover is marked as modified [now] when its URL changes, or always with [refreshCover], so it's
+ * loaded again under a new image cache key.
  */
-internal fun SAnime.toDetailsUpdate(id: Long): UpdateAnime {
+internal fun SAnime.toDetailsUpdate(
+    local: Anime,
+    refreshCover: Boolean = false,
+    now: Long = Instant.now().toEpochMilli(),
+): UpdateAnime {
     val remoteTitle = try {
         title
     } catch (_: UninitializedPropertyAccessException) {
@@ -29,9 +34,11 @@ internal fun SAnime.toDetailsUpdate(id: Long): UpdateAnime {
     // if the anime isn't a favorite, set its title from source and update in db
     val newTitle = remoteTitle.ifEmpty { null }
     val newThumbnailUrl = thumbnailUrl?.takeIf { it.isNotEmpty() }
+    // The refresh downloads the cover again even at the same URL: the source can serve a new image there
+    val coverModified = refreshCover || newThumbnailUrl != null && newThumbnailUrl != local.thumbnailUrl
 
     return UpdateAnime(
-        id = id,
+        id = local.id,
         title = newTitle,
         rawTitle = rawTitle,
         language = language,
@@ -43,6 +50,7 @@ internal fun SAnime.toDetailsUpdate(id: Long): UpdateAnime {
         author = author,
         status = status.takeIf { it != SAnimeStatus.UNKNOWN },
         initialized = true,
+        coverLastModified = now.takeIf { coverModified },
     )
 }
 
@@ -80,8 +88,9 @@ class UpdateAnimeInteractor(
     suspend fun awaitUpdateFromSource(
         localAnime: Anime,
         remoteAnime: SAnime,
+        refreshCover: Boolean = false,
     ): Boolean {
-        return animeRepository.updateAnime(remoteAnime.toDetailsUpdate(localAnime.id))
+        return animeRepository.updateAnime(remoteAnime.toDetailsUpdate(localAnime, refreshCover))
     }
 
     suspend fun awaitUpdateFetchInterval(

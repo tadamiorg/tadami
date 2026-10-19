@@ -26,7 +26,8 @@ object AnimeMapper {
         studio: String?,
         author: String?,
         rawTitle: String?,
-        language: String?
+        language: String?,
+        coverLastModified: Long,
     ) : Anime = Anime(
         id = id,
         source = source,
@@ -47,7 +48,8 @@ object AnimeMapper {
         nextUpdate = nextUpdate ?: 0,
         fetchInterval = calculateInterval.toInt(),
         episodeFlags = episodeFlags,
-        dateAdded = dateAdded
+        dateAdded = dateAdded,
+        coverLastModified = coverLastModified,
     )
 
     fun mapLibraryAnime(
@@ -71,6 +73,7 @@ object AnimeMapper {
         author: String?,
         rawTitle: String?,
         language: String?,
+        coverLastModified: Long,
 
         episodes : Long,
         unseenEpisodes: Double,
@@ -98,6 +101,7 @@ object AnimeMapper {
         unseenEpisodes = unseenEpisodes.toLong(),
         episodeFlags = episodeFlags,
         dateAdded = dateAdded,
+        coverLastModified = coverLastModified,
         categories = parseCategories(categories)
     )
 

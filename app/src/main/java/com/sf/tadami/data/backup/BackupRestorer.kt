@@ -261,7 +261,9 @@ class BackupRestorer(
                 studio = anime.studio,
                 author = anime.author,
                 rawTitle = anime.rawTitle,
-                language = anime.language
+                language = anime.language,
+                // Not in the backups, as Mihon's: the one here stays, 0 for a new anime
+                coverLastModified = null,
             )
         }
         return anime.id

@@ -20,7 +20,6 @@ import androidx.work.WorkInfo
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import coil.imageLoader
 import com.sf.tadami.R
 import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.anime.FetchIntervalInteractor
@@ -40,7 +39,6 @@ import com.sf.tadami.ui.utils.getUriCompat
 import com.sf.tadami.utils.createFileInCacheDir
 import com.sf.tadami.utils.editPreferences
 import com.sf.tadami.utils.getPreferencesGroup
-import com.sf.tadami.utils.invalidate
 import com.sf.tadami.utils.isConnectedToWifi
 import com.sf.tadami.utils.isRunning
 import com.sf.tadami.utils.workManager
@@ -268,12 +266,8 @@ class LibraryUpdateWorker(
             val dbAnime = animeWithEpisodesInteractor.awaitAnime(anime.id).takeIf { it.favorite }
                 ?: return emptyList()
             val details = source.callGuarded { getAnimeDetails(dbAnime.toSAnime()) }
-            updateAnimeInteractor.awaitUpdateFromSource(dbAnime, details)
-            if (parts.refreshCovers) {
-                // The cover shown now, the new one or the stored one when the source has none
-                (details.thumbnailUrl?.takeIf { it.isNotEmpty() } ?: dbAnime.thumbnailUrl)
-                    ?.let { context.imageLoader.invalidate(it) }
-            }
+            // A refreshed cover gets a new image cache key, so the screens showing it load it again
+            updateAnimeInteractor.awaitUpdateFromSource(dbAnime, details, refreshCover = parts.refreshCovers)
         }
         if (!parts.episodes) return emptyList()
         val episodes = source.callGuarded { getEpisodeList(anime.toSAnime()) }

@@ -12,7 +12,8 @@ SELECT
     Anime.thumbnail_url AS thumbnailUrl,
     Episode.date_upload AS dateUpload,
     Episode.date_fetch AS dateFetch,
-    Anime.language
+    Anime.language,
+    Anime.cover_last_modified AS coverLastModified
 FROM Anime JOIN Episode
 ON Anime._id = Episode.anime_id
 WHERE favorite = 1

@@ -23,7 +23,9 @@ CREATE TABLE Anime (
   studio TEXT,
   author TEXT,
   raw_title TEXT,
-  language TEXT
+  language TEXT,
+  -- When its cover was last refreshed, part of the cover's image cache key: a change loads it again
+  cover_last_modified INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX animes_favorite_index ON Anime(favorite) WHERE favorite = 1;
@@ -50,7 +52,8 @@ SELECT
     studio,
     author,
     raw_title,
-    language
+    language,
+    cover_last_modified
 FROM Anime
 WHERE url = :url AND source = :source
 LIMIT 1;
@@ -76,7 +79,8 @@ SELECT
     studio,
     author,
     raw_title,
-    language
+    language,
+    cover_last_modified
 FROM Anime;
 
 getById:
@@ -100,7 +104,8 @@ SELECT
     studio,
     author,
     raw_title,
-    language
+    language,
+    cover_last_modified
 FROM Anime
 WHERE _id = :animeId;
 
@@ -132,7 +137,8 @@ SET source = coalesce(:source, source),
     studio = coalesce(:studio, studio),
     author = coalesce(:author, author),
     raw_title = coalesce(:rawTitle, raw_title),
-    language = coalesce(:language, language)
+    language = coalesce(:language, language),
+    cover_last_modified = coalesce(:coverLastModified, cover_last_modified)
 WHERE _id = :animeId;
 
 getFavorites:
@@ -156,7 +162,8 @@ SELECT
     studio,
     author,
     raw_title,
-    language
+    language,
+    cover_last_modified
 FROM Anime
 WHERE favorite = 1;
 

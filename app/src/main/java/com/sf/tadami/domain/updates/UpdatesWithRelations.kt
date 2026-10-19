@@ -12,4 +12,5 @@ data class UpdatesWithRelations(
     val dateFetch: Long,
     val thumbnailUrl: String?,
     val language: String? = null,
+    val coverLastModified: Long = 0L,
 )

@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.domain.anime.Anime
+import com.sf.tadami.domain.anime.coverData
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeCover
 import com.sf.tadami.ui.components.material.LanguageBadge
 import com.sf.tadami.ui.utils.GridSelectedCoverAlpha
@@ -38,7 +39,7 @@ fun AnimeGridItem(
                         modifier = Modifier
                             .fillMaxWidth()
                             .alpha(if (isSelected) GridSelectedCoverAlpha else coverAlpha),
-                        data = anime.thumbnailUrl,
+                        data = anime.coverData,
                     )
                 },
                 badgesStart = coverBadgeStart,
@@ -79,7 +80,7 @@ fun CompactAnimeGridItem(
                     modifier = Modifier
                         .fillMaxWidth()
                         .alpha(if (isSelected) GridSelectedCoverAlpha else coverAlpha),
-                    data = anime.thumbnailUrl,
+                    data = anime.coverData,
                 )
             },
             badgesStart = coverBadgeStart,

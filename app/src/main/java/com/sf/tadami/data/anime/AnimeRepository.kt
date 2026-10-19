@@ -152,7 +152,8 @@ class AnimeRepositoryImpl(
                     studio = anime.studio,
                     author = anime.author,
                     rawTitle = anime.rawTitle,
-                    language = anime.language
+                    language = anime.language,
+                    coverLastModified = anime.coverLastModified,
                 )
             }
             true
@@ -187,7 +188,8 @@ class AnimeRepositoryImpl(
                     studio = anime.studio,
                     author = anime.author,
                     rawTitle = anime.rawTitle,
-                    language = anime.language
+                    language = anime.language,
+                    coverLastModified = anime.coverLastModified,
                 )
             }
         }

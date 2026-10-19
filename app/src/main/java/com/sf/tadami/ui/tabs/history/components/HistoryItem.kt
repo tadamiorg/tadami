@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
+import com.sf.tadami.domain.anime.AnimeCoverData
 import com.sf.tadami.domain.history.HistoryWithRelations
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeCover
 import com.sf.tadami.ui.components.material.LanguageBadge
@@ -48,7 +49,7 @@ fun HistoryItem(
     ) {
         AnimeCover.Book(
             modifier = Modifier.fillMaxHeight(),
-            data = history.thumbnailUrl,
+            data = AnimeCoverData.of(history.thumbnailUrl, history.coverLastModified),
             onClick = onClickCover,
         )
         Column(

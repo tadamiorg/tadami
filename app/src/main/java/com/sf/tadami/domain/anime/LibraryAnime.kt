@@ -26,6 +26,8 @@ data class LibraryAnime(
     val unseenEpisodes: Long,
     val episodeFlags : Long,
     val dateAdded : Long,
+    // When its cover was last refreshed, part of the cover's image cache key
+    val coverLastModified: Long = 0L,
     // The ids of its categories, the Default category's one when it is in none
     val categories : List<Long> = listOf(Category.UNCATEGORIZED_ID)
 )

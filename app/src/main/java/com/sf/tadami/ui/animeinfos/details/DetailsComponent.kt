@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.data.download.model.Download
 import com.sf.tadami.domain.anime.Anime
+import com.sf.tadami.domain.anime.coverData
 import com.sf.tadami.source.model.SAnimeStatus
 import com.sf.tadami.ui.animeinfos.details.actions.AnimeActionRow
 import com.sf.tadami.ui.animeinfos.details.episodes.EpisodeDownloadAction
@@ -98,7 +99,7 @@ fun DetailsComponent(
                         author = uiState.details?.author,
                         release = uiState.details?.release,
                         status = uiState.details?.status ?: SAnimeStatus.UNKNOWN,
-                        cover = { uiState.details?.thumbnailUrl ?: "" },
+                        cover = { uiState.details?.coverData },
                         sourceName = sourceName,
                         isStubSource = isStubSource,
                         onTitleClicked = {

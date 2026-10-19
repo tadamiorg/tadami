@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import coil.compose.AsyncImage
+import com.sf.tadami.domain.anime.AnimeCoverData
 import com.sf.tadami.source.model.SAnimeStatus
 
 @Composable
@@ -24,7 +25,7 @@ fun AnimeInfosBox(
     studio: String?,
     author: String?,
     release: String?,
-    cover: () -> String,
+    cover: () -> AnimeCoverData?,
     sourceName:String,
     status: SAnimeStatus,
     isStubSource : Boolean,

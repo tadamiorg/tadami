@@ -24,6 +24,8 @@ import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.preferences.appearance.setAppCompatDelegateThemeMode
 import com.sf.tadami.ui.webview.adblock.AdBlockUpdateWorker
 import com.sf.tadami.utils.animatorDurationScale
+import com.sf.tadami.utils.coil.AnimeCoverFetcherFactory
+import com.sf.tadami.utils.coil.AnimeCoverKeyer
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.logcat
 import dev.mihon.injekt.patchInjekt
@@ -131,6 +133,11 @@ open class App : Application(), ImageLoaderFactory {
                     // This header will be added to every image request.
                     .addInterceptor(ImageLoaderInterceptor())
                     .build()
+            }
+            .components {
+                // The covers of the database, keyed by when they were last refreshed
+                add(AnimeCoverKeyer())
+                add(AnimeCoverFetcherFactory())
             }
             .crossfade((300 * this@App.animatorDurationScale).toInt())
             .memoryCache {

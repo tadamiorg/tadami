@@ -12,4 +12,5 @@ data class HistoryWithRelations(
     val seenAt: Date?,
     val thumbnailUrl: String?,
     val language: String? = null,
+    val coverLastModified: Long = 0L,
 )

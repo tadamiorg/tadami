@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
+import com.sf.tadami.domain.anime.AnimeCoverData
 import com.sf.tadami.source.model.SAnimeStatus
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.secondaryItemAlpha
@@ -56,7 +57,7 @@ import com.sf.tadami.ui.utils.secondaryItemAlpha
 @Composable
 fun AnimeAndSourceTitles(
     appBarPadding: Dp,
-    cover: () -> String,
+    cover: () -> AnimeCoverData?,
     title: String,
     language: String?,
     studio: String?,

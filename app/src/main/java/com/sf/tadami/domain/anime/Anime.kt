@@ -25,7 +25,9 @@ data class Anime(
     val fetchInterval: Int,
     val initialized: Boolean,
     val episodeFlags : Long,
-    var dateAdded: Long
+    var dateAdded: Long,
+    // When its cover was last refreshed, part of the cover's image cache key. Last, so the componentN stay
+    val coverLastModified: Long = 0L,
 ) {
     fun copyFrom(other: SAnime): Anime {
         val otherRawTitle = other.rawTitle
@@ -168,7 +170,8 @@ fun LibraryAnime.toAnime(): Anime {
         lastUpdate = lastUpdate,
         nextUpdate = nextUpdate,
         episodeFlags = episodeFlags,
-        dateAdded = dateAdded
+        dateAdded = dateAdded,
+        coverLastModified = coverLastModified,
     )
 }
 

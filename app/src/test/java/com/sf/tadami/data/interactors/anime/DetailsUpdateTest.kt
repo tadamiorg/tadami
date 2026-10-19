@@ -1,5 +1,6 @@
 package com.sf.tadami.data.interactors.anime
 
+import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.UpdateAnime
 import com.sf.tadami.source.model.SAnime
 import com.sf.tadami.source.model.SAnimeStatus
@@ -7,6 +8,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class DetailsUpdateTest {
+
+    private val local = Anime.create().copy(id = 1L, url = "/anime", title = "Stored", thumbnailUrl = "https://cdn/cover.jpg")
 
     @Test
     fun theFetchedDetailsAreStored() {
@@ -39,7 +42,7 @@ class DetailsUpdateTest {
                 genres = listOf("Action"),
                 initialized = true,
             ),
-            remote.toDetailsUpdate(1L),
+            remote.toDetailsUpdate(local),
         )
     }
 
@@ -51,7 +54,7 @@ class DetailsUpdateTest {
             thumbnailUrl = ""
         }
 
-        assertEquals(UpdateAnime(id = 1L, initialized = true), remote.toDetailsUpdate(1L))
+        assertEquals(UpdateAnime(id = 1L, initialized = true), remote.toDetailsUpdate(local))
     }
 
     @Test
@@ -62,7 +65,7 @@ class DetailsUpdateTest {
             status = SAnimeStatus.COMPLETED
         }
 
-        val update = remote.toDetailsUpdate(1L)
+        val update = remote.toDetailsUpdate(local)
 
         // Its source and URL stay, as the user's library state and the episodes update dates
         assertEquals(null, update.source)
@@ -73,5 +76,37 @@ class DetailsUpdateTest {
         assertEquals(null, update.lastUpdate)
         assertEquals(null, update.nextUpdate)
         assertEquals(null, update.fetchInterval)
+    }
+
+    @Test
+    fun aNewCoverURLMarksTheCoverAsModified() {
+        val remote = SAnime.create().apply {
+            url = "/anime"
+            thumbnailUrl = "https://cdn/new.jpg"
+        }
+
+        assertEquals(42L, remote.toDetailsUpdate(local, now = 42L).coverLastModified)
+    }
+
+    @Test
+    fun theSameCoverURLKeepsTheCoverUnlessItsRefreshed() {
+        val remote = SAnime.create().apply {
+            url = "/anime"
+            thumbnailUrl = "https://cdn/cover.jpg"
+        }
+
+        assertEquals(null, remote.toDetailsUpdate(local, now = 42L).coverLastModified)
+        // The library's details refresh downloads it again: same URL, new image cache key
+        assertEquals(42L, remote.toDetailsUpdate(local, refreshCover = true, now = 42L).coverLastModified)
+    }
+
+    @Test
+    fun noCoverFromTheSourceKeepsTheStoredOne() {
+        val remote = SAnime.create().apply { url = "/anime" }
+
+        val update = remote.toDetailsUpdate(local, now = 42L)
+
+        assertEquals(null, update.thumbnailUrl)
+        assertEquals(null, update.coverLastModified)
     }
 }

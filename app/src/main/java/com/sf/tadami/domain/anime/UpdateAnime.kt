@@ -22,7 +22,8 @@ data class UpdateAnime(
     val nextUpdate: Long? = null,
     val fetchInterval: Int? = null,
     val episodeFlags: Long? = null,
-    val dateAdded: Long? = null
+    val dateAdded: Long? = null,
+    val coverLastModified: Long? = null,
 ){
     companion object{
         fun create(id : Long) : UpdateAnime{
@@ -52,6 +53,7 @@ fun Anime.toUpdateAnime() : UpdateAnime {
         nextUpdate = nextUpdate,
         fetchInterval = fetchInterval,
         episodeFlags = episodeFlags,
-        dateAdded = dateAdded
+        dateAdded = dateAdded,
+        coverLastModified = coverLastModified,
     )
 }

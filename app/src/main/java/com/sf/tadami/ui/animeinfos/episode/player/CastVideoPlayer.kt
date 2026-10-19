@@ -37,6 +37,7 @@ import com.google.android.gms.cast.framework.media.RemoteMediaClient.Callback
 import com.google.android.gms.cast.framework.media.RemoteMediaClient.ProgressListener
 import com.google.android.gms.cast.framework.media.RemoteMediaClient.RESUME_STATE_PLAY
 import com.sf.tadami.R
+import com.sf.tadami.domain.anime.coverData
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.player.PlayerPreferences
@@ -468,7 +469,7 @@ fun CastVideoPlayer(
             )
 
             AsyncImage(
-                model = anime?.thumbnailUrl,
+                model = anime?.coverData,
                 placeholder = ColorPainter(ImageDefaults.CoverPlaceholderColor),
                 error = rememberResourceBitmapPainter(R.drawable.cover_error),
                 contentDescription = null,
