@@ -15,13 +15,22 @@ import java.time.Instant
 import java.time.ZonedDateTime
 
 /**
- * The details of [this] fetched anime to store in the [local] anime. A null field, an empty title or thumbnail URL and
- * an unknown status keep the stored value. Only the details: the library state, the episodes and the update dates
- * are left alone. The cover is marked as modified [now] when its URL changes, or always with [refreshCover], so it's
- * loaded again under a new image cache key.
+ * The title fetched from the source to store, as Mihon's: always for an anime out of the library, only with
+ * [updateLibraryTitles] for a library one. Null, keeping the stored title, otherwise or when it's blank.
+ */
+internal fun detailsTitle(remoteTitle: String, favorite: Boolean, updateLibraryTitles: Boolean): String? {
+    return remoteTitle.takeIf { it.isNotBlank() && (!favorite || updateLibraryTitles) }
+}
+
+/**
+ * The details of [this] fetched anime to store in the [local] anime. A null field, an empty thumbnail URL and an
+ * unknown status keep the stored value, the title follows [detailsTitle]. Only the details: the library state, the
+ * episodes and the update dates are left alone. The cover is marked as modified [now] when its URL changes, or always
+ * with [refreshCover], so it's loaded again under a new image cache key.
  */
 internal fun SAnime.toDetailsUpdate(
     local: Anime,
+    updateLibraryTitles: Boolean = false,
     refreshCover: Boolean = false,
     now: Long = Instant.now().toEpochMilli(),
 ): UpdateAnime {
@@ -31,8 +40,7 @@ internal fun SAnime.toDetailsUpdate(
         ""
     }
 
-    // if the anime isn't a favorite, set its title from source and update in db
-    val newTitle = remoteTitle.ifEmpty { null }
+    val newTitle = detailsTitle(remoteTitle, local.favorite, updateLibraryTitles)
     val newThumbnailUrl = thumbnailUrl?.takeIf { it.isNotEmpty() }
     // The refresh downloads the cover again even at the same URL: the source can serve a new image there
     val coverModified = refreshCover || newThumbnailUrl != null && newThumbnailUrl != local.thumbnailUrl
@@ -85,12 +93,16 @@ class UpdateAnimeInteractor(
         animeRepository.updateAnime(UpdateAnime(id = anime.id, episodeFlags = episodeFlags))
     }
 
+    /** Stores the details fetched for [localAnime], its title only as [detailsTitle] allows with [updateLibraryTitles] */
     suspend fun awaitUpdateFromSource(
         localAnime: Anime,
         remoteAnime: SAnime,
+        updateLibraryTitles: Boolean,
         refreshCover: Boolean = false,
     ): Boolean {
-        return animeRepository.updateAnime(remoteAnime.toDetailsUpdate(localAnime, refreshCover))
+        return animeRepository.updateAnime(
+            remoteAnime.toDetailsUpdate(localAnime, updateLibraryTitles = updateLibraryTitles, refreshCover = refreshCover)
+        )
     }
 
     suspend fun awaitUpdateFetchInterval(

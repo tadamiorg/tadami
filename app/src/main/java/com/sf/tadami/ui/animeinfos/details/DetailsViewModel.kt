@@ -179,7 +179,8 @@ class DetailsViewModel(
             source.callGuarded { getAnimeDetails(anime.toSAnime()) }
         }
         networkDetails?.let {
-            updateAnimeInteractor.awaitUpdateFromSource(anime, it)
+            val updateTitles = dataStore.getPreferencesGroup(LibraryPreferences).updateTitles
+            updateAnimeInteractor.awaitUpdateFromSource(anime, it, updateLibraryTitles = updateTitles)
             _detailsRefreshing.update { false }
         }
     }

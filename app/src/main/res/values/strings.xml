@@ -568,6 +568,8 @@
     <string name="preferences_library_update_categories_exclude">Categories not to update</string>
     <string name="preferences_library_auto_update_metadata">Refresh metadata during library updates</string>
     <string name="preferences_library_auto_update_metadata_subtitle">Check for new covers and details when updating the library</string>
+    <string name="preferences_library_update_titles">Update library titles</string>
+    <string name="preferences_library_update_titles_subtitle">Replace the titles of library anime with their source\'s when refreshing their details</string>
     <string name="preferences_library_update_categories_all">All</string>
     <string name="label_categories">Categories</string>
     <string name="action_add">Add</string>

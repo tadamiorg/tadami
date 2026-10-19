@@ -109,4 +109,39 @@ class DetailsUpdateTest {
         assertEquals(null, update.thumbnailUrl)
         assertEquals(null, update.coverLastModified)
     }
+
+    @Test
+    fun anAnimeOutOfTheLibraryAlwaysTakesTheSourceTitle() {
+        assertEquals("New", detailsTitle("New", favorite = false, updateLibraryTitles = false))
+        assertEquals("New", detailsTitle("New", favorite = false, updateLibraryTitles = true))
+    }
+
+    @Test
+    fun aLibraryAnimeTakesTheSourceTitleOnlyWithTheSetting() {
+        assertEquals(null, detailsTitle("New", favorite = true, updateLibraryTitles = false))
+        assertEquals("New", detailsTitle("New", favorite = true, updateLibraryTitles = true))
+    }
+
+    @Test
+    fun aBlankTitleNeverReplacesTheStoredOne() {
+        for (favorite in listOf(false, true)) {
+            for (updateLibraryTitles in listOf(false, true)) {
+                assertEquals(null, detailsTitle("", favorite, updateLibraryTitles))
+                assertEquals(null, detailsTitle("  ", favorite, updateLibraryTitles))
+            }
+        }
+    }
+
+    @Test
+    fun theDetailsUpdateFollowsTheTitleRule() {
+        val remote = SAnime.create().apply {
+            url = "/anime"
+            title = "New"
+        }
+        val favorite = local.copy(favorite = true)
+
+        assertEquals("New", remote.toDetailsUpdate(local).title)
+        assertEquals(null, remote.toDetailsUpdate(favorite).title)
+        assertEquals("New", remote.toDetailsUpdate(favorite, updateLibraryTitles = true).title)
+    }
 }

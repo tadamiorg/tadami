@@ -25,6 +25,8 @@ data class LibraryPreferences(
     val updateCategoriesExclude : Set<String>,
     // The library updates fetch the details and cover of each anime too, as Mihon's
     val autoUpdateMetadata : Boolean,
+    // A details refresh replaces the titles of library anime with their source's, as Mihon's updateMangaTitles
+    val updateTitles : Boolean,
     // The item count on each category tab
     val showCategoryNumberOfItems : Boolean,
     // The category tab row, the title names the category shown without it
@@ -63,6 +65,7 @@ data class LibraryPreferences(
         val UPDATE_CATEGORIES = stringSetPreferencesKey("library_update_categories")
         val UPDATE_CATEGORIES_EXCLUDE = stringSetPreferencesKey("library_update_categories_exclude")
         private val AUTO_UPDATE_METADATA = booleanPreferencesKey("library_auto_update_metadata")
+        private val UPDATE_TITLES = booleanPreferencesKey("library_update_titles")
 
         private val CATEGORY_NUMBER_OF_ITEMS = booleanPreferencesKey("library_category_number_of_items")
         private val CATEGORY_TABS = booleanPreferencesKey("library_display_category_tabs")
@@ -93,6 +96,7 @@ data class LibraryPreferences(
                 updateCategories = preferences[UPDATE_CATEGORIES] ?: emptySet(),
                 updateCategoriesExclude = preferences[UPDATE_CATEGORIES_EXCLUDE] ?: emptySet(),
                 autoUpdateMetadata = preferences[AUTO_UPDATE_METADATA] ?: false,
+                updateTitles = preferences[UPDATE_TITLES] ?: false,
                 showCategoryNumberOfItems = preferences[CATEGORY_NUMBER_OF_ITEMS] ?: false,
                 showCategoryTabs = preferences[CATEGORY_TABS] ?: true,
                 categorizedSort = preferences[CATEGORIZED_SORT] ?: false,
@@ -113,6 +117,7 @@ data class LibraryPreferences(
             preferences[UPDATE_CATEGORIES] = newValue.updateCategories
             preferences[UPDATE_CATEGORIES_EXCLUDE] = newValue.updateCategoriesExclude
             preferences[AUTO_UPDATE_METADATA] = newValue.autoUpdateMetadata
+            preferences[UPDATE_TITLES] = newValue.updateTitles
             preferences[CATEGORY_NUMBER_OF_ITEMS] = newValue.showCategoryNumberOfItems
             preferences[CATEGORY_TABS] = newValue.showCategoryTabs
             preferences[CATEGORIZED_SORT] = newValue.categorizedSort

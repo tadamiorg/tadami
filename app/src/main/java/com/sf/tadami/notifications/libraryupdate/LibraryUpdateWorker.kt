@@ -267,7 +267,12 @@ class LibraryUpdateWorker(
                 ?: return emptyList()
             val details = source.callGuarded { getAnimeDetails(dbAnime.toSAnime()) }
             // A refreshed cover gets a new image cache key, so the screens showing it load it again
-            updateAnimeInteractor.awaitUpdateFromSource(dbAnime, details, refreshCover = parts.refreshCovers)
+            updateAnimeInteractor.awaitUpdateFromSource(
+                dbAnime,
+                details,
+                updateLibraryTitles = libraryPreferences.updateTitles,
+                refreshCover = parts.refreshCovers,
+            )
         }
         if (!parts.episodes) return emptyList()
         val episodes = source.callGuarded { getEpisodeList(anime.toSAnime()) }
