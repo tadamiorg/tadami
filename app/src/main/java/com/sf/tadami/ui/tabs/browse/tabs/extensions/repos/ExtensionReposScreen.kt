@@ -1,5 +1,8 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions.repos
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,7 +15,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material3.ElevatedCard
@@ -37,12 +42,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
@@ -57,6 +66,7 @@ import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 import com.sf.tadami.ui.components.widgets.ScrollbarLazyColumn
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.groupedFingerprint
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.repoDisplayName
+import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.secondaryItemAlpha
 
@@ -70,6 +80,8 @@ fun ExtensionReposScreen(
     val repos by viewModel.repos.collectAsState()
     val repoMetas by viewModel.repoMetas.collectAsState()
     val dialog by viewModel.dialog.collectAsState()
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
 
     Scaffold(
         topBar = {
@@ -130,6 +142,21 @@ fun ExtensionReposScreen(
                     name = repoDisplayName(repoUrl, repoMetas[repoUrl]),
                     repoUrl = repoUrl,
                     isOfficial = ExtensionRepos.isOfficial(repoUrl),
+                    onOpen = {
+                        val url = ExtensionRepos.browserUrl(repoUrl, repoMetas[repoUrl])
+                        try {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+                        } catch (e: ActivityNotFoundException) {
+                            UiToasts.showToast(R.string.ext_repo_no_browser)
+                        }
+                    },
+                    onCopy = {
+                        clipboardManager.setText(AnnotatedString(repoUrl))
+                        // Android 13 and later confirm a copy themselves
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                            UiToasts.showToast(R.string.clipboard_copied)
+                        }
+                    },
                     onRemove = { viewModel.showRemoveDialog(repoUrl) },
                 )
             }
@@ -163,6 +190,8 @@ private fun RepoListItem(
     name: String,
     repoUrl: String,
     isOfficial: Boolean,
+    onOpen: () -> Unit,
+    onCopy: () -> Unit,
     onRemove: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -201,6 +230,15 @@ private fun RepoListItem(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
+            }
+            IconButton(onClick = onOpen) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
+                    contentDescription = stringResource(R.string.action_open_in_browser),
+                )
+            }
+            IconButton(onClick = onCopy) {
+                Icon(imageVector = Icons.Outlined.ContentCopy, contentDescription = stringResource(R.string.ext_repo_copy_url))
             }
             IconButton(onClick = onRemove) {
                 Icon(imageVector = Icons.Outlined.Delete, contentDescription = stringResource(R.string.ext_repo_remove))

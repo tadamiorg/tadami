@@ -128,6 +128,25 @@ internal object ExtensionRepos {
     }
 
     /**
+     * The page of the repo [repoUrl] to open in a browser: the website its [meta] gives if it's an
+     * http(s) one, its GitHub page for a `raw.githubusercontent.com` repo, [repoUrl] itself otherwise.
+     */
+    fun browserUrl(repoUrl: String, meta: RepoMeta?): String {
+        val website = meta?.website?.trim().orEmpty()
+        val scheme = website.substringBefore("://", missingDelimiterValue = "").lowercase()
+        val host = website.substringAfter("://").substringBefore('/')
+        if ((scheme == "https" || scheme == "http") && host.isNotEmpty() && website.none { it.isWhitespace() }) {
+            return website
+        }
+        val parts = normalize(repoUrl).substringAfter("://").split('/')
+        val onGitHubRaw = parts.first().lowercase() == "raw.githubusercontent.com"
+        if (onGitHubRaw && parts.size >= 3 && parts[1].isNotEmpty() && parts[2].isNotEmpty()) {
+            return "https://github.com/${parts[1]}/${parts[2]}"
+        }
+        return normalize(repoUrl)
+    }
+
+    /**
      * Whether [repoUrl] is the official repo: only the app's own URL of it, scheme included, see
      * [SourcesPreferences.DEFAULT_EXTENSIONS_REPO], so that no other repo can be shown as the official one.
      */

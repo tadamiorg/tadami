@@ -160,4 +160,21 @@ class ExtensionReposTest {
         assertNull(ExtensionRepos.parseMeta(json, """{"name":"Test"}"""))
         assertNull(ExtensionRepos.parseMeta(json, "<html>"))
     }
+
+    @Test
+    fun aRepoOpensOnItsWebsiteItsGitHubPageOrItsUrl() {
+        val raw = "https://raw.githubusercontent.com/owner/exts/main"
+        // The website of its repo.json
+        assertEquals("https://exts.example.com", ExtensionRepos.browserUrl(raw, RepoMeta(name = "Exts", website = "https://exts.example.com")))
+        assertEquals("http://exts.example.com/about", ExtensionRepos.browserUrl(raw, RepoMeta(name = "Exts", website = " http://exts.example.com/about ")))
+        // Without one, its GitHub page
+        assertEquals("https://github.com/owner/exts", ExtensionRepos.browserUrl(raw, null))
+        assertEquals("https://github.com/tadamiorg/tadami-extensions", ExtensionRepos.browserUrl(SourcesPreferences.DEFAULT_EXTENSIONS_REPO, RepoMeta(name = "Exts")))
+        // Another host, its URL
+        assertEquals("https://example.com/repo", ExtensionRepos.browserUrl("https://example.com/repo", null))
+        // A website that isn't http(s) is ignored
+        assertEquals("https://github.com/owner/exts", ExtensionRepos.browserUrl(raw, RepoMeta(name = "Exts", website = "javascript:alert(1)")))
+        assertEquals("https://github.com/owner/exts", ExtensionRepos.browserUrl(raw, RepoMeta(name = "Exts", website = "intent://scan#Intent;end")))
+        assertEquals("https://example.com/repo", ExtensionRepos.browserUrl("https://example.com/repo", RepoMeta(name = "Exts", website = "exts.example.com")))
+    }
 }
