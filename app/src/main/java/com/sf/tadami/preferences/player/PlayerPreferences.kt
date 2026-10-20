@@ -34,6 +34,8 @@ data class PlayerPreferences(
     val subtitleBoldFormat: Boolean,
     val subtitleItalicFormat: Boolean,
     val subtitleBottomPadding: Float,
+    val seekPreview: Boolean,
+    val seekPreviewOnlyOnWifi: Boolean,
 ) : CustomPreferencesIdentifier {
 
     object SeenThresholdItems {
@@ -92,6 +94,8 @@ data class PlayerPreferences(
         private val SUBTITLE_BOLD_FORMAT = booleanPreferencesKey("player_subtitles_bold_format")
         private val SUBTITLE_ITALIC_FORMAT = booleanPreferencesKey("player_subtitles_italic_format")
         private val SUBTITLE_BOTTOM_PADDING = floatPreferencesKey("player_subtitles_bottom_padding")
+        private val SEEK_PREVIEW = booleanPreferencesKey("player_seek_preview")
+        private val SEEK_PREVIEW_ONLY_ON_WIFI = booleanPreferencesKey("player_seek_preview_only_on_wifi")
 
         override fun transform(preferences: Preferences): PlayerPreferences {
            return PlayerPreferences(
@@ -111,7 +115,10 @@ data class PlayerPreferences(
                subtitleBoldFormat = preferences[SUBTITLE_BOLD_FORMAT] ?: false,
                subtitleItalicFormat = preferences[SUBTITLE_ITALIC_FORMAT] ?: false,
                subtitleBottomPadding = preferences[SUBTITLE_BOTTOM_PADDING] ?: DEFAULT_BOTTOM_PADDING,
-               ignoreCutout = preferences[IGNORE_CUTOUT] ?: true
+               ignoreCutout = preferences[IGNORE_CUTOUT] ?: true,
+               // On like Aniyomi's, which shows whenever the source has thumbnails and has no network limit
+               seekPreview = preferences[SEEK_PREVIEW] ?: true,
+               seekPreviewOnlyOnWifi = preferences[SEEK_PREVIEW_ONLY_ON_WIFI] ?: false,
            )
         }
 
@@ -133,6 +140,8 @@ data class PlayerPreferences(
             preferences[SUBTITLE_ITALIC_FORMAT] = newValue.subtitleItalicFormat
             preferences[SUBTITLE_BOTTOM_PADDING] = newValue.subtitleBottomPadding
             preferences[IGNORE_CUTOUT] = newValue.ignoreCutout
+            preferences[SEEK_PREVIEW] = newValue.seekPreview
+            preferences[SEEK_PREVIEW_ONLY_ON_WIFI] = newValue.seekPreviewOnlyOnWifi
         }
     }
 }

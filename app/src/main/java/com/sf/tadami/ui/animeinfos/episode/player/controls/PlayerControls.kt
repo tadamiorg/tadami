@@ -37,6 +37,7 @@ fun PlayerControls(
     bufferedPercentage: () -> Int,
     onSeekChanged: (timeMs: Float) -> Unit,
     onSeekEnd: () -> Unit = {},
+    seekPreview: SeekBarPreview? = null,
     onStreamSettings: () -> Unit,
     onTracksSettings: () -> Unit,
     onAudioSettings: () -> Unit = {},
@@ -154,6 +155,7 @@ fun PlayerControls(
                         onSeekChanged = onSeekChanged,
                         onSeekEnd = onSeekEnd,
                         isSeekable = !isIdle,
+                        preview = seekPreview,
                     )
                 }
             }

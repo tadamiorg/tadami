@@ -96,6 +96,33 @@ class PlayerPreferencesScreen(
                         )
                         true
                     }
+                ),
+                Preference.PreferenceItem.TogglePreference(
+                    title = stringResource(id = R.string.player_pref_seek_preview),
+                    value = prefs.seekPreview,
+                    subtitle = stringResource(id = R.string.player_pref_seek_preview_subtitle),
+                    onValueChanged = {
+                        prefState.setValue(
+                            prefs.copy(
+                                seekPreview = it
+                            )
+                        )
+                        true
+                    }
+                ),
+                Preference.PreferenceItem.TogglePreference(
+                    enabled = prefs.seekPreview,
+                    title = stringResource(id = R.string.player_pref_seek_preview_only_on_wifi),
+                    value = prefs.seekPreviewOnlyOnWifi,
+                    subtitle = stringResource(id = R.string.player_pref_seek_preview_only_on_wifi_subtitle),
+                    onValueChanged = {
+                        prefState.setValue(
+                            prefs.copy(
+                                seekPreviewOnlyOnWifi = it
+                            )
+                        )
+                        true
+                    }
                 )
             )
         )

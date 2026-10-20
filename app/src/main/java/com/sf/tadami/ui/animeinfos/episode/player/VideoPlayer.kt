@@ -69,12 +69,16 @@ import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
+import com.sf.tadami.ui.animeinfos.episode.player.controls.SeekBarPreview
+import com.sf.tadami.ui.animeinfos.episode.player.controls.SeekPreviewThumbnail
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.EpisodesDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.audioselection.AudioSelectionDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.episodetooltip.EpisodeTooltipDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.SettingsDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.TracksSelectionDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.videoselection.VideoSelectionDialog
+import com.sf.tadami.ui.animeinfos.episode.player.preview.SeekPreviewPlayer
+import com.sf.tadami.ui.animeinfos.episode.player.preview.mainPlayerCanSpareNetwork
 import com.sf.tadami.ui.animeinfos.episode.player.subtitles.CustomSubtitleParserFactory
 import com.sf.tadami.ui.animeinfos.episode.player.subtitles.PlayerSubtitleView
 import com.sf.tadami.ui.animeinfos.episode.player.subtitles.SubtitleStyle
@@ -83,6 +87,7 @@ import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.convertToIetfLanguageTag
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.safeDrawing
+import com.sf.tadami.utils.isConnectedToWifi
 import kotlinx.coroutines.delay
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -190,6 +195,18 @@ fun VideoPlayer(
     }
 
     var playerView by remember { mutableStateOf<PlayerView?>(null) }
+
+    // Second player of the seekbar preview, created on the first drag
+    val seekPreviewPlayer = remember {
+        SeekPreviewPlayer(context) {
+            mainPlayerCanSpareNetwork(
+                isBuffering = exoPlayer.playbackState == Player.STATE_BUFFERING,
+                bufferedAheadMs = exoPlayer.totalBufferedDuration,
+                bufferedPositionMs = exoPlayer.bufferedPosition,
+                durationMs = exoPlayer.duration,
+            )
+        }
+    }
 
     LaunchedEffect(exoPlayer) {
         setPlayer(exoPlayer)
@@ -393,6 +410,39 @@ fun VideoPlayer(
                 refreshPipUi()
             }
         }
+    }
+
+    // The preview reads the stream as the player does: same factories, so same headers, HLS fixes and cache.
+    // A new stream or episode drops the preview player of the previous one.
+    LaunchedEffect(episodeUiState.selectedSource, currentEpisode?.id) {
+        seekPreviewPlayer.release()
+        val source = episodeUiState.selectedSource
+        seekPreviewPlayer.setSource(source?.url, source?.let {
+            {
+                val mediaSourceFactory = if (it.isLocalFile) localMediaSourceFactory else dataSourceFactory
+                // The video alone: no side-loaded subtitles nor separate audio
+                mediaSourceFactory.createMediaSource(MediaItem.fromUri(it.url))
+            }
+        })
+    }
+
+    val seekPreview = remember(playerPreferences.seekPreview) {
+        if (!playerPreferences.seekPreview) return@remember null
+        SeekBarPreview(
+            isAvailable = {
+                val source = episodeUiState.selectedSource
+                source != null && (source.isLocalFile || !playerPreferences.seekPreviewOnlyOnWifi ||
+                    context.isConnectedToWifi())
+            },
+            onScrub = seekPreviewPlayer::scrubTo,
+            onScrubEnd = seekPreviewPlayer::endScrub,
+            onCommit = { positionMs ->
+                exoPlayer.seekTo(positionMs)
+                // Shown at once, the player reports the new position a frame later
+                currentTime = positionMs.coerceIn(0L, totalDuration)
+            },
+            thumbnail = { positionMs -> SeekPreviewThumbnail(seekPreviewPlayer, positionMs) },
+        )
     }
 
     if (playerPreferences.autoPlay) {
@@ -639,6 +689,7 @@ fun VideoPlayer(
 
                     when (event) {
                         Lifecycle.Event.ON_PAUSE -> {
+                            seekPreviewPlayer.release()
                             updateTime()
                             if (!lockedControls) {
                                 exoPlayer.pause()
@@ -664,6 +715,7 @@ fun VideoPlayer(
                     lifecycle.removeObserver(observer)
                     exoPlayer.removeListener(listener)
                     exoPlayer.release()
+                    seekPreviewPlayer.release()
                     playerView = null
                 }
             }
@@ -744,6 +796,7 @@ fun VideoPlayer(
                 onSeekChanged = { timeMs: Float ->
                     exoPlayer.seekTo(timeMs.toLong())
                 },
+                seekPreview = seekPreview,
                 onBack = {
                     exoPlayer.release()
                     dispatcher.onBackPressed()
