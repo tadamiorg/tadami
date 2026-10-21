@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The strokes of the splash logo land with a slight overshoot -->
+<overshootInterpolator xmlns:android="http://schemas.android.com/apk/res/android"
+    android:tension="1.2" />
