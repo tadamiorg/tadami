@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Splash icon of Android 12+: drawable/ic_tada split into the strokes of its タ (the second one
+     drawn as two bars, so four parts). They fly in from scattered places (offset, turned, smaller,
+     transparent), one after another in the stroke order, and the logo gives a small pulse once
+     whole. The vector holds the end state, shown as is when animations are off. 288dp canvas: the
+     logo (168dp tall, as big as the static icon looks there) and every start position stay in the
+     192dp circle the icon is clipped to. Neighbouring strokes overlap a little inside the logo, so
+     no seam shows between them. -->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="288dp"
+            android:height="288dp"
+            android:viewportWidth="288"
+            android:viewportHeight="288">
+            <group
+                android:name="logo"
+                android:pivotX="144"
+                android:pivotY="144">
+                <!-- ic_tada, 137.55x168dp in the centre -->
+                <group
+                    android:scaleX="0.544094"
+                    android:scaleY="0.544094"
+                    android:translateX="75.225"
+                    android:translateY="60">
+                    <group
+                        android:name="stroke_left"
+                        android:pivotX="58.35"
+                        android:pivotY="88.75">
+                        <path
+                            android:name="stroke_left_path"
+                            android:fillColor="#FFFFFF"
+                            android:pathData="M57.56,0 L118.61,9.22 L99.21,62.64 L81.09,109.71 L54.69,180.93 L0,170.76 Z" />
+                    </group>
+                    <group
+                        android:name="stroke_top"
+                        android:pivotX="159.62"
+                        android:pivotY="80.90">
+                        <path
+                            android:name="stroke_top_path"
+                            android:fillColor="#FFFFFF"
+                            android:pathData="M91.2,63.29 L229.27,52.15 L252.8,85.86 L177.12,103.03 L73.1,110.27 Z" />
+                    </group>
+                    <group
+                        android:name="stroke_diagonal"
+                        android:pivotX="160.91"
+                        android:pivotY="193.30">
+                        <path
+                            android:name="stroke_diagonal_path"
+                            android:fillColor="#FFFFFF"
+                            android:pathData="M252.8,85.86 L127.83,308.77 L76.95,283.96 L126.87,193.65 L148.5,154.54 L177.12,103.03 L213.6,88.5 Z" />
+                    </group>
+                    <group
+                        android:name="stroke_dot"
+                        android:pivotX="115.51"
+                        android:pivotY="169.24">
+                        <path
+                            android:name="stroke_dot_path"
+                            android:fillColor="#FFFFFF"
+                            android:pathData="M92.53,143.41 C111.18,147.23 129.84,150.94 148.5,154.54 L156,156 L134.5,195.2 L126.87,193.65 L78.22,183.79 Z" />
+                    </group>
+                </group>
+            </group>
+        </vector>
+    </aapt:attr>
+    <target android:name="stroke_left">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="520"
+                android:interpolator="@android:anim/linear_interpolator">
+                <propertyValuesHolder
+                    android:propertyName="translateX"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="-14" />
+                    <keyframe android:fraction="1.0000" android:value="0" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="translateY"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="-26" />
+                    <keyframe android:fraction="1.0000" android:value="0" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="rotation"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="-28" />
+                    <keyframe android:fraction="1.0000" android:value="0" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="scaleX"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="0.55" />
+                    <keyframe android:fraction="1.0000" android:value="1" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="scaleY"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="0.55" />
+                    <keyframe android:fraction="1.0000" android:value="1" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+    <target android:name="stroke_left_path">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="180"
+                android:interpolator="@android:anim/linear_interpolator">
+                <propertyValuesHolder
+                    android:propertyName="fillAlpha"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="0" />
+                    <keyframe android:fraction="1.0000" android:value="1" android:interpolator="@android:interpolator/fast_out_slow_in" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+    <target android:name="stroke_top">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="580"
+                android:interpolator="@android:anim/linear_interpolator">
+                <propertyValuesHolder
+                    android:propertyName="translateX"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="30" />
+                    <keyframe android:fraction="0.1034" android:value="30" />
+                    <keyframe android:fraction="1.0000" android:value="0" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="translateY"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="-44" />
+                    <keyframe android:fraction="0.1034" android:value="-44" />
+                    <keyframe android:fraction="1.0000" android:value="0" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="rotation"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="22" />
+                    <keyframe android:fraction="0.1034" android:value="22" />
+                    <keyframe android:fraction="1.0000" android:value="0" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="scaleX"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="0.55" />
+                    <keyframe android:fraction="0.1034" android:value="0.55" />
+                    <keyframe android:fraction="1.0000" android:value="1" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="scaleY"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="0.55" />
+                    <keyframe android:fraction="0.1034" android:value="0.55" />
+                    <keyframe android:fraction="1.0000" android:value="1" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+    <target android:name="stroke_top_path">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="240"
+                android:interpolator="@android:anim/linear_interpolator">
+                <propertyValuesHolder
+                    android:propertyName="fillAlpha"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="0" />
+                    <keyframe android:fraction="0.2500" android:value="0" />
+                    <keyframe android:fraction="1.0000" android:value="1" android:interpolator="@android:interpolator/fast_out_slow_in" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+    <target android:name="stroke_diagonal">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="640"
+                android:interpolator="@android:anim/linear_interpolator">
+                <propertyValuesHolder
+                    android:propertyName="translateX"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="34" />
+                    <keyframe android:fraction="0.1875" android:value="34" />
+                    <keyframe android:fraction="1.0000" android:value="0" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="translateY"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="30" />
+                    <keyframe android:fraction="0.1875" android:value="30" />
+                    <keyframe android:fraction="1.0000" android:value="0" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="rotation"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="-24" />
+                    <keyframe android:fraction="0.1875" android:value="-24" />
+                    <keyframe android:fraction="1.0000" android:value="0" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="scaleX"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="0.55" />
+                    <keyframe android:fraction="0.1875" android:value="0.55" />
+                    <keyframe android:fraction="1.0000" android:value="1" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="scaleY"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="0.55" />
+                    <keyframe android:fraction="0.1875" android:value="0.55" />
+                    <keyframe android:fraction="1.0000" android:value="1" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+    <target android:name="stroke_diagonal_path">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="300"
+                android:interpolator="@android:anim/linear_interpolator">
+                <propertyValuesHolder
+                    android:propertyName="fillAlpha"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="0" />
+                    <keyframe android:fraction="0.4000" android:value="0" />
+                    <keyframe android:fraction="1.0000" android:value="1" android:interpolator="@android:interpolator/fast_out_slow_in" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+    <target android:name="stroke_dot">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="700"
+                android:interpolator="@android:anim/linear_interpolator">
+                <propertyValuesHolder
+                    android:propertyName="translateX"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="-44" />
+                    <keyframe android:fraction="0.2571" android:value="-44" />
+                    <keyframe android:fraction="1.0000" android:value="0" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="translateY"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="26" />
+                    <keyframe android:fraction="0.2571" android:value="26" />
+                    <keyframe android:fraction="1.0000" android:value="0" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="rotation"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="40" />
+                    <keyframe android:fraction="0.2571" android:value="40" />
+                    <keyframe android:fraction="1.0000" android:value="0" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="scaleX"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="0.55" />
+                    <keyframe android:fraction="0.2571" android:value="0.55" />
+                    <keyframe android:fraction="1.0000" android:value="1" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="scaleY"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="0.55" />
+                    <keyframe android:fraction="0.2571" android:value="0.55" />
+                    <keyframe android:fraction="1.0000" android:value="1" android:interpolator="@interpolator/splash_stroke" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+    <target android:name="stroke_dot_path">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="360"
+                android:interpolator="@android:anim/linear_interpolator">
+                <propertyValuesHolder
+                    android:propertyName="fillAlpha"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="0" />
+                    <keyframe android:fraction="0.5000" android:value="0" />
+                    <keyframe android:fraction="1.0000" android:value="1" android:interpolator="@android:interpolator/fast_out_slow_in" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+    <target android:name="logo">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="930"
+                android:interpolator="@android:anim/linear_interpolator">
+                <propertyValuesHolder
+                    android:propertyName="scaleX"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="1" />
+                    <keyframe android:fraction="0.7527" android:value="1" />
+                    <keyframe android:fraction="0.8602" android:value="1.025" android:interpolator="@android:interpolator/fast_out_slow_in" />
+                    <keyframe android:fraction="1.0000" android:value="1" android:interpolator="@android:interpolator/fast_out_slow_in" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="scaleY"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0000" android:value="1" />
+                    <keyframe android:fraction="0.7527" android:value="1" />
+                    <keyframe android:fraction="0.8602" android:value="1.025" android:interpolator="@android:interpolator/fast_out_slow_in" />
+                    <keyframe android:fraction="1.0000" android:value="1" android:interpolator="@android:interpolator/fast_out_slow_in" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+</animated-vector>

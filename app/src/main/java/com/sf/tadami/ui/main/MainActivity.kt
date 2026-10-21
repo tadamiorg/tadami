@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.Log
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
@@ -243,6 +244,25 @@ class MainActivity : AppCompatActivity() {
             val elapsed = System.currentTimeMillis() - startTime
             elapsed <= SPLASH_MIN_DURATION || (!ready && elapsed <= SPLASH_MAX_DURATION)
         }
+        splashScreen?.setOnExitAnimationListener { provider ->
+            // The logo first ends its entrance (Android 12+), then grows a little as the splash fades out.
+            // The view animations follow the animator duration scale: they end at once when it's 0.
+            val iconAnimationEnd = provider.iconAnimationStartMillis + provider.iconAnimationDurationMillis
+            val delay = (iconAnimationEnd - SystemClock.uptimeMillis()).coerceIn(0L, provider.iconAnimationDurationMillis)
+            // Some Android 12 launches show no icon: the view is then missing
+            runCatching { provider.iconView }.getOrNull()?.animate()
+                ?.scaleX(SPLASH_EXIT_ICON_SCALE)
+                ?.scaleY(SPLASH_EXIT_ICON_SCALE)
+                ?.setStartDelay(delay)
+                ?.setDuration(SPLASH_EXIT_DURATION)
+                ?.start()
+            provider.view.animate()
+                .alpha(0f)
+                .setStartDelay(delay)
+                .setDuration(SPLASH_EXIT_DURATION)
+                .withEndAction { provider.remove() }
+                .start()
+        }
     }
 
     private fun themeStyle(appTheme: AppTheme): Int = when (appTheme.name) {
@@ -380,6 +400,8 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val SPLASH_MIN_DURATION = 500 // ms
         const val SPLASH_MAX_DURATION = 5000 // ms
+        const val SPLASH_EXIT_DURATION = 300L // ms
+        const val SPLASH_EXIT_ICON_SCALE = 1.2f
 
         /** Opens the extensions tab, from the extension updates notification. */
         const val ACTION_OPEN_EXTENSIONS = "com.sf.tadami.EXTENSIONS"
