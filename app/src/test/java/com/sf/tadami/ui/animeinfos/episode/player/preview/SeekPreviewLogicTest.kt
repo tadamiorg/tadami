@@ -1,20 +1,17 @@
 package com.sf.tadami.ui.animeinfos.episode.player.preview
 
+import android.content.ComponentCallbacks2
 import androidx.media3.common.C
 import androidx.media3.common.TrackSelectionParameters
+import com.sf.tadami.source.model.StreamSource
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SeekPreviewLogicTest {
-
-    // Pushes a value and applies it if its turn has come, as a drag does
-    private fun LatestThrottle.offer(value: Long, nowMs: Long): Long? {
-        push(value)
-        return poll(nowMs)
-    }
 
     @Test
     fun `seek fraction is the position over the duration, clamped`() {
@@ -90,61 +87,183 @@ class SeekPreviewLogicTest {
         assertFalse(mainPlayerCanSpareNetwork(isBuffering = false, bufferedAheadMs = 2_000, bufferedPositionMs = 0, durationMs = C.TIME_UNSET))
     }
 
+    private val episode = 1_440_000L // 24 min
+
     @Test
-    fun `pushed value waits for its turn`() {
-        val throttle = LatestThrottle(intervalMs = 100)
-        assertFalse(throttle.hasPending)
-        throttle.push(1_000)
-        throttle.push(2_000)
-        assertTrue(throttle.hasPending)
-        assertEquals(2_000L, throttle.poll(nowMs = 0))
-        assertFalse(throttle.hasPending)
+    fun `steps are 1 percent of the duration within 5 and 30 s`() {
+        assertEquals(14_400L, previewBucketSizeMs(episode))
+        // 3 min: 1% would be 1.8 s
+        assertEquals(5_000L, previewBucketSizeMs(180_000))
+        // 2 h: 1% would be 72 s
+        assertEquals(30_000L, previewBucketSizeMs(7_200_000))
+        // Unknown duration
+        assertEquals(5_000L, previewBucketSizeMs(0))
     }
 
     @Test
-    fun `throttle applies the first value at once`() {
-        val throttle = LatestThrottle(intervalMs = 100)
-        assertEquals(1_000L, throttle.offer(1_000, nowMs = 0))
+    fun `positions map to their step, ends included`() {
+        assertEquals(0, previewBucketOf(0, episode))
+        assertEquals(0, previewBucketOf(14_399, episode))
+        assertEquals(1, previewBucketOf(14_400, episode))
+        assertEquals(99, previewBucketOf(episode - 1, episode))
+        // The end and past it belong to the last step, before the start to the first
+        assertEquals(99, previewBucketOf(episode, episode))
+        assertEquals(99, previewBucketOf(episode + 60_000, episode))
+        assertEquals(0, previewBucketOf(-1_000, episode))
     }
 
     @Test
-    fun `throttle keeps only the newest value offered within the interval`() {
-        val throttle = LatestThrottle(intervalMs = 100)
-        throttle.offer(1_000, nowMs = 0)
-        assertNull(throttle.offer(2_000, nowMs = 10))
-        assertNull(throttle.offer(3_000, nowMs = 40))
-        assertEquals(60L, throttle.delayMs(nowMs = 40))
-        assertNull(throttle.poll(nowMs = 99))
-        // The stale 2 000 is never applied
-        assertEquals(3_000L, throttle.poll(nowMs = 100))
-        assertNull(throttle.poll(nowMs = 300))
+    fun `short and long videos get sensible step counts`() {
+        // 3 min in 5 s steps: 36 steps, the last one 0..35
+        assertEquals(35, previewBucketOf(179_999, 180_000))
+        // 2 h in 30 s steps
+        assertEquals(239, previewBucketOf(7_199_999, 7_200_000))
+        // A 7 s clip: two steps, the second one shorter
+        assertEquals(5_000L until 7_000L, previewBucketRangeMs(1, 7_000))
     }
 
     @Test
-    fun `throttle applies a value at once after a quiet interval`() {
-        val throttle = LatestThrottle(intervalMs = 100)
-        throttle.offer(1_000, nowMs = 0)
-        assertEquals(2_000L, throttle.offer(2_000, nowMs = 150))
-        assertEquals(0L, throttle.delayMs(nowMs = 150))
+    fun `step ranges cover the video without gaps`() {
+        assertEquals(0L until 14_400L, previewBucketRangeMs(0, episode))
+        assertEquals(14_400L until 28_800L, previewBucketRangeMs(1, episode))
+        assertEquals(1_425_600L until episode, previewBucketRangeMs(99, episode))
+        // A 1 min 03 s video ends with a 3 s step
+        assertEquals(60_000L until 63_000L, previewBucketRangeMs(12, 63_000))
     }
 
     @Test
-    fun `throttle interval counts from the last applied value`() {
-        val throttle = LatestThrottle(intervalMs = 100)
-        throttle.offer(1_000, nowMs = 0)
-        throttle.offer(2_000, nowMs = 50)
-        assertEquals(2_000L, throttle.poll(nowMs = 120))
-        assertNull(throttle.offer(3_000, nowMs = 180))
-        assertEquals(40L, throttle.delayMs(nowMs = 180))
+    fun `stream identity is its URL, server and quality, a download's its file`() {
+        val stream = StreamSource(url = "https://cdn.example/master.m3u8", server = "Kwik", quality = "720p")
+        assertEquals("https://cdn.example/master.m3u8|Kwik|720p", previewSourceIdentity(stream))
+        assertNotEquals(previewSourceIdentity(stream), previewSourceIdentity(stream.copy(quality = "1080p")))
+        assertNotEquals(previewSourceIdentity(stream), previewSourceIdentity(stream.copy(server = "Other")))
+        // Same stream from another fetch: same frames
+        assertEquals(previewSourceIdentity(stream), previewSourceIdentity(stream.copy(fullName = "Kwik - 720p")))
+        val download = StreamSource(url = "content://downloads/Episode 3.ts", server = "Kwik", quality = "720p")
+        assertEquals("content://downloads/Episode 3.ts", previewSourceIdentity(download))
+    }
+
+    private fun cache(maxBytes: Long = 300) = PreviewFrameCache<String>(maxBytes) { 100L }.apply { setSource("a") }
+
+    @Test
+    fun `cached frames are keyed by source and step`() {
+        val cache = cache()
+        cache.put(PreviewFrameKey("a", 1), "a1")
+        assertEquals("a1", cache[PreviewFrameKey("a", 1)])
+        assertNull(cache[PreviewFrameKey("a", 2)])
+        assertNull(cache[PreviewFrameKey("b", 1)])
     }
 
     @Test
-    fun `cleared throttle drops the waiting value and lets the next one through`() {
-        val throttle = LatestThrottle(intervalMs = 100)
-        throttle.offer(1_000, nowMs = 0)
-        throttle.offer(2_000, nowMs = 10)
-        throttle.clear()
-        assertNull(throttle.poll(nowMs = 200))
-        assertEquals(3_000L, throttle.offer(3_000, nowMs = 20))
+    fun `frames of another source than the current one are refused`() {
+        val cache = cache()
+        cache.put(PreviewFrameKey("old", 1), "late frame")
+        assertFalse(PreviewFrameKey("old", 1) in cache)
+        assertEquals(0, cache.size)
+    }
+
+    @Test
+    fun `another source drops every frame, the same source keeps them`() {
+        val cache = cache()
+        cache.put(PreviewFrameKey("a", 1), "a1")
+        cache.setSource("a")
+        assertEquals("a1", cache[PreviewFrameKey("a", 1)])
+        cache.setSource("b")
+        assertEquals(0, cache.size)
+        assertEquals(0L, cache.bytes)
+        assertFalse(PreviewFrameKey("a", 1) in cache)
+        cache.setSource(null)
+        assertNull(cache.sourceId)
+    }
+
+    @Test
+    fun `cache drops the least recently used frames past its byte budget`() {
+        val cache = cache(maxBytes = 300)
+        cache.put(PreviewFrameKey("a", 1), "a1")
+        cache.put(PreviewFrameKey("a", 2), "a2")
+        cache.put(PreviewFrameKey("a", 3), "a3")
+        // Reading step 1 makes step 2 the least recently used
+        cache[PreviewFrameKey("a", 1)]
+        cache.put(PreviewFrameKey("a", 4), "a4")
+        assertEquals(3, cache.size)
+        assertEquals(300L, cache.bytes)
+        assertFalse(PreviewFrameKey("a", 2) in cache)
+        assertTrue(PreviewFrameKey("a", 1) in cache)
+    }
+
+    @Test
+    fun `replacing a frame counts its bytes once`() {
+        val cache = cache()
+        cache.put(PreviewFrameKey("a", 1), "first")
+        cache.put(PreviewFrameKey("a", 1), "second")
+        assertEquals(1, cache.size)
+        assertEquals(100L, cache.bytes)
+    }
+
+    @Test
+    fun `only the step under the finger is fetched, once`() {
+        val requests = BucketRequests()
+        val cached = mutableSetOf<Int>()
+        requests.aim(3)
+        assertEquals(3, requests.next { it in cached })
+        // Still loading: no second request, for it or for another step
+        assertNull(requests.next { it in cached })
+        requests.aim(4)
+        requests.aim(5)
+        assertNull(requests.next { it in cached })
+        // Done: the step now under the finger comes next, the ones passed over never
+        cached += 3
+        requests.finished(3)
+        assertEquals(5, requests.next { it in cached })
+    }
+
+    @Test
+    fun `a finger back over the step loading waits for it`() {
+        val requests = BucketRequests()
+        requests.aim(3)
+        assertEquals(3, requests.next { false })
+        requests.aim(4)
+        requests.aim(3)
+        assertNull(requests.next { false })
+        assertEquals(3, requests.inFlight)
+    }
+
+    @Test
+    fun `cached steps are never fetched`() {
+        val requests = BucketRequests()
+        requests.aim(7)
+        assertNull(requests.next { it == 7 })
+        assertNull(requests.inFlight)
+    }
+
+    @Test
+    fun `nothing is fetched once the drag ended, the fetch in flight is kept`() {
+        val requests = BucketRequests()
+        requests.aim(2)
+        assertEquals(2, requests.next { false })
+        requests.aim(null)
+        assertEquals(2, requests.inFlight)
+        requests.finished(2)
+        assertNull(requests.next { false })
+    }
+
+    @Test
+    fun `a stale end of fetch doesn't free the step loading`() {
+        val requests = BucketRequests()
+        requests.aim(2)
+        requests.next { false }
+        requests.finished(9)
+        assertEquals(2, requests.inFlight)
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun `frames go on memory pressure, not when the UI hides`() {
+        assertFalse(shouldDropPreviewFrames(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN))
+        assertFalse(shouldDropPreviewFrames(ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE))
+        assertTrue(shouldDropPreviewFrames(ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW))
+        assertTrue(shouldDropPreviewFrames(ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL))
+        assertTrue(shouldDropPreviewFrames(ComponentCallbacks2.TRIM_MEMORY_BACKGROUND))
+        assertTrue(shouldDropPreviewFrames(ComponentCallbacks2.TRIM_MEMORY_COMPLETE))
     }
 }

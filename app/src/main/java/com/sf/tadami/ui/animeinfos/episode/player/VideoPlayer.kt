@@ -1,6 +1,8 @@
 package com.sf.tadami.ui.animeinfos.episode.player
 
 import android.annotation.SuppressLint
+import android.content.ComponentCallbacks2
+import android.content.res.Configuration
 import android.net.Uri
 import android.view.View
 import android.view.ViewGroup
@@ -70,6 +72,7 @@ import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.animeinfos.episode.player.controls.PlayerControls
 import com.sf.tadami.ui.animeinfos.episode.player.controls.SeekBarPreview
+import com.sf.tadami.ui.animeinfos.episode.player.controls.SeekPreviewSurface
 import com.sf.tadami.ui.animeinfos.episode.player.controls.SeekPreviewThumbnail
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.EpisodesDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.audioselection.AudioSelectionDialog
@@ -79,6 +82,7 @@ import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselecti
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.videoselection.VideoSelectionDialog
 import com.sf.tadami.ui.animeinfos.episode.player.preview.SeekPreviewPlayer
 import com.sf.tadami.ui.animeinfos.episode.player.preview.mainPlayerCanSpareNetwork
+import com.sf.tadami.ui.animeinfos.episode.player.preview.previewSourceIdentity
 import com.sf.tadami.ui.animeinfos.episode.player.subtitles.CustomSubtitleParserFactory
 import com.sf.tadami.ui.animeinfos.episode.player.subtitles.PlayerSubtitleView
 import com.sf.tadami.ui.animeinfos.episode.player.subtitles.SubtitleStyle
@@ -413,11 +417,11 @@ fun VideoPlayer(
     }
 
     // The preview reads the stream as the player does: same factories, so same headers, HLS fixes and cache.
-    // A new stream or episode drops the preview player of the previous one.
+    // A new stream or episode drops the preview player of the previous one, and its frames with another stream.
     LaunchedEffect(episodeUiState.selectedSource, currentEpisode?.id) {
         seekPreviewPlayer.release()
         val source = episodeUiState.selectedSource
-        seekPreviewPlayer.setSource(source?.url, source?.let {
+        seekPreviewPlayer.setSource(source?.let(::previewSourceIdentity), source?.let {
             {
                 val mediaSourceFactory = if (it.isLocalFile) localMediaSourceFactory else dataSourceFactory
                 // The video alone: no side-loaded subtitles nor separate audio
@@ -434,7 +438,7 @@ fun VideoPlayer(
                 source != null && (source.isLocalFile || !playerPreferences.seekPreviewOnlyOnWifi ||
                     context.isConnectedToWifi())
             },
-            onScrub = seekPreviewPlayer::scrubTo,
+            onScrub = { positionMs -> seekPreviewPlayer.scrubTo(positionMs, totalDuration) },
             onScrubEnd = seekPreviewPlayer::endScrub,
             onCommit = { positionMs ->
                 exoPlayer.seekTo(positionMs)
@@ -443,6 +447,18 @@ fun VideoPlayer(
             },
             thumbnail = { positionMs -> SeekPreviewThumbnail(seekPreviewPlayer, positionMs) },
         )
+    }
+
+    // Preview frames survive pauses and PiP, not memory pressure
+    DisposableEffect(context) {
+        val callbacks = object : ComponentCallbacks2 {
+            override fun onTrimMemory(level: Int) = seekPreviewPlayer.onTrimMemory(level)
+            override fun onConfigurationChanged(newConfig: Configuration) = Unit
+            @Deprecated("Deprecated in Java")
+            override fun onLowMemory() = seekPreviewPlayer.onTrimMemory(ComponentCallbacks2.TRIM_MEMORY_BACKGROUND)
+        }
+        context.registerComponentCallbacks(callbacks)
+        onDispose { context.unregisterComponentCallbacks(callbacks) }
     }
 
     if (playerPreferences.autoPlay) {
@@ -596,6 +612,11 @@ fun VideoPlayer(
                     ?: stringResource(R.string.player_epsiode_tooltip_no_content)
             )
 
+            if (playerPreferences.seekPreview) {
+                // Under the video, whose surface hides it
+                SeekPreviewSurface(seekPreviewPlayer, Modifier.align(Alignment.Center))
+            }
+
             AndroidView(
                 modifier = Modifier
                     .pointerInput(Unit) {
@@ -715,7 +736,7 @@ fun VideoPlayer(
                     lifecycle.removeObserver(observer)
                     exoPlayer.removeListener(listener)
                     exoPlayer.release()
-                    seekPreviewPlayer.release()
+                    seekPreviewPlayer.destroy()
                     playerView = null
                 }
             }

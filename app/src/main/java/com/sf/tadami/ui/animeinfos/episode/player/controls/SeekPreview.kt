@@ -2,9 +2,9 @@ package com.sf.tadami.ui.animeinfos.episode.player.controls
 
 import android.view.TextureView
 import androidx.annotation.OptIn
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,9 +15,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.util.UnstableApi
@@ -42,7 +45,10 @@ class SeekBarPreview(
 private val PreviewWidth = 220.dp
 private val PreviewHeight = 124.dp
 
-/** The frame at [positionMs] with that time under it; a spinner until the first frame arrives. */
+/**
+ * The frame of the preview step [positionMs] falls in, with the exact [positionMs] under it. While the
+ * step's frame loads, the last frame shown stays with a spinner over it, or the spinner alone at first.
+ */
 @OptIn(UnstableApi::class)
 @Composable
 fun SeekPreviewThumbnail(
@@ -57,14 +63,19 @@ fun SeekPreviewThumbnail(
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            if (!previewPlayer.failed) {
+            val frame = previewPlayer.frame
+            if (!previewPlayer.failed || frame != null) {
                 Box(modifier = Modifier.size(PreviewWidth, PreviewHeight), contentAlignment = Alignment.Center) {
-                    AndroidView(
-                        modifier = Modifier.aspectRatio(previewPlayer.videoAspectRatio),
-                        factory = { context -> TextureView(context).also(previewPlayer::attachSurface) },
-                        onRelease = previewPlayer::detachSurface,
-                    )
-                    if (!previewPlayer.hasFrame) {
+                    if (frame != null) {
+                        val image = remember(frame) { frame.asImageBitmap() }
+                        Image(
+                            bitmap = image,
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(PreviewWidth, PreviewHeight),
+                        )
+                    }
+                    if (previewPlayer.frameLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
                             color = Color.White,
@@ -81,4 +92,18 @@ fun SeekPreviewThumbnail(
             )
         }
     }
+}
+
+/**
+ * The surface the preview frames are decoded into, never seen: 1 px, to be placed under the video (whose
+ * surface hides it). It lives as long as the player screen so a fetch ending after the drag still lands.
+ */
+@OptIn(UnstableApi::class)
+@Composable
+fun SeekPreviewSurface(previewPlayer: SeekPreviewPlayer, modifier: Modifier = Modifier) {
+    AndroidView(
+        modifier = modifier.size(1.dp),
+        factory = { context -> TextureView(context).also(previewPlayer::attachSurface) },
+        onRelease = previewPlayer::detachSurface,
+    )
 }
