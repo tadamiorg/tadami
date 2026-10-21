@@ -91,7 +91,7 @@
     <style name="Theme.Tadami.SplashScreen" parent="Theme.SplashScreen">
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_tada_splash</item>
         <!-- The logo animation of Android 12+ (drawable-v31/ic_tada_splash), ignored below -->
-        <item name="windowSplashScreenAnimationDuration">930</item>
+        <item name="windowSplashScreenAnimationDuration">1490</item>
         <item name="windowSplashScreenBackground">#202125</item>
         <item name="postSplashScreenTheme">@style/Theme.Tadami</item>
         <item name="android:statusBarColor">@android:color/transparent</item>

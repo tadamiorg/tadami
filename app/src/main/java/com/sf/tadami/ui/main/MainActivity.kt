@@ -1,10 +1,10 @@
 package com.sf.tadami.ui.main
 
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
-import android.os.SystemClock
 import android.util.Log
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
@@ -247,14 +247,19 @@ class MainActivity : AppCompatActivity() {
         splashScreen?.setOnExitAnimationListener { provider ->
             // The logo first ends its entrance (Android 12+), then grows a little as the splash fades out.
             // The view animations follow the animator duration scale: they end at once when it's 0.
-            val iconAnimationEnd = provider.iconAnimationStartMillis + provider.iconAnimationDurationMillis
-            val delay = (iconAnimationEnd - SystemClock.uptimeMillis()).coerceIn(0L, provider.iconAnimationDurationMillis)
+            // The start is a wall clock time (0 below Android 12, where the icon doesn't move). The icon follows
+            // the animator duration scale too, its reported duration doesn't.
+            val iconDuration = (provider.iconAnimationDurationMillis * ValueAnimator.getDurationScale()).toLong()
+            val delay = (provider.iconAnimationStartMillis + iconDuration - System.currentTimeMillis()).coerceIn(0L, iconDuration)
+            // The logo fades on its own, a bit faster than the splash, so it is never left on a faded background:
+            // on Android 12+ it is drawn by a surface that the alpha of the splash view doesn't reach.
             // Some Android 12 launches show no icon: the view is then missing
             runCatching { provider.iconView }.getOrNull()?.animate()
+                ?.alpha(0f)
                 ?.scaleX(SPLASH_EXIT_ICON_SCALE)
                 ?.scaleY(SPLASH_EXIT_ICON_SCALE)
                 ?.setStartDelay(delay)
-                ?.setDuration(SPLASH_EXIT_DURATION)
+                ?.setDuration(SPLASH_EXIT_ICON_DURATION)
                 ?.start()
             provider.view.animate()
                 .alpha(0f)
@@ -401,6 +406,7 @@ class MainActivity : AppCompatActivity() {
         const val SPLASH_MIN_DURATION = 500 // ms
         const val SPLASH_MAX_DURATION = 5000 // ms
         const val SPLASH_EXIT_DURATION = 300L // ms
+        const val SPLASH_EXIT_ICON_DURATION = 200L // ms
         const val SPLASH_EXIT_ICON_SCALE = 1.2f
 
         /** Opens the extensions tab, from the extension updates notification. */
