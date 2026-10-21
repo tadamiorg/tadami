@@ -282,6 +282,8 @@
     <string name="label_recent_updates_long">Updates</string>
     <string name="label_more">More</string>
     <string name="label_settings">Settings</string>
+    <string name="action_search_settings">Search settings</string>
+    <string name="settings_search_hint">Search a setting by its name or description</string>
     <string name="label_extensions">Extensions</string>
     <string name="label_sources">Sources</string>
     <string name="label_source">Source</string>

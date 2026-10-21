@@ -296,6 +296,8 @@
     <string name="label_recent_updates_long">Mises à jour</string>
     <string name="label_more">Plus</string>
     <string name="label_settings">Paramètres</string>
+    <string name="action_search_settings">Rechercher dans les paramètres</string>
+    <string name="settings_search_hint">Recherchez un paramètre par son nom ou sa description</string>
     <string name="label_extensions">Extensions</string>
     <string name="label_sources">Sources</string>
     <string name="label_source">Source</string>

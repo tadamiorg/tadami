@@ -5,9 +5,13 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import com.sf.tadami.preferences.model.Preference
+import com.sf.tadami.ui.tabs.more.settings.search.highlightBackground
 import com.sf.tadami.ui.tabs.more.settings.widget.EditTextPreferenceWidget
 import com.sf.tadami.ui.tabs.more.settings.widget.InfoWidget
 import com.sf.tadami.ui.tabs.more.settings.widget.MultiSelectPreference
@@ -19,106 +23,109 @@ import com.sf.tadami.ui.tabs.more.settings.widget.TogglePreference
 @Composable
 fun PreferenceItemParser(
     customPrefsVerticalPadding : Dp? = null,
-    item: Preference.PreferenceItem<*>
+    item: Preference.PreferenceItem<*>,
+    highlighted: Boolean = false
 ) {
     AnimatedVisibility(
         visible = item.enabled,
         enter = expandVertically() + fadeIn(),
         exit = shrinkVertically() + fadeOut(),
         content = {
-            when(item){
-                is Preference.PreferenceItem.InfoPreference -> {
-                    InfoWidget(item.title)
-                }
-                is Preference.PreferenceItem.TextPreference -> {
-                    TextPreference(
-                        customPrefsVerticalPadding = customPrefsVerticalPadding,
-                        title = item.title,
-                        subtitle = item.subtitle,
-                        icon = item.icon,
-                        onPreferenceClick = item.onClick
-                    )
-                }
-                is Preference.PreferenceItem.SelectPreference<*> -> {
-                    SelectPreference(
-                        customPrefsVerticalPadding = customPrefsVerticalPadding,
-                        value = item.value,
-                        items = item.items,
-                        title = item.title,
-                        subtitleProvider = item.subtitleProvider,
-                        onValueChange = {
-                            item.castedOnValueChanged(it)
-                        }
-                    )
-                }
-                is Preference.PreferenceItem.MultiSelectPreference -> {
-                    MultiSelectPreference(
-                        customPrefsVerticalPadding = customPrefsVerticalPadding,
-                        value = item.value,
-                        items = item.items,
-                        title = item.title,
-                        overrideOkButton = item.overrideOkButton,
-                        subtitleProvider = item.subtitleProvider,
-                        onValueChange = {
-                            item.onValueChanged(it)
-                        }
-                    )
-                }
-                is Preference.PreferenceItem.MultiSelectPreferenceInt -> {
-                    MultiSelectPreference(
-                        customPrefsVerticalPadding = customPrefsVerticalPadding,
-                        value = item.value,
-                        items = item.items,
-                        title = item.title,
-                        overrideOkButton = item.overrideOkButton,
-                        subtitleProvider = item.subtitleProvider,
-                        onValueChange = {
-                            item.onValueChanged(it.toSortedSet())
-                        }
-                    )
-                }
-                is Preference.PreferenceItem.TogglePreference -> {
-                    TogglePreference(
-                        customPrefsVerticalPadding = customPrefsVerticalPadding,
-                        title = item.title,
-                        subtitle = item.subtitle,
-                        icon = item.icon,
-                        checked = item.value,
-                        onCheckedChanged = {
-                            item.onValueChanged(it)
-                        }
-                    )
-                }
-                is Preference.PreferenceItem.EditTextPreference -> {
-                    EditTextPreferenceWidget(
-                        customPrefsVerticalPadding = customPrefsVerticalPadding,
-                        title = item.title,
-                        subtitle = item.subtitle,
-                        icon = item.icon,
-                        value = item.value,
-                        defaultValue = item.defaultValue,
-                        onConfirm = {
-                            val accepted = item.onValueChanged(it)
-                            accepted
-                        },
-                    )
-                }
-                is Preference.PreferenceItem.ReorderStringPreference -> {
-                    ReorderStringPreference(
-                        customPrefsVerticalPadding = customPrefsVerticalPadding,
-                        valueList = item.value.split(","),
-                        items = item.items,
-                        title = item.title,
-                        subtitleProvider = {
-                            item.subtitle
-                        },
-                        onValueChange = {
-                            item.onValueChanged(it)
-                        }
-                    )
-                }
-                is Preference.PreferenceItem.CustomPreference -> {
-                    item.content(item)
+            Box(modifier = Modifier.fillMaxWidth().highlightBackground(highlighted)) {
+                when(item){
+                    is Preference.PreferenceItem.InfoPreference -> {
+                        InfoWidget(item.title)
+                    }
+                    is Preference.PreferenceItem.TextPreference -> {
+                        TextPreference(
+                            customPrefsVerticalPadding = customPrefsVerticalPadding,
+                            title = item.title,
+                            subtitle = item.subtitle,
+                            icon = item.icon,
+                            onPreferenceClick = item.onClick
+                        )
+                    }
+                    is Preference.PreferenceItem.SelectPreference<*> -> {
+                        SelectPreference(
+                            customPrefsVerticalPadding = customPrefsVerticalPadding,
+                            value = item.value,
+                            items = item.items,
+                            title = item.title,
+                            subtitleProvider = item.subtitleProvider,
+                            onValueChange = {
+                                item.castedOnValueChanged(it)
+                            }
+                        )
+                    }
+                    is Preference.PreferenceItem.MultiSelectPreference -> {
+                        MultiSelectPreference(
+                            customPrefsVerticalPadding = customPrefsVerticalPadding,
+                            value = item.value,
+                            items = item.items,
+                            title = item.title,
+                            overrideOkButton = item.overrideOkButton,
+                            subtitleProvider = item.subtitleProvider,
+                            onValueChange = {
+                                item.onValueChanged(it)
+                            }
+                        )
+                    }
+                    is Preference.PreferenceItem.MultiSelectPreferenceInt -> {
+                        MultiSelectPreference(
+                            customPrefsVerticalPadding = customPrefsVerticalPadding,
+                            value = item.value,
+                            items = item.items,
+                            title = item.title,
+                            overrideOkButton = item.overrideOkButton,
+                            subtitleProvider = item.subtitleProvider,
+                            onValueChange = {
+                                item.onValueChanged(it.toSortedSet())
+                            }
+                        )
+                    }
+                    is Preference.PreferenceItem.TogglePreference -> {
+                        TogglePreference(
+                            customPrefsVerticalPadding = customPrefsVerticalPadding,
+                            title = item.title,
+                            subtitle = item.subtitle,
+                            icon = item.icon,
+                            checked = item.value,
+                            onCheckedChanged = {
+                                item.onValueChanged(it)
+                            }
+                        )
+                    }
+                    is Preference.PreferenceItem.EditTextPreference -> {
+                        EditTextPreferenceWidget(
+                            customPrefsVerticalPadding = customPrefsVerticalPadding,
+                            title = item.title,
+                            subtitle = item.subtitle,
+                            icon = item.icon,
+                            value = item.value,
+                            defaultValue = item.defaultValue,
+                            onConfirm = {
+                                val accepted = item.onValueChanged(it)
+                                accepted
+                            },
+                        )
+                    }
+                    is Preference.PreferenceItem.ReorderStringPreference -> {
+                        ReorderStringPreference(
+                            customPrefsVerticalPadding = customPrefsVerticalPadding,
+                            valueList = item.value.split(","),
+                            items = item.items,
+                            title = item.title,
+                            subtitleProvider = {
+                                item.subtitle
+                            },
+                            onValueChange = {
+                                item.onValueChanged(it)
+                            }
+                        )
+                    }
+                    is Preference.PreferenceItem.CustomPreference -> {
+                        item.content(item)
+                    }
                 }
             }
         },

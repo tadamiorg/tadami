@@ -8,6 +8,7 @@ import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.OndemandVideo
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.VideoLibrary
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -24,6 +25,7 @@ import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
 import com.sf.tadami.navigation.graphs.settings.DataSettingsRoutes
 import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
 import com.sf.tadami.preferences.model.Preference
+import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,7 +51,14 @@ fun SettingsScreen(
                             contentDescription = null,
                         )
                     }
-                }
+                },
+                actions = listOf(
+                    Action.Vector(
+                        title = R.string.action_search_settings,
+                        icon = Icons.Outlined.Search,
+                        onClick = { navController.navigate(SettingsRoutes.SEARCH) }
+                    )
+                )
             )
         }
     ) {

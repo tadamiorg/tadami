@@ -11,6 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.datastore.core.DataStore
@@ -44,6 +45,8 @@ interface PreferenceScreen {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun Content() {
+        // Taken once: a later visit to the screen doesn't highlight it again
+        val highlightKey = remember { PreferenceScreen.highlightKey.also { PreferenceScreen.highlightKey = null } }
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -68,9 +71,15 @@ interface PreferenceScreen {
             content = { contentPadding ->
                 PreferenceParser(
                     modifier = Modifier.padding(contentPadding),
-                    items = getPreferences()
+                    items = getPreferences(),
+                    highlightKey = highlightKey
                 )
             },
         )
+    }
+
+    companion object {
+        /** The title of the preference a settings search result opens the screen on, set before opening it */
+        var highlightKey: String? = null
     }
 }
