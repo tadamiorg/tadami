@@ -50,6 +50,7 @@ fun SearchBarExpanded(
     onSearchChange: (value: String) -> Unit,
     actions: List<Action> = emptyList(),
     backHandlerEnabled : Boolean = true,
+    placeholder : String = stringResource(id = R.string.discover_search_screen_search_placeholder),
     value : String
 ) {
     var initialFocus by rememberSaveable { mutableStateOf(false) }
@@ -95,7 +96,7 @@ fun SearchBarExpanded(
                 onValueChange = { newText ->
                     onSearchChange(newText)
                 },
-                placeholder = { Text(text = stringResource(id = R.string.discover_search_screen_search_placeholder), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                placeholder = { Text(text = placeholder, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.Transparent,
