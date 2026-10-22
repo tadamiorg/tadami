@@ -100,6 +100,7 @@ class CastFrameGrabber(private val context: Context) {
         }
         grab = Grab(System.nanoTime(), onResult)
         handler.postDelayed(giveUp, PREVIEW_FETCH_TIMEOUT_MS)
+        Log.d(TAG, "Grab at $positionMs ms, ±$toleranceMs ms")
         val toleranceUs = toleranceMs * 1000
         previewPlayer.setSeekParameters(SeekParameters(toleranceUs, toleranceUs))
         previewPlayer.seekTo(positionMs)
@@ -112,7 +113,10 @@ class CastFrameGrabber(private val context: Context) {
         frameReader.latch()
         val current = grab ?: return
         // The first frame the decoder released since the grab started: the one after the seek
-        if (lastFrameReleaseNs.get() < current.startedAtNs) return
+        if (lastFrameReleaseNs.get() < current.startedAtNs) {
+            Log.v(TAG, "Frame of an earlier seek skipped")
+            return
+        }
         val (width, height) = previewFrameSize(aspectRatio)
         val bitmap = runCatching { frameReader.read(width, height) }
             .onFailure { Log.w(TAG, "Frame read back failed", it) }
@@ -130,6 +134,7 @@ class CastFrameGrabber(private val context: Context) {
 
     private fun finish(result: Result, releasePlayer: Boolean) {
         val current = grab ?: return
+        Log.d(TAG, "Grab ended: ${result::class.simpleName}, after ${(System.nanoTime() - current.startedAtNs) / 1_000_000} ms")
         grab = null
         handler.removeCallbacks(giveUp)
         // A late frame mustn't be taken for the next step's: a new player for it
