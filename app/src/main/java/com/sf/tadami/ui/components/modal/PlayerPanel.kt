@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -157,9 +156,8 @@ fun PlayerPanel(
                             val scope = rememberCoroutineScope()
                             PanelTabs(tabs, pagerState.currentPage) { scope.launch { pagerState.animateScrollToPage(it) } }
                         }
-                        HorizontalPager(
+                        StableHeightPager(
                             state = pagerState,
-                            verticalAlignment = Alignment.Top,
                             modifier = Modifier.weight(1f, fill = false),
                         ) { page ->
                             Box(modifier = Modifier.padding(vertical = 8.dp)) {

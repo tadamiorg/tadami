@@ -27,6 +27,10 @@ object ModalRules {
 
     /** A single choice applies a pick only when it changes the value, it closes either way. */
     fun <T> singleChoiceApplies(selected: T?, picked: T): Boolean = picked != selected
+
+    /** The height of a modal's pages: the tallest current page's, so switching pages doesn't resize it. */
+    fun tallestPage(pageHeights: Map<Int, Int>, pageCount: Int): Int =
+        pageHeights.filterKeys { it in 0 until pageCount }.values.maxOrNull() ?: 0
 }
 
 /** Pure black (AMOLED) theme: the containers need an edge. */

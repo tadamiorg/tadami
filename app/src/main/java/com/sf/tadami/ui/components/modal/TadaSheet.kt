@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.components.modal
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -8,7 +7,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -92,8 +90,8 @@ fun TadaSheet(
 class SheetTab(val title: String, val content: @Composable () -> Unit)
 
 /**
- * The pages of a sheet under a tab row of the sheet's colour, no tab row for a single page. The pager
- * takes the height of the page shown.
+ * The pages of a sheet under a tab row of the sheet's colour, no tab row for a single page. The sheet
+ * keeps the height of its tallest page.
  */
 @Composable
 fun SheetTabs(
@@ -115,11 +113,7 @@ fun SheetTabs(
                 }
             }
         }
-        HorizontalPager(
-            state = pagerState,
-            verticalAlignment = Alignment.Top,
-            modifier = Modifier.animateContentSize(),
-        ) { page ->
+        StableHeightPager(state = pagerState) { page ->
             Box(modifier = Modifier.padding(contentPadding)) {
                 tabs[page].content()
             }
