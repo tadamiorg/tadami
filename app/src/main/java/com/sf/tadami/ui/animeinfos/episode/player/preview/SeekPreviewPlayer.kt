@@ -67,8 +67,8 @@ class SeekPreviewPlayer(
     private var prefetchEnabled = false
     private var prefetchGapMs = PREVIEW_PREFETCH_GAP_LOCAL_MS
 
-    // What the prefetch's loads read (cache hits included), for the logs: its data cost
-    private var prefetchBytes = 0L
+    // What the preview player's loads read for this stream, cache hits included (the logs' rough data cost)
+    private var previewBytes = 0L
 
     // Frames dropped on memory pressure: not all made again for this stream
     private var prefetchSuspended = false
@@ -120,7 +120,7 @@ class SeekPreviewPlayer(
         prefetchSuspended = false
         prefetchStartedAt = null
         prefetchComplete = false
-        prefetchBytes = 0L
+        previewBytes = 0L
         if (prefetchEnabled) scheduleTick(0L)
     }
 
@@ -263,7 +263,7 @@ class SeekPreviewPlayer(
                         TAG,
                         "Prefetch complete: ${frames.size} frames, ${unavailable.size} without, " +
                             "${frames.bytes / 1024} KiB, in ${elapsed / 1000} s, " +
-                            "${prefetchBytes / 1024} KiB read",
+                            "${previewBytes / 1024} KiB read by the preview player (cache hits included)",
                     )
                     return
                 }
@@ -359,12 +359,21 @@ class SeekPreviewPlayer(
             }
         }
         previewPlayer.addAnalyticsListener(object : AnalyticsListener {
+            // Every load, finished after its frame was taken or cut short by the next seek
             override fun onLoadCompleted(
                 eventTime: AnalyticsListener.EventTime,
                 loadEventInfo: LoadEventInfo,
                 mediaLoadData: MediaLoadData,
             ) {
-                if (requests.inFlightIsPrefetch) prefetchBytes += loadEventInfo.bytesLoaded
+                previewBytes += loadEventInfo.bytesLoaded
+            }
+
+            override fun onLoadCanceled(
+                eventTime: AnalyticsListener.EventTime,
+                loadEventInfo: LoadEventInfo,
+                mediaLoadData: MediaLoadData,
+            ) {
+                previewBytes += loadEventInfo.bytesLoaded
             }
         })
         previewPlayer.addListener(object : Player.Listener {
