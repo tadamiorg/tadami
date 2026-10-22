@@ -239,6 +239,8 @@
     <string name="player_pref_seek_preview_subtitle">Show the frame under the thumb while dragging the seekbar. The player seeks when you release it</string>
     <string name="player_pref_seek_preview_only_on_wifi">Only on Wi-Fi</string>
     <string name="player_pref_seek_preview_only_on_wifi_subtitle">No preview of online videos on mobile data. Downloaded episodes always have it</string>
+    <string name="player_pref_seek_preview_cast_prefetch">Prefetch preview frames when casting</string>
+    <string name="player_pref_seek_preview_cast_prefetch_subtitle">While casting, downloads the episode in low quality in the background so scrubbing on the TV shows its frames at once</string>
     <string name="clear_database_source_item_count">%1$d non-library entries in database</string>
     <string name="clear_database_completed">Entries deleted</string>
     <string name="clear_database_confirmation">Are you sure? Seen episodes and progress of non-library entries will be lost</string>

@@ -56,8 +56,17 @@ class CastSeekPreview(
     private val newGrabber: () -> CastFrameGrabber = { CastFrameGrabber(context) },
     private val clock: () -> Long = SystemClock::elapsedRealtime,
 ) {
-    /** The preferences that apply, kept up to date by the owner. */
-    data class Settings(val enabled: Boolean = false, val onlyOnWifi: Boolean = false, val userAgent: String = "")
+    /**
+     * The preferences that apply, kept up to date by the owner: a change applies at the next prefetch
+     * tick (within a second), no reconnection needed. [prefetch] only gates the background prefetch,
+     * the scrubs' requests are answered either way.
+     */
+    data class Settings(
+        val enabled: Boolean = false,
+        val onlyOnWifi: Boolean = false,
+        val userAgent: String = "",
+        val prefetch: Boolean = true,
+    )
 
     /** The TV's player state and position. */
     data class CastPlayback(val state: CastPreviewPrefetch.Playback?, val positionMs: Long)
@@ -201,18 +210,19 @@ class CastSeekPreview(
     private fun onTick() {
         val current = source ?: return
         playback()?.let { prefetch.onStatus(it.state, it.positionMs) } ?: prefetch.onStatus(null, prefetch.positionMs)
-        val localUri = localFileUri(current.url)
         if (frames.isFailed) return
-        if (allowed(localUri != null) && prefetch.runnable() && prefetch.ready() && frames.inFlight == null) {
-            val step = prefetch.nextStep(current.duration) { frames.isDone(it) || it in receiverHas }
-            if (step == null) {
+        val allowed = settings.prefetch && allowed(localFileUri(current.url) != null)
+        when (val next = nextPrefetch(current, prefetch, frames, allowed, receiverHas)) {
+            PrefetchDecision.Complete -> {
                 onPrefetchComplete()
                 return
             }
-            frames.prefetch(current.requestFor(step))?.let {
+            is PrefetchDecision.Start -> {
                 if (prefetchStartedAt == null) prefetchStartedAt = clock()
-                perform(it)
+                perform(next.fetch)
             }
+            // Ticking on: the playback or the settings may allow it later
+            PrefetchDecision.Wait -> Unit
         }
         scheduleTick(TICK_MS)
     }
