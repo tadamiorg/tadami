@@ -126,13 +126,13 @@ class PlayerPreferencesScreen(
                 ),
                 Preference.PreferenceItem.TogglePreference(
                     enabled = prefs.seekPreview,
-                    title = stringResource(id = R.string.player_pref_seek_preview_cast_prefetch),
-                    value = prefs.seekPreviewCastPrefetch,
-                    subtitle = stringResource(id = R.string.player_pref_seek_preview_cast_prefetch_subtitle),
+                    title = stringResource(id = R.string.player_pref_seek_preview_prefetch),
+                    value = prefs.seekPreviewPrefetch,
+                    subtitle = stringResource(id = R.string.player_pref_seek_preview_prefetch_subtitle),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(
-                                seekPreviewCastPrefetch = it
+                                seekPreviewPrefetch = it
                             )
                         )
                         true

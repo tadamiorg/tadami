@@ -80,7 +80,11 @@ import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.episodetoolti
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.SettingsDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.TracksSelectionDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.videoselection.VideoSelectionDialog
+import com.sf.tadami.ui.animeinfos.episode.player.preview.PREVIEW_PREFETCH_GAP_LOCAL_MS
+import com.sf.tadami.ui.animeinfos.episode.player.preview.PREVIEW_PREFETCH_GAP_STREAM_MS
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch
+import com.sf.tadami.ui.animeinfos.episode.player.preview.phonePreviewPrefetchOn
+import com.sf.tadami.ui.animeinfos.episode.player.preview.previewPrefetchMayLoad
 import com.sf.tadami.ui.animeinfos.episode.player.preview.SeekPreviewPlayer
 import com.sf.tadami.ui.animeinfos.episode.player.preview.mainPlayerCanSpareNetwork
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewSourceIdentity
@@ -204,17 +208,27 @@ fun VideoPlayer(
 
     val screenLifecycle = LocalLifecycleOwner.current.lifecycle
 
-    // Second player of the seekbar preview, created on the first drag (or the prefetch of a download)
+    fun mainCanSpareNetwork() = mainPlayerCanSpareNetwork(
+        isBuffering = exoPlayer.playbackState == Player.STATE_BUFFERING,
+        bufferedAheadMs = exoPlayer.totalBufferedDuration,
+        bufferedPositionMs = exoPlayer.bufferedPosition,
+        durationMs = exoPlayer.duration,
+    )
+
+    // Second player of the seekbar preview, created on the first drag or by the prefetch
     val seekPreviewPlayer = remember {
         SeekPreviewPlayer(
             context = context,
             canLoad = {
                 // A downloaded episode takes no network from the main player
-                episodeUiState.selectedSource?.isLocalFile == true || mainPlayerCanSpareNetwork(
-                    isBuffering = exoPlayer.playbackState == Player.STATE_BUFFERING,
-                    bufferedAheadMs = exoPlayer.totalBufferedDuration,
-                    bufferedPositionMs = exoPlayer.bufferedPosition,
-                    durationMs = exoPlayer.duration,
+                episodeUiState.selectedSource?.isLocalFile == true || mainCanSpareNetwork()
+            },
+            canPrefetch = {
+                previewPrefetchMayLoad(
+                    localFile = episodeUiState.selectedSource?.isLocalFile == true,
+                    onlyOnWifi = playerPreferences.seekPreviewOnlyOnWifi,
+                    onWifi = context.isConnectedToWifi(),
+                    mainCanSpareNetwork = mainCanSpareNetwork(),
                 )
             },
             mainPlayback = {
@@ -459,9 +473,14 @@ fun VideoPlayer(
         })
     }
 
-    // A downloaded episode's preview frames are all fetched in the background: no network, scrubs at once
-    LaunchedEffect(playerPreferences.seekPreview, episodeUiState.selectedSource) {
-        seekPreviewPlayer.setPrefetch(playerPreferences.seekPreview && episodeUiState.selectedSource?.isLocalFile == true)
+    // Every preview frame fetched in the background, so scrubs show them at once: a download freely, a stream
+    // only while the network can be spared (canPrefetch) and gentler
+    LaunchedEffect(playerPreferences.seekPreview, playerPreferences.seekPreviewPrefetch, episodeUiState.selectedSource) {
+        val source = episodeUiState.selectedSource
+        seekPreviewPlayer.setPrefetch(
+            enabled = phonePreviewPrefetchOn(playerPreferences.seekPreview, playerPreferences.seekPreviewPrefetch, source != null),
+            gapMs = if (source?.isLocalFile == true) PREVIEW_PREFETCH_GAP_LOCAL_MS else PREVIEW_PREFETCH_GAP_STREAM_MS,
+        )
     }
 
     val seekPreview = remember(playerPreferences.seekPreview) {

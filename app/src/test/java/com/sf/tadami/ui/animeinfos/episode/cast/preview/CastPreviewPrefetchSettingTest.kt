@@ -50,11 +50,11 @@ class CastPreviewPrefetchSettingTest {
 
     @Test
     fun `the setting is on by default and stored`() {
-        assertTrue(PlayerPreferences.transform(emptyPreferences()).seekPreviewCastPrefetch)
+        assertTrue(PlayerPreferences.transform(emptyPreferences()).seekPreviewPrefetch)
         assertTrue(CastSeekPreview.Settings().prefetch)
-        val off = PlayerPreferences.transform(emptyPreferences()).copy(seekPreviewCastPrefetch = false)
+        val off = PlayerPreferences.transform(emptyPreferences()).copy(seekPreviewPrefetch = false)
         val stored = mutablePreferencesOf().also { PlayerPreferences.setPrefs(off, it) }
-        assertFalse(PlayerPreferences.transform(stored).seekPreviewCastPrefetch)
+        assertFalse(PlayerPreferences.transform(stored).seekPreviewPrefetch)
     }
 
     @Test

@@ -36,7 +36,8 @@ data class PlayerPreferences(
     val subtitleBottomPadding: Float,
     val seekPreview: Boolean,
     val seekPreviewOnlyOnWifi: Boolean,
-    val seekPreviewCastPrefetch: Boolean,
+    /** The preview frames are fetched in the background, by the phone player and for the cast. */
+    val seekPreviewPrefetch: Boolean,
 ) : CustomPreferencesIdentifier {
 
     object SeenThresholdItems {
@@ -97,7 +98,8 @@ data class PlayerPreferences(
         private val SUBTITLE_BOTTOM_PADDING = floatPreferencesKey("player_subtitles_bottom_padding")
         private val SEEK_PREVIEW = booleanPreferencesKey("player_seek_preview")
         private val SEEK_PREVIEW_ONLY_ON_WIFI = booleanPreferencesKey("player_seek_preview_only_on_wifi")
-        private val SEEK_PREVIEW_CAST_PREFETCH = booleanPreferencesKey("player_seek_preview_cast_prefetch")
+        // Named when it was the cast's only: the stored choice is kept
+        private val SEEK_PREVIEW_PREFETCH = booleanPreferencesKey("player_seek_preview_cast_prefetch")
 
         override fun transform(preferences: Preferences): PlayerPreferences {
            return PlayerPreferences(
@@ -121,7 +123,7 @@ data class PlayerPreferences(
                // On like Aniyomi's, which shows whenever the source has thumbnails and has no network limit
                seekPreview = preferences[SEEK_PREVIEW] ?: true,
                seekPreviewOnlyOnWifi = preferences[SEEK_PREVIEW_ONLY_ON_WIFI] ?: false,
-               seekPreviewCastPrefetch = preferences[SEEK_PREVIEW_CAST_PREFETCH] ?: true,
+               seekPreviewPrefetch = preferences[SEEK_PREVIEW_PREFETCH] ?: true,
            )
         }
 
@@ -145,7 +147,7 @@ data class PlayerPreferences(
             preferences[IGNORE_CUTOUT] = newValue.ignoreCutout
             preferences[SEEK_PREVIEW] = newValue.seekPreview
             preferences[SEEK_PREVIEW_ONLY_ON_WIFI] = newValue.seekPreviewOnlyOnWifi
-            preferences[SEEK_PREVIEW_CAST_PREFETCH] = newValue.seekPreviewCastPrefetch
+            preferences[SEEK_PREVIEW_PREFETCH] = newValue.seekPreviewPrefetch
         }
     }
 }

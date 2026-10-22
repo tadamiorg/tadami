@@ -147,7 +147,7 @@ class CastControlService : Service() {
                     enabled = player.seekPreview,
                     onlyOnWifi = player.seekPreviewOnlyOnWifi,
                     userAgent = advanced.userAgent,
-                    prefetch = player.seekPreviewCastPrefetch,
+                    prefetch = player.seekPreviewPrefetch,
                 )
             }.collect { seekPreview.settings = it }
         }

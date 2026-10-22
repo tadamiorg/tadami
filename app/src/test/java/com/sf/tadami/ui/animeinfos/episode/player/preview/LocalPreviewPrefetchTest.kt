@@ -146,18 +146,21 @@ class LocalPreviewPrefetchTest {
     }
 
     @Test
-    fun `every step of an episode fits the cache as RGB_565 frames`() {
-        // 101 steps at most with 1% steps (a step is 5 s at least, 30 s at most)
-        val steps = previewBucketOf(50 * 60_000L - 1, 50 * 60_000L) + 1
-        assertEquals(100, steps)
-        val cache = PreviewFrameCache<Long>(PREVIEW_FRAME_CACHE_BYTES) { it }.apply { setSource("download") }
-        repeat(101) { step ->
+    fun `every step of a film fits the cache as RGB_565 frames`() {
+        // Steps are 30 s at most: 2.5 h is 300 steps
+        val filmMs = 150 * 60_000L
+        val steps = previewBucketOf(filmMs - 1, filmMs) + 1
+        assertEquals(300, steps)
+        val cache = PreviewFrameCache<Long>(PREVIEW_BITMAP_CACHE_BYTES) { it }.apply { setSource("film") }
+        repeat(steps) { step ->
             assertTrue("step $step", cache.hasRoomFor(PREVIEW_FRAME_BYTES))
-            cache.put(PreviewFrameKey("download", step), PREVIEW_FRAME_BYTES)
+            cache.put(PreviewFrameKey("film", step), PREVIEW_FRAME_BYTES)
         }
-        assertEquals("nothing evicted", 101, cache.size)
-        // As ARGB frames (twice the bytes) they wouldn't: about 85
-        assertTrue(PREVIEW_FRAME_CACHE_BYTES / (PREVIEW_FRAME_BYTES * 2) < 100)
+        assertEquals("nothing evicted", 300, cache.size)
+        // 341 frames in all: 2 h 50
+        assertEquals(341L, PREVIEW_BITMAP_CACHE_BYTES / PREVIEW_FRAME_BYTES)
+        // As ARGB frames (twice the bytes) a film wouldn't fit
+        assertTrue(PREVIEW_BITMAP_CACHE_BYTES / (PREVIEW_FRAME_BYTES * 2) < 300)
     }
 
     @Test
