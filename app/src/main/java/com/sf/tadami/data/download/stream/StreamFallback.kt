@@ -57,8 +57,9 @@ object StreamFallback {
     fun key(stream: StreamSource): String = "${stream.server}|${stream.quality}|${stream.fullName}"
 
     /**
-     * The streams in the order to try them: the one a download stopped on first, then the
-     * extension's order (its preferences), the streams that already failed last.
+     * The streams in the order to try them: the one a download stopped on first, then the highest
+     * quality first, the extension's order (its preferences) between equal ones, the streams that
+     * already failed last. A stream that states no quality comes after those that do.
      */
     fun attemptOrder(
         streams: List<StreamSource>,
@@ -68,7 +69,14 @@ object StreamFallback {
         val resumed = streams.firstOrNull { key(it) == resumedKey && resumedKey !in failedKeys }
         val others = streams.filter { it !== resumed }
         val (failed, untried) = others.partition { key(it) in failedKeys }
-        return listOfNotNull(resumed) + untried + failed
+        // Stable: equal qualities keep the extension's order
+        val byQuality = compareByDescending<StreamSource> { height(it) ?: -1 }
+        return listOfNotNull(resumed) + untried.sortedWith(byQuality) + failed.sortedWith(byQuality)
+    }
+
+    /** The height the stream's quality label states, else its name ("Vidmoly 1080p"), null when neither does. */
+    fun height(stream: StreamSource): Int? {
+        return HlsVariants.targetHeight(stream.quality) ?: HlsVariants.targetHeight(stream.fullName)
     }
 
     fun classify(error: Throwable, online: Boolean): FailureAction {

@@ -60,8 +60,8 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Runs the download queue: [parallel slots][DownloadPreferences.parallelDownloads], at most one
- * active download per source so the hosts don't ban the user. Each episode tries its streams in
- * the extension's order until one gives a valid video, see [StreamFallback]. Doesn't depend on
+ * active download per source so the hosts don't ban the user. Each episode tries its streams, the
+ * highest quality first, until one gives a valid video, see [StreamFallback]. Doesn't depend on
  * how it is scheduled: [runQueue] runs until nothing is left to start.
  */
 class Downloader(

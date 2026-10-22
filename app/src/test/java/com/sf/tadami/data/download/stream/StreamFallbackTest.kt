@@ -20,8 +20,37 @@ class StreamFallbackTest {
     private val streams = listOf(kwik, sendvid, vidmoly)
 
     @Test
-    fun aNewDownloadFollowsTheExtensionOrder() {
-        assertEquals(streams, StreamFallback.attemptOrder(streams, resumedKey = null, failedKeys = emptyList()))
+    fun aNewDownloadTakesTheHighestQualityFirst() {
+        // Sendvid states no quality: after those that do
+        assertEquals(
+            listOf(kwik, vidmoly, sendvid),
+            StreamFallback.attemptOrder(streams, resumedKey = null, failedKeys = emptyList()),
+        )
+        // The extension's first stream is only 480p: the 1080p one of the next server goes first
+        val first480 = StreamSource(url = "https://a/480.mp4", fullName = "Sibnet", quality = "480p", server = "Sibnet")
+        val second1080 = StreamSource(url = "https://b/1080.m3u8", fullName = "Vidmoly", quality = "1080p", server = "Vidmoly")
+        assertEquals(
+            listOf(second1080, first480),
+            StreamFallback.attemptOrder(listOf(first480, second1080), null, emptyList()),
+        )
+    }
+
+    @Test
+    fun equalQualitiesKeepTheExtensionOrder() {
+        val sibnet = StreamSource(url = "https://sibnet/1.mp4", fullName = "Sibnet 720p", quality = "720p", server = "Sibnet")
+        val sendvid720 = sendvid.copy(quality = "720p")
+        assertEquals(
+            listOf(sibnet, vidmoly, sendvid720),
+            StreamFallback.attemptOrder(listOf(sibnet, vidmoly, sendvid720), null, emptyList()),
+        )
+    }
+
+    @Test
+    fun theQualityIsReadFromTheNameWhenTheLabelStatesNone() {
+        val named = StreamSource(url = "https://lpayer/1.m3u8", fullName = "LPayer - 1080p", server = "LPayer")
+        assertEquals(1080, StreamFallback.height(named))
+        assertEquals(null, StreamFallback.height(sendvid))
+        assertEquals(listOf(named, vidmoly), StreamFallback.attemptOrder(listOf(vidmoly, named), null, emptyList()))
     }
 
     @Test
@@ -48,7 +77,7 @@ class StreamFallbackTest {
         )
         // A failed stream isn't resumed first
         assertEquals(
-            listOf(sendvid, vidmoly, kwik),
+            listOf(vidmoly, sendvid, kwik),
             StreamFallback.attemptOrder(streams, StreamFallback.key(kwik), listOf(StreamFallback.key(kwik))),
         )
     }
