@@ -1,8 +1,14 @@
 package com.sf.tadami.ui.animeinfos.episode.player.preview
 
 import android.content.ComponentCallbacks2
+import android.content.Context
+import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultLoadControl
+import androidx.media3.exoplayer.RenderersFactory
+import androidx.media3.exoplayer.video.MediaCodecVideoRenderer
 import com.sf.tadami.data.download.isLocalFile
 import com.sf.tadami.source.model.StreamSource
 
@@ -43,6 +49,40 @@ fun previewTrackSelectionParameters(base: TrackSelectionParameters): TrackSelect
         .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
         .build()
 }
+
+/** Width of a preview frame: 256×144 for a 16:9 video. */
+const val PREVIEW_FRAME_WIDTH_PX = 256
+
+/** Bytes of preview frames kept per stream. */
+const val PREVIEW_FRAME_CACHE_BYTES = 12L * 1024 * 1024
+
+/** A step whose frame hasn't come after this long gives none, and isn't fetched again for the stream. */
+const val PREVIEW_FETCH_TIMEOUT_MS = 10_000L
+
+/** A single video renderer for the preview players: no audio, text nor metadata renderer is even created. */
+@OptIn(UnstableApi::class)
+fun previewRenderersFactory(context: Context) = RenderersFactory { handler, videoListener, _, _, _ ->
+    arrayOf(
+        MediaCodecVideoRenderer.Builder(context)
+            .setEventHandler(handler)
+            .setEventListener(videoListener)
+            .setEnableDecoderFallback(true)
+            .build()
+    )
+}
+
+/** The preview players' buffering: about one segment around the target, nothing more, nothing kept behind. */
+@OptIn(UnstableApi::class)
+fun previewLoadControl(): DefaultLoadControl = DefaultLoadControl.Builder()
+    .setBufferDurationsMs(PREVIEW_MIN_BUFFER_MS, PREVIEW_MAX_BUFFER_MS, PREVIEW_MIN_BUFFER_MS, PREVIEW_MIN_BUFFER_MS)
+    .setTargetBufferBytes(PREVIEW_TARGET_BUFFER_BYTES)
+    .setPrioritizeTimeOverSizeThresholds(false)
+    .setBackBuffer(0, false)
+    .build()
+
+private const val PREVIEW_MIN_BUFFER_MS = 500
+private const val PREVIEW_MAX_BUFFER_MS = 1_000
+private const val PREVIEW_TARGET_BUFFER_BYTES = 4 * 1024 * 1024
 
 /** Buffer the main player keeps ahead before preview loads may share the network with it. */
 const val MAIN_PLAYER_MIN_BUFFER_AHEAD_MS = 10_000L

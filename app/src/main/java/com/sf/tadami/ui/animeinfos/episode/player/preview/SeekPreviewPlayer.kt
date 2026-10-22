@@ -15,13 +15,10 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.RenderersFactory
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
-import androidx.media3.exoplayer.video.MediaCodecVideoRenderer
 import kotlin.math.roundToInt
 
 /**
@@ -44,7 +41,8 @@ class SeekPreviewPlayer(
     private var textureView: TextureView? = null
     private var surface: Surface? = null
 
-    private val frames = PreviewFrameCache<Bitmap>(FRAME_CACHE_BYTES) { it.allocationByteCount.toLong() }
+    // 256×144 ARGB frames (144 KiB): 12 MiB keep about 85 of them, most of an episode at 1% steps
+    private val frames = PreviewFrameCache<Bitmap>(PREVIEW_FRAME_CACHE_BYTES) { it.allocationByteCount.toLong() }
     private val requests = BucketRequests()
 
     // Steps that gave no frame in time: not fetched again for this stream
@@ -197,7 +195,7 @@ class SeekPreviewPlayer(
         Log.d(TAG, "Fetching step $bucket at $targetMs ms")
         fetchStartedAtNs = System.nanoTime()
         frameReleasedSinceFetch = false
-        handler.postDelayed(giveUp, FETCH_TIMEOUT_MS)
+        handler.postDelayed(giveUp, PREVIEW_FETCH_TIMEOUT_MS)
         previewPlayer.setSeekParameters(SeekParameters(toleranceUs, toleranceUs))
         previewPlayer.seekTo(targetMs)
         if (previewPlayer.playbackState == Player.STATE_IDLE) previewPlayer.prepare()
@@ -207,8 +205,8 @@ class SeekPreviewPlayer(
         val bucket = requests.inFlight ?: return
         if (!frameReleasedSinceFetch) return
         val view = textureView ?: return
-        val height = (FRAME_WIDTH_PX / videoAspectRatio).roundToInt().coerceAtLeast(1)
-        val bitmap = view.getBitmap(FRAME_WIDTH_PX, height) ?: return
+        val height = (PREVIEW_FRAME_WIDTH_PX / videoAspectRatio).roundToInt().coerceAtLeast(1)
+        val bitmap = view.getBitmap(PREVIEW_FRAME_WIDTH_PX, height) ?: return
         frames.put(key(bucket), bitmap)
         Log.d(TAG, "Cached step $bucket: ${frames.size} frames, ${frames.bytes / 1024} KiB")
         handler.removeCallbacks(giveUp)
@@ -233,18 +231,10 @@ class SeekPreviewPlayer(
         val mediaSource = runCatching { sourceFactory?.invoke() }
             .onFailure { Log.w(TAG, "Preview source creation failed", it) }
             .getOrNull() ?: return null
-        val previewPlayer = ExoPlayer.Builder(context, videoOnlyRenderers(context))
+        val previewPlayer = ExoPlayer.Builder(context, previewRenderersFactory(context))
             // Its own meter: preview loads must not move the main player's bitrate estimate
             .setBandwidthMeter(DefaultBandwidthMeter.Builder(context).build())
-            .setLoadControl(
-                DefaultLoadControl.Builder()
-                    // Loads about one segment around the target, nothing more
-                    .setBufferDurationsMs(MIN_BUFFER_MS, MAX_BUFFER_MS, MIN_BUFFER_MS, MIN_BUFFER_MS)
-                    .setTargetBufferBytes(TARGET_BUFFER_BYTES)
-                    .setPrioritizeTimeOverSizeThresholds(false)
-                    .setBackBuffer(0, false)
-                    .build()
-            )
+            .setLoadControl(previewLoadControl())
             .build()
         previewPlayer.trackSelectionParameters = previewTrackSelectionParameters(previewPlayer.trackSelectionParameters)
         previewPlayer.volume = 0f
@@ -279,25 +269,6 @@ class SeekPreviewPlayer(
     private companion object {
         const val TAG = "SeekPreviewPlayer"
         const val WAIT_FOR_MAIN_PLAYER_MS = 250L
-        const val FETCH_TIMEOUT_MS = 10_000L
-        const val MIN_BUFFER_MS = 500
-        const val MAX_BUFFER_MS = 1_000
-        const val TARGET_BUFFER_BYTES = 4 * 1024 * 1024
         const val DEFAULT_ASPECT_RATIO = 16f / 9f
-
-        // 256×144 ARGB frames (144 KiB): 12 MiB keep about 85 of them, most of an episode at 1% steps
-        const val FRAME_WIDTH_PX = 256
-        const val FRAME_CACHE_BYTES = 12L * 1024 * 1024
-
-        /** A single video renderer: no audio, text nor metadata renderer is even created. */
-        fun videoOnlyRenderers(context: Context) = RenderersFactory { handler, videoListener, _, _, _ ->
-            arrayOf(
-                MediaCodecVideoRenderer.Builder(context)
-                    .setEventHandler(handler)
-                    .setEventListener(videoListener)
-                    .setEnableDecoderFallback(true)
-                    .build()
-            )
-        }
     }
 }
