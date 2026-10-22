@@ -110,15 +110,17 @@ fun SeekBar(
                     )
                 },
                 track = { sliderState ->
-                    SliderDefaults.Track(
-                        sliderState = sliderState,
-                        enabled = false,
-                        thumbTrackGapSize = 0.dp,
-                        colors = SliderDefaults.colors(
-                            disabledActiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                        ),
-                        modifier = Modifier.height(12.dp)
-                    )
+                    TouchAreaTrack {
+                        SliderDefaults.Track(
+                            sliderState = sliderState,
+                            enabled = false,
+                            thumbTrackGapSize = 0.dp,
+                            colors = SliderDefaults.colors(
+                                disabledActiveTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                            ),
+                            modifier = Modifier.height(12.dp)
+                        )
+                    }
                 },
             )
 
@@ -158,12 +160,14 @@ fun SeekBar(
                     )
                 },
                 track = { sliderState ->
-                    SliderDefaults.Track(
-                        sliderState = sliderState,
-                        thumbTrackGapSize = 0.dp,
-                        colors = SliderDefaults.colors(inactiveTrackColor = Color.Transparent),
-                        modifier = Modifier.height(12.dp)
-                    )
+                    TouchAreaTrack {
+                        SliderDefaults.Track(
+                            sliderState = sliderState,
+                            thumbTrackGapSize = 0.dp,
+                            colors = SliderDefaults.colors(inactiveTrackColor = Color.Transparent),
+                            modifier = Modifier.height(12.dp)
+                        )
+                    }
                 }
             )
 
@@ -188,6 +192,19 @@ fun SeekBar(
 }
 
 private val ThumbSize = DpSize(22.dp, 22.dp)
+
+/**
+ * The slider only takes the touches on its own height, the tallest of its thumb and track: a transparent track
+ * this tall makes the bar easy to catch with a finger, the visible track staying centred in it.
+ */
+@Composable
+private fun TouchAreaTrack(track: @Composable () -> Unit) {
+    Box(modifier = Modifier.height(TouchAreaHeight), contentAlignment = Alignment.Center) {
+        track()
+    }
+}
+
+private val TouchAreaHeight = 64.dp
 
 /** Space between the preview and the slider, and the least between the preview and the screen edges. */
 private val PreviewGap = 8.dp
