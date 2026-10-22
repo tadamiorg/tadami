@@ -14,9 +14,9 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.outlined.DeleteOutline
-import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.RemoveDone
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -266,14 +266,14 @@ fun LibraryScreen(
                     ),
                     Action.Vector(
                         title = R.string.stub_text,
-                        icon = Icons.Outlined.DoneAll,
+                        icon = Icons.Outlined.Visibility,
                         onClick = {
                             libraryViewModel.setSeenStatus(true)
                         },
                     ),
                     Action.Vector(
                         title = R.string.stub_text,
-                        icon = Icons.Outlined.RemoveDone,
+                        icon = Icons.Outlined.VisibilityOff,
                         onClick = {
                             libraryViewModel.setSeenStatus(false)
                         },

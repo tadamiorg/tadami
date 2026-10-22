@@ -16,9 +16,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.RemoveDone
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -190,14 +190,14 @@ fun DetailsScreen(
                     actions = listOf(
                         Action.Vector(
                             title = R.string.stub_text,
-                            icon = Icons.Outlined.DoneAll,
+                            icon = Icons.Outlined.Visibility,
                             onClick = {
                                 detailsViewModel.setSeenStatus()
                             },
                         ),
                         Action.Vector(
                             title = R.string.stub_text,
-                            icon = Icons.Outlined.RemoveDone,
+                            icon = Icons.Outlined.VisibilityOff,
                             onClick = {
                                 detailsViewModel.setUnseenStatus()
                             },
