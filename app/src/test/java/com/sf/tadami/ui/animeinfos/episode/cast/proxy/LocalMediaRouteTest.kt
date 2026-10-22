@@ -176,6 +176,37 @@ class LocalMediaRouteTest {
     }
 
     @Test
+    fun theSeekbarPreviewFindsTheFileBehindAServedUrl() {
+        val prefix = proxy.serveLocal(media())
+        val base = "http://192.168.1.4:${proxy.listeningPort}$prefix"
+        // A media playlist leads to its joined file, a file to itself
+        assertEquals(video.path, proxy.localFileUri("${base}video.m3u8"))
+        assertEquals(video.path, proxy.localFileUri("${base}video.ts"))
+        // Nothing else: an unknown name, another token, an online URL
+        assertEquals(null, proxy.localFileUri("${base}secret.txt"))
+        assertEquals(null, proxy.localFileUri("http://192.168.1.4:8214${LocalMediaRoute.PATH_PREFIX}0123-video.ts"))
+        assertEquals(null, proxy.localFileUri("https://host.example/ep.m3u8"))
+        assertEquals(null, proxy.localFileUri("not a url"))
+        assertTrue("no file opened", opened.isEmpty())
+    }
+
+    @Test
+    fun theSeekbarPreviewFollowsTheMasterPlaylistToTheVideo() {
+        val withMaster = media().let {
+            it.copy(playlists = it.playlists + ("master.m3u8" to LocalPlaylist.Master("video.m3u8", emptyList(), 1_000)))
+        }
+        val prefix = proxy.serveLocal(withMaster)
+        assertEquals(video.path, proxy.localFileUri("http://127.0.0.1:${proxy.listeningPort}${prefix}master.m3u8"))
+    }
+
+    @Test
+    fun theSeekbarPreviewFindsNothingOnceTheProxyStops() {
+        val prefix = proxy.serveLocal(media())
+        proxy.stop()
+        assertEquals(null, proxy.localFileUri("http://127.0.0.1:8214${prefix}video.ts"))
+    }
+
+    @Test
     fun nothingIsServedOnceTheProxyStops() {
         val prefix = proxy.serveLocal(media())
         proxy.stop()

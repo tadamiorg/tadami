@@ -21,6 +21,16 @@ class ReceiverHandshakeMessageTest {
     }
 
     @Test
+    fun `reads the capabilities, none from older receivers`() {
+        val msg = json.decodeFromString<ReceiverHandshakeMessage>(
+            """{"receiverType":"web","receiverProtocol":3,"receiverVersion":"2.0.0","capabilities":["seekPreview","future"]}"""
+        )
+        assertEquals(listOf("seekPreview", "future"), msg.capabilities)
+        val old = json.decodeFromString<ReceiverHandshakeMessage>("""{"receiverType":"web","receiverProtocol":3}""")
+        assertEquals(emptyList<String>(), old.capabilities)
+    }
+
+    @Test
     fun `ignores unknown keys and missing fields`() {
         val msg = json.decodeFromString<ReceiverHandshakeMessage>(
             """{"receiverType":"web","futureField":{"nested":true}}"""

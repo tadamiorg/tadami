@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.media3.common.util.UnstableApi
+import com.google.android.gms.cast.MediaStatus
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
@@ -25,6 +26,7 @@ import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.isEpisodeWatched
 import com.sf.tadami.domain.episode.toSEpisode
 import com.sf.tadami.extension.util.callGuarded
+import com.sf.tadami.network.player.PlayerNetworkHelper
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
 import com.sf.tadami.preferences.cast.CastPreferences
@@ -42,12 +44,17 @@ import com.sf.tadami.ui.animeinfos.episode.cast.channels.HandshakeChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ReceiverHandshakeMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvControlMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.toCastSubtitleStyle
+import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastPreviewPrefetch
+import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastPreviewProtocol
+import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastSeekPreview
 import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyHolder
 import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyServer
 import com.sf.tadami.ui.animeinfos.episode.cast.sendCastMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.utils.getPreferencesGroup
+import com.sf.tadami.utils.getPreferencesGroupAsFlow
+import com.sf.tadami.utils.isConnectedToWifi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,6 +62,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -81,12 +89,17 @@ class CastControlService : Service() {
     // Null without working Google Play services: the service then stops right away
     private var castContext: CastContext? = null
     private lateinit var notifier: CastNotifier
-    private val controlChannel = ControlChannel { msg -> onControl(msg) }
+    private val controlChannel = ControlChannel(
+        onPreviewRequest = { seekPreview.onRequest(it) },
+        onPreviewSource = { seekPreview.onSource(it) },
+    ) { msg -> onControl(msg) }
     private val handshakeChannel = HandshakeChannel { reply -> onHandshakeReply(reply) }
     // Logs receiver-reported errors for the whole session (CastVideoPlayer replaces this callback
     // with its snackbar variant while that screen is open — both paths write to logcat).
     private val errorChannel = ErrorChannel()
     private lateinit var proxyServer: CastProxyServer
+    // Seekbar preview frames for the web receiver, cached for this session only
+    private lateinit var seekPreview: CastSeekPreview
     private var webNoticeShownThisSession = false
     private var fetchJob: Job? = null
     // Last seen media customData: at end of playback the media goes IDLE/FINISHED and mediaInfo
@@ -114,6 +127,25 @@ class CastControlService : Service() {
         // keeps the load path independent of (racy) receiver-type detection.
         proxyServer = CastProxyServer(applicationContext, OkHttpClient.Builder().build())
         CastProxyHolder.server = proxyServer
+        seekPreview = CastSeekPreview(
+            context = applicationContext,
+            playerNetworkHelper = Injekt.get<PlayerNetworkHelper>(),
+            send = { message ->
+                castContext?.sessionManager?.currentCastSession?.let { sendCastMessage(it, ControlChannel.NAMESPACE, message) }
+            },
+            localFileUri = proxyServer::localFileUri,
+            receiverCapable = { CastPreviewProtocol.CAPABILITY in CastSessionState.receiverCapabilities.value },
+            isOnWifi = { applicationContext.isConnectedToWifi() },
+            playback = ::castPlayback,
+        )
+        scope.launch {
+            combine(
+                dataStore.getPreferencesGroupAsFlow(PlayerPreferences),
+                dataStore.getPreferencesGroupAsFlow(AdvancedPreferences),
+            ) { player, advanced ->
+                CastSeekPreview.Settings(player.seekPreview, player.seekPreviewOnlyOnWifi, advanced.userAgent)
+            }.collect { seekPreview.settings = it }
+        }
         scope.launch(Dispatchers.IO) {
             // The proxy is stateless; the UA preference is its only phone-side input (applied when
             // neither the request nor its carried source headers set a User-Agent).
@@ -168,6 +200,8 @@ class CastControlService : Service() {
     override fun onDestroy() {
         fetchJob?.cancel()
         castContext?.sessionManager?.removeSessionManagerListener(sessionListener, CastSession::class.java)
+        // The session's preview frames go with it
+        seekPreview.destroy()
         CastProxyHolder.server = null
         proxyServer.stop()
         CastSessionState.clear()
@@ -176,6 +210,11 @@ class CastControlService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        seekPreview.onTrimMemory(level)
+    }
 
     private fun bind(session: CastSession) {
         setCastCustomChannel(session, controlChannel)
@@ -209,6 +248,7 @@ class CastControlService : Service() {
     private fun onHandshakeReply(reply: ReceiverHandshakeMessage) {
         if (reply.receiverType != "web") return
         CastSessionState.receiverType.value = CastSessionState.ReceiverType.WEB
+        CastSessionState.receiverCapabilities.value = reply.capabilities.toSet()
         if (webNoticeShownThisSession) return
         webNoticeShownThisSession = true
         scope.launch {
@@ -225,6 +265,20 @@ class CastControlService : Service() {
 
     private val remoteMediaClient: RemoteMediaClient?
         get() = castContext?.sessionManager?.currentCastSession?.remoteMediaClient
+
+    /** The TV's player state and position, for the seekbar preview prefetch. */
+    private fun castPlayback(): CastSeekPreview.CastPlayback? {
+        val client = remoteMediaClient ?: return null
+        val state = when (client.playerState) {
+            MediaStatus.PLAYER_STATE_PLAYING -> CastPreviewPrefetch.Playback.PLAYING
+            MediaStatus.PLAYER_STATE_PAUSED -> CastPreviewPrefetch.Playback.PAUSED
+            MediaStatus.PLAYER_STATE_BUFFERING -> CastPreviewPrefetch.Playback.BUFFERING
+            MediaStatus.PLAYER_STATE_LOADING -> CastPreviewPrefetch.Playback.LOADING
+            MediaStatus.PLAYER_STATE_IDLE -> CastPreviewPrefetch.Playback.IDLE
+            else -> null
+        }
+        return CastSeekPreview.CastPlayback(state, client.approximateStreamPosition)
+    }
 
     /** Control messages from the TV: persist watch time, switch episodes, or mirror TV-local track selection. */
     private fun onControl(msg: TvControlMessage) {
@@ -315,6 +369,7 @@ class CastControlService : Service() {
                 proxyBaseUrl = proxyServer.baseUrl(),
                 subtitleStyle = playerPrefs.toCastSubtitleStyle(),
                 contentUrl = contentUrl,
+                seekPreview = playerPrefs.seekPreview,
             )
 
         fetchJob?.cancel()

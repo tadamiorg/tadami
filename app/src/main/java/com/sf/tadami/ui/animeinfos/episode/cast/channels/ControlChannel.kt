@@ -3,6 +3,9 @@ package com.sf.tadami.ui.animeinfos.episode.cast.channels
 import android.util.Log
 import com.google.android.gms.cast.CastDevice
 import com.sf.tadami.preferences.player.PlayerPreferences
+import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastPreviewProtocol
+import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastPreviewRequest
+import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastPreviewSource
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -12,6 +15,10 @@ import kotlinx.serialization.json.Json
  * which the phone fulfils by re-resolving sources and re-loading them onto the TV.
  */
 class ControlChannel(
+    /** Seekbar preview requests of the web receiver ([CastPreviewProtocol]), apart from the other messages. */
+    private val onPreviewRequest: (CastPreviewRequest) -> Unit = {},
+    /** The stream the web receiver plays, for the seekbar preview prefetch. */
+    private val onPreviewSource: (CastPreviewSource) -> Unit = {},
     private val onControl: (TvControlMessage) -> Unit,
 ) : CustomCastChannel() {
 
@@ -20,7 +27,15 @@ class ControlChannel(
 
     override fun onMessageReceived(castDevice: CastDevice, namespace: String, message: String) {
         runCatching { json.decodeFromString<TvControlMessage>(message) }
-            .onSuccess(onControl)
+            .onSuccess { control ->
+                when (control.type) {
+                    CastPreviewProtocol.TYPE_REQUEST -> CastPreviewProtocol.decodeRequest(message)?.let(onPreviewRequest)
+                        ?: Log.d("ControlChannel", "Unusable preview request")
+                    CastPreviewProtocol.TYPE_SOURCE -> CastPreviewProtocol.decodeSource(message)?.let(onPreviewSource)
+                        ?: Log.d("ControlChannel", "Unusable preview source")
+                    else -> onControl(control)
+                }
+            }
             .onFailure { Log.d("ControlChannel", "Failed to parse control message", it) }
     }
 
@@ -33,8 +48,10 @@ class ControlChannel(
 @Serializable
 data class TvControlMessage(
     /**
-     * TV→phone: "progress" | "save" | "next" | "previous" | "selectEpisode" | "state".
-     * phone→TV: "selectSource" | "selectSubtitle" | "selectAudio" | "subtitleStyle".
+     * TV→phone: "progress" | "save" | "next" | "previous" | "selectEpisode" | "state" (and
+     * "previewSource", a CastPreviewSource, and "previewRequest", a CastPreviewRequest).
+     * phone→TV: "selectSource" | "selectSubtitle" | "selectAudio" | "subtitleStyle" (and
+     * "previewFrame", a CastPreviewFrame).
      */
     val type: String,
     val position: Long = 0L,

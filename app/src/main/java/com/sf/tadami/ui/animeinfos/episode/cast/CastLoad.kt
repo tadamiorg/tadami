@@ -31,7 +31,8 @@ private val castJson = Json
  * the payload stays format-agnostic and identical for both receivers (the native Terebi receiver
  * plays the raw `selectedSource` with its own header injection and ignores `proxyBaseUrl`).
  * [contentUrl] is the URL of the whole media, the selected source's unless a downloaded episode's
- * master playlist has its separate audio (LocalCast).
+ * master playlist has its separate audio (LocalCast). [seekPreview] announces that the phone makes
+ * seekbar preview frames (its setting is on): only a web receiver announcing it too asks for them.
  */
 fun buildCastLoadRequest(
     episode: Episode,
@@ -49,6 +50,7 @@ fun buildCastLoadRequest(
     proxyBaseUrl: String? = null,
     subtitleStyle: CastSubtitleStyle? = null,
     contentUrl: String = selectedSource.url,
+    seekPreview: Boolean = false,
 ): MediaLoadRequestData {
     val movieMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE)
     movieMetadata.putString(MediaMetadata.KEY_TITLE, anime?.title ?: "Anime Title")
@@ -89,6 +91,8 @@ fun buildCastLoadRequest(
     // player screen is composed, so without this a fresh load (or a notification-driven episode
     // switch) would render with the receiver's defaults instead of the user's preferences.
     subtitleStyle?.let { customData.put("subtitleStyle", castJson.encodeToString(it)) }
+    // Additive, like the keys above: receivers that don't know it ignore it
+    if (seekPreview) customData.put("seekPreview", true)
 
     val mediaInfosBuilder = MediaInfo.Builder(contentUrl)
         .setContentUrl(contentUrl)
