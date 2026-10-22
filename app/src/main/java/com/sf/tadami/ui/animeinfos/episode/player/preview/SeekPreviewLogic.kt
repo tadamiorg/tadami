@@ -2,6 +2,9 @@ package com.sf.tadami.ui.animeinfos.episode.player.preview
 
 import android.content.ComponentCallbacks2
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
 import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.TrackSelectionParameters
@@ -55,6 +58,12 @@ const val PREVIEW_FRAME_WIDTH_PX = 256
 
 /** Bytes of preview frames kept per stream. */
 const val PREVIEW_FRAME_CACHE_BYTES = 12L * 1024 * 1024
+
+/**
+ * Bytes of one phone preview frame: 256×144 in RGB_565, 72 KiB, so [PREVIEW_FRAME_CACHE_BYTES] keep 170 of
+ * them, every step of an episode up to 50 min (1% steps, 101 at most) with room to spare.
+ */
+const val PREVIEW_FRAME_BYTES = PREVIEW_FRAME_WIDTH_PX * 144L * 2
 
 /** A step whose frame hasn't come after this long gives none, and isn't fetched again for the stream. */
 const val PREVIEW_FETCH_TIMEOUT_MS = 10_000L
@@ -154,6 +163,9 @@ class PreviewFrameCache<V : Any>(private val maxBytes: Long, private val sizeOf:
     /** Whether the frame is cached, without making it recently used. */
     operator fun contains(key: PreviewFrameKey): Boolean = entries.containsKey(key)
 
+    /** Whether a frame of [frameBytes] fits without dropping another. */
+    fun hasRoomFor(frameBytes: Long): Boolean = bytes + frameBytes <= maxBytes
+
     fun put(key: PreviewFrameKey, value: V) {
         if (key.sourceId != sourceId) return
         entries.put(key, value)?.let { bytes -= sizeOf(it) }
@@ -179,37 +191,104 @@ class PreviewFrameCache<V : Any>(private val maxBytes: Long, private val sizeOf:
 }
 
 /**
- * Which preview step to fetch: only the one under the finger, never one cached or already loading, and
- * one at a time. A finger back over the step loading waits for it.
+ * Which preview step to fetch: the one under the finger, never one cached or already loading, and one at
+ * a time. A finger back over the step loading waits for it. Without a finger on the seekbar, the
+ * background prefetch may fetch a step; the finger's step then takes over, unless it is the one loading.
  */
 class BucketRequests {
     var inFlight: Int? = null
         private set
 
+    /** The fetch in flight is a prefetch, not the finger's step. */
+    var inFlightIsPrefetch = false
+        private set
+
     private var target: Int? = null
+
+    /** A finger is on the seekbar: no prefetch starts. */
+    val scrubbing: Boolean
+        get() = target != null
 
     /** The finger is over [bucket], or null once the drag ended. */
     fun aim(bucket: Int?) {
         target = bucket
     }
 
-    /** The step to fetch now, marked as loading; null when there's none, it [isDone] already, or one is loading. */
+    /**
+     * The step to fetch now, marked as loading; null when there's none, it [isDone] already, or one is
+     * loading — but a prefetch of another step, which the finger's step takes over.
+     */
     fun next(isDone: (Int) -> Boolean): Int? {
-        if (inFlight != null) return null
         val bucket = target?.takeUnless(isDone) ?: return null
+        val loading = inFlight
+        if (loading != null && (!inFlightIsPrefetch || loading == bucket)) return null
         inFlight = bucket
+        inFlightIsPrefetch = false
         return bucket
+    }
+
+    /** Marks the prefetch of [bucket] as loading: false when a fetch loads or a finger is on the seekbar. */
+    fun prefetch(bucket: Int): Boolean {
+        if (inFlight != null || target != null) return false
+        inFlight = bucket
+        inFlightIsPrefetch = true
+        return true
     }
 
     /** The fetch of [bucket] ended, its frame cached or given up. */
     fun finished(bucket: Int) {
-        if (inFlight == bucket) inFlight = null
+        if (inFlight == bucket) {
+            inFlight = null
+            inFlightIsPrefetch = false
+        }
     }
 
     fun clear() {
         inFlight = null
+        inFlightIsPrefetch = false
         target = null
     }
+}
+
+/** What the phone player's background prefetch does now. */
+sealed interface PreviewPrefetchStep {
+    /** Fetch the frame of [bucket]. */
+    data class Fetch(val bucket: Int) : PreviewPrefetchStep
+
+    /** Nothing now: the playback isn't steady, the gap isn't over, a fetch loads or a finger scrubs. */
+    data object Wait : PreviewPrefetchStep
+
+    /** Nothing more: every step is cached or gives no frame, or the cache is full (nothing is evicted for it). */
+    data object Done : PreviewPrefetchStep
+}
+
+/**
+ * The prefetch's next move in a [durationMs]-long stream, from the playback [schedule], what [requests]
+ * load, the steps [isDone] and whether the cache [hasRoom] for one more frame.
+ */
+fun nextPreviewPrefetch(
+    schedule: PreviewPrefetch,
+    requests: BucketRequests,
+    durationMs: Long,
+    isDone: (Int) -> Boolean,
+    hasRoom: Boolean,
+): PreviewPrefetchStep {
+    if (!schedule.runnable() || !schedule.ready() || requests.inFlight != null || requests.scrubbing) {
+        return PreviewPrefetchStep.Wait
+    }
+    val bucket = schedule.nextStep(durationMs, isDone) ?: return PreviewPrefetchStep.Done
+    return if (hasRoom) PreviewPrefetchStep.Fetch(bucket) else PreviewPrefetchStep.Done
+}
+
+/**
+ * [argb] as a preview frame: RGB_565, half the memory, dithered so gradients don't band. [argb] is
+ * recycled.
+ */
+fun toPreviewFrame(argb: Bitmap): Bitmap {
+    val frame = Bitmap.createBitmap(argb.width, argb.height, Bitmap.Config.RGB_565)
+    Canvas(frame).drawBitmap(argb, 0f, 0f, Paint(Paint.DITHER_FLAG or Paint.FILTER_BITMAP_FLAG))
+    argb.recycle()
+    return frame
 }
 
 /**
