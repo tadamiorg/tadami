@@ -123,6 +123,20 @@ private fun Context.findActivity(): Activity? {
     return null
 }
 
+/** The icons of the screen's bars: light status bar, light navigation bar (dark icons). */
+data class BarsAppearance(val lightStatusBars: Boolean, val lightNavigationBars: Boolean)
+
+/** How the screen under a dialog or sheet draws the icons of its bars, the theme's if it can't be read. */
+@Composable
+fun screenBarsAppearance(): BarsAppearance {
+    val view = LocalView.current
+    val lightTheme = MaterialTheme.colorScheme.surface.luminance() > 0.5f
+    val activityWindow = view.context.findActivity()?.window
+        ?: return BarsAppearance(lightTheme, lightTheme)
+    val controller = WindowCompat.getInsetsController(activityWindow, activityWindow.decorView)
+    return BarsAppearance(controller.isAppearanceLightStatusBars, controller.isAppearanceLightNavigationBars)
+}
+
 /**
  * In a dialog or sheet window: transparent system bars drawn by the window itself, without the
  * contrast scrim, their icons as the screen under it has them. Otherwise the system paints its own

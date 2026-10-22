@@ -13,6 +13,7 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Tab
@@ -48,6 +49,8 @@ fun TadaSheet(
 ) {
     val container = sheetContainerColor()
     val shape = BottomSheetDefaults.ExpandedShape
+    // The sheet's window keeps the bar icons of the screen from its first frame
+    val bars = screenBarsAppearance()
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         modifier = modifier.then(modalBorder()?.let { Modifier.border(it, shape) } ?: Modifier),
@@ -57,8 +60,15 @@ fun TadaSheet(
         containerColor = container,
         contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 0.dp,
-        content = content,
-    )
+        properties = ModalBottomSheetProperties(
+            isAppearanceLightStatusBars = bars.lightStatusBars,
+            isAppearanceLightNavigationBars = bars.lightNavigationBars,
+        ),
+    ) {
+        // The sheet draws behind the navigation bar, with no system background or scrim on it
+        TransparentDialogBars()
+        content()
+    }
 }
 
 /** A page of a sheet. */
