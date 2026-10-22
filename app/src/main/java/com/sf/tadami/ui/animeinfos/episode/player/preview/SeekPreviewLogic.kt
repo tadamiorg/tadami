@@ -56,14 +56,35 @@ fun previewTrackSelectionParameters(base: TrackSelectionParameters): TrackSelect
 /** Width of a preview frame: 256×144 for a 16:9 video. */
 const val PREVIEW_FRAME_WIDTH_PX = 256
 
-/** Bytes of preview frames kept per stream. */
+/** Bytes of preview frames kept per stream, for the cast (JPEGs of 3 to 16 KB: well over a thousand). */
 const val PREVIEW_FRAME_CACHE_BYTES = 12L * 1024 * 1024
 
-/**
- * Bytes of one phone preview frame: 256×144 in RGB_565, 72 KiB, so [PREVIEW_FRAME_CACHE_BYTES] keep 170 of
- * them, every step of an episode up to 50 min (1% steps, 101 at most) with room to spare.
- */
+/** Bytes of one phone preview frame: 256×144 in RGB_565, 72 KiB. */
 const val PREVIEW_FRAME_BYTES = PREVIEW_FRAME_WIDTH_PX * 144L * 2
+
+/**
+ * Bytes of the phone player's preview frames: 341 of [PREVIEW_FRAME_BYTES], every step of a 2 h 50 film
+ * (steps are 30 s at most past 50 min: 2.5 h is 300 steps, 21 MiB). Bitmap pixels live in native memory.
+ */
+const val PREVIEW_BITMAP_CACHE_BYTES = 24L * 1024 * 1024
+
+/** Between two prefetched steps of a downloaded episode: the main player decodes too. */
+const val PREVIEW_PREFETCH_GAP_LOCAL_MS = 500L
+
+/** Between two prefetched steps of a streamed episode, gentler: they load from the network (as the cast's). */
+const val PREVIEW_PREFETCH_GAP_STREAM_MS = 1_000L
+
+/** Whether the phone player prefetches its stream's preview frames: both settings on, a stream playing. */
+fun phonePreviewPrefetchOn(seekPreview: Boolean, prefetch: Boolean, hasSource: Boolean): Boolean =
+    seekPreview && prefetch && hasSource
+
+/**
+ * Whether a prefetch may load now: a downloaded episode always (no network); a stream as the scrubs' own
+ * fetches, on mobile data too unless "Only on Wi-Fi" ([onlyOnWifi]) is on, and only while the main player
+ * can spare the network ([mainPlayerCanSpareNetwork]): it loads about the whole episode in low quality.
+ */
+fun previewPrefetchMayLoad(localFile: Boolean, onlyOnWifi: Boolean, onWifi: Boolean, mainCanSpareNetwork: Boolean): Boolean =
+    localFile || ((!onlyOnWifi || onWifi) && mainCanSpareNetwork)
 
 /** A step whose frame hasn't come after this long gives none, and isn't fetched again for the stream. */
 const val PREVIEW_FETCH_TIMEOUT_MS = 10_000L
