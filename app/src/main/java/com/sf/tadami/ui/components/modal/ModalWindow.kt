@@ -170,9 +170,11 @@ fun TransparentDialogBars() {
             isAppearanceLightStatusBars = screen?.isAppearanceLightStatusBars ?: lightTheme
             isAppearanceLightNavigationBars = screen?.isAppearanceLightNavigationBars ?: lightTheme
             // Hidden bars (the player is immersive) stay hidden: they would come back and move the screen
-            if (screenInsets != null && !screenInsets.isVisible(WindowInsetsCompat.Type.systemBars())) {
+            val hidden = listOf(WindowInsetsCompat.Type.statusBars(), WindowInsetsCompat.Type.navigationBars())
+                .filter { screenInsets != null && !screenInsets.isVisible(it) }
+            if (hidden.isNotEmpty()) {
                 systemBarsBehavior = screen?.systemBarsBehavior ?: WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                hide(WindowInsetsCompat.Type.systemBars())
+                hidden.forEach { hide(it) }
             }
         }
     }
