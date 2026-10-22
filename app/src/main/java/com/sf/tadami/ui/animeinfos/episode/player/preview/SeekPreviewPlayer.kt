@@ -16,6 +16,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.analytics.AnalyticsListener
@@ -23,6 +24,7 @@ import androidx.media3.exoplayer.source.LoadEventInfo
 import androidx.media3.exoplayer.source.MediaLoadData
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
+import java.io.IOException
 import kotlin.math.roundToInt
 
 /**
@@ -94,6 +96,19 @@ class SeekPreviewPlayer(
     // The decoder released a frame since the fetch started: the next texture update is the step's frame
     private var frameReleasedSinceFetch = false
 
+    // The fetch's step, and the time and release time of the frame the decoder released in it (latency logs)
+    private var fetchRangeMs = LongRange.EMPTY
+    private var releasedFramePtsUs = 0L
+    private var releasedFrameAtNs = 0L
+
+    // When the finger reached its step, whether the step was cached then, and whether its frame was drawn (latency logs)
+    private var fingerArrivedAt = 0L
+    private var fingerArrivedCached = false
+    private var fingerStepDrawn = false
+
+    // The step of the frame shown
+    private var shownBucket: Int? = null
+
     /** The frame shown: the one of the step under the finger, or the last one shown while it loads. */
     var frame by mutableStateOf<Bitmap?>(null)
         private set
@@ -115,6 +130,7 @@ class SeekPreviewPlayer(
         sourceFactory = factory
         failed = false
         frame = null
+        shownBucket = null
         frameLoading = false
         schedule.reset()
         prefetchSuspended = false
@@ -142,9 +158,33 @@ class SeekPreviewPlayer(
         val bucket = previewBucketOf(positionMs, durationMs)
         if (bucket == fingerBucket) return
         fingerBucket = bucket
+        fingerArrivedAt = SystemClock.elapsedRealtime()
+        fingerArrivedCached = key(bucket) in frames
+        fingerStepDrawn = false
+        val status = when {
+            fingerArrivedCached -> "cached"
+            failed || bucket in unavailable -> "no frame"
+            else -> "loading"
+        }
+        Log.d(TAG, "Finger on step $bucket: $status")
         requests.aim(bucket)
         showBucket(bucket)
         pumpRequests()
+    }
+
+    /**
+     * The thumbnail was drawn, [exact] when with the frame of the step under the finger: logs the time since
+     * the finger reached that step, once per step.
+     */
+    fun onThumbnailDrawn(exact: Boolean) {
+        val bucket = fingerBucket ?: return
+        if (!exact || fingerStepDrawn || shownBucket != bucket) return
+        fingerStepDrawn = true
+        Log.d(
+            TAG,
+            "Finger's step $bucket drawn in ${SystemClock.elapsedRealtime() - fingerArrivedAt} ms " +
+                if (fingerArrivedCached) "(cached)" else "(fetched)",
+        )
     }
 
     /** The drag ended: nothing new is fetched, the fetch in flight still lands in the cache. */
@@ -170,6 +210,7 @@ class SeekPreviewPlayer(
         release()
         frames.setSource(null)
         frame = null
+        shownBucket = null
     }
 
     fun onTrimMemory(level: Int) {
@@ -222,7 +263,10 @@ class SeekPreviewPlayer(
 
     private fun showBucket(bucket: Int) {
         val cached = frames[key(bucket)]
-        if (cached != null) frame = cached
+        if (cached != null) {
+            frame = cached
+            shownBucket = bucket
+        }
         frameLoading = cached == null && !failed && bucket !in unavailable
     }
 
@@ -298,6 +342,7 @@ class SeekPreviewPlayer(
         fetchStartedAt = SystemClock.elapsedRealtime()
         // The seek lands in the step, or on the next keyframe in a stream seeking by bytes (a joined MPEG-TS)
         fetchWindowUs = (range.first - FRAME_WINDOW_BEFORE_MS) * 1000..(range.last + FRAME_WINDOW_AFTER_MS) * 1000
+        fetchRangeMs = range
         frameReleasedSinceFetch = false
         // A scrub may take over a prefetch: its own time limit only
         handler.removeCallbacks(giveUp)
@@ -315,10 +360,16 @@ class SeekPreviewPlayer(
         val bitmap = view.getBitmap(PREVIEW_FRAME_WIDTH_PX, height)?.let(::toPreviewFrame) ?: return
         frameBytes = bitmap.allocationByteCount.toLong()
         frames.put(key(bucket), bitmap)
+        val framePtsMs = releasedFramePtsUs / 1000
+        val textureMatches = view.surfaceTexture?.timestamp == releasedFrameAtNs
         Log.d(
             TAG,
             "Cached step $bucket in ${SystemClock.elapsedRealtime() - fetchStartedAt} ms: " +
-                "${frames.size} frames, ${frames.bytes / 1024} KiB",
+                "${frames.size} frames, ${frames.bytes / 1024} KiB; " +
+                "frame at ${framePtsMs - fetchRangeMs.first} ms into the step, " +
+                "${(framePtsMs - fetchRangeMs.last - 1).coerceAtLeast(0L)} ms past its end, " +
+                "released ${(releasedFrameAtNs - fetchStartedAtNs) / 1_000_000} ms after the seek, " +
+                "texture ${if (textureMatches) "matches" else "differs"}",
         )
         handler.removeCallbacks(giveUp)
         onFetchEnded(bucket)
@@ -329,13 +380,26 @@ class SeekPreviewPlayer(
     private fun onFetchTimeout() {
         val bucket = requests.inFlight ?: return
         // A late frame mustn't be taken for the next step: drop the player, the next fetch makes a new one
-        Log.w(TAG, "Step $bucket timed out, preview player state ${player?.playbackState} at ${player?.currentPosition} ms")
+        Log.w(
+            TAG,
+            "Step $bucket timed out, preview player state ${player?.playbackState} at ${player?.currentPosition} ms, " +
+                "buffered ${player?.totalBufferedDuration} ms ahead, up to ${player?.bufferedPosition} ms",
+        )
         player?.release()
         player = null
         unavailable += bucket
         onFetchEnded(bucket)
         fingerBucket?.let(::showBucket)
         pumpRequests()
+    }
+
+    /** Logs a load of the preview player: its bytes, its own length, and when it ended since the last fetch started. */
+    private fun logLoad(outcome: String, info: LoadEventInfo, data: MediaLoadData) {
+        Log.d(
+            TAG,
+            "Load $outcome for step ${requests.inFlight}: ${info.bytesLoaded} B in ${info.loadDurationMs} ms, " +
+                "data type ${data.dataType}, ${SystemClock.elapsedRealtime() - fetchStartedAt} ms after the seek",
+        )
     }
 
     private fun create(): ExoPlayer? {
@@ -347,6 +411,7 @@ class SeekPreviewPlayer(
             .setBandwidthMeter(DefaultBandwidthMeter.Builder(context).build())
             .setLoadControl(previewLoadControl())
             .build()
+        Log.d(TAG, "Preview player created")
         previewPlayer.trackSelectionParameters = previewTrackSelectionParameters(previewPlayer.trackSelectionParameters)
         previewPlayer.volume = 0f
         previewPlayer.playWhenReady = false
@@ -355,7 +420,11 @@ class SeekPreviewPlayer(
         previewPlayer.setVideoFrameMetadataListener { presentationTimeUs, releaseTimeNs, _, _ ->
             // Playback thread: the frame is about to be queued to the surface
             handler.post {
-                if (releaseTimeNs >= fetchStartedAtNs && presentationTimeUs in fetchWindowUs) frameReleasedSinceFetch = true
+                if (releaseTimeNs >= fetchStartedAtNs && presentationTimeUs in fetchWindowUs) {
+                    frameReleasedSinceFetch = true
+                    releasedFramePtsUs = presentationTimeUs
+                    releasedFrameAtNs = releaseTimeNs
+                }
             }
         }
         previewPlayer.addAnalyticsListener(object : AnalyticsListener {
@@ -366,6 +435,7 @@ class SeekPreviewPlayer(
                 mediaLoadData: MediaLoadData,
             ) {
                 previewBytes += loadEventInfo.bytesLoaded
+                logLoad("completed", loadEventInfo, mediaLoadData)
             }
 
             override fun onLoadCanceled(
@@ -374,6 +444,32 @@ class SeekPreviewPlayer(
                 mediaLoadData: MediaLoadData,
             ) {
                 previewBytes += loadEventInfo.bytesLoaded
+                logLoad("canceled", loadEventInfo, mediaLoadData)
+            }
+
+            override fun onLoadError(
+                eventTime: AnalyticsListener.EventTime,
+                loadEventInfo: LoadEventInfo,
+                mediaLoadData: MediaLoadData,
+                error: IOException,
+                wasCanceled: Boolean,
+            ) {
+                val code = (error as? HttpDataSource.InvalidResponseCodeException)?.responseCode
+                Log.d(TAG, "Load failed for step ${requests.inFlight}: ${code?.let { "HTTP $it" } ?: error.javaClass.simpleName}")
+            }
+
+            // A software decoder taken as a fallback shows here
+            override fun onVideoDecoderInitialized(
+                eventTime: AnalyticsListener.EventTime,
+                decoderName: String,
+                initializedTimestampMs: Long,
+                initializationDurationMs: Long,
+            ) {
+                Log.d(TAG, "Decoder $decoderName initialized in $initializationDurationMs ms")
+            }
+
+            override fun onDroppedSeeksWhileScrubbing(eventTime: AnalyticsListener.EventTime, droppedSeeks: Int) {
+                Log.d(TAG, "$droppedSeeks seeks dropped while scrubbing")
             }
         })
         previewPlayer.addListener(object : Player.Listener {

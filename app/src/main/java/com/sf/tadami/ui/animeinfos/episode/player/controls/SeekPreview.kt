@@ -18,6 +18,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -65,7 +66,16 @@ fun SeekPreviewThumbnail(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             val frame = previewPlayer.frame
             if (!previewPlayer.failed || frame != null) {
-                Box(modifier = Modifier.size(PreviewWidth, PreviewHeight), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .size(PreviewWidth, PreviewHeight)
+                        .drawWithContent {
+                            drawContent()
+                            // Read at draw time: the frame and its state as drawn (latency logs)
+                            previewPlayer.onThumbnailDrawn(exact = previewPlayer.frame != null && !previewPlayer.frameLoading)
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
                     if (frame != null) {
                         val image = remember(frame) { frame.asImageBitmap() }
                         Image(
