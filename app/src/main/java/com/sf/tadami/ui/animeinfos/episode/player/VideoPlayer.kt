@@ -95,6 +95,7 @@ import com.sf.tadami.utils.isConnectedToWifi
 import kotlinx.coroutines.delay
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /** Prefix used to tag each side-loaded subtitle so it can be selected by an explicit override. */
@@ -485,6 +486,15 @@ fun VideoPlayer(
                     exoPlayer.currentPosition.coerceAtLeast(0L).coerceAtMost(totalDuration)
                 delay(1.seconds / 30)
             }
+        }
+    }
+
+    // The player sends no event while its buffer grows, so the buffer bar would stay where the last event left
+    // it: poll it, paused too as loading goes on
+    LaunchedEffect(exoPlayer) {
+        while (true) {
+            bufferedPercentage = exoPlayer.bufferedPercentage
+            delay(500.milliseconds)
         }
     }
 
