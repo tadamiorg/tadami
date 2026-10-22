@@ -143,7 +143,12 @@ class CastControlService : Service() {
                 dataStore.getPreferencesGroupAsFlow(PlayerPreferences),
                 dataStore.getPreferencesGroupAsFlow(AdvancedPreferences),
             ) { player, advanced ->
-                CastSeekPreview.Settings(player.seekPreview, player.seekPreviewOnlyOnWifi, advanced.userAgent)
+                CastSeekPreview.Settings(
+                    enabled = player.seekPreview,
+                    onlyOnWifi = player.seekPreviewOnlyOnWifi,
+                    userAgent = advanced.userAgent,
+                    prefetch = player.seekPreviewCastPrefetch,
+                )
             }.collect { seekPreview.settings = it }
         }
         scope.launch(Dispatchers.IO) {
