@@ -30,8 +30,8 @@ import java.util.concurrent.TimeUnit
 
 /**
  * The cast seekbar preview generator on a real Android runtime, against public test streams: an HLS
- * stream, a progressive MP4 and a downloaded MP4 (the local-file path). Needs the network, so it only
- * runs when asked: `-e castPreviewStreams true`. Logs each frame's decode time and JPEG size
+ * stream, a progressive MP4, and downloads (the local-file path): an MP4 and HLS segments joined in
+ * one MPEG-TS file. Needs the network, so it only runs when asked: `-e castPreviewStreams true`. Logs each frame's decode time and JPEG size
  * (`adb logcat -s CastPreviewStreamsTest CastSeekPreview CastFrameGrabber`) and keeps the frames in
  * the app's external files (`cast-preview/`) to look at.
  */
@@ -45,6 +45,7 @@ class CastSeekPreviewStreamsTest {
     private val replies = LinkedBlockingQueue<String>()
     private lateinit var preview: CastSeekPreview
     private lateinit var localFile: File
+    private lateinit var localTsFile: File
     private var nextRequestId = 1L
     private val outDir by lazy { File(context.getExternalFilesDir(null), "cast-preview").apply { mkdirs() } }
 
@@ -55,13 +56,20 @@ class CastSeekPreviewStreamsTest {
             InstrumentationRegistry.getArguments().getString("castPreviewStreams") == "true",
         )
         localFile = File(context.cacheDir, "cast-preview-local.mp4")
+        localTsFile = File(context.cacheDir, "cast-preview-local.ts")
         instrumentation.runOnMainSync {
             preview = CastSeekPreview(
                 context = context,
                 playerNetworkHelper = Injekt.get<PlayerNetworkHelper>(),
                 send = { replies.put(it) },
-                // The proxy URL of a "downloaded episode" stands for the local file
-                localFileUri = { url -> if (url == LOCAL_URL) localFile.toURI().toString() else null },
+                // The proxy URLs of a "downloaded episode" stand for the local files
+                localFileUri = { url ->
+                    when (url) {
+                        LOCAL_URL -> localFile.toURI().toString()
+                        LOCAL_TS_URL -> localTsFile.toURI().toString()
+                        else -> null
+                    }
+                },
                 receiverCapable = { true },
                 isOnWifi = { true },
             )
@@ -160,6 +168,26 @@ class CastSeekPreviewStreamsTest {
     }
 
     @Test
+    fun downloadedJoinedTs() {
+        // What a downloaded HLS episode is: its segments joined in one MPEG-TS file (the first minute here)
+        val client = OkHttpClient()
+        val playlistUrl = "https://test-streams.mux.dev/x36xhzz/url_2/193039199_mp4_h264_aac_ld_7.m3u8"
+        val playlist = client.newCall(Request.Builder().url(playlistUrl).build()).execute().use { it.body.string() }
+        val segments = playlist.lines().filter { it.isNotBlank() && !it.startsWith("#") }.take(6)
+        localTsFile.outputStream().use { out ->
+            segments.forEach { segment ->
+                val url = playlistUrl.substringBeforeLast('/') + "/" + segment
+                client.newCall(Request.Builder().url(url).build()).execute().use { response ->
+                    assertTrue(response.isSuccessful)
+                    response.body.byteStream().copyTo(out)
+                }
+            }
+        }
+        // 60 s: 5 s steps (not the first: the film fades in from black)
+        exercise("local-ts", LOCAL_TS_URL, 60_000, listOf(2, 5, 8, 10))
+    }
+
+    @Test
     fun anotherStreamDecodesAgainAndSettingOffAnswersOff() {
         val hls = HLS
         val a = ask("1|$hls|a|test", hls, HLS_DURATION_MS, 10)
@@ -181,6 +209,7 @@ class CastSeekPreviewStreamsTest {
         const val HLS_DURATION_MS = 634_584L
         const val USER_AGENT = "Mozilla/5.0 (Linux; Android 14) Tadami cast preview test"
         const val LOCAL_URL = "http://192.168.1.4:8214/local-00000000000000000000000000000000-video.mp4"
+        const val LOCAL_TS_URL = "http://192.168.1.4:8214/local-00000000000000000000000000000000-video.m3u8"
         const val SMALL_MP4 = "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4"
     }
 }
