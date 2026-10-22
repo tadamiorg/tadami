@@ -36,7 +36,7 @@ fun EpisodesDialog(
             // Match by id: the list re-emits updated copies (progress, seen) that no longer equal the current episode.
             listState.scrollToItem(initialEpisode?.let { episodes.indexOfFirst { ep -> ep.id == it.id } }.takeIf { it !=-1 } ?: 0)
         }
-        FastScrollLazyColumn(thumbAlways = true, state = listState){
+        FastScrollLazyColumn(state = listState){
             items(episodes){episode ->
                 PlayerChoiceRow(
                     selected = initialEpisode?.id == episode.id,
