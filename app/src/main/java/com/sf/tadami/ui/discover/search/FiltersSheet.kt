@@ -26,6 +26,7 @@ import com.sf.tadami.ui.components.filters.CheckboxItem
 import com.sf.tadami.ui.components.filters.Group
 import com.sf.tadami.ui.components.filters.SelectItem
 import com.sf.tadami.ui.components.filters.SettingsItemsPaddings
+import com.sf.tadami.ui.components.modal.sheetContainerColor
 import com.sf.tadami.ui.utils.capFirstLetter
 import com.sf.tadami.ui.utils.padding
 
@@ -43,7 +44,8 @@ fun FiltersSheet(
         stickyHeader {
             Row(
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.background)
+                    // The sheet's colour, the list scrolls under it
+                    .background(sheetContainerColor())
                     .padding(8.dp),
             ) {
                 TextButton(onClick = onResetClicked) {

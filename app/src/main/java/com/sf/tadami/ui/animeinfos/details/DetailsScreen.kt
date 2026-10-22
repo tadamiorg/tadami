@@ -50,10 +50,10 @@ import com.sf.tadami.ui.animeinfos.details.episodes.filters.FilterTab
 import com.sf.tadami.ui.category.SetCategoriesDialog
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
-import com.sf.tadami.ui.components.dialog.sheets.TabContent
-import com.sf.tadami.ui.components.dialog.sheets.TabbedBottomSheet
 import com.sf.tadami.ui.components.filters.TadaBottomSheetScaffold
 import com.sf.tadami.ui.components.material.ExtendedFloatingActionButton
+import com.sf.tadami.ui.components.modal.SheetTab
+import com.sf.tadami.ui.components.modal.SheetTabs
 import com.sf.tadami.ui.components.modal.TadaDestructiveDialog
 import com.sf.tadami.ui.discover.migrate.dialog.MigrateDialog
 import com.sf.tadami.ui.discover.migrate.dialog.MigrationState
@@ -77,7 +77,7 @@ fun DetailsScreen(
 
     val episodesListState = rememberLazyListState()
 
-    val filtersSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    val filtersSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showFiltersSheet by remember { mutableStateOf(false) }
 
     var isMigrationOpened by rememberSaveable {
@@ -96,10 +96,10 @@ fun DetailsScreen(
                 showFiltersSheet = false
             },
             sheetContent = {
-                TabbedBottomSheet(
+                SheetTabs(
                     tabs = listOf(
-                        TabContent(
-                            titleRes = R.string.action_filter
+                        SheetTab(
+                            title = stringResource(R.string.action_filter)
                         ) {
                             FilterTab(
                                 anime = uiState.details!!,
@@ -109,8 +109,8 @@ fun DetailsScreen(
                                 }
                             )
                         },
-                        TabContent(
-                            titleRes = R.string.title_display
+                        SheetTab(
+                            title = stringResource(R.string.title_display)
                         ) {
                             DisplayTab(
                                 anime = uiState.details!!,

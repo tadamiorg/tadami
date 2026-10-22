@@ -3,12 +3,13 @@ package com.sf.tadami.ui.tabs.library.bottomsheet
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
 import com.sf.tadami.domain.category.Category
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
-import com.sf.tadami.ui.components.dialog.sheets.TabContent
-import com.sf.tadami.ui.components.dialog.sheets.TabbedBottomSheet
+import com.sf.tadami.ui.components.modal.SheetTab
+import com.sf.tadami.ui.components.modal.SheetTabs
 import com.sf.tadami.ui.tabs.library.categorySort
 import com.sf.tadami.ui.tabs.library.select
 
@@ -29,10 +30,10 @@ fun LibrarySheetContent(
     val libraryPreferencesState by libraryPreferencesStore.value.collectAsState()
     val categorySortCategory = activeCategory?.takeIf { libraryPreferencesState.categorizedSort }
 
-    TabbedBottomSheet(
+    SheetTabs(
         tabs = listOf(
-            TabContent(
-                titleRes = R.string.action_filter
+            SheetTab(
+                title = stringResource(R.string.action_filter)
             ) {
                 FilterTab(
                     filters = libraryPreferencesState.filterFlags,
@@ -47,8 +48,8 @@ fun LibrarySheetContent(
                     }
                 )
             },
-            TabContent(
-                titleRes = R.string.action_sort
+            SheetTab(
+                title = stringResource(R.string.action_sort)
             ) {
                 val sort = categorySortCategory?.let {
                     categorySort(
@@ -71,8 +72,8 @@ fun LibrarySheetContent(
                     }
                 )
             },
-            TabContent(
-                titleRes = R.string.title_display
+            SheetTab(
+                title = stringResource(R.string.title_display)
             ) {
                 DisplayTab(
                     showCategoryTabs = libraryPreferencesState.showCategoryTabs,
