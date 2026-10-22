@@ -50,13 +50,11 @@ import com.sf.tadami.ui.animeinfos.details.episodes.filters.FilterTab
 import com.sf.tadami.ui.category.SetCategoriesDialog
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
-import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 import com.sf.tadami.ui.components.dialog.sheets.TabContent
 import com.sf.tadami.ui.components.dialog.sheets.TabbedBottomSheet
 import com.sf.tadami.ui.components.filters.TadaBottomSheetScaffold
 import com.sf.tadami.ui.components.material.ExtendedFloatingActionButton
+import com.sf.tadami.ui.components.modal.TadaDestructiveDialog
 import com.sf.tadami.ui.discover.migrate.dialog.MigrateDialog
 import com.sf.tadami.ui.discover.migrate.dialog.MigrationState
 import com.sf.tadami.ui.utils.UiToasts
@@ -300,18 +298,14 @@ fun DetailsScreen(
             )
         }
         if (showDeleteDownloadsDialog) {
-            CustomAlertDialog(
+            TadaDestructiveDialog(
                 onDismissRequest = { showDeleteDownloadsDialog = false },
-                title = { Text(text = stringResource(R.string.download_delete_all_confirm_title)) },
-                text = {
-                    Text(text = stringResource(R.string.download_delete_all_confirm_text, uiState.details?.title.orEmpty()))
-                },
-                dismissButton = { DefaultDialogCancelButton() },
-                confirmButton = {
-                    DefaultDialogConfirmButton(text = R.string.action_delete) {
-                        detailsViewModel.deleteAllDownloads()
-                        showDeleteDownloadsDialog = false
-                    }
+                title = stringResource(R.string.download_delete_all_confirm_title),
+                message = stringResource(R.string.download_delete_all_confirm_text, uiState.details?.title.orEmpty()),
+                confirmLabel = stringResource(R.string.action_delete),
+                onConfirm = {
+                    detailsViewModel.deleteAllDownloads()
+                    showDeleteDownloadsDialog = false
                 },
             )
         }

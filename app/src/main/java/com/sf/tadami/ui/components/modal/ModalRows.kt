@@ -124,6 +124,6 @@ fun ModalCheckboxRow(
     ) {
         Checkbox(checked = checked, onCheckedChange = null, enabled = enabled)
         Spacer(Modifier.width(16.dp))
-        Text(text = label, style = MaterialTheme.typography.bodyLarge)
+        Text(text = label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
     }
 }

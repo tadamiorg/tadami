@@ -25,11 +25,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -154,14 +156,20 @@ private fun DialogFrame(
             Spacer(Modifier.height(BlockSpacing))
         }
         val bodyPadding = Modifier.padding(horizontal = if (padBody) DialogPadding else 0.dp)
-        if (scrollable) {
-            val scroll = rememberScrollState()
-            Box(modifier = Modifier.weight(1f, fill = false)) {
-                Column(modifier = Modifier.verticalScroll(scroll).then(bodyPadding), content = content)
-                ScrollFades(scroll, dialogContainer())
+        // The body's text: bodyMedium, onSurfaceVariant
+        CompositionLocalProvider(
+            LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant,
+            LocalTextStyle provides MaterialTheme.typography.bodyMedium,
+        ) {
+            if (scrollable) {
+                val scroll = rememberScrollState()
+                Box(modifier = Modifier.weight(1f, fill = false)) {
+                    Column(modifier = Modifier.verticalScroll(scroll).then(bodyPadding), content = content)
+                    ScrollFades(scroll, dialogContainer())
+                }
+            } else {
+                Column(modifier = Modifier.weight(1f, fill = false).then(bodyPadding), content = content)
             }
-        } else {
-            Column(modifier = Modifier.weight(1f, fill = false).then(bodyPadding), content = content)
         }
         if (confirm != null || dismiss != null || neutral != null) {
             Spacer(Modifier.height(BlockSpacing))

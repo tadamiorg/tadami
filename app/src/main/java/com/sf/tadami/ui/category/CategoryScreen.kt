@@ -20,35 +20,26 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.domain.category.Category
-import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 import com.sf.tadami.ui.components.grid.EmptyScreen
 import com.sf.tadami.ui.components.material.ExtendedFloatingActionButton
+import com.sf.tadami.ui.components.modal.TadaDestructiveDialog
+import com.sf.tadami.ui.components.modal.TadaInputDialog
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 import com.sf.tadami.ui.components.widgets.ScrollbarLazyColumn
 import com.sf.tadami.ui.utils.padding
@@ -142,21 +133,14 @@ fun CategoryScreen(
             onDismissRequest = viewModel::dismissDialog,
             onConfirm = { viewModel.renameCategory(current.category, it) },
         )
-        is CategoryDialog.Delete -> CustomAlertDialog(
+        is CategoryDialog.Delete -> TadaDestructiveDialog(
             onDismissRequest = viewModel::dismissDialog,
-            title = { Text(text = stringResource(R.string.action_delete_category)) },
-            dismissButton = { DefaultDialogCancelButton() },
-            confirmButton = {
-                DefaultDialogConfirmButton(text = R.string.action_delete) {
-                    viewModel.deleteCategory(current.category)
-                }
-            },
-        ) {
-            Text(
-                text = current.error?.let { categoryErrorText(it) }
-                    ?: stringResource(R.string.delete_category_confirmation, current.category.name)
-            )
-        }
+            title = stringResource(R.string.action_delete_category),
+            message = current.error?.let { categoryErrorText(it) }
+                ?: stringResource(R.string.delete_category_confirmation, current.category.name),
+            confirmLabel = stringResource(R.string.action_delete),
+            onConfirm = { viewModel.deleteCategory(current.category) },
+        )
         null -> {}
     }
 }
@@ -218,38 +202,19 @@ private fun CategoryNameDialog(
     onDismissRequest: () -> Unit,
     onConfirm: (String) -> Unit,
 ) {
-    var name by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(initialName, TextRange(initialName.length)))
-    }
-    val focusRequester = remember { FocusRequester() }
-
-    CustomAlertDialog(
+    TadaInputDialog(
+        title = title,
+        initialValue = initialName,
+        confirmLabel = stringResource(confirmText ?: android.R.string.ok),
+        onConfirm = onConfirm,
         onDismissRequest = onDismissRequest,
-        title = { Text(text = title) },
-        dismissButton = { DefaultDialogCancelButton() },
-        confirmButton = {
-            DefaultDialogConfirmButton(text = confirmText) { onConfirm(name.text) }
-        },
-    ) {
-        OutlinedTextField(
-            value = name,
-            onValueChange = {
-                if (it.text != name.text) onNameChanged()
-                name = it
-            },
-            label = { Text(text = stringResource(R.string.category_name)) },
-            isError = error != null,
-            supportingText = error?.let { { Text(text = categoryErrorText(it)) } },
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusRequester),
-        )
-    }
-
-    LaunchedEffect(focusRequester) {
-        focusRequester.requestFocus()
-    }
+        icon = Icons.AutoMirrored.Outlined.Label,
+        label = stringResource(R.string.category_name),
+        error = error?.let { categoryErrorText(it) },
+        // The interactors check it
+        canConfirm = { true },
+        onValueChange = { onNameChanged() },
+    )
 }
 
 @Composable

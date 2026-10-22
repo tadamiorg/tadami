@@ -90,6 +90,7 @@ fun TadaInputDialog(
             supportingText = error?.let { { Text(it) } },
             readOnly = busy,
             singleLine = true,
+            textStyle = MaterialTheme.typography.bodyLarge,
             shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,

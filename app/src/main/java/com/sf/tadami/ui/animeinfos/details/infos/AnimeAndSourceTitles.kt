@@ -10,12 +10,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.PersonOutline
@@ -27,12 +24,10 @@ import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Translate
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +45,9 @@ import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
 import com.sf.tadami.domain.anime.AnimeCoverData
 import com.sf.tadami.source.model.SAnimeStatus
+import com.sf.tadami.ui.components.modal.ModalAction
+import com.sf.tadami.ui.components.modal.ModalBodyText
+import com.sf.tadami.ui.components.modal.TadaDialog
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.secondaryItemAlpha
 
@@ -72,23 +70,14 @@ fun AnimeAndSourceTitles(
     // Full-text reveal dialog for truncated metadata rows (studio / author / release).
     var revealed by remember { mutableStateOf<RevealedInfo?>(null) }
     revealed?.let { info ->
-        AlertDialog(
+        TadaDialog(
             onDismissRequest = { revealed = null },
-            title = { Text(text = stringResource(id = info.titleRes)) },
-            confirmButton = {
-                TextButton(onClick = { revealed = null }) {
-                    Text(text = stringResource(id = android.R.string.ok))
-                }
-            },
-            text = {
-                Text(
-                    text = info.text,
-                    modifier = Modifier
-                        .heightIn(max = 240.dp)
-                        .verticalScroll(rememberScrollState()),
-                )
-            },
-        )
+            title = stringResource(id = info.titleRes),
+            dismiss = null,
+            confirm = ModalAction(stringResource(id = android.R.string.ok)) { revealed = null },
+        ) {
+            ModalBodyText(info.text)
+        }
     }
 
     Row(

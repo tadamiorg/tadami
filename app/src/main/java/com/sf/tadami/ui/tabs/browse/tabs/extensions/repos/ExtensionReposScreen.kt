@@ -12,42 +12,35 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -57,13 +50,15 @@ import androidx.navigation.NavHostController
 import com.sf.tadami.R
 import com.sf.tadami.extension.api.ExtensionRepos
 import com.sf.tadami.extension.api.FetchedRepo
-import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
-import com.sf.tadami.ui.components.dialog.alert.DialogCheckBoxRow
 import com.sf.tadami.ui.components.material.ExtendedFloatingActionButton
+import com.sf.tadami.ui.components.modal.ModalAction
+import com.sf.tadami.ui.components.modal.ModalCheckboxRow
+import com.sf.tadami.ui.components.modal.TadaDestructiveDialog
+import com.sf.tadami.ui.components.modal.TadaDialog
+import com.sf.tadami.ui.components.modal.TadaInputDialog
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 import com.sf.tadami.ui.components.widgets.ScrollbarLazyColumn
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.Fingerprint
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.groupedFingerprint
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.repoDisplayName
 import com.sf.tadami.ui.utils.UiToasts
@@ -254,46 +249,21 @@ private fun AddRepoDialog(
     onDismissRequest: () -> Unit,
     onSubmit: (String) -> Unit,
 ) {
-    var url by rememberSaveable { mutableStateOf(state.input) }
-    val focusRequester = remember { FocusRequester() }
-    val error = state.error?.let { stringResource(it, state.errorDetail.orEmpty()) }
-
-    CustomAlertDialog(
+    TadaInputDialog(
+        title = stringResource(R.string.ext_repo_add_title),
+        // What it opened with: the text typed since is kept, whatever the check says of it
+        initialValue = "",
+        confirmLabel = stringResource(R.string.action_add),
+        onConfirm = onSubmit,
         onDismissRequest = onDismissRequest,
-        modifier = Modifier.fillMaxWidth(),
-        title = { Text(text = stringResource(R.string.ext_repo_add_title)) },
-        dismissButton = { DefaultDialogCancelButton() },
-        confirmButton = {
-            DefaultDialogConfirmButton(text = R.string.action_add, enabled = !state.checking && url.isNotBlank()) {
-                onSubmit(url)
-            }
-        },
-    ) {
-        Column {
-            OutlinedTextField(
-                value = url,
-                onValueChange = { url = it },
-                label = { Text(text = stringResource(R.string.ext_repo_url)) },
-                placeholder = { Text(text = "https://github.com/owner/repo") },
-                isError = error != null,
-                supportingText = error?.let { { Text(text = it) } },
-                // Not disabled while it's checked: it would lose the focus
-                readOnly = state.checking,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
-            )
-            if (state.checking) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            }
-        }
-    }
-
-    LaunchedEffect(focusRequester) {
-        focusRequester.requestFocus()
-    }
+        icon = Icons.Outlined.Link,
+        label = stringResource(R.string.ext_repo_url),
+        placeholder = "https://github.com/owner/repo",
+        error = state.error?.let { stringResource(it, state.errorDetail.orEmpty()) },
+        // Not disabled while it's checked: it would lose the focus
+        busy = state.checking,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+    )
 }
 
 /**
@@ -309,15 +279,11 @@ private fun ConfirmAddRepoDialog(
     val fingerprint = repo.meta?.signingKeyFingerprint
     // On by default, as Mihon trusts the key of a repo it adds
     var trustKey by rememberSaveable { mutableStateOf(true) }
-    CustomAlertDialog(
+    TadaDialog(
         onDismissRequest = onDismissRequest,
-        modifier = Modifier.fillMaxWidth(),
-        title = { Text(text = stringResource(R.string.ext_repo_confirm_title)) },
-        dismissButton = { DefaultDialogCancelButton() },
-        confirmButton = {
-            DefaultDialogConfirmButton(text = R.string.action_add) {
-                onConfirm(fingerprint != null && trustKey)
-            }
+        title = stringResource(R.string.ext_repo_confirm_title),
+        confirm = ModalAction(stringResource(R.string.action_add)) {
+            onConfirm(fingerprint != null && trustKey)
         },
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small)) {
@@ -329,18 +295,12 @@ private fun ConfirmAddRepoDialog(
             if (fingerprint != null) {
                 Column {
                     Text(text = stringResource(R.string.ext_trust_fingerprint), style = MaterialTheme.typography.labelMedium)
-                    SelectionContainer {
-                        Text(
-                            text = groupedFingerprint(fingerprint),
-                            fontFamily = FontFamily.Monospace,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
+                    Fingerprint(groupedFingerprint(fingerprint))
                 }
-                DialogCheckBoxRow(
+                ModalCheckboxRow(
                     label = stringResource(R.string.ext_repo_trust_key),
-                    isSelected = trustKey,
-                    onSelected = { trustKey = !it },
+                    checked = trustKey,
+                    onCheckedChange = { trustKey = it },
                 )
             }
             Text(text = stringResource(R.string.ext_repo_confirm_warning))
@@ -356,23 +316,13 @@ private fun RemoveRepoDialog(
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    CustomAlertDialog(
+    TadaDestructiveDialog(
         onDismissRequest = onDismissRequest,
-        modifier = Modifier.fillMaxWidth(),
-        title = { Text(text = stringResource(R.string.ext_repo_remove_title)) },
-        dismissButton = { DefaultDialogCancelButton() },
-        confirmButton = {
-            DefaultDialogConfirmButton(text = R.string.ext_repo_remove) {
-                onConfirm()
-            }
-        },
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small)) {
-            Text(text = name, style = MaterialTheme.typography.titleSmall)
-            Text(text = stringResource(R.string.ext_repo_remove_message))
-            if (isOfficial) {
-                Text(text = stringResource(R.string.ext_repo_remove_official_warning), color = MaterialTheme.colorScheme.error)
-            }
-        }
-    }
+        title = stringResource(R.string.ext_repo_remove_title),
+        subtitle = name,
+        message = stringResource(R.string.ext_repo_remove_message),
+        consequence = if (isOfficial) stringResource(R.string.ext_repo_remove_official_warning) else null,
+        confirmLabel = stringResource(R.string.ext_repo_remove),
+        onConfirm = onConfirm,
+    )
 }
