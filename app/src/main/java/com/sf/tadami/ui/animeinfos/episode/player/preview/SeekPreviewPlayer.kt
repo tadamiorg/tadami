@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.SurfaceTexture
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView
@@ -28,22 +29,42 @@ import kotlin.math.roundToInt
  * source factory (headers, HLS fixes, cache) but has its own bandwidth meter, track selection and load
  * control, so it never changes what the main player buffers or picks. It decodes into a hidden
  * [TextureView] ([attachSurface]), the frame is scaled into a bitmap and cached: a step already seen shows
- * at once, with no new load nor decode. Main thread only.
+ * at once, with no new load nor decode.
+ *
+ * With [setPrefetch] (a downloaded episode: no network), every step is fetched in the background once the
+ * main player plays steadily ([mainPlayback], [PreviewPrefetch]), nearest its position first, one at a time
+ * with a gap, so a scrub finds its frame cached. A scrub's step comes first: it takes over a prefetch
+ * loading another step. Main thread only.
  */
 @UnstableApi
 class SeekPreviewPlayer(
     private val context: Context,
     private val canLoad: () -> Boolean,
+    /** The main player's playback, null while the screen isn't in the foreground: the prefetch waits. */
+    private val mainPlayback: () -> MainPlayback? = { null },
 ) : TextureView.SurfaceTextureListener {
+
+    /** The main player's [state], [positionMs] and [durationMs]. */
+    data class MainPlayback(val state: PreviewPrefetch.Playback?, val positionMs: Long, val durationMs: Long)
 
     private var player: ExoPlayer? = null
     private var sourceFactory: (() -> MediaSource)? = null
     private var textureView: TextureView? = null
     private var surface: Surface? = null
 
-    // 256×144 ARGB frames (144 KiB): 12 MiB keep about 85 of them, most of an episode at 1% steps
+    // 256×144 RGB_565 frames (72 KiB): 12 MiB keep 170 of them, every step of an episode at 1% steps
     private val frames = PreviewFrameCache<Bitmap>(PREVIEW_FRAME_CACHE_BYTES) { it.allocationByteCount.toLong() }
     private val requests = BucketRequests()
+
+    private val schedule = PreviewPrefetch(SystemClock::elapsedRealtime)
+    private val prefetchTick = Runnable { onPrefetchTick() }
+    private var prefetchEnabled = false
+
+    // Frames dropped on memory pressure: not all made again for this stream
+    private var prefetchSuspended = false
+    private var prefetchStartedAt: Long? = null
+    private var prefetchComplete = false
+    private var frameBytes = PREVIEW_FRAME_BYTES
 
     // Steps that gave no frame in time: not fetched again for this stream
     private val unavailable = mutableSetOf<Int>()
@@ -55,6 +76,10 @@ class SeekPreviewPlayer(
     private var fingerBucket: Int? = null
     private var videoAspectRatio = DEFAULT_ASPECT_RATIO
     private var fetchStartedAtNs = 0L
+    private var fetchStartedAt = 0L
+
+    // Media times of the fetch's step: a frame elsewhere is one an earlier seek left behind
+    private var fetchWindowUs = LongRange.EMPTY
 
     // The decoder released a frame since the fetch started: the next texture update is the step's frame
     private var frameReleasedSinceFetch = false
@@ -81,6 +106,21 @@ class SeekPreviewPlayer(
         failed = false
         frame = null
         frameLoading = false
+        schedule.reset()
+        prefetchSuspended = false
+        prefetchStartedAt = null
+        prefetchComplete = false
+        if (prefetchEnabled) scheduleTick(0L)
+    }
+
+    /**
+     * Whether every step of the stream is fetched in the background: for a downloaded episode, with the
+     * seekbar preview on. Off, a prefetch loading still lands, nothing more starts.
+     */
+    fun setPrefetch(enabled: Boolean) {
+        if (enabled == prefetchEnabled) return
+        prefetchEnabled = enabled
+        if (enabled) scheduleTick(0L) else handler.removeCallbacks(prefetchTick)
     }
 
     /** Shows the frame of the step [positionMs] falls in, fetching it unless it's cached or loading. */
@@ -113,13 +153,17 @@ class SeekPreviewPlayer(
 
     /** The player screen is gone: releases everything, frames included. */
     fun destroy() {
+        handler.removeCallbacks(prefetchTick)
+        prefetchEnabled = false
         release()
         frames.setSource(null)
         frame = null
     }
 
     fun onTrimMemory(level: Int) {
-        if (shouldDropPreviewFrames(level)) frames.clear()
+        if (!shouldDropPreviewFrames(level)) return
+        frames.clear()
+        prefetchSuspended = true
     }
 
     fun attachSurface(view: TextureView) {
@@ -182,6 +226,49 @@ class SeekPreviewPlayer(
         requests.next(::isDone)?.let(::fetch)
     }
 
+    private fun scheduleTick(delayMs: Long) {
+        handler.removeCallbacks(prefetchTick)
+        handler.postDelayed(prefetchTick, delayMs)
+    }
+
+    private fun onPrefetchTick() {
+        if (!prefetchEnabled || frames.sourceId == null || failed || prefetchSuspended || prefetchComplete) return
+        val main = mainPlayback()
+        schedule.onStatus(main?.state, main?.positionMs ?: schedule.positionMs)
+        val duration = main?.durationMs?.takeIf { it > 0L } ?: durationMs
+        if (surface != null && sourceFactory != null && duration > 0L) {
+            when (val next = nextPreviewPrefetch(schedule, requests, duration, ::isDone, frames.hasRoomFor(frameBytes))) {
+                is PreviewPrefetchStep.Fetch -> if (requests.prefetch(next.bucket)) {
+                    durationMs = duration
+                    if (prefetchStartedAt == null) prefetchStartedAt = SystemClock.elapsedRealtime()
+                    fetch(next.bucket)
+                }
+                PreviewPrefetchStep.Done -> {
+                    prefetchComplete = true
+                    val elapsed = prefetchStartedAt?.let { SystemClock.elapsedRealtime() - it } ?: 0L
+                    Log.i(
+                        TAG,
+                        "Prefetch complete: ${frames.size} frames, ${unavailable.size} without, " +
+                            "${frames.bytes / 1024} KiB, in ${elapsed / 1000} s",
+                    )
+                    return
+                }
+                PreviewPrefetchStep.Wait -> Unit
+            }
+        }
+        scheduleTick(PREFETCH_TICK_MS)
+    }
+
+    /** A fetch of [bucket] ended; after a prefetch, the next one comes after a gap. */
+    private fun onFetchEnded(bucket: Int) {
+        val wasPrefetch = requests.inFlightIsPrefetch
+        requests.finished(bucket)
+        if (wasPrefetch) {
+            schedule.onDecodeEnded(PREFETCH_GAP_MS)
+            if (prefetchEnabled) scheduleTick(PREFETCH_GAP_MS)
+        }
+    }
+
     private fun fetch(bucket: Int) {
         val range = previewBucketRangeMs(bucket, durationMs)
         val targetMs = (range.first + range.last + 1) / 2
@@ -192,9 +279,14 @@ class SeekPreviewPlayer(
             requests.finished(bucket)
             return
         }
-        Log.d(TAG, "Fetching step $bucket at $targetMs ms")
+        Log.d(TAG, "Fetching step $bucket at $targetMs ms" + if (requests.inFlightIsPrefetch) " (prefetch)" else "")
         fetchStartedAtNs = System.nanoTime()
+        fetchStartedAt = SystemClock.elapsedRealtime()
+        // The seek lands in the step, or on the next keyframe in a stream seeking by bytes (a joined MPEG-TS)
+        fetchWindowUs = (range.first - FRAME_WINDOW_BEFORE_MS) * 1000..(range.last + FRAME_WINDOW_AFTER_MS) * 1000
         frameReleasedSinceFetch = false
+        // A scrub may take over a prefetch: its own time limit only
+        handler.removeCallbacks(giveUp)
         handler.postDelayed(giveUp, PREVIEW_FETCH_TIMEOUT_MS)
         previewPlayer.setSeekParameters(SeekParameters(toleranceUs, toleranceUs))
         previewPlayer.seekTo(targetMs)
@@ -206,11 +298,16 @@ class SeekPreviewPlayer(
         if (!frameReleasedSinceFetch) return
         val view = textureView ?: return
         val height = (PREVIEW_FRAME_WIDTH_PX / videoAspectRatio).roundToInt().coerceAtLeast(1)
-        val bitmap = view.getBitmap(PREVIEW_FRAME_WIDTH_PX, height) ?: return
+        val bitmap = view.getBitmap(PREVIEW_FRAME_WIDTH_PX, height)?.let(::toPreviewFrame) ?: return
+        frameBytes = bitmap.allocationByteCount.toLong()
         frames.put(key(bucket), bitmap)
-        Log.d(TAG, "Cached step $bucket: ${frames.size} frames, ${frames.bytes / 1024} KiB")
+        Log.d(
+            TAG,
+            "Cached step $bucket in ${SystemClock.elapsedRealtime() - fetchStartedAt} ms: " +
+                "${frames.size} frames, ${frames.bytes / 1024} KiB",
+        )
         handler.removeCallbacks(giveUp)
-        requests.finished(bucket)
+        onFetchEnded(bucket)
         fingerBucket?.let(::showBucket)
         pumpRequests()
     }
@@ -222,7 +319,7 @@ class SeekPreviewPlayer(
         player?.release()
         player = null
         unavailable += bucket
-        requests.finished(bucket)
+        onFetchEnded(bucket)
         fingerBucket?.let(::showBucket)
         pumpRequests()
     }
@@ -241,9 +338,11 @@ class SeekPreviewPlayer(
         previewPlayer.playWhenReady = false
         // Coalesces the seeks issued while one is still loading or decoding
         previewPlayer.setScrubbingModeEnabled(true)
-        previewPlayer.setVideoFrameMetadataListener { _, releaseTimeNs, _, _ ->
+        previewPlayer.setVideoFrameMetadataListener { presentationTimeUs, releaseTimeNs, _, _ ->
             // Playback thread: the frame is about to be queued to the surface
-            handler.post { if (releaseTimeNs >= fetchStartedAtNs) frameReleasedSinceFetch = true }
+            handler.post {
+                if (releaseTimeNs >= fetchStartedAtNs && presentationTimeUs in fetchWindowUs) frameReleasedSinceFetch = true
+            }
         }
         previewPlayer.addListener(object : Player.Listener {
             override fun onVideoSizeChanged(videoSize: VideoSize) {
@@ -270,5 +369,17 @@ class SeekPreviewPlayer(
         const val TAG = "SeekPreviewPlayer"
         const val WAIT_FOR_MAIN_PLAYER_MS = 250L
         const val DEFAULT_ASPECT_RATIO = 16f / 9f
+
+        /** How often the prefetch looks at the main player. */
+        const val PREFETCH_TICK_MS = 1_000L
+
+        /** Between two prefetched steps: the main player decodes too. */
+        const val PREFETCH_GAP_MS = 500L
+
+        /** Beyond the step, how far before a frame may be. */
+        const val FRAME_WINDOW_BEFORE_MS = 1_000L
+
+        /** Beyond the step, how far after: a keyframe interval of a stream seeking by bytes (Kwik's reach 14 s). */
+        const val FRAME_WINDOW_AFTER_MS = 15_000L
     }
 }

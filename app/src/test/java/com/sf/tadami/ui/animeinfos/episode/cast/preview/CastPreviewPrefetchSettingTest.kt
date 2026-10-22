@@ -3,7 +3,8 @@ package com.sf.tadami.ui.animeinfos.episode.cast.preview
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import com.sf.tadami.preferences.player.PlayerPreferences
-import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastPreviewPrefetch.Playback
+import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch
+import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch.Playback
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -15,7 +16,7 @@ import org.junit.Test
 class CastPreviewPrefetchSettingTest {
 
     private var time = 1_000_000L
-    private val prefetch = CastPreviewPrefetch { time }
+    private val prefetch = PreviewPrefetch { time }
     private val frames = CastPreviewFrames()
 
     // 60 s: 5 s steps, 0..11
@@ -30,7 +31,7 @@ class CastPreviewPrefetchSettingTest {
 
     private fun playSteadily(positionMs: Long) {
         prefetch.onStatus(Playback.PLAYING, positionMs)
-        time += CastPreviewPrefetch.STABLE_MS
+        time += PreviewPrefetch.STABLE_MS
         prefetch.onStatus(Playback.PLAYING, positionMs)
     }
 
@@ -42,8 +43,8 @@ class CastPreviewPrefetchSettingTest {
         assertTrue("expected a decode, got $decision", decision is PrefetchDecision.Start)
         val request = (decision as PrefetchDecision.Start).fetch.request
         frames.onFetched(request, jpeg())
-        prefetch.onDecodeEnded(local = false)
-        time += CastPreviewPrefetch.GAP_ONLINE_MS
+        prefetch.onDecodeEnded(CAST_PREFETCH_GAP_ONLINE_MS)
+        time += CAST_PREFETCH_GAP_ONLINE_MS
         return request.step
     }
 
@@ -108,7 +109,7 @@ class CastPreviewPrefetchSettingTest {
         assertEquals("buffering", PrefetchDecision.Wait, tick(prefetchOn = true))
         playSteadily(positionMs = 0)
         prefetch.onStatus(Playback.PAUSED, 0)
-        time += CastPreviewPrefetch.LONG_PAUSE_MS
+        time += PreviewPrefetch.LONG_PAUSE_MS
         prefetch.onStatus(Playback.PAUSED, 0)
         assertEquals("paused for long", PrefetchDecision.Wait, tick(prefetchOn = true))
     }

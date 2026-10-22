@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import com.sf.tadami.network.player.PlayerNetworkHelper
+import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketOf
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -65,7 +66,7 @@ class CastSeekPreviewPrefetchTest {
                 receiverCapable = { true },
                 isOnWifi = { true },
                 // The TV plays steadily at positionMs
-                playback = { CastSeekPreview.CastPlayback(CastPreviewPrefetch.Playback.PLAYING, positionMs) },
+                playback = { CastSeekPreview.CastPlayback(PreviewPrefetch.Playback.PLAYING, positionMs) },
             )
             preview.settings = CastSeekPreview.Settings(enabled = true, onlyOnWifi = false, userAgent = "Tadami test")
         }
