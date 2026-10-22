@@ -508,9 +508,6 @@ fun VideoPlayer(
                     selectedSource = episodeUiState.selectedSource,
                     onDismissRequest = {
                         openVideoSelectionDialog = false
-                        if (!playerInitiatedPause) {
-                            exoPlayer.play()
-                        }
                     }
                 )
                 // The track that is actually playing: the manual choice, else the preference-matched one
@@ -539,9 +536,6 @@ fun VideoPlayer(
                     },
                     onDismissRequest = {
                         openTracksSelectionDialog = false
-                        if (!playerInitiatedPause) {
-                            exoPlayer.play()
-                        }
                     }
                 )
                 // The audio that is actually playing: the manual choice, else the first track (the extension
@@ -557,9 +551,6 @@ fun VideoPlayer(
                     },
                     onDismissRequest = {
                         openAudioSelectionDialog = false
-                        if (!playerInitiatedPause) {
-                            exoPlayer.play()
-                        }
                     }
                 )
             }
@@ -568,9 +559,6 @@ fun VideoPlayer(
                 opened = openEpisodesDialog,
                 onDismissRequest = {
                     openEpisodesDialog = false
-                    if (!playerInitiatedPause) {
-                        exoPlayer.play()
-                    }
                 },
                 onConfirm = {
                     exoPlayer.clearMediaItems()
@@ -585,9 +573,6 @@ fun VideoPlayer(
                 opened = openSettingsDialog,
                 onDismissRequest = {
                     openSettingsDialog = false
-                    if (!playerInitiatedPause) {
-                        exoPlayer.play()
-                    }
                 },
                 sourceDatastore = playerViewModel.sourceDataStore,
                 sourcePrefsitems = playerViewModel.sourceDataStoreScreen
@@ -603,9 +588,6 @@ fun VideoPlayer(
                 opened = openEpisodeTooltipDialog,
                 onDismissRequest = {
                     openEpisodeTooltipDialog = false
-                    if (!playerInitiatedPause) {
-                        exoPlayer.play()
-                    }
                 },
                 sourceDatastore = playerViewModel.sourceDataStore,
                 tooltipContent = playerViewModel.sourceTooltipContent
@@ -799,15 +781,12 @@ fun VideoPlayer(
                     isPlaying = isPlaying.not()
                 },
                 onStreamSettings = {
-                    exoPlayer.pause()
                     openVideoSelectionDialog = openVideoSelectionDialog.not()
                 },
                 onTracksSettings = {
-                    exoPlayer.pause()
                     openTracksSelectionDialog = openTracksSelectionDialog.not()
                 },
                 onAudioSettings = {
-                    exoPlayer.pause()
                     openAudioSelectionDialog = true
                 },
                 audioSettingsEnabled = episodeUiState.selectedSource?.audioTracks?.isNotEmpty() == true,
@@ -846,11 +825,9 @@ fun VideoPlayer(
                 tracksSettingsEnabled = (episodeUiState.selectedSource?.subtitleTracks?.isNotEmpty() == true) ||
                     (episodeUiState.selectedSource?.audioTracks?.isNotEmpty() == true),
                 onEpisodesClicked = {
-                    exoPlayer.pause()
                     openEpisodesDialog = true
                 },
                 onPlayerSettings = {
-                    exoPlayer.pause()
                     openSettingsDialog = true
                 },
                 onPipClicked = setPipMode,
@@ -858,7 +835,6 @@ fun VideoPlayer(
                 onWebViewOpen = onWebViewOpen,
                 episodeTooltipEnabled = playerViewModel.sourceSupportTooltip ?: false,
                 onShowEpisodeTooltip = {
-                    exoPlayer.pause()
                     openEpisodeTooltipDialog = openEpisodeTooltipDialog.not()
                 }
 

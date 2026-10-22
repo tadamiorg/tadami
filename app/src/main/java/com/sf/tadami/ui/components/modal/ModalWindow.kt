@@ -37,7 +37,10 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 internal val EmphasizedDecelerate = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
 
@@ -162,9 +165,15 @@ fun TransparentDialogBars() {
         }
         // The bars keep the icons of the screen, so nothing changes when the window comes and goes
         val screen = activityWindow?.let { WindowCompat.getInsetsController(it, it.decorView) }
+        val screenInsets = activityWindow?.decorView?.let { ViewCompat.getRootWindowInsets(it) }
         WindowCompat.getInsetsController(window, view).apply {
             isAppearanceLightStatusBars = screen?.isAppearanceLightStatusBars ?: lightTheme
             isAppearanceLightNavigationBars = screen?.isAppearanceLightNavigationBars ?: lightTheme
+            // Hidden bars (the player is immersive) stay hidden: they would come back and move the screen
+            if (screenInsets != null && !screenInsets.isVisible(WindowInsetsCompat.Type.systemBars())) {
+                systemBarsBehavior = screen?.systemBarsBehavior ?: WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                hide(WindowInsetsCompat.Type.systemBars())
+            }
         }
     }
 }

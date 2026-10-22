@@ -1,11 +1,11 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.episodetooltip
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
-import com.sf.tadami.ui.components.dialog.simple.TabbedSimpleDialog
-import com.sf.tadami.ui.components.screens.ScreenTabContent
+import com.sf.tadami.R
+import com.sf.tadami.ui.components.modal.PlayerPanel
 
 @Composable
 fun EpisodeTooltipDialog(
@@ -14,23 +14,16 @@ fun EpisodeTooltipDialog(
     tooltipContent: String,
     onDismissRequest: () -> Unit
 ) {
-    val tabs = mutableListOf<ScreenTabContent>()
-
-    if (sourceDatastore != null) tabs.add(
-        tooltipTab(
-            sourceDatastore = sourceDatastore,
-            tooltipContent = tooltipContent,
-        )
-    )
-
-    TabbedSimpleDialog(
-        tabs = tabs,
+    PlayerPanel(
+        visible = opened,
         onDismissRequest = onDismissRequest,
-        opened = opened,
-        confirmButton = {
-            DefaultDialogConfirmButton{
-                onDismissRequest()
-            }
+        title = stringResource(R.string.player_epsiode_tooltip_title),
+    ) {
+        if (sourceDatastore != null) {
+            TooltipTab(
+                sourceDatastore = sourceDatastore,
+                tooltipContent = tooltipContent,
+            )
         }
-    )
+    }
 }
