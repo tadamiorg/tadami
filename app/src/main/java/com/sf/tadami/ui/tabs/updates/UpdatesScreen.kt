@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DoneAll
-import androidx.compose.material.icons.outlined.RemoveDone
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -88,14 +88,14 @@ fun UpdatesScreen(
                 actions = listOf(
                     Action.Vector(
                         title = R.string.stub_text,
-                        icon = Icons.Outlined.DoneAll,
+                        icon = Icons.Outlined.Visibility,
                         onClick = {
                             updatesViewModel.setUpdatesSeenStatus()
                         },
                     ),
                     Action.Vector(
                         title = R.string.stub_text,
-                        icon = Icons.Outlined.RemoveDone,
+                        icon = Icons.Outlined.VisibilityOff,
                         onClick = {
                             updatesViewModel.setUpdatesUnSeenStatus()
                         },
