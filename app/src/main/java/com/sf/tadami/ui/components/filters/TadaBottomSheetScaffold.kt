@@ -15,16 +15,10 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.sf.tadami.ui.components.material.FabPosition
 import com.sf.tadami.ui.components.material.Scaffold
 import com.sf.tadami.ui.components.modal.TadaSheet
 
-
-object TabbedBottomSheetContentPadding {
-    val Horizontal = 24.dp
-    val Vertical = 8.dp
-}
 
 /** A screen with its options in a [TadaSheet], shown while [showSheet]. */
 @OptIn(ExperimentalMaterial3Api::class)

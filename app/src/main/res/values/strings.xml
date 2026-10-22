@@ -41,7 +41,6 @@
     <string name="player_screen_episode_label">Episode</string>
     <string name="player_screen_qd_ok_btn" tools:ignore="ButtonCase,Typos">Ok</string>
     <string name="player_screen_qd_title">Select Quality</string>
-    <string name="player_screen_qd_cancel_btn">Cancel</string>
     <string name="discover_search_screen_title">Search</string>
     <string name="discover_search_screen_search_placeholder">Search by name…</string>
     <string name="discover_search_screen_filters_group_selected_text">select</string>
