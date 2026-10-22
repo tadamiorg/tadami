@@ -102,8 +102,9 @@ class CastFrameGrabber(private val context: Context) {
             onResult(Result.Failed)
             return
         }
-        // The seek lands within the tolerance; a little more, for streams without exact sync points
-        val windowMs = (positionMs - toleranceMs - FRAME_WINDOW_MARGIN_MS)..(positionMs + toleranceMs + FRAME_WINDOW_MARGIN_MS)
+        // The seek lands within the tolerance, or on the next keyframe in a stream without a sync-point
+        // index (a progressive MPEG-TS): a frame far from the step is one an earlier seek left behind
+        val windowMs = (positionMs - toleranceMs - FRAME_WINDOW_BEFORE_MS)..(positionMs + toleranceMs + FRAME_WINDOW_AFTER_MS)
         grab = Grab(System.nanoTime(), windowMs.first * 1000..windowMs.last * 1000, onResult)
         handler.postDelayed(giveUp, PREVIEW_FETCH_TIMEOUT_MS)
         Log.d(TAG, "Grab at $positionMs ms, ±$toleranceMs ms")
@@ -211,7 +212,10 @@ class CastFrameGrabber(private val context: Context) {
     private companion object {
         const val TAG = "CastFrameGrabber"
 
-        /** Beyond the seek tolerance, how far from the time asked a frame may be. */
-        const val FRAME_WINDOW_MARGIN_MS = 1_000L
+        /** Beyond the seek tolerance, how far before the time asked a frame may be. */
+        const val FRAME_WINDOW_BEFORE_MS = 1_000L
+
+        /** Beyond the seek tolerance, how far after: up to a keyframe interval, for streams seeking by bytes. */
+        const val FRAME_WINDOW_AFTER_MS = 10_000L
     }
 }
