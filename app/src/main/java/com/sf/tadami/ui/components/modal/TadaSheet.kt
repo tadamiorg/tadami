@@ -1,12 +1,13 @@
 package com.sf.tadami.ui.components.modal
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.BottomSheetDefaults
@@ -16,6 +17,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -49,17 +51,21 @@ fun TadaSheet(
 ) {
     val container = sheetContainerColor()
     val shape = BottomSheetDefaults.ExpandedShape
+    val border = modalBorder()
     // The sheet's window keeps the bar icons of the screen from its first frame
     val bars = screenBarsAppearance()
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        modifier = modifier.then(modalBorder()?.let { Modifier.border(it, shape) } ?: Modifier),
+        modifier = modifier,
         sheetState = sheetState,
         sheetMaxWidth = ModalDefaults.SheetMaxWidth,
         shape = shape,
-        containerColor = container,
+        // With an outline, the sheet draws its own surface, see below
+        containerColor = if (border != null) Color.Transparent else container,
         contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 0.dp,
+        dragHandle = if (border != null) null else { { BottomSheetDefaults.DragHandle() } },
+        contentWindowInsets = if (border != null) { { WindowInsets(0) } } else { { BottomSheetDefaults.windowInsets } },
         properties = ModalBottomSheetProperties(
             isAppearanceLightStatusBars = bars.lightStatusBars,
             isAppearanceLightNavigationBars = bars.lightNavigationBars,
@@ -67,7 +73,18 @@ fun TadaSheet(
     ) {
         // The sheet draws behind the navigation bar, with no system background or scrim on it
         TransparentDialogBars()
-        content()
+        if (border != null) {
+            // The outline on a surface of the sheet's own: a border in the sheet's modifier is drawn
+            // where the sheet is before it slides up, at the top of the screen
+            Surface(shape = shape, color = container, border = border) {
+                Column(modifier = Modifier.windowInsetsPadding(BottomSheetDefaults.windowInsets)) {
+                    BottomSheetDefaults.DragHandle(modifier = Modifier.align(Alignment.CenterHorizontally))
+                    content()
+                }
+            }
+        } else {
+            content()
+        }
     }
 }
 
