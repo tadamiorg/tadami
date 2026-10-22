@@ -127,8 +127,8 @@ fun PlayerPanel(
                     color = (if (isPureBlack()) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer)
                         .copy(alpha = 0.92f),
                     border = modalBorder(),
+                    // The surface keeps its taps from the scrim under it
                     modifier = modifier
-                        .consumeTaps()
                         .then(
                             if (landscape) {
                                 Modifier

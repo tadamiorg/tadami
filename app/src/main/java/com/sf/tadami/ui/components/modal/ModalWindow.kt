@@ -27,12 +27,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -52,9 +57,6 @@ internal fun dialogEnter(initialScale: Float): EnterTransition =
 /** Slide in from the end, the player side panel. */
 internal fun slideFromEndEnter(): EnterTransition =
     fadeIn(tween(250)) + slideInHorizontally(tween(250, easing = EmphasizedDecelerate)) { it / 2 }
-
-/** Consumes the taps that would reach the scrim behind a container. */
-internal fun Modifier.consumeTaps(): Modifier = pointerInput(Unit) { detectTapGestures { } }
 
 /**
  * A window covering the screen, edge to edge: the platform dim is the scrim ([scrimAlpha] of black),
@@ -90,16 +92,23 @@ fun ModalWindow(
         }
         TransparentDialogBars()
         val visibleState = remember { MutableTransitionState(false).apply { targetState = true } }
+        // Where the content is, in the window: a tap there isn't outside. The content's own taps are
+        // left alone, a text field needs them to take the focus.
+        var contentBounds by remember { mutableStateOf<Rect?>(null) }
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(Unit) { detectTapGestures { if (outside) dismiss() } }
+                .pointerInput(Unit) {
+                    detectTapGestures { offset ->
+                        if (outside && contentBounds?.contains(offset) != true) dismiss()
+                    }
+                }
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(ModalDefaults.WindowMargin),
             contentAlignment = Alignment.Center,
         ) {
             AnimatedVisibility(visibleState = visibleState, enter = enter) {
-                Box(modifier = modifier.consumeTaps()) {
+                Box(modifier = modifier.onGloballyPositioned { contentBounds = it.boundsInWindow() }) {
                     content()
                 }
             }

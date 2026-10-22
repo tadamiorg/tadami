@@ -4,6 +4,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -65,6 +66,7 @@ data class DialogOption(val label: String, val checked: Boolean, val onCheckedCh
 private val DialogPadding = 20.dp
 private val BlockSpacing = 16.dp
 private const val ScrimAlpha = 0.4f
+private val CompactHeight = 240.dp
 
 /**
  * The dialog every centred modal is drawn with: a header (icon badge or subject, title, subtitle) and
@@ -142,47 +144,60 @@ private fun DialogFrame(
     headerAction: (@Composable () -> Unit)?,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(modifier = Modifier.padding(top = DialogPadding)) {
-        if (title != null || icon != null || subject != null) {
-            DialogHeader(
-                title = title,
-                icon = icon,
-                subtitle = subtitle,
-                subject = subject,
-                tone = tone,
-                headerAction = headerAction,
-                modifier = Modifier.padding(horizontal = DialogPadding),
-            )
-            Spacer(Modifier.height(BlockSpacing))
-        }
-        val bodyPadding = Modifier.padding(horizontal = if (padBody) DialogPadding else 0.dp)
-        // The body's text: bodyMedium, onSurfaceVariant
-        CompositionLocalProvider(
-            LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant,
-            LocalTextStyle provides MaterialTheme.typography.bodyMedium,
+    BoxWithConstraints {
+        // Too little room for the header and the buttons around a scrolling body (landscape with the
+        // keyboard): the whole dialog scrolls instead of being cut
+        val compact = scrollable && maxHeight < CompactHeight
+        Column(
+            modifier = Modifier
+                .then(if (compact) Modifier.verticalScroll(rememberScrollState()) else Modifier)
+                .padding(top = DialogPadding),
         ) {
-            if (scrollable) {
-                val scroll = rememberScrollState()
-                Box(modifier = Modifier.weight(1f, fill = false)) {
-                    Column(modifier = Modifier.verticalScroll(scroll).then(bodyPadding), content = content)
-                    ScrollFades(scroll, dialogContainer())
-                }
-            } else {
-                Column(modifier = Modifier.weight(1f, fill = false).then(bodyPadding), content = content)
+            if (title != null || icon != null || subject != null) {
+                DialogHeader(
+                    title = title,
+                    icon = icon,
+                    subtitle = subtitle,
+                    subject = subject,
+                    tone = tone,
+                    headerAction = headerAction,
+                    modifier = Modifier.padding(horizontal = DialogPadding),
+                )
+                Spacer(Modifier.height(BlockSpacing))
             }
-        }
-        if (confirm != null || dismiss != null || neutral != null) {
-            Spacer(Modifier.height(BlockSpacing))
-            DialogButtons(
-                confirm = confirm,
-                dismiss = dismiss,
-                neutral = neutral,
-                tone = tone,
-                modifier = Modifier.padding(horizontal = DialogPadding - 8.dp),
-            )
-            Spacer(Modifier.height(DialogPadding - 4.dp))
-        } else {
-            Spacer(Modifier.height(DialogPadding))
+            val bodyPadding = Modifier.padding(horizontal = if (padBody) DialogPadding else 0.dp)
+            // The body's text: bodyMedium, onSurfaceVariant
+            CompositionLocalProvider(
+                LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant,
+                LocalTextStyle provides MaterialTheme.typography.bodyMedium,
+            ) {
+                // One structure whatever the mode, only the modifiers change: the body, a text field
+                // with its keyboard among others, isn't recreated when the keyboard makes it compact
+                val scroll = rememberScrollState()
+                val bodyScrolls = scrollable && !compact
+                Box(modifier = if (compact) Modifier else Modifier.weight(1f, fill = false)) {
+                    Column(
+                        modifier = Modifier
+                            .then(if (bodyScrolls) Modifier.verticalScroll(scroll) else Modifier)
+                            .then(bodyPadding),
+                        content = content,
+                    )
+                    if (bodyScrolls) ScrollFades(scroll, dialogContainer())
+                }
+            }
+            if (confirm != null || dismiss != null || neutral != null) {
+                Spacer(Modifier.height(BlockSpacing))
+                DialogButtons(
+                    confirm = confirm,
+                    dismiss = dismiss,
+                    neutral = neutral,
+                    tone = tone,
+                    modifier = Modifier.padding(horizontal = DialogPadding - 8.dp),
+                )
+                Spacer(Modifier.height(DialogPadding - 4.dp))
+            } else {
+                Spacer(Modifier.height(DialogPadding))
+            }
         }
     }
 }
