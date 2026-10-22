@@ -359,6 +359,7 @@ fun VideoPlayer(
         selectAudio(exoPlayer.currentTracks)
     }
 
+    val sourceLifecycle = LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(key1 = episodeUiState.selectedSource) {
         episodeUiState.selectedSource?.let { source ->
             // Drop stale text/audio overrides from the previous source; a lingering override pointing at the
@@ -369,7 +370,10 @@ fun VideoPlayer(
                 .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
                 .build()
             playerViewModel.getDbEpisodeTime { timeSeen ->
-                exoPlayer.playWhenReady = true
+                // A source fetched while another screen covers the player (e.g. the WebView opened during the
+                // fetch) must not start behind it: ON_RESUME starts it once the player is back. PiP keeps
+                // STARTED and locked controls keep playing in the background, as on ON_PAUSE.
+                exoPlayer.playWhenReady = lockedControls || sourceLifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
                 val startPos = timeSeen.takeIf { it > 0 } ?: currentTime
 
                 val videoItem = MediaItem.Builder().apply {
