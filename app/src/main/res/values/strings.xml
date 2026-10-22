@@ -41,7 +41,6 @@
     <string name="player_screen_episode_label">Episode</string>
     <string name="player_screen_qd_ok_btn" tools:ignore="ButtonCase,Typos">Ok</string>
     <string name="player_screen_qd_title">Select Quality</string>
-    <string name="player_screen_qd_cancel_btn">Cancel</string>
     <string name="discover_search_screen_title">Search</string>
     <string name="discover_search_screen_search_placeholder">Search by name…</string>
     <string name="discover_search_screen_filters_group_selected_text">select</string>
@@ -213,6 +212,7 @@
     <string name="pref_clear_cookies">Clear cookies</string>
     <string name="action_open_in_browser">Open in browser</string>
     <string name="action_webview_close_window">Close window</string>
+    <string name="action_close">Close</string>
     <string name="action_open_in_webview">Open in WebView</string>
     <string name="preferences_advanced">Advanced</string>
     <string name="preferences_advanced_data">Data</string>

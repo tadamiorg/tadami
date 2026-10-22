@@ -2,26 +2,20 @@ package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs
 
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
-import com.sf.tadami.ui.animeinfos.details.episodes.EpisodeListItem
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
-import com.sf.tadami.ui.components.dialog.simple.SimpleDialog
+import com.sf.tadami.ui.components.modal.PlayerChoiceRow
+import com.sf.tadami.ui.components.modal.PlayerPanel
 import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
 import com.sf.tadami.ui.utils.toRelativeString
 import java.util.Date
 
+/** The episodes, scrolled to the current one, the seen ones dimmed: a tap plays it and closes the panel. */
 @Composable
 fun EpisodesDialog(
     opened : Boolean,
@@ -32,53 +26,25 @@ fun EpisodesDialog(
     onDismissRequest : () -> Unit
 
 ) {
-    var selectedEpisode by remember { mutableStateOf(initialEpisode) }
-    val listState = rememberLazyListState()
-    SimpleDialog(
-        opened = opened,
-        title = {
-                Text(text = stringResource(id = R.string.label_episodes))
-        },
-        confirmButton = {
-            DefaultDialogConfirmButton(
-                enabled = selectedEpisode?.id != initialEpisode?.id
-            ) {
-                if(selectedEpisode != null){
-                    onConfirm(selectedEpisode!!)
-                    onDismissRequest()
-                }
-            }
-        },
-        onDismissRequest = {
-            onDismissRequest()
-        },
-        dismissButton = {
-            DefaultDialogCancelButton()
-        }
+    PlayerPanel(
+        visible = opened,
+        onDismissRequest = onDismissRequest,
+        title = stringResource(id = R.string.label_episodes),
     ) {
+        val listState = rememberLazyListState()
         LaunchedEffect(Unit){
-            val realEpisode = initialEpisode
-            selectedEpisode = realEpisode
             // Match by id: the list re-emits updated copies (progress, seen) that no longer equal the current episode.
-            listState.animateScrollToItem(realEpisode?.let { episodes.indexOfFirst { ep -> ep.id == it.id } }.takeIf { it !=-1 } ?: 0)
+            listState.scrollToItem(initialEpisode?.let { episodes.indexOfFirst { ep -> ep.id == it.id } }.takeIf { it !=-1 } ?: 0)
         }
-        FastScrollLazyColumn(thumbAlways = true, noEndPadding = true, state = listState){
+        FastScrollLazyColumn(thumbAlways = true, state = listState){
             items(episodes){episode ->
-                EpisodeListItem(
-                    title =  when(displayMode){
+                PlayerChoiceRow(
+                    selected = initialEpisode?.id == episode.id,
+                    label = when(displayMode){
                         is Anime.DisplayMode.NAME -> episode.name
                         else -> "${stringResource(id = R.string.player_screen_episode_label)} ${episode.episodeNumber}"
                     },
-                    onClick = {
-                        selectedEpisode = episode
-                    },
-                    onLongClick = {
-
-                    },
-                    seen = episode.seen,
-                    selected = selectedEpisode?.id == episode.id,
-                    watchProgress = null,
-                    date = when {
+                    supporting = when {
                         episode.dateUpload > 0L -> {
                             Date(episode.dateUpload).toRelativeString(LocalContext.current)
                         }
@@ -87,7 +53,11 @@ fun EpisodesDialog(
                         }
                         else -> null
                     },
-                    languages = null,
+                    dimmed = episode.seen,
+                    onClick = {
+                        if (episode.id != initialEpisode?.id) onConfirm(episode)
+                        onDismissRequest()
+                    },
                 )
             }
         }

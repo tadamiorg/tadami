@@ -3,7 +3,6 @@ package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselect
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,28 +23,23 @@ import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.player.PlayerPreferences
-import com.sf.tadami.ui.components.screens.ScreenTabContent
 import com.sf.tadami.ui.tabs.more.settings.components.PreferenceParser
 import com.sf.tadami.ui.tabs.more.settings.screens.appearance.OutlinedNumericChooser
 import com.sf.tadami.ui.tabs.more.settings.widget.PrefsHorizontalPadding
 import com.sf.tadami.ui.utils.padding
 
+/** The subtitle appearance, applied live. */
 @OptIn(UnstableApi::class)
 @Composable()
-fun subtitleSettingsTab() : ScreenTabContent {
+fun SubtitleSettingsTab() {
     val playerPreferencesState = rememberDataStoreState(PlayerPreferences)
     val playerPreferences by playerPreferencesState.value.collectAsState()
-    return ScreenTabContent(
-        titleRes = R.string.label_settings,
-    ) { contentPadding: PaddingValues, _ ->
-        PreferenceParser(
-            customPrefsVerticalPadding = MaterialTheme.padding.medium,
-            modifier = Modifier.padding(contentPadding),
-            items = listOf(
-                getSubtitlesGroup(prefState = playerPreferencesState, prefs = playerPreferences)
-            )
+    PreferenceParser(
+        customPrefsVerticalPadding = MaterialTheme.padding.medium,
+        items = listOf(
+            getSubtitlesGroup(prefState = playerPreferencesState, prefs = playerPreferences)
         )
-    }
+    )
 }
 
 @OptIn(UnstableApi::class)

@@ -40,7 +40,6 @@
     <string name="player_screen_episode_label">Episode</string>
     <string name="player_screen_qd_ok_btn">Ok</string>
     <string name="player_screen_qd_title">Qualité du stream</string>
-    <string name="player_screen_qd_cancel_btn">Annuler</string>
     <string name="discover_search_screen_title">Recherche</string>
     <string name="discover_search_screen_search_placeholder">Rechercher par nom…</string>
     <string name="discover_search_screen_filters_group_selected_text">selectionner</string>
@@ -172,6 +171,7 @@
     <string name="pref_clear_cookies">Effacer les cookies</string>
     <string name="action_open_in_browser">Ouvrir dans le navigateur</string>
     <string name="action_webview_close_window">Fermer la fenêtre</string>
+    <string name="action_close">Fermer</string>
     <string name="action_open_in_webview">Ouvrir dans WebView</string>
     <string name="preferences_advanced_data">Données</string>
     <string name="preferences_advanced">Avancé</string>

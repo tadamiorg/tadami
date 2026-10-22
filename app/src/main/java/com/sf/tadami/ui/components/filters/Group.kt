@@ -31,8 +31,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
 import com.sf.tadami.source.model.AnimeFilter
-import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
+import com.sf.tadami.ui.components.modal.ModalAction
+import com.sf.tadami.ui.components.modal.TadaDialog
 import com.sf.tadami.ui.themes.header
 import com.sf.tadami.ui.utils.capFirstLetter
 import com.sf.tadami.ui.utils.lowFirstLetter
@@ -90,16 +90,13 @@ fun Group(
     }
 
     if (dialogState) {
-        CustomAlertDialog(
-            title = {
-                Text(text = checkBoxGroup.name.capFirstLetter())
-            },
+        TadaDialog(
+            title = checkBoxGroup.name.capFirstLetter(),
             onDismissRequest = { dialogState = false },
-            confirmButton = {
-                DefaultDialogConfirmButton {
-                    dialogState = false
-                }
-            }
+            dismiss = null,
+            confirm = ModalAction(stringResource(android.R.string.ok)) { dialogState = false },
+            // A lazy grid, with its own scroll
+            scrollable = false,
         ) {
             LazyVerticalGrid(
                 modifier = Modifier

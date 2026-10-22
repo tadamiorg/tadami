@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,8 +11,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
-import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
+import com.sf.tadami.ui.components.modal.TadaDialog
 import com.sf.tadami.ui.utils.moveItemDown
 import com.sf.tadami.ui.utils.moveItemUp
 import com.sf.tadami.ui.utils.padding
@@ -40,18 +38,13 @@ fun ReorderStringPreference(
     )
 
     if(showDialog){
-        CustomAlertDialog(
-            title = {
-                Text(text = title)
-            },
+        TadaDialog(
             onDismissRequest = {
                 showDialog = false
             },
-            confirmButton = {
-            },
-            dismissButton = {
-                DefaultDialogCancelButton()
-            }
+            title = title,
+            // A lazy list, with its own scroll
+            scrollable = false,
         ) {
             LazyColumn{
                 itemsIndexed(

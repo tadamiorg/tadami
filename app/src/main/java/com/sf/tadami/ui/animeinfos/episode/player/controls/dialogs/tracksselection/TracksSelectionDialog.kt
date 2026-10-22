@@ -1,14 +1,18 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.ui.res.stringResource
+import com.sf.tadami.R
 import com.sf.tadami.source.model.Track
-import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.tabs.subtitleSettingsTab
-import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.tabs.subtitlesTab
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
-import com.sf.tadami.ui.components.dialog.simple.TabbedSimpleDialog
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.tabs.SubtitleSettingsTab
+import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.tabs.SubtitlesTab
+import com.sf.tadami.ui.components.modal.ModalRules
+import com.sf.tadami.ui.components.modal.PlayerPanel
 
+/**
+ * The subtitle tracks, a tap switches to it and closes the panel, and their appearance, changed live
+ * over the video: no scrim on that page.
+ */
 @Composable
 fun TracksSelectionDialog(
     opened: Boolean,
@@ -17,33 +21,24 @@ fun TracksSelectionDialog(
     onSubtitleTrackSelected: (Track.SubtitleTrack?) -> Unit,
     onDismissRequest: () -> Unit
 ) {
-    // Key on the current selection so the dialog reflects the auto-/actually-selected track
-    // (it may become non-null after the dialog is first composed).
-    val (selectedSubtitleOption, onSubtitleOptionSelected) = remember(selectedSubtitleTrack) {
-        mutableStateOf(selectedSubtitleTrack)
-    }
-
-    val tabs = mutableListOf(
-        subtitlesTab(
-            selectedOption = selectedSubtitleOption,
-            selectedSubtitleTrack = selectedSubtitleTrack,
-            onOptionSelected = onSubtitleOptionSelected,
-            subtitleTracks = subtitleTracks ?: emptyList(),
-        ),
-        subtitleSettingsTab(),
-    )
-
-    TabbedSimpleDialog(
-        tabs = tabs,
+    PlayerPanel(
+        visible = opened,
         onDismissRequest = onDismissRequest,
-        opened = opened,
-        confirmButton = {
-            DefaultDialogConfirmButton(
-                enabled = selectedSubtitleOption != selectedSubtitleTrack
-            ) {
-                onSubtitleTrackSelected(selectedSubtitleOption)
-                onDismissRequest()
-            }
-        },
-    )
+        title = stringResource(R.string.label_subtitles),
+        tabs = listOf(stringResource(R.string.label_subtitles), stringResource(R.string.label_settings)),
+        clearScrim = { page -> page == 1 },
+    ) { page ->
+        if (page == 0) {
+            SubtitlesTab(
+                subtitleTracks = subtitleTracks ?: emptyList(),
+                selectedSubtitleTrack = selectedSubtitleTrack,
+                onSelect = {
+                    if (ModalRules.singleChoiceApplies(selectedSubtitleTrack, it)) onSubtitleTrackSelected(it)
+                    onDismissRequest()
+                },
+            )
+        } else {
+            SubtitleSettingsTab()
+        }
+    }
 }

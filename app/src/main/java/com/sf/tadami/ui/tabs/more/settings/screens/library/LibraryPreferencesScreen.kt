@@ -36,9 +36,8 @@ import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.preferences.model.rememberDataStoreState
-import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
+import com.sf.tadami.ui.components.modal.ModalAction
+import com.sf.tadami.ui.components.modal.TadaDialog
 import com.sf.tadami.ui.tabs.more.settings.components.PreferenceScreen
 import com.sf.tadami.ui.utils.defaultParser
 import com.sf.tadami.ui.utils.toPrefMultiCheckbox
@@ -291,18 +290,14 @@ class LibraryPreferencesScreen(
         var portraitValue by rememberSaveable { mutableIntStateOf(initialPortrait) }
         var landscapeValue by rememberSaveable { mutableIntStateOf(initialLandscape) }
 
-        CustomAlertDialog(
+        TadaDialog(
             onDismissRequest = onDismissRequest,
-            title = { Text(text = stringResource(id = R.string.preferences_library_columns)) },
-            dismissButton = {
-                DefaultDialogCancelButton()
-            },
-            confirmButton = {
-                DefaultDialogConfirmButton(
-                    enabled = portraitValue != initialPortrait || landscapeValue != initialLandscape,
-                ) {
-                    onValueChanged(portraitValue, landscapeValue)
-                }
+            title = stringResource(id = R.string.preferences_library_columns),
+            confirm = ModalAction(
+                stringResource(android.R.string.ok),
+                enabled = portraitValue != initialPortrait || landscapeValue != initialLandscape,
+            ) {
+                onValueChanged(portraitValue, landscapeValue)
             },
         ) {
             Column {

@@ -19,14 +19,11 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -93,6 +90,9 @@ import com.sf.tadami.ui.animeinfos.episode.player.PipState
 import com.sf.tadami.ui.animeinfos.episode.player.PlayerViewModel
 import com.sf.tadami.ui.animeinfos.episode.player.PlayerViewModelFactory
 import com.sf.tadami.ui.animeinfos.episode.player.VideoPlayer
+import com.sf.tadami.ui.components.modal.ModalAction
+import com.sf.tadami.ui.components.modal.ModalBodyText
+import com.sf.tadami.ui.components.modal.TadaDialog
 import com.sf.tadami.ui.utils.getUriCompat
 import com.sf.tadami.ui.utils.setComposeContent
 import com.sf.tadami.ui.utils.UiToasts
@@ -281,20 +281,17 @@ class EpisodeActivity : AppCompatActivity() {
                     }
 
                     tvCrashLog.value?.let { crashText ->
-                        AlertDialog(
+                        TadaDialog(
                             onDismissRequest = { tvCrashLog.value = null },
-                            title = { Text("Tadami Terebi crashed") },
-                            text = { Text("The TV reported a crash. Export the error log?") },
-                            confirmButton = {
-                                TextButton(onClick = {
-                                    shareCrashLog(crashText)
-                                    tvCrashLog.value = null
-                                }) { Text("Export") }
+                            title = "Tadami Terebi crashed",
+                            confirm = ModalAction("Export") {
+                                shareCrashLog(crashText)
+                                tvCrashLog.value = null
                             },
-                            dismissButton = {
-                                TextButton(onClick = { tvCrashLog.value = null }) { Text("Dismiss") }
-                            },
-                        )
+                            dismiss = ModalAction("Dismiss") { tvCrashLog.value = null },
+                        ) {
+                            ModalBodyText("The TV reported a crash. Export the error log?")
+                        }
                     }
 
                     if (casting) {

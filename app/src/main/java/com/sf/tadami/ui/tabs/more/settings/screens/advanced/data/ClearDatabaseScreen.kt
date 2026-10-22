@@ -51,10 +51,8 @@ import com.sf.tadami.domain.source.Source
 import com.sf.tadami.domain.source.icon
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.components.data.Action
-import com.sf.tadami.ui.components.dialog.alert.CustomAlertDialog
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogCancelButton
-import com.sf.tadami.ui.components.dialog.alert.DefaultDialogConfirmButton
 import com.sf.tadami.ui.components.grid.EmptyScreen
+import com.sf.tadami.ui.components.modal.TadaDestructiveDialog
 import com.sf.tadami.ui.components.topappbar.ActionItem
 import com.sf.tadami.ui.components.widgets.FastScrollLazyColumn
 import com.sf.tadami.ui.tabs.more.settings.components.PreferenceScreen
@@ -111,25 +109,18 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
         val coroutineScope = rememberCoroutineScope()
         val uiState by clearDatabaseViewModel.uiState.collectAsState()
         if (uiState.showConfirmation) {
-            CustomAlertDialog(
+            TadaDestructiveDialog(
                 onDismissRequest = clearDatabaseViewModel::hideConfirmation,
-                confirmButton = {
-                    DefaultDialogConfirmButton(
-                        text = android.R.string.ok
-                    ) {
-                        coroutineScope.launch {
-                            clearDatabaseViewModel.removeAnimeBySourceIds()
-                            clearDatabaseViewModel.clearSelection()
-                            clearDatabaseViewModel.hideConfirmation()
-                            UiToasts.showToast(R.string.clear_database_completed)
-                        }
+                title = null,
+                message = stringResource(R.string.clear_database_confirmation),
+                confirmLabel = stringResource(android.R.string.ok),
+                onConfirm = {
+                    coroutineScope.launch {
+                        clearDatabaseViewModel.removeAnimeBySourceIds()
+                        clearDatabaseViewModel.clearSelection()
+                        clearDatabaseViewModel.hideConfirmation()
+                        UiToasts.showToast(R.string.clear_database_completed)
                     }
-                },
-                dismissButton = {
-                    DefaultDialogCancelButton(text = R.string.action_cancel)
-                },
-                text = {
-                    Text(text = stringResource(R.string.clear_database_confirmation))
                 },
             )
         }

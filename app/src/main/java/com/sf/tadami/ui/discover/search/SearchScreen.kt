@@ -78,7 +78,6 @@ fun SearchScreen(
 
     Box {
         TadaBottomSheetScaffold(
-            sheetDragHandle = null,
             onDismissRequest = {
                 showFiltersSheet = false
             },

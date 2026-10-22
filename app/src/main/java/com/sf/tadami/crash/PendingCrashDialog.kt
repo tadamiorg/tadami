@@ -1,8 +1,7 @@
 package com.sf.tadami.crash
 
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,6 +12,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.sf.tadami.R
+import com.sf.tadami.ui.components.modal.ModalAction
+import com.sf.tadami.ui.components.modal.ModalBodyText
+import com.sf.tadami.ui.components.modal.TadaDialog
 import com.sf.tadami.ui.utils.UiToasts
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,34 +46,26 @@ fun PendingCrashDialog() {
         Unit
     }
 
-    AlertDialog(
+    TadaDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.crash_pending_title, stringResource(R.string.app_name))) },
-        text = { Text(text = stringResource(R.string.crash_pending_message)) },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    dismissed = true
-                    scope.launch {
-                        // The report as it was written, not this session's info
-                        val shared = withContext(Dispatchers.IO) {
-                            CrashReporter.shareReport(context, log.format())
-                        }
-                        if (shared) {
-                            withContext(Dispatchers.IO) { CrashReporter.clearPending(context) }
-                        } else {
-                            UiToasts.showToast(R.string.crash_logs_dump_failed)
-                        }
-                    }
-                },
-            ) {
-                Text(text = stringResource(R.string.crash_pending_share))
+        title = stringResource(R.string.crash_pending_title, stringResource(R.string.app_name)),
+        icon = Icons.Outlined.BugReport,
+        confirm = ModalAction(stringResource(R.string.crash_pending_share)) {
+            dismissed = true
+            scope.launch {
+                // The report as it was written, not this session's info
+                val shared = withContext(Dispatchers.IO) {
+                    CrashReporter.shareReport(context, log.format())
+                }
+                if (shared) {
+                    withContext(Dispatchers.IO) { CrashReporter.clearPending(context) }
+                } else {
+                    UiToasts.showToast(R.string.crash_logs_dump_failed)
+                }
             }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.crash_pending_dismiss))
-            }
-        },
-    )
+        dismiss = ModalAction(stringResource(R.string.crash_pending_dismiss), onClick = onDismiss),
+    ) {
+        ModalBodyText(stringResource(R.string.crash_pending_message))
+    }
 }

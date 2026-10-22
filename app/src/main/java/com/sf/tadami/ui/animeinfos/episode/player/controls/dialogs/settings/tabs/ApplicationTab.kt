@@ -3,12 +3,9 @@ package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.tab
 import android.content.Context
 import android.graphics.Typeface
 import androidx.annotation.OptIn
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
@@ -21,7 +18,6 @@ import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.player.PlayerPreferences
-import com.sf.tadami.ui.components.screens.ScreenTabContent
 import com.sf.tadami.ui.tabs.more.settings.components.PreferenceParser
 
 
@@ -43,22 +39,17 @@ private fun getCustomTypeface(context: Context): Typeface {
 
 @OptIn(UnstableApi::class)
 @Composable()
-fun applicationTab(): ScreenTabContent {
+fun ApplicationTab() {
     val playerPreferencesState = rememberDataStoreState(PlayerPreferences)
     val playerPreferences by playerPreferencesState.value.collectAsState()
-    return ScreenTabContent(
-        titleRes = R.string.notification_app_group,
-    ) { contentPadding: PaddingValues, _ ->
-        PreferenceParser(
-            customPrefsVerticalPadding = 8.dp,
-            modifier = Modifier.padding(contentPadding),
-            items = listOf(
-                getTimelineGroup(prefState = playerPreferencesState, prefs = playerPreferences),
-                getSubtitlesGroup(prefState = playerPreferencesState, prefs = playerPreferences),
-                getDisplayGroup(prefState = playerPreferencesState, prefs = playerPreferences)
-            )
+    PreferenceParser(
+        customPrefsVerticalPadding = 8.dp,
+        items = listOf(
+            getTimelineGroup(prefState = playerPreferencesState, prefs = playerPreferences),
+            getSubtitlesGroup(prefState = playerPreferencesState, prefs = playerPreferences),
+            getDisplayGroup(prefState = playerPreferencesState, prefs = playerPreferences)
         )
-    }
+    )
 }
 
 @OptIn(UnstableApi::class)
