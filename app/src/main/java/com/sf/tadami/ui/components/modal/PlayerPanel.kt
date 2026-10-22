@@ -63,7 +63,7 @@ import kotlinx.coroutines.launch
 
 /**
  * A modal of the player, drawn in the composition (never a window, so the immersive mode and the
- * cutout stay as they are), the video keeps playing under it. In landscape a side panel at the end,
+ * cutout stay as they are). In landscape a side panel at the end,
  * 40% of the width (320 to 420dp), the full height; in portrait at the bottom, at most 60% of the
  * height. A light scrim on the video, a tap on it closes the panel, none on the [clearScrim] pages, so
  * their changes can be seen on the video. Segmented tabs for 2 pages or more.
