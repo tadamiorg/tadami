@@ -108,6 +108,12 @@ class CastProxyServer(
      */
     fun serveLocal(media: LocalMedia): String = localRoute.serve(media)
 
+    /**
+     * The downloaded file behind [url], one of the local route's URLs of the episode served (the
+     * seekbar preview decodes the file rather than its playlist over the network); null otherwise.
+     */
+    fun localFileUri(url: String): String? = url.toHttpUrlOrNull()?.encodedPath?.let(localRoute::fileUri)
+
     private inner class Server(port: Int) : NanoHTTPD(port) {
         override fun serve(session: IHTTPSession): Response = this@CastProxyServer.route(session)
 

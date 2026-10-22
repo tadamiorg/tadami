@@ -667,6 +667,7 @@ class EpisodeActivity : AppCompatActivity() {
                     proxyBaseUrl = proxy?.baseUrl(),
                     subtitleStyle = playerPreferences?.toCastSubtitleStyle(),
                     contentUrl = contentUrl,
+                    seekPreview = playerPreferences?.seekPreview ?: false,
                 )
                 // Mirror the auto-selected subtitle (or none, subtitles off) into the phone player state.
                 playerViewModel.selectedSubtitleTrack(

@@ -37,4 +37,6 @@ data class ReceiverHandshakeMessage(
     val receiverType: String = "",
     val receiverProtocol: Int = 0,
     val receiverVersion: String = "",
+    /** Optional features of the receiver (e.g. "seekPreview"); absent from older receivers. */
+    val capabilities: List<String> = emptyList(),
 )

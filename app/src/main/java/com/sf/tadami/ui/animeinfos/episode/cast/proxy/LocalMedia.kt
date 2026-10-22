@@ -177,6 +177,21 @@ internal class LocalMediaRoute(private val opener: LocalFileOpener) {
 
     fun handles(path: String): Boolean = path.startsWith(PATH_PREFIX)
 
+    /**
+     * The content URI of the file behind [path], a URL path of the episode served: the file itself,
+     * the joined file of a media playlist, or the video's of the master playlist. Null for anything
+     * else (another token, another name).
+     */
+    fun fileUri(path: String): String? {
+        val current = served ?: return null
+        val rest = path.removePrefix(PATH_PREFIX).takeIf { path.startsWith(PATH_PREFIX) } ?: return null
+        if (!sameToken(rest.substringBefore('-', ""), current.token)) return null
+        var name = rest.substringAfter('-')
+        (current.media.playlists[name] as? LocalPlaylist.Master)?.let { name = it.video }
+        (current.media.playlists[name] as? LocalPlaylist.Media)?.let { name = it.file }
+        return current.media.files[name]?.uri
+    }
+
     fun respond(method: NanoHTTPD.Method, path: String, rangeHeader: String?): NanoHTTPD.Response {
         val current = served
         val rest = path.removePrefix(PATH_PREFIX)

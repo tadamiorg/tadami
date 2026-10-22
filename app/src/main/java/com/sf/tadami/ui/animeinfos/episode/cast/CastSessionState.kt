@@ -21,6 +21,9 @@ object CastSessionState {
 
     val receiverType = MutableStateFlow(ReceiverType.UNKNOWN)
 
+    /** Optional features the web receiver announced in its handshake reply (none for the native one). */
+    val receiverCapabilities = MutableStateFlow<Set<String>>(emptySet())
+
     /** Live base url of the phone proxy ("http://<ip>:<port>"), published when the proxy (re)starts. */
     val proxyBaseUrl = MutableStateFlow<String?>(null)
 
@@ -29,6 +32,7 @@ object CastSessionState {
 
     fun clear() {
         receiverType.value = ReceiverType.UNKNOWN
+        receiverCapabilities.value = emptySet()
         proxyBaseUrl.value = null
         showWebReceiverNotice.value = false
     }
