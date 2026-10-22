@@ -63,6 +63,8 @@ class CastPreviewProtocolTest {
             receiverRequest.replace("\"url\":\"https://h.example/ep.m3u8\"", "\"url\":\"\""),
             receiverRequest.replace("\"sourceId\":\"7|https://h.example/ep.m3u8|Server A|1080p\"", "\"sourceId\":\"\""),
             """{"requestId":3,"sourceId":"s","url":"u","step":1,"duration":60000}""",
+            // A receiver's request has an id: only the phone's prefetches don't
+            receiverRequest.replace("\"requestId\":3,", ""),
             "not json",
         ).forEach { assertNull(it, CastPreviewProtocol.decodeRequest(it)) }
     }
@@ -91,6 +93,35 @@ class CastPreviewProtocolTest {
         assertEquals(12, reply["step"]!!.jsonPrimitive.int)
         assertFalse(reply.containsKey("jpeg"))
         assertFalse(reply.containsKey("width"))
+    }
+
+    @Test
+    fun `decodes the receiver's stream announcement`() {
+        val source = CastPreviewProtocol.decodeSource(
+            """{"type":"previewSource","sourceId":"7|u|S|1080p","url":"https://h.example/ep.m3u8",""" +
+                """"headers":null,"duration":1420000,"steps":[3,4]}""",
+        )!!
+        assertEquals("7|u|S|1080p", source.sourceId)
+        assertNull(source.headers)
+        assertEquals(listOf(3, 4), source.steps)
+        val prefetch = source.requestFor(9)
+        assertNull(prefetch.requestId)
+        assertEquals(9, prefetch.step)
+        assertEquals(1_420_000L, prefetch.duration)
+        assertTrue(prefetch.isValid)
+        assertNull(CastPreviewProtocol.decodeSource("""{"type":"previewSource","sourceId":"s","url":"u","duration":0}"""))
+        assertNull(CastPreviewProtocol.decodeSource(receiverRequest))
+    }
+
+    @Test
+    fun `a pushed frame has no request id`() {
+        val source = CastPreviewProtocol.decodeSource(
+            """{"type":"previewSource","sourceId":"s","url":"https://h.example/ep.m3u8","duration":1420000}""",
+        )!!
+        val message = CastPreviewProtocol.frameMessage(source.requestFor(2), PreviewJpeg(ByteArray(10), 256, 144))!!
+        val reply = Json.parseToJsonElement(message).jsonObject
+        assertFalse(reply.containsKey("requestId"))
+        assertEquals(2, reply["step"]!!.jsonPrimitive.int)
     }
 
     @Test

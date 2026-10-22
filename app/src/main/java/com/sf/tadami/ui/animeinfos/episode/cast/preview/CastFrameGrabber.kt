@@ -18,7 +18,7 @@ import com.sf.tadami.ui.animeinfos.episode.player.preview.previewLoadControl
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewRenderersFactory
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewTrackSelectionParameters
 import java.io.ByteArrayOutputStream
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Decodes preview frames of one stream at a time, with no view: a muted, video-only ExoPlayer (the
@@ -26,8 +26,9 @@ import java.util.concurrent.atomic.AtomicLong
  * and the frame after each seek is read back, downscaled, as a JPEG within the cast message budget.
  * Works with the phone's player screen closed, from the cast session's service.
  *
- * Everything runs on its own thread; results are delivered there. One grab at a time: [setSource]
- * drops the grab in flight (its result is never delivered), [release] ends the thread.
+ * Everything runs on its own thread; results are delivered there. One grab at a time: a new grab or
+ * [setSource] drops the grab in flight (its result is never delivered), and a frame is only taken
+ * near the time asked, never one the dropped grab's seek left behind; [release] ends the thread.
  */
 @UnstableApi
 class CastFrameGrabber(private val context: Context) {
@@ -42,7 +43,10 @@ class CastFrameGrabber(private val context: Context) {
         data object Failed : Result
     }
 
-    private class Grab(val startedAtNs: Long, val onResult: (Result) -> Unit)
+    private class Grab(val startedAtNs: Long, val windowUs: LongRange, val onResult: (Result) -> Unit)
+
+    /** A frame the decoder sent to the surface: when, and its media time. */
+    private class Released(val releaseTimeNs: Long, val presentationTimeUs: Long)
 
     private val thread = HandlerThread("CastSeekPreview").apply { start() }
     private val handler = Handler(thread.looper)
@@ -54,8 +58,8 @@ class CastFrameGrabber(private val context: Context) {
     private var grab: Grab? = null
     private var aspectRatio = 16f / 9f
 
-    // Release time of the last frame the decoder sent to the surface (playback thread)
-    private val lastFrameReleaseNs = AtomicLong(Long.MIN_VALUE)
+    // The last frame the decoder sent to the surface (written on the playback thread)
+    private val lastReleased = AtomicReference<Released?>(null)
 
     /** The stream to decode from now on, [factory] creating its media source; drops the grab in flight. */
     fun setSource(factory: () -> MediaSource) {
@@ -98,7 +102,9 @@ class CastFrameGrabber(private val context: Context) {
             onResult(Result.Failed)
             return
         }
-        grab = Grab(System.nanoTime(), onResult)
+        // The seek lands within the tolerance; a little more, for streams without exact sync points
+        val windowMs = (positionMs - toleranceMs - FRAME_WINDOW_MARGIN_MS)..(positionMs + toleranceMs + FRAME_WINDOW_MARGIN_MS)
+        grab = Grab(System.nanoTime(), windowMs.first * 1000..windowMs.last * 1000, onResult)
         handler.postDelayed(giveUp, PREVIEW_FETCH_TIMEOUT_MS)
         Log.d(TAG, "Grab at $positionMs ms, ±$toleranceMs ms")
         val toleranceUs = toleranceMs * 1000
@@ -112,9 +118,14 @@ class CastFrameGrabber(private val context: Context) {
         // Always latched, or the decoder runs out of buffers
         frameReader.latch()
         val current = grab ?: return
-        // The first frame the decoder released since the grab started: the one after the seek
-        if (lastFrameReleaseNs.get() < current.startedAtNs) {
+        // The first frame the decoder released since the grab started, near the time asked: the one after the seek
+        val released = lastReleased.get()
+        if (released == null || released.releaseTimeNs < current.startedAtNs) {
             Log.v(TAG, "Frame of an earlier seek skipped")
+            return
+        }
+        if (released.presentationTimeUs !in current.windowUs) {
+            Log.v(TAG, "Frame at ${released.presentationTimeUs / 1000} ms skipped, out of the step")
             return
         }
         val (width, height) = previewFrameSize(aspectRatio)
@@ -134,7 +145,11 @@ class CastFrameGrabber(private val context: Context) {
 
     private fun finish(result: Result, releasePlayer: Boolean) {
         val current = grab ?: return
-        Log.d(TAG, "Grab ended: ${result::class.simpleName}, after ${(System.nanoTime() - current.startedAtNs) / 1_000_000} ms")
+        Log.d(
+            TAG,
+            "Grab ended: ${result::class.simpleName}, after ${(System.nanoTime() - current.startedAtNs) / 1_000_000} ms" +
+                (lastReleased.get()?.let { ", frame at ${it.presentationTimeUs / 1000} ms" } ?: ""),
+        )
         grab = null
         handler.removeCallbacks(giveUp)
         // A late frame mustn't be taken for the next step's: a new player for it
@@ -161,9 +176,9 @@ class CastFrameGrabber(private val context: Context) {
         previewPlayer.playWhenReady = false
         // Coalesces the seeks issued while one is still loading or decoding
         previewPlayer.setScrubbingModeEnabled(true)
-        previewPlayer.setVideoFrameMetadataListener { _, releaseTimeNs, _, _ ->
+        previewPlayer.setVideoFrameMetadataListener { presentationTimeUs, releaseTimeNs, _, _ ->
             // Playback thread: the frame is about to be queued to the surface
-            lastFrameReleaseNs.set(releaseTimeNs)
+            lastReleased.set(Released(releaseTimeNs, presentationTimeUs))
         }
         previewPlayer.addListener(object : Player.Listener {
             override fun onVideoSizeChanged(videoSize: VideoSize) {
@@ -190,10 +205,13 @@ class CastFrameGrabber(private val context: Context) {
     private fun releasePlayer() {
         player?.release()
         player = null
-        lastFrameReleaseNs.set(Long.MIN_VALUE)
+        lastReleased.set(null)
     }
 
     private companion object {
         const val TAG = "CastFrameGrabber"
+
+        /** Beyond the seek tolerance, how far from the time asked a frame may be. */
+        const val FRAME_WINDOW_MARGIN_MS = 1_000L
     }
 }

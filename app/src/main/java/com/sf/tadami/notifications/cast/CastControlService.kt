@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.media3.common.util.UnstableApi
+import com.google.android.gms.cast.MediaStatus
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
@@ -43,6 +44,7 @@ import com.sf.tadami.ui.animeinfos.episode.cast.channels.HandshakeChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ReceiverHandshakeMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvControlMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.toCastSubtitleStyle
+import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastPreviewPrefetch
 import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastPreviewProtocol
 import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastSeekPreview
 import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyHolder
@@ -87,7 +89,10 @@ class CastControlService : Service() {
     // Null without working Google Play services: the service then stops right away
     private var castContext: CastContext? = null
     private lateinit var notifier: CastNotifier
-    private val controlChannel = ControlChannel(onPreviewRequest = { seekPreview.onRequest(it) }) { msg -> onControl(msg) }
+    private val controlChannel = ControlChannel(
+        onPreviewRequest = { seekPreview.onRequest(it) },
+        onPreviewSource = { seekPreview.onSource(it) },
+    ) { msg -> onControl(msg) }
     private val handshakeChannel = HandshakeChannel { reply -> onHandshakeReply(reply) }
     // Logs receiver-reported errors for the whole session (CastVideoPlayer replaces this callback
     // with its snackbar variant while that screen is open — both paths write to logcat).
@@ -131,6 +136,7 @@ class CastControlService : Service() {
             localFileUri = proxyServer::localFileUri,
             receiverCapable = { CastPreviewProtocol.CAPABILITY in CastSessionState.receiverCapabilities.value },
             isOnWifi = { applicationContext.isConnectedToWifi() },
+            playback = ::castPlayback,
         )
         scope.launch {
             combine(
@@ -259,6 +265,20 @@ class CastControlService : Service() {
 
     private val remoteMediaClient: RemoteMediaClient?
         get() = castContext?.sessionManager?.currentCastSession?.remoteMediaClient
+
+    /** The TV's player state and position, for the seekbar preview prefetch. */
+    private fun castPlayback(): CastSeekPreview.CastPlayback? {
+        val client = remoteMediaClient ?: return null
+        val state = when (client.playerState) {
+            MediaStatus.PLAYER_STATE_PLAYING -> CastPreviewPrefetch.Playback.PLAYING
+            MediaStatus.PLAYER_STATE_PAUSED -> CastPreviewPrefetch.Playback.PAUSED
+            MediaStatus.PLAYER_STATE_BUFFERING -> CastPreviewPrefetch.Playback.BUFFERING
+            MediaStatus.PLAYER_STATE_LOADING -> CastPreviewPrefetch.Playback.LOADING
+            MediaStatus.PLAYER_STATE_IDLE -> CastPreviewPrefetch.Playback.IDLE
+            else -> null
+        }
+        return CastSeekPreview.CastPlayback(state, client.approximateStreamPosition)
+    }
 
     /** Control messages from the TV: persist watch time, switch episodes, or mirror TV-local track selection. */
     private fun onControl(msg: TvControlMessage) {

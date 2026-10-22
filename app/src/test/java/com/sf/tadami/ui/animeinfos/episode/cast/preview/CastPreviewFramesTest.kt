@@ -128,16 +128,103 @@ class CastPreviewFramesTest {
     }
 
     @Test
-    fun `memory pressure drops the frames only`() {
+    fun `memory pressure drops the frames, and the prefetch stops`() {
         val frames = CastPreviewFrames()
         frames.onFetched(frames.onRequest(request(1)).fetched(), jpeg())
         frames.onFetched(frames.onRequest(request(2)).fetched(), null)
         frames.dropFrames()
         assertEquals(0, frames.size)
         assertEquals(SOURCE_A, frames.sourceId)
+        assertNull("no prefetch remaking them all", frames.prefetch(source().requestFor(5)))
+        // A scrub still gets its frame
         frames.onRequest(request(1)).fetched()
         frames.onFetched(frames.inFlight!!, jpeg())
         assertEquals(CastPreviewProtocol.STATUS_NONE, frames.onRequest(request(2)).status())
+    }
+
+    // --- Prefetch ---
+
+    private fun source(sourceId: String = SOURCE_A) = CastPreviewSource(
+        type = CastPreviewProtocol.TYPE_SOURCE,
+        sourceId = sourceId,
+        url = "https://h.example/$sourceId.m3u8",
+        duration = 1_420_000,
+    )
+
+    @Test
+    fun `a prefetch decodes a step and pushes it, without request id`() {
+        val frames = CastPreviewFrames()
+        frames.select(SOURCE_A)
+        val prefetch = frames.prefetch(source().requestFor(7))!!.request
+        assertNull(prefetch.requestId)
+        val reply = frames.onFetched(prefetch, jpeg()).single() as Action.Reply
+        assertNull(reply.request.requestId)
+        assertEquals(CastPreviewProtocol.STATUS_OK, reply.status)
+        assertTrue(frames.isDone(7))
+        assertNull("done: not again", frames.prefetch(source().requestFor(7)))
+    }
+
+    @Test
+    fun `no prefetch while a scrub's request decodes or waits, nor for another stream`() {
+        val frames = CastPreviewFrames()
+        val scrub = frames.onRequest(request(1)).fetched()
+        assertNull(frames.prefetch(source().requestFor(2)))
+        frames.onFetched(scrub, jpeg())
+        val prefetch = frames.prefetch(source().requestFor(2))!!.request
+        // A scrub takes over; the prefetch can't start again meanwhile
+        frames.onRequest(request(3)).fetched()
+        assertNull(frames.prefetch(source().requestFor(4)))
+        assertTrue("the taken-over prefetch is dropped", frames.onFetched(prefetch, jpeg()).isEmpty())
+        assertNull(frames.prefetch(source(SOURCE_B).requestFor(4)))
+    }
+
+    @Test
+    fun `a scrub takes over the prefetch in flight`() {
+        val frames = CastPreviewFrames()
+        frames.select(SOURCE_A)
+        val prefetch = frames.prefetch(source().requestFor(10))!!.request
+        val scrub = frames.onRequest(request(40)).fetched()
+        assertSame(scrub, frames.inFlight)
+        // The prefetch's late result is ignored, its step stays to do
+        assertTrue(frames.onFetched(prefetch, jpeg()).isEmpty())
+        assertTrue(!frames.isDone(10))
+        assertEquals(CastPreviewProtocol.STATUS_OK, frames.onFetched(scrub, jpeg()).single().status())
+    }
+
+    @Test
+    fun `a scrub on the step the prefetch decodes joins it, answered once`() {
+        val frames = CastPreviewFrames()
+        frames.select(SOURCE_A)
+        val prefetch = frames.prefetch(source().requestFor(10))!!.request
+        val scrub = request(10)
+        assertNull(frames.onRequest(scrub))
+        val reply = frames.onFetched(prefetch, jpeg()).single() as Action.Reply
+        // The receiver's request is answered (with its id), no separate push
+        assertSame(scrub, reply.request)
+    }
+
+    @Test
+    fun `no prefetch of a stream that can't be decoded`() {
+        val frames = CastPreviewFrames()
+        frames.select(SOURCE_A)
+        frames.onFetched(frames.prefetch(source().requestFor(1))!!.request, null, sourceFailed = true)
+        assertTrue(frames.isFailed)
+        assertNull(frames.prefetch(source().requestFor(2)))
+    }
+
+    @Test
+    fun `what is known goes again nearest the position first, but what the receiver holds`() {
+        val frames = CastPreviewFrames()
+        frames.select(SOURCE_A)
+        listOf(0, 5, 9, 10, 12).forEach { step ->
+            val fetched = frames.prefetch(source().requestFor(step))!!.request
+            frames.onFetched(fetched, if (step == 9) null else jpeg())
+        }
+        val pushes = frames.knownPushes(source(), centerStep = 10, except = setOf(12))
+        assertEquals(listOf(10, 9, 5, 0), pushes.map { it.request.step })
+        assertEquals(CastPreviewProtocol.STATUS_NONE, pushes[1].status)
+        assertTrue(pushes.all { it.request.requestId == null })
+        assertTrue(frames.knownPushes(source(SOURCE_B), 10, emptySet()).isEmpty())
     }
 
     @Test

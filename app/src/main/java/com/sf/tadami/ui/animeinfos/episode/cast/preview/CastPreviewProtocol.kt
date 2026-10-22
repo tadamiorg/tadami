@@ -13,13 +13,15 @@ import kotlin.math.roundToInt
  * - the web receiver announces [CAPABILITY] in its handshake reply (`capabilities`);
  * - the phone announces it in the LOAD customData (`seekPreview: true`) while its "Seekbar preview"
  *   setting is on.
- * The receiver then asks for one preview step at a time ([CastPreviewRequest], steps as in
- * previewBucketSizeMs, from the duration it sends) and the phone answers each request once
- * ([CastPreviewFrame]): the step's frame as a base64 JPEG, about [PREVIEW_FRAME_WIDTH_PX] wide, or a
- * status without one.
+ * The receiver announces the stream it plays ([CastPreviewSource]); the phone prefetches its frames
+ * in the background and pushes them unsolicited ([CastPreviewFrame] without request id). A scrub on
+ * a step the receiver lacks asks for it ([CastPreviewRequest], steps as in previewBucketSizeMs, from
+ * the duration it sends), ahead of the prefetch. Each frame is a base64 JPEG, about
+ * [PREVIEW_FRAME_WIDTH_PX] wide, or a status without one.
  */
 object CastPreviewProtocol {
     const val CAPABILITY = "seekPreview"
+    const val TYPE_SOURCE = "previewSource"
     const val TYPE_REQUEST = "previewRequest"
     const val TYPE_FRAME = "previewFrame"
 
@@ -51,11 +53,16 @@ object CastPreviewProtocol {
         explicitNulls = false
     }
 
-    /** The request in a control message, null when it isn't a usable one. */
+    /** The receiver's request in a control message, null when it isn't a usable one. */
     fun decodeRequest(message: String): CastPreviewRequest? =
-        runCatching { json.decodeFromString<CastPreviewRequest>(message) }.getOrNull()?.takeIf { it.isValid }
+        runCatching { json.decodeFromString<CastPreviewRequest>(message) }.getOrNull()
+            ?.takeIf { it.isValid && it.requestId != null }
 
-    /** The reply carrying [frame]; null when it wouldn't fit a cast message. */
+    /** The stream announced in a control message, null when it isn't a usable one. */
+    fun decodeSource(message: String): CastPreviewSource? =
+        runCatching { json.decodeFromString<CastPreviewSource>(message) }.getOrNull()?.takeIf { it.isValid }
+
+    /** The reply carrying [frame] (pushed when the request has no id); null when it wouldn't fit a cast message. */
     fun frameMessage(request: CastPreviewRequest, frame: PreviewJpeg): String? {
         val message = json.encodeToString(
             CastPreviewFrame(
@@ -92,11 +99,43 @@ object CastPreviewProtocol {
         .firstOrNull { base64Length(it.size) <= maxBase64Chars }
 }
 
-/** receiver → phone: the frame of preview step [step] of the stream [url] ([headers] its source's). */
+/**
+ * receiver → phone: the stream the TV plays now, to prefetch. [steps] are the ones the receiver
+ * already holds (frame or none): neither decoded nor pushed for it again.
+ */
+@Serializable
+data class CastPreviewSource(
+    val type: String = "",
+    val sourceId: String = "",
+    val url: String = "",
+    val headers: Map<String, String>? = null,
+    val duration: Long = 0,
+    val steps: List<Int> = emptyList(),
+) {
+    val isValid: Boolean
+        get() = type == CastPreviewProtocol.TYPE_SOURCE && sourceId.isNotBlank() && url.isNotBlank() && duration > 0
+
+    /** The request for [step] of this stream: a prefetch, no request id. */
+    fun requestFor(step: Int) = CastPreviewRequest(
+        type = CastPreviewProtocol.TYPE_REQUEST,
+        requestId = null,
+        sourceId = sourceId,
+        url = url,
+        headers = headers,
+        step = step,
+        duration = duration,
+    )
+}
+
+/**
+ * receiver → phone: the frame of preview step [step] of the stream [url] ([headers] its source's).
+ * Phone-side prefetches are requests too, without [requestId].
+ */
 @Serializable
 data class CastPreviewRequest(
     val type: String = "",
-    val requestId: Long = -1,
+    /** The receiver's id, echoed in the reply; null for a prefetch, whose frame is pushed. */
+    val requestId: Long? = null,
     /** Opaque id of the stream the TV plays (episode, url, server, quality): the frames' scope. */
     val sourceId: String = "",
     /** The source's URL as the phone sent it: online, or a proxy `/local-` URL of a downloaded episode. */
@@ -116,7 +155,8 @@ data class CastPreviewRequest(
 @Serializable
 data class CastPreviewFrame(
     val type: String = CastPreviewProtocol.TYPE_FRAME,
-    val requestId: Long,
+    /** The request answered; absent for a pushed (prefetched) frame. */
+    val requestId: Long?,
     val sourceId: String,
     val step: Int,
     val status: String,

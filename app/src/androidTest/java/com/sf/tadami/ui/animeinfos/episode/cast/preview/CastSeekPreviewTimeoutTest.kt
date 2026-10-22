@@ -66,6 +66,7 @@ class CastSeekPreviewTimeoutTest {
                 localFileUri = { null },
                 receiverCapable = { true },
                 isOnWifi = { true },
+                playback = { null },
             )
             preview.settings = CastSeekPreview.Settings(enabled = true, onlyOnWifi = false, userAgent = "fallback-ua")
         }
