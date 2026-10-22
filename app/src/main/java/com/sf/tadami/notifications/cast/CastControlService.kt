@@ -44,13 +44,13 @@ import com.sf.tadami.ui.animeinfos.episode.cast.channels.HandshakeChannel
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.ReceiverHandshakeMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.TvControlMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.channels.toCastSubtitleStyle
-import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastPreviewPrefetch
 import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastPreviewProtocol
 import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastSeekPreview
 import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyHolder
 import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyServer
 import com.sf.tadami.ui.animeinfos.episode.cast.sendCastMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
+import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
@@ -275,11 +275,11 @@ class CastControlService : Service() {
     private fun castPlayback(): CastSeekPreview.CastPlayback? {
         val client = remoteMediaClient ?: return null
         val state = when (client.playerState) {
-            MediaStatus.PLAYER_STATE_PLAYING -> CastPreviewPrefetch.Playback.PLAYING
-            MediaStatus.PLAYER_STATE_PAUSED -> CastPreviewPrefetch.Playback.PAUSED
-            MediaStatus.PLAYER_STATE_BUFFERING -> CastPreviewPrefetch.Playback.BUFFERING
-            MediaStatus.PLAYER_STATE_LOADING -> CastPreviewPrefetch.Playback.LOADING
-            MediaStatus.PLAYER_STATE_IDLE -> CastPreviewPrefetch.Playback.IDLE
+            MediaStatus.PLAYER_STATE_PLAYING -> PreviewPrefetch.Playback.PLAYING
+            MediaStatus.PLAYER_STATE_PAUSED -> PreviewPrefetch.Playback.PAUSED
+            MediaStatus.PLAYER_STATE_BUFFERING -> PreviewPrefetch.Playback.BUFFERING
+            MediaStatus.PLAYER_STATE_LOADING -> PreviewPrefetch.Playback.LOADING
+            MediaStatus.PLAYER_STATE_IDLE -> PreviewPrefetch.Playback.IDLE
             else -> null
         }
         return CastSeekPreview.CastPlayback(state, client.approximateStreamPosition)

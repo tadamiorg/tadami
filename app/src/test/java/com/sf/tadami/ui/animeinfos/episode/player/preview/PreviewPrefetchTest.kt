@@ -1,17 +1,17 @@
-package com.sf.tadami.ui.animeinfos.episode.cast.preview
+package com.sf.tadami.ui.animeinfos.episode.player.preview
 
-import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastPreviewPrefetch.Playback
+import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch.Playback
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** When and in which order the phone prefetches the cast's preview steps. */
-class CastPreviewPrefetchTest {
+/** When and in which order the preview steps are prefetched. */
+class PreviewPrefetchTest {
 
     private var time = 1_000_000L
-    private val prefetch = CastPreviewPrefetch { time }
+    private val prefetch = PreviewPrefetch { time }
 
     // 24 min: 14.4 s steps, 0..99
     private val duration = 24 * 60_000L
@@ -23,7 +23,7 @@ class CastPreviewPrefetchTest {
     /** Playing steadily at [positionMs]. */
     private fun playSteadily(positionMs: Long = 0L) {
         prefetch.onStatus(Playback.PLAYING, positionMs)
-        advance(CastPreviewPrefetch.STABLE_MS)
+        advance(PreviewPrefetch.STABLE_MS)
         prefetch.onStatus(Playback.PLAYING, positionMs)
     }
 
@@ -64,7 +64,7 @@ class CastPreviewPrefetchTest {
     fun `starts only once the cast has played steadily`() {
         assertFalse("nothing reported yet", prefetch.runnable())
         prefetch.onStatus(Playback.PLAYING, 0L)
-        advance(CastPreviewPrefetch.STABLE_MS - 1)
+        advance(PreviewPrefetch.STABLE_MS - 1)
         prefetch.onStatus(Playback.PLAYING, 0L)
         assertFalse(prefetch.runnable())
         advance(1)
@@ -80,7 +80,7 @@ class CastPreviewPrefetchTest {
             assertFalse("$state", prefetch.runnable())
             prefetch.onStatus(Playback.PLAYING, 0L)
             assertFalse("$state, just playing again", prefetch.runnable())
-            advance(CastPreviewPrefetch.STABLE_MS)
+            advance(PreviewPrefetch.STABLE_MS)
             prefetch.onStatus(Playback.PLAYING, 0L)
             assertTrue("$state, steady again", prefetch.runnable())
         }
@@ -91,7 +91,7 @@ class CastPreviewPrefetchTest {
         playSteadily()
         prefetch.onStatus(Playback.PAUSED, 0L)
         assertTrue(prefetch.runnable())
-        advance(CastPreviewPrefetch.LONG_PAUSE_MS - 1)
+        advance(PreviewPrefetch.LONG_PAUSE_MS - 1)
         prefetch.onStatus(Playback.PAUSED, 0L)
         assertTrue(prefetch.runnable())
         advance(1)
@@ -111,22 +111,24 @@ class CastPreviewPrefetchTest {
     }
 
     @Test
-    fun `a gap after each decode, shorter for a download`() {
+    fun `a gap after each decode`() {
         playSteadily()
         assertTrue(prefetch.ready())
-        prefetch.onDecodeEnded(local = false)
+        prefetch.onDecodeEnded(gapMs = 1_000)
         assertFalse(prefetch.ready())
-        advance(CastPreviewPrefetch.GAP_ONLINE_MS)
+        advance(999)
+        assertFalse(prefetch.ready())
+        advance(1)
         assertTrue(prefetch.ready())
-        prefetch.onDecodeEnded(local = true)
-        advance(CastPreviewPrefetch.GAP_LOCAL_MS)
+        prefetch.onDecodeEnded(gapMs = 100)
+        advance(100)
         assertTrue(prefetch.ready())
     }
 
     @Test
     fun `another stream awaits steady playback again`() {
         playSteadily()
-        prefetch.onDecodeEnded(local = false)
+        prefetch.onDecodeEnded(gapMs = 1_000)
         prefetch.reset()
         assertFalse(prefetch.runnable())
         assertTrue(prefetch.ready())

@@ -18,6 +18,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import com.sf.tadami.network.player.HlsPlaylistFixingDataSource
 import com.sf.tadami.network.player.PlayerNetworkHelper
+import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketOf
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketRangeMs
 import com.sf.tadami.ui.animeinfos.episode.player.preview.shouldDropPreviewFrames
@@ -31,7 +32,7 @@ import java.util.concurrent.atomic.AtomicLong
  *
  * - Prefetch: once the receiver announces its stream ([onSource]) and the TV has played steadily for
  *   a few seconds, every step is decoded in the background, nearest the playback position first
- *   ([CastPreviewPrefetch]), and pushed to the receiver unsolicited, paced on the cast channel.
+ *   ([PreviewPrefetch]), and pushed to the receiver unsolicited, paced on the cast channel.
  * - Scrub: a step the receiver lacks is asked for ([onRequest]) and decoded before any prefetch.
  *
  * The stream is the one the receiver names — the URL and headers the phone sent with the load, read
@@ -69,7 +70,7 @@ class CastSeekPreview(
     )
 
     /** The TV's player state and position. */
-    data class CastPlayback(val state: CastPreviewPrefetch.Playback?, val positionMs: Long)
+    data class CastPlayback(val state: PreviewPrefetch.Playback?, val positionMs: Long)
 
     /** What the previews of the current stream cost so far. */
     data class Stats(
@@ -86,7 +87,7 @@ class CastSeekPreview(
     var settings = Settings()
 
     private val frames = CastPreviewFrames()
-    private val prefetch = CastPreviewPrefetch(clock)
+    private val prefetch = PreviewPrefetch(clock)
     private val handler = Handler(Looper.getMainLooper())
     private val idleRelease = Runnable { releaseGrabber() }
     private val tick = Runnable { onTick() }
@@ -299,9 +300,10 @@ class CastSeekPreview(
         frames.onFetched(request, frame, sourceFailed = result is CastFrameGrabber.Result.Failed).forEach(::perform)
         if (request.requestId == null) {
             val local = localFileUri(request.url) != null
-            prefetch.onDecodeEnded(local)
+            val gapMs = if (local) CAST_PREFETCH_GAP_LOCAL_MS else CAST_PREFETCH_GAP_ONLINE_MS
+            prefetch.onDecodeEnded(gapMs)
             // The next prefetch right after its gap
-            if (source != null) scheduleTick(if (local) CastPreviewPrefetch.GAP_LOCAL_MS else CastPreviewPrefetch.GAP_ONLINE_MS)
+            if (source != null) scheduleTick(gapMs)
         }
         scheduleIdleRelease()
     }
