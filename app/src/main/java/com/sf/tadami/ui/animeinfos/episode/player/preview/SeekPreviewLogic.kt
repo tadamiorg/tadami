@@ -76,6 +76,12 @@ const val PREVIEW_PREFETCH_GAP_LOCAL_MS = 500L
  */
 const val PHONE_PREFETCH_STABLE_LOCAL_MS = 1_000L
 
+/**
+ * Steps around the playback position the phone player's prefetch makes first, before the coarse to fine grid of
+ * the whole timeline ([coarseToFineOrder]): ±2 min of a 24 min episode, past the +85 s intro skip.
+ */
+const val PHONE_PREFETCH_NEAR_STEPS = 8
+
 /** The phone player's prefetch schedule, on the clock [now]. */
 fun phonePreviewPrefetch(now: () -> Long) = PreviewPrefetch(now).apply { stableMs = PHONE_PREFETCH_STABLE_LOCAL_MS }
 
@@ -344,8 +350,13 @@ fun nextPreviewPrefetch(
     if (!schedule.runnable() || !schedule.ready() || requests.inFlight != null || requests.scrubbing) {
         return PreviewPrefetchStep.Wait
     }
-    val bucket = schedule.nextStep(durationMs, last = phonePreviewBucketOf(durationMs - 1, durationMs), isDone = isDone)
-        ?: return PreviewPrefetchStep.Done
+    // A downloaded episode's: the whole timeline soon has a frame near each position, see previewNearestMaxSteps
+    val bucket = schedule.nextStep(
+        durationMs,
+        last = phonePreviewBucketOf(durationMs - 1, durationMs),
+        order = { center, last -> coarseToFineOrder(center, last, PHONE_PREFETCH_NEAR_STEPS) },
+        isDone = isDone,
+    ) ?: return PreviewPrefetchStep.Done
     return if (hasRoom) PreviewPrefetchStep.Fetch(bucket) else PreviewPrefetchStep.Done
 }
 
