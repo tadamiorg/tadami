@@ -2,6 +2,7 @@ package com.sf.tadami.ui.animeinfos.episode.player.controls
 
 import android.view.TextureView
 import androidx.annotation.OptIn
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,6 +64,8 @@ fun SeekPreviewThumbnail(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Black),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        // Without it, a black card waiting for its first frame is lost on the black letterbox
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.24f)),
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             val frame = previewPlayer.frame
