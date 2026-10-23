@@ -492,7 +492,8 @@ class CastSeekPreview(
             handler.postDelayed(pushNext, PUSH_GAP_MS)
             return
         }
-        pushBurstStartedAt?.let { Log.i(TAG, "Pushed $pushBurstCount frames to the TV in ${clock() - it} ms") }
+        // A burst only: a frame decoded is pushed alone, logged with its decode
+        pushBurstStartedAt?.takeIf { pushBurstCount > 1 }?.let { Log.i(TAG, "Pushed $pushBurstCount frames to the TV in ${clock() - it} ms") }
         pushBurstStartedAt = null
     }
 
