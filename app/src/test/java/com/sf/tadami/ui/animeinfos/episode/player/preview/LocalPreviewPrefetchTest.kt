@@ -18,7 +18,7 @@ import org.junit.Test
 class LocalPreviewPrefetchTest {
 
     private var time = 1_000_000L
-    private val schedule = PreviewPrefetch { time }
+    private val schedule = phonePreviewPrefetch { time }
     private val requests = BucketRequests()
     private val done = mutableSetOf<Int>()
 
@@ -72,6 +72,23 @@ class LocalPreviewPrefetchTest {
         assertEquals(listOf(0, 1), List(2) { prefetchNext() })
         schedule.onStatus(Playback.PLAYING, 80 * 14_300L)
         assertEquals(listOf(80, 81, 79), List(3) { prefetchNext() })
+    }
+
+    @Test
+    fun `starts after one second of playback`() {
+        schedule.onStatus(Playback.PLAYING, 0L)
+        time += 999
+        schedule.onStatus(Playback.PLAYING, 0L)
+        assertEquals(PreviewPrefetchStep.Wait, next())
+        time += 1
+        schedule.onStatus(Playback.PLAYING, 0L)
+        assertEquals(PreviewPrefetchStep.Fetch(0), next())
+        // A buffering main player starts the second again
+        schedule.onStatus(Playback.BUFFERING, 0L)
+        schedule.onStatus(Playback.PLAYING, 0L)
+        time += 999
+        schedule.onStatus(Playback.PLAYING, 0L)
+        assertEquals(PreviewPrefetchStep.Wait, next())
     }
 
     @Test

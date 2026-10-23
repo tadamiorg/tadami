@@ -59,7 +59,7 @@ class SeekPreviewPlayer(
     private val frames = PreviewFrameCache<Bitmap>(PREVIEW_BITMAP_CACHE_BYTES) { it.allocationByteCount.toLong() }
     private val requests = BucketRequests()
 
-    private val schedule = PreviewPrefetch(SystemClock::elapsedRealtime)
+    private val schedule = phonePreviewPrefetch(SystemClock::elapsedRealtime)
     private val prefetchTick = Runnable { onPrefetchTick() }
     private var prefetchEnabled = false
 

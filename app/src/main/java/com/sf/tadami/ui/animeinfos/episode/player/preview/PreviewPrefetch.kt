@@ -3,7 +3,7 @@ package com.sf.tadami.ui.animeinfos.episode.player.preview
 /**
  * When and which preview step is prefetched in the background, from the status of the player that
  * plays the stream (the phone's own, or the TV's when casting): only once it has been PLAYING steadily
- * for [STABLE_MS], never while it buffers or loads, and not after [LONG_PAUSE_MS] of pause (battery,
+ * for [stableMs], never while it buffers or loads, and not after [LONG_PAUSE_MS] of pause (battery,
  * data). Steps go nearest the playback position first, then outward, re-centred on every pick (so
  * after a seek too); one decode at a time with a gap after each. Pure: the clock is given.
  */
@@ -15,6 +15,9 @@ class PreviewPrefetch(private val now: () -> Long) {
     /** The playback position, as last reported. */
     var positionMs = 0L
         private set
+
+    /** Playing this long without buffering before the prefetch starts (or starts again). */
+    var stableMs = STABLE_MS
 
     private var playingSince: Long? = null
     private var pausedSince: Long? = null
@@ -37,7 +40,7 @@ class PreviewPrefetch(private val now: () -> Long) {
             Playback.PLAYING -> {
                 val since = playingSince ?: time.also { playingSince = it }
                 pausedSince = null
-                if (time - since >= STABLE_MS) stable = true
+                if (time - since >= stableMs) stable = true
             }
             // A pause keeps the steadiness: the prefetch goes on, for a while
             Playback.PAUSED -> {
@@ -82,7 +85,7 @@ class PreviewPrefetch(private val now: () -> Long) {
     }
 
     companion object {
-        /** Playing this long without buffering before the prefetch starts (or starts again). */
+        /** The cast's [stableMs]: playing this long without buffering before the prefetch starts (or starts again). */
         const val STABLE_MS = 5_000L
 
         /** A pause longer than this stops the prefetch until playback resumes. */

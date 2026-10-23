@@ -61,6 +61,13 @@ class PreviewPrefetchTest {
     }
 
     @Test
+    fun `the cast waits 5 s of steady playback, the phone 1 s`() {
+        assertEquals(5_000L, PreviewPrefetch { 0L }.stableMs)
+        assertEquals(PreviewPrefetch.STABLE_MS, PreviewPrefetch { 0L }.stableMs)
+        assertEquals(1_000L, phonePreviewPrefetch { 0L }.stableMs)
+    }
+
+    @Test
     fun `starts only once the cast has played steadily`() {
         assertFalse("nothing reported yet", prefetch.runnable())
         prefetch.onStatus(Playback.PLAYING, 0L)

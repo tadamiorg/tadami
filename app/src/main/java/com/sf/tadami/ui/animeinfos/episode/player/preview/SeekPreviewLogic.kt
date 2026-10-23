@@ -70,6 +70,15 @@ const val PREVIEW_BITMAP_CACHE_BYTES = 24L * 1024 * 1024
 const val PREVIEW_PREFETCH_GAP_LOCAL_MS = 500L
 
 /**
+ * The phone player's steady playback before its prefetch starts: shorter than the cast's [PreviewPrefetch.STABLE_MS],
+ * a downloaded episode's prefetch reads no network, so the first scrubs find the preview player ready sooner.
+ */
+const val PHONE_PREFETCH_STABLE_LOCAL_MS = 1_000L
+
+/** The phone player's prefetch schedule, on the clock [now]. */
+fun phonePreviewPrefetch(now: () -> Long) = PreviewPrefetch(now).apply { stableMs = PHONE_PREFETCH_STABLE_LOCAL_MS }
+
+/**
  * Whether the phone player prefetches its preview frames: both settings on, a [downloaded] episode playing (a
  * streamed one has no preview frames).
  */
