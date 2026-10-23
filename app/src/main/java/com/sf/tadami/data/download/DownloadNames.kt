@@ -9,7 +9,8 @@ import java.security.MessageDigest
  * Names of the download directories and files, all valid for FAT and within
  * [DiskUtil.MAX_FILE_NAME_BYTES] UTF-8 bytes:
  * `<source>/<anime>/<episode>/<episode>.<ext>`, `<episode>.<lang>.<ext>` for the subtitles,
- * `<episode>.audio.<lang>.<ext>` for a separate audio and `<episode>.json` for the sidecar.
+ * `<episode>.audio.<lang>.<ext>` for a separate audio, `<episode>.json` for the sidecar and
+ * `<episode>.preview.tdp` for the seekbar preview frames.
  */
 object DownloadNames {
 
@@ -25,6 +26,13 @@ object DownloadNames {
 
     private const val AUDIO_PREFIX = "audio."
     private const val METADATA_EXTENSION = "json"
+
+    /**
+     * A dot before the extension, so no version takes it for the video (`<episode>.<ext>`); an extension no MIME
+     * type has, so the storage folder keeps the name as given (a known one is replaced by its type's own).
+     */
+    private const val PREVIEWS_SUFFIX = "preview.tdp"
+    private const val PREVIEWS_TMP_SUFFIX = "preview-tmp.tdp"
     private const val UNDETERMINED_LANG = "und"
 
     val SUBTITLE_EXTENSIONS = setOf("vtt", "srt", "ass", "ssa", "ttml", "dfxp")
@@ -106,6 +114,12 @@ object DownloadNames {
     /** The sidecar, see [EpisodeMetadata] */
     fun metadataFileName(episodeDirName: String) = "$episodeDirName.$METADATA_EXTENSION"
 
+    /** The seekbar preview frames, see [com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewSidecar] */
+    fun previewsFileName(episodeDirName: String) = "$episodeDirName.$PREVIEWS_SUFFIX"
+
+    /** [previewsFileName] while it is written, renamed once complete */
+    fun previewsTmpFileName(episodeDirName: String) = "$episodeDirName.$PREVIEWS_TMP_SUFFIX"
+
     /** The audio file name without its extension, which is only known once the content is */
     fun audioFileBase(episodeDirName: String, lang: String) = "$episodeDirName.$AUDIO_PREFIX$lang"
 
@@ -131,8 +145,11 @@ object DownloadNames {
     fun parseFiles(episodeDirName: String, fileNames: List<String>): EpisodeFiles {
         val prefix = "$episodeDirName."
         val metadataName = metadataFileName(episodeDirName)
+        val previewsName = previewsFileName(episodeDirName)
+        val previewsTmpName = previewsTmpFileName(episodeDirName)
         var video: String? = null
         var metadata: String? = null
+        var previews: String? = null
         val audios = mutableListOf<TrackFile>()
         val subtitles = mutableListOf<TrackFile>()
         fileNames.sorted().forEach { name ->
@@ -142,6 +159,9 @@ object DownloadNames {
             when {
                 // Not a video, though named like one
                 name == metadataName -> metadata = name
+                name == previewsName -> previews = name
+                // Being written, or left by a process that died: no track either
+                name == previewsTmpName -> Unit
                 '.' !in rest -> if (video == null) video = name
                 extension.lowercase() in SUBTITLE_EXTENSIONS ->
                     subtitles += TrackFile(name, rest.substringBeforeLast('.'), extension)
@@ -149,7 +169,7 @@ object DownloadNames {
                     audios += TrackFile(name, rest.removePrefix(AUDIO_PREFIX).substringBeforeLast('.'), extension)
             }
         }
-        return EpisodeFiles(video, audios, subtitles, metadata)
+        return EpisodeFiles(video, audios, subtitles, metadata, previews)
     }
 
     data class EpisodeFiles(
@@ -158,6 +178,8 @@ object DownloadNames {
         val subtitles: List<TrackFile>,
         /** The sidecar, none for the downloads made before it */
         val metadata: String? = null,
+        /** The seekbar preview frames, none until they are made */
+        val previews: String? = null,
     )
 
     data class TrackFile(val name: String, val lang: String, val extension: String)

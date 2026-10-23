@@ -191,4 +191,24 @@ class DownloadNamesTest {
         // Downloads made before it have none
         assertNull(DownloadNames.parseFiles("E", listOf("E.ts")).metadata)
     }
+
+    @Test
+    fun theSeekbarPreviewFramesAreNeitherAVideoNorATrack() {
+        // Complete, and half written: "E.preview..." sorts before "E.ts", neither may be taken for the video
+        val names = listOf("E.ts", "E.preview.tdp", "E.preview-tmp.tdp", "E.json", "E.English.vtt")
+        val files = DownloadNames.parseFiles("E", names)
+        assertEquals("E.ts", files.video)
+        assertEquals("E.preview.tdp", files.previews)
+        assertEquals("E.json", files.metadata)
+        assertEquals(listOf("E.English.vtt"), files.subtitles.map { it.name })
+        assertTrue(files.audios.isEmpty())
+        assertEquals("E.preview.tdp", DownloadNames.previewsFileName("E"))
+        assertEquals("E.preview-tmp.tdp", DownloadNames.previewsTmpFileName("E"))
+        // Frames alone are no episode
+        assertNull(DownloadNames.parseFiles("E", listOf("E.preview.tdp", "E.preview-tmp.tdp")).video)
+        // None until they are made
+        assertNull(DownloadNames.parseFiles("E", listOf("E.mp4")).previews)
+        // A version without them sees no video in them either: a dot before their extension
+        assertTrue(names.filter { it.startsWith("E.preview") }.all { '.' in it.removePrefix("E.") })
+    }
 }
