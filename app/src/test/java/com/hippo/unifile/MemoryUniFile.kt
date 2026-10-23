@@ -14,7 +14,7 @@ import java.io.OutputStream
  * settings go to the files created in it.
  */
 class MemoryUniFile private constructor(
-    private var parent: MemoryUniFile?,
+    private val parent: MemoryUniFile?,
     private var fileName: String,
     private val directory: Boolean,
 ) : UniFile(parent) {
@@ -57,11 +57,11 @@ class MemoryUniFile private constructor(
         val from = parent ?: return false
         if (from.children[fileName] !== this) return false
         from.children.remove(fileName)
-        parent = null
         return true
     }
 
-    override fun exists(): Boolean = parent?.children?.get(fileName) === this || (parent == null && directory)
+    // A root is there; anything else while its folder holds it, the folder being there too
+    override fun exists(): Boolean = parent?.let { it.children[fileName] === this && it.exists() } ?: true
     override fun listFiles(): Array<UniFile> = children.values.toTypedArray()
     override fun listFiles(filter: FilenameFilter?): Array<UniFile> =
         children.values.filter { filter == null || it.fileName.let { name -> filter.accept(this, name) } }.toTypedArray()

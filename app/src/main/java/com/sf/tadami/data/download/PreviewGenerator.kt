@@ -19,14 +19,17 @@ import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketRangeMs
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketSizeMs
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.logcat
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import logcat.LogPriority
 import java.io.File
@@ -98,10 +101,22 @@ interface PreviewFrameDecoder {
     class FailedException(val errorCode: Int = PlaybackException.ERROR_CODE_UNSPECIFIED) : Exception()
 }
 
+/** What [makePreviewSidecar] came to. */
+sealed interface MadePreviews {
+    /** The frames of the steps that gave one. */
+    class Done(val sidecar: PreviewSidecar) : MadePreviews
+
+    /** The video can't be decoded: no duration, not a single frame, or [PREVIEW_MAX_ERRORS] errors. */
+    data object Failed : MadePreviews
+
+    /** Stopped before the end: nothing made, everything to do again. */
+    data object Stopped : MadePreviews
+}
+
 /**
  * The seekbar preview frames of a [videoLength]-byte video, one per step of the phone player (see
- * [phonePreviewBucketOf]), decoded in turn by a decoder from [newDecoder]; null when the video can't be decoded.
- * Waits while [paused], its decoder released meanwhile, so the player screen has the decoder to itself.
+ * [phonePreviewBucketOf]), decoded in turn by a decoder from [newDecoder]. Stops before the next step once
+ * [stopped], its decoder released, so the player screen or a cast has the device's decoders to itself.
  *
  * A step without a frame in time, or that failed to decode, is left out rather than kept as one without: a timeout
  * or an error may not come again, the player and the cast fetch it when it's needed. A decoder taken back or that
@@ -111,26 +126,17 @@ interface PreviewFrameDecoder {
 suspend fun makePreviewSidecar(
     videoLength: Long,
     newDecoder: () -> PreviewFrameDecoder,
-    paused: StateFlow<Boolean>,
-    onPause: () -> Unit = {},
-): PreviewSidecar? {
-    var decoder: PreviewFrameDecoder? = null
-    suspend fun ready(): PreviewFrameDecoder {
-        if (paused.value) {
-            decoder?.release()
-            decoder = null
-            onPause()
-            paused.first { !it }
-        }
-        return decoder ?: newDecoder().also { decoder = it }
-    }
+    stopped: () -> Boolean = { false },
+): MadePreviews {
+    if (stopped()) return MadePreviews.Stopped
+    val decoder = newDecoder()
     val errors = PreviewErrors()
 
     // The frame of the step [range], null when it gives none; throws once the video is given up
     suspend fun frameOf(range: LongRange): PreviewFrameDecoder.DecodedFrame? {
         while (true) {
             try {
-                return ready().frame((range.first + range.last + 1) / 2, (range.last + 1 - range.first) / 2)
+                return decoder.frame((range.first + range.last + 1) / 2, (range.last + 1 - range.first) / 2)
             } catch (e: PreviewFrameDecoder.FailedException) {
                 val outcome = errors.onError(e.errorCode)
                 if (outcome.failSource) throw e
@@ -140,16 +146,17 @@ suspend fun makePreviewSidecar(
     }
 
     try {
-        val durationMs = ready().durationMs()?.takeIf { it > 0L } ?: return null
+        val durationMs = decoder.durationMs()?.takeIf { it > 0L } ?: return MadePreviews.Failed
         val last = phonePreviewBucketOf(durationMs - 1, durationMs)
         var width = 0
         var height = 0
         val entries = mutableListOf<PreviewSidecar.Entry>()
         for (step in 0..last) {
+            if (stopped()) return MadePreviews.Stopped
             val frame = try {
                 frameOf(previewBucketRangeMs(step, durationMs))
             } catch (_: PreviewFrameDecoder.FailedException) {
-                return null
+                return MadePreviews.Failed
             } ?: continue
             if (width == 0) {
                 width = frame.width
@@ -157,10 +164,10 @@ suspend fun makePreviewSidecar(
             }
             entries += PreviewSidecar.Entry(step, frame.timeMs, frame.jpeg)
         }
-        if (width == 0) return null
-        return PreviewSidecar(videoLength, durationMs, previewBucketSizeMs(durationMs), width, height, entries)
+        if (width == 0) return MadePreviews.Failed
+        return MadePreviews.Done(PreviewSidecar(videoLength, durationMs, previewBucketSizeMs(durationMs), width, height, entries))
     } finally {
-        decoder?.release()
+        decoder.release()
     }
 }
 
@@ -170,83 +177,125 @@ suspend fun makePreviewSidecar(
  *
  * - One episode at a time, in download order, with the cast's headless decoder ([CastFrameGrabber]) reading the
  *   file; it never touches the download itself (done, its status set, before it is queued).
+ * - In a background job ([PreviewWorker], [schedule]), [makeAll] running it: the process is neither frozen nor
+ *   killed meanwhile, with the app and the downloads' service gone, and WorkManager runs it again after a stop.
  * - Nothing when "Seekbar preview" or "Prefetch the previews of downloaded episodes" is off, nor for an episode
  *   deleted meanwhile, nor when its frames are there already.
- * - Paused while the player screen is in front or plays ([playerActive]): the decoder is released, the
- *   playback keeps the device's decoders and CPU; it goes on where it was once the screen is gone.
- * - The episodes waiting survive a process death ([store]): their frames are made at the next start. A download
+ * - Stopped while the player screen is in front or plays ([playerActive]), or a cast runs ([castActive]): the
+ *   decoder is released, the playback keeps the device's decoders and CPU. The episode it was on is made again
+ *   once they're gone, unless its frames were made meanwhile (by the playback, the cast).
+ * - The episodes waiting survive a process death ([store]): their frames are made in the next process. A download
  *   whose frames still aren't there makes them at its first playback instead (the player's prefetch).
  */
-@OptIn(UnstableApi::class)
 class PreviewGenerator(
-    private val context: Context,
-    private val provider: DownloadProvider,
     private val store: File,
-    private val dataStore: DataStore<Preferences>,
+    /** "Seekbar preview" and "Prefetch the previews of downloaded episodes" are both on. */
+    private val settingsOn: suspend () -> Boolean,
+    /** Where the frames of the episode waiting go, null once its folder is gone. Storage access. */
+    private val previewsOf: (PendingPreviews) -> EpisodePreviews?,
+    /** A decoder of the episode's video. */
+    private val newDecoder: (EpisodePreviews) -> PreviewFrameDecoder,
+    /** Writes the frames next to the episode, unless some are there already. */
+    private val write: (EpisodePreviews, PreviewSidecar) -> Unit,
+    /** Has [makeAll] run in the background soon, after the run in progress if any. */
+    private val schedule: () -> Unit,
+    /** True while the player screen or a cast is active: no frame is made meanwhile. */
+    private val paused: StateFlow<Boolean>,
     scope: CoroutineScope,
 ) {
     private val queue = PreviewQueue(restore())
     private val lock = Any()
-    private val wake = Channel<Unit>(Channel.CONFLATED)
+
+    // A run is scheduled or runs: a new episode waiting needs no other
+    private var scheduled = false
+    private val running = Mutex()
 
     init {
-        scope.launch(Dispatchers.IO) {
-            wake.send(Unit)
-            for (signal in wake) {
-                while (true) {
-                    val next = synchronized(lock) { queue.first } ?: break
-                    try {
-                        process(next)
-                    } catch (e: Exception) {
-                        logcat(LogPriority.WARN, e, tag = TAG) { "Couldn't make the preview frames of ${next.episodeDir}" }
-                    }
-                    synchronized(lock) { queue.remove(next) }
-                    save()
-                }
-            }
-        }
+        // The episodes waiting have their turn once nothing pauses them: right away for those of an earlier process
+        scope.launch { paused.collect { if (!it) scheduleIfWaiting() } }
     }
+
+    /** The episodes waiting, in turn. */
+    internal val waiting: List<PendingPreviews>
+        get() = synchronized(lock) { queue.entries }
 
     /** The episode in [episodeDir] (of [animeDir], [sourceDir]) was just downloaded: its frames are made in turn. */
     fun onDownloaded(sourceDir: String, animeDir: String, episodeDir: String) {
         val added = synchronized(lock) { queue.add(PendingPreviews(sourceDir, animeDir, episodeDir)) }
         if (!added) return
         save()
-        wake.trySend(Unit)
+        scheduleIfWaiting()
     }
 
-    private suspend fun process(entry: PendingPreviews) {
-        val prefs = dataStore.getPreferencesGroup(PlayerPreferences)
-        val dir = provider.downloadsDir?.findFile(entry.sourceDir)?.findFile(entry.animeDir)?.findFile(entry.episodeDir)
-        val previews = dir?.let { LocalEpisode.from(it, entry.episodeDir) }?.previews
+    /**
+     * Makes the frames of the episodes waiting, one at a time, until none waits or the player screen or a cast is
+     * active: the episode it was on then waits still. For [PreviewWorker].
+     */
+    suspend fun makeAll() = running.withLock {
+        try {
+            while (true) {
+                val next = synchronized(lock) { queue.first }?.takeUnless { paused.value } ?: break
+                val done = try {
+                    process(next)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    logcat(LogPriority.WARN, e, tag = TAG) { "Couldn't make the preview frames of ${next.episodeDir}" }
+                    true
+                }
+                if (!done) break
+                synchronized(lock) { queue.remove(next) }
+                save()
+            }
+        } finally {
+            synchronized(lock) { scheduled = false }
+            // What came meanwhile (an episode downloaded as the run ended, the end of a pause) has its own run
+            scheduleIfWaiting()
+        }
+    }
+
+    private fun scheduleIfWaiting() {
+        val start = synchronized(lock) {
+            (!scheduled && !paused.value && queue.first != null).also { if (it) scheduled = true }
+        }
+        if (start) schedule()
+    }
+
+    /** Makes the frames of [entry], or finds there's nothing to make: false when stopped, the episode to make again. */
+    private suspend fun process(entry: PendingPreviews): Boolean {
+        val previews = previewsOf(entry)
         val decision = previewGenerationDecision(
-            settingsOn = prefs.seekPreview && prefs.seekPreviewPrefetch,
+            settingsOn = settingsOn(),
             videoExists = previews?.video?.exists() == true,
+            // Made meanwhile, by its playback or a cast while this was stopped: nothing more to do
             hasValidSidecar = previews?.read() != null,
         )
         if (decision != PreviewGenerationDecision.GENERATE || previews == null) {
             logcat(tag = TAG) { "Preview frames of ${entry.episodeDir}: ${decision.name.lowercase()}" }
-            return
+            return true
         }
         val startedAt = SystemClock.elapsedRealtime()
         logcat(tag = TAG) { "Making the preview frames of ${entry.episodeDir}" }
-        val videoUri = previews.video.uri.toString()
-        val sidecar = makePreviewSidecar(
-            videoLength = previews.video.length(),
-            newDecoder = { GrabberDecoder(context, videoUri) },
-            paused = playerActive,
-            onPause = { logcat(tag = TAG) { "Paused while the player screen is active" } },
-        )
-        if (sidecar == null) {
-            logcat(LogPriority.WARN, tag = TAG) { "No preview frames for ${entry.episodeDir}: it can't be decoded" }
-            return
+        when (val made = makePreviewSidecar(previews.video.length(), { newDecoder(previews) }, stopped = { paused.value })) {
+            MadePreviews.Stopped -> {
+                logcat(tag = TAG) { "Stopped while the player screen or a cast is active: ${entry.episodeDir} made again after" }
+                return false
+            }
+            MadePreviews.Failed -> {
+                logcat(LogPriority.WARN, tag = TAG) { "No preview frames for ${entry.episodeDir}: it can't be decoded" }
+                return true
+            }
+            is MadePreviews.Done -> {
+                val sidecar = made.sidecar
+                logcat(tag = TAG) {
+                    val steps = phonePreviewBucketOf(sidecar.durationMs - 1, sidecar.durationMs) + 1
+                    "Made ${sidecar.frameCount} preview frames of ${entry.episodeDir}, ${steps - sidecar.frameCount} " +
+                        "steps without, in ${(SystemClock.elapsedRealtime() - startedAt) / 1000} s"
+                }
+                write(previews, sidecar)
+                return true
+            }
         }
-        logcat(tag = TAG) {
-            val steps = phonePreviewBucketOf(sidecar.durationMs - 1, sidecar.durationMs) + 1
-            "Made ${sidecar.frameCount} preview frames of ${entry.episodeDir}, ${steps - sidecar.frameCount} " +
-                "steps without, in ${(SystemClock.elapsedRealtime() - startedAt) / 1000} s"
-        }
-        previews.write(context, sidecar)
     }
 
     private fun restore(): List<PendingPreviews> {
@@ -265,6 +314,7 @@ class PreviewGenerator(
     }
 
     /** [CastFrameGrabber] on the file at [videoUri], read as the phone player reads a download. */
+    @OptIn(UnstableApi::class)
     private class GrabberDecoder(context: Context, videoUri: String) : PreviewFrameDecoder {
         private val grabber = CastFrameGrabber(context).apply {
             setSource { DefaultMediaSourceFactory(context).createMediaSource(MediaItem.fromUri(videoUri)) }
@@ -293,9 +343,37 @@ class PreviewGenerator(
         private const val TAG = "PreviewGenerator"
 
         /**
-         * True while the phone's player screen is in front (PiP included) or plays: the frames wait, so the
+         * True while the phone's player screen is in front (PiP included) or plays: no frame is made, so the
          * playback has the decoders and the CPU. Set by the player screen.
          */
         val playerActive = MutableStateFlow(false)
+
+        /**
+         * True during a cast session (its service runs): no frame is made, the cast's own preview frames and its
+         * proxy come first. Set by the cast service.
+         */
+        val castActive = MutableStateFlow(false)
+
+        /** The generator of the downloads in [provider], the episodes waiting kept in [store]. */
+        fun create(
+            context: Context,
+            provider: DownloadProvider,
+            store: File,
+            dataStore: DataStore<Preferences>,
+            scope: CoroutineScope,
+        ) = PreviewGenerator(
+            store = store,
+            settingsOn = { dataStore.getPreferencesGroup(PlayerPreferences).let { it.seekPreview && it.seekPreviewPrefetch } },
+            previewsOf = { entry ->
+                provider.downloadsDir?.findFile(entry.sourceDir)?.findFile(entry.animeDir)?.findFile(entry.episodeDir)
+                    ?.let { LocalEpisode.from(it, entry.episodeDir) }?.previews
+            },
+            newDecoder = { previews -> GrabberDecoder(context, previews.video.uri.toString()) },
+            write = { previews, sidecar -> previews.write(context, sidecar) },
+            schedule = { PreviewWorker.start(context) },
+            paused = combine(playerActive, castActive) { player, cast -> player || cast }
+                .stateIn(scope, SharingStarted.Eagerly, playerActive.value || castActive.value),
+            scope = scope,
+        )
     }
 }

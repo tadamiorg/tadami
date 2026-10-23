@@ -19,6 +19,7 @@ import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.gms.cast.framework.media.RemoteMediaClient
 import com.sf.tadami.data.anime.AnimeRepository
+import com.sf.tadami.data.download.PreviewGenerator
 import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.domain.anime.Anime
@@ -124,6 +125,8 @@ class CastControlService : Service() {
         // keeps the load path independent of (racy) receiver-type detection.
         proxyServer = CastProxyServer(applicationContext, OkHttpClient.Builder().build())
         CastProxyHolder.server = proxyServer
+        // The frames made after a download wait for the session's end: its decoding and its proxy come first
+        PreviewGenerator.castActive.value = true
         seekPreview = CastSeekPreview(
             context = applicationContext,
             send = { message ->
@@ -197,6 +200,7 @@ class CastControlService : Service() {
         castContext?.sessionManager?.removeSessionManagerListener(sessionListener, CastSession::class.java)
         // The session's preview frames go with it
         seekPreview.destroy()
+        PreviewGenerator.castActive.value = false
         CastProxyHolder.server = null
         proxyServer.stop()
         CastSessionState.clear()

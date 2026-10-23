@@ -1,18 +1,26 @@
 package com.sf.tadami.data.download
 
 import androidx.media3.common.PlaybackException
+import com.hippo.unifile.MemoryUniFile
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewSidecar
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketRangeMs
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
+import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketSizeMs
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
+import java.nio.file.Files
 
 /** The seekbar preview frames made after a download: which episodes, in what order, and how. */
 class PreviewGeneratorTest {
@@ -47,6 +55,10 @@ class PreviewGeneratorTest {
         }
     }
 
+    private fun middleOf(step: Int) = previewBucketRangeMs(step, duration).let { (it.first + it.last + 1) / 2 }
+
+    private fun sidecarOf(made: MadePreviews) = (made as MadePreviews.Done).sidecar
+
     @Test
     fun `an episode's frames are made only with both settings on, once, and not once deleted`() {
         assertEquals(PreviewGenerationDecision.GENERATE, previewGenerationDecision(settingsOn = true, videoExists = true, hasValidSidecar = false))
@@ -72,8 +84,8 @@ class PreviewGeneratorTest {
 
     @Test
     fun `one frame per phone step, from the middle of each, any frame of the step will do`() = runBlocking {
-        val decoder = FakeDecoder(noFrame = setOf(previewBucketRangeMs(29, duration).let { (it.first + it.last + 1) / 2 }))
-        val sidecar = makePreviewSidecar(videoLength = 42, newDecoder = { decoder }, paused = MutableStateFlow(false))!!
+        val decoder = FakeDecoder(noFrame = setOf(middleOf(29)))
+        val sidecar = sidecarOf(makePreviewSidecar(videoLength = 42, newDecoder = { decoder }))
         assertEquals(42L, sidecar.videoLength)
         assertEquals(duration, sidecar.durationMs)
         assertEquals(14_300L, sidecar.stepMs)
@@ -92,21 +104,19 @@ class PreviewGeneratorTest {
 
     @Test
     fun `nothing for a video that can't be decoded`() = runBlocking {
-        val paused = MutableStateFlow(false)
-        assertNull(makePreviewSidecar(42, { FakeDecoder(durationMs = null) }, paused))
+        assertSame(MadePreviews.Failed, makePreviewSidecar(42, { FakeDecoder(durationMs = null) }))
         // The third error gives up on the video
         val failing = FakeDecoder(failures = listOf(1, 5, 9).associate { middleOf(it) to listOf(PlaybackException.ERROR_CODE_IO_UNSPECIFIED) })
-        assertNull(makePreviewSidecar(42, { failing }, paused))
+        assertSame(MadePreviews.Failed, makePreviewSidecar(42, { failing }))
         assertTrue("released", failing.released)
         assertEquals("stopped at the third", middleOf(9), failing.asked.last().first)
-        assertNull("not a single frame", makePreviewSidecar(42, { FakeDecoder(noFrame = (0..100L).map { it * 14_300 + 7_150 }.toSet()) }, paused))
+        assertSame("not a single frame", MadePreviews.Failed, makePreviewSidecar(42, { FakeDecoder(noFrame = (0..100L).map { it * 14_300 + 7_150 }.toSet()) }))
     }
 
     @Test
     fun `an error costs its step only, a decoder taken back or that couldn't start tries it again`() = runBlocking {
-        val paused = MutableStateFlow(false)
         // A part of the file that can't be read: its step is left out
-        val unreadable = makePreviewSidecar(42, { FakeDecoder(failures = mapOf(middleOf(5) to listOf(PlaybackException.ERROR_CODE_IO_UNSPECIFIED))) }, paused)!!
+        val unreadable = sidecarOf(makePreviewSidecar(42, { FakeDecoder(failures = mapOf(middleOf(5) to listOf(PlaybackException.ERROR_CODE_IO_UNSPECIFIED))) }))
         assertEquals((0..99).filter { it != 5 }, unreadable.entries.map { it.step })
         // The decoder taken back (by the player, another app), then not starting: the step comes the third time
         val decoder = FakeDecoder(
@@ -117,57 +127,154 @@ class PreviewGeneratorTest {
                 ),
             ),
         )
-        val retried = makePreviewSidecar(42, { decoder }, paused)!!
+        val retried = sidecarOf(makePreviewSidecar(42, { decoder }))
         assertEquals((0..99).toList(), retried.entries.map { it.step })
         assertEquals(3, decoder.asked.count { it.first == middleOf(5) })
         // Taken back over and over: given up, as the player's preview does
         val reclaimed = List(3) { PlaybackException.ERROR_CODE_DECODING_RESOURCES_RECLAIMED }
-        assertNull(makePreviewSidecar(42, { FakeDecoder(failures = mapOf(middleOf(5) to reclaimed)) }, paused))
-    }
-
-    private fun middleOf(step: Int) = previewBucketRangeMs(step, duration).let { (it.first + it.last + 1) / 2 }
-
-    @Test
-    fun `paused while the player screen is active, the decoder released, then it goes on where it was`() = runBlocking {
-        val paused = MutableStateFlow(false)
-        val decoders = mutableListOf<FakeDecoder>()
-        var pauses = 0
-        val result = async {
-            makePreviewSidecar(
-                videoLength = 42,
-                newDecoder = {
-                    FakeDecoder(onFrame = { position ->
-                        // The player screen opens while step 10 decodes
-                        if (position == previewBucketRangeMs(10, duration).let { (it.first + it.last + 1) / 2 }) paused.value = true
-                    }).also { decoders += it }
-                },
-                paused = paused,
-                onPause = { pauses++ },
-            )
-        }
-        withTimeout(5_000) { while (pauses == 0) delay(10) }
-        // Nothing decodes while it waits, its decoder is free
-        delay(100)
-        assertEquals(1, decoders.size)
-        assertTrue(decoders[0].released)
-        assertEquals(11, decoders[0].asked.size)
-        paused.value = false
-        val sidecar = withTimeout(5_000) { result.await() }!!
-        assertEquals(2, decoders.size)
-        assertEquals("every step once", (0..99).toList(), sidecar.entries.map { it.step })
-        assertEquals(100, decoders.sumOf { it.asked.size })
-        assertTrue(decoders.all { it.released })
+        assertSame(MadePreviews.Failed, makePreviewSidecar(42, { FakeDecoder(failures = mapOf(middleOf(5) to reclaimed)) }))
     }
 
     @Test
-    fun `waits from the start while the player screen is active`() = runBlocking {
-        val paused = MutableStateFlow(true)
+    fun `stopped while the player screen or a cast is active, the decoder released`() = runBlocking {
+        var active = false
+        // The player screen opens while step 10 decodes
+        val decoder = FakeDecoder(onFrame = { if (it == middleOf(10)) active = true })
+        assertSame(MadePreviews.Stopped, makePreviewSidecar(42, { decoder }, stopped = { active }))
+        assertEquals("nothing after step 10", 11, decoder.asked.size)
+        assertTrue(decoder.released)
+        // Active from the start: not even a decoder
         var created = 0
-        val result = async { makePreviewSidecar(42, { created++; FakeDecoder() }, paused) }
-        delay(100)
+        assertSame(MadePreviews.Stopped, makePreviewSidecar(42, { created++; FakeDecoder() }, stopped = { true }))
         assertEquals(0, created)
+    }
+
+    // --- The generator: its queue, saved, and each episode's turn ---------------------------------
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+    private val storeDir: File = Files.createTempDirectory("previews").toFile()
+    private val store = File(storeDir, "previews.json")
+    private val downloads = MemoryUniFile.root("Downloads")
+    private val episodes = mutableMapOf<String, EpisodePreviews>()
+    private val paused = MutableStateFlow(false)
+    private var settingsOn = true
+    private var schedules = 0
+    private val decoders = mutableListOf<FakeDecoder>()
+    private var onFrame: (Long) -> Unit = {}
+
+    @After
+    fun tearDown() {
+        scope.cancel()
+        storeDir.deleteRecursively()
+    }
+
+    /** A downloaded episode [name], its video [bytes] long. */
+    private fun episode(name: String, bytes: Int = 4): PendingPreviews {
+        val dir = downloads.folder(name)
+        episodes[name] = EpisodePreviews(dir, name, dir.file("$name.ts", ByteArray(bytes)))
+        return PendingPreviews("S", "A", name)
+    }
+
+    private fun generator() = PreviewGenerator(
+        store = store,
+        settingsOn = { settingsOn },
+        previewsOf = { episodes[it.episodeDir]?.takeIf { previews -> previews.dir.exists() } },
+        newDecoder = { FakeDecoder(onFrame = onFrame).also { decoders += it } },
+        write = { previews, sidecar -> previews.write(sidecar) { it.openOutputStream() } },
+        schedule = { schedules++ },
+        paused = paused,
+        scope = scope,
+    )
+
+    private fun PreviewGenerator.downloaded(entry: PendingPreviews) = onDownloaded(entry.sourceDir, entry.animeDir, entry.episodeDir)
+
+    @Test
+    fun `the episodes waiting are saved, and the next process makes them`() {
+        val a = episode("Ep 1")
+        val b = episode("Ep 2")
+        val first = generator()
+        first.downloaded(a)
+        first.downloaded(b)
+        first.downloaded(a)
+        assertEquals(listOf(a, b), first.waiting)
+        assertTrue(store.exists())
+        assertEquals("one run for both", 1, schedules)
+        // A process death: the next one finds them, and has them made
+        val next = generator()
+        assertEquals(listOf(a, b), next.waiting)
+        assertEquals(2, schedules)
+        runBlocking { next.makeAll() }
+        assertTrue(next.waiting.isEmpty())
+        assertFalse("nothing left to save", store.exists())
+        assertEquals(100, episodes.getValue("Ep 1").read()!!.frameCount)
+        assertEquals(100, episodes.getValue("Ep 2").read()!!.frameCount)
+    }
+
+    @Test
+    fun `nothing made with the settings off, for an episode deleted, or whose frames are there`() {
+        val off = episode("Ep 1")
+        val deleted = episode("Ep 2")
+        val made = episode("Ep 3")
+        val generator = generator()
+        generator.downloaded(deleted)
+        generator.downloaded(made)
+        episodes.getValue("Ep 2").dir.delete()
+        val existing = PreviewSidecar(4, duration, previewBucketSizeMs(duration), 256, 144, listOf(PreviewSidecar.Entry(0, 0, byteArrayOf(1))))
+        assertTrue(episodes.getValue("Ep 3").write(existing) { it.openOutputStream() })
+        runBlocking { generator.makeAll() }
+        assertEquals("never decoded", 0, decoders.size)
+        assertEquals(1, episodes.getValue("Ep 3").read()!!.frameCount)
+        settingsOn = false
+        generator.downloaded(off)
+        runBlocking { generator.makeAll() }
+        assertEquals(0, decoders.size)
+        assertNull(episodes.getValue("Ep 1").read())
+        assertTrue(generator.waiting.isEmpty())
+    }
+
+    @Test
+    fun `stopped by the player screen, the episode waits, then is made unless its frames came meanwhile`() {
+        val a = episode("Ep 1")
+        val b = episode("Ep 2")
+        val generator = generator()
+        generator.downloaded(a)
+        generator.downloaded(b)
+        assertEquals(1, schedules)
+        // The player screen opens as step 10 of the first episode decodes
+        onFrame = { if (it == middleOf(10)) paused.value = true }
+        runBlocking { generator.makeAll() }
+        assertEquals(listOf(a, b), generator.waiting)
+        assertTrue(store.exists())
+        assertNull(episodes.getValue("Ep 1").read())
+        assertTrue(decoders.single().released)
+        // Nothing runs while it's active, nor for an episode downloaded meanwhile
+        generator.downloaded(episode("Ep 3"))
+        assertEquals(1, schedules)
+        // Its playback made the first episode's frames
+        onFrame = {}
+        val played = PreviewSidecar(4, duration, previewBucketSizeMs(duration), 256, 144, listOf(PreviewSidecar.Entry(0, 0, byteArrayOf(1))))
+        assertTrue(episodes.getValue("Ep 1").write(played) { it.openOutputStream() })
+        // Gone: a run again, the first episode not decoded again
         paused.value = false
-        assertEquals(100, withTimeout(5_000) { result.await() }!!.frameCount)
-        assertEquals(1, created)
+        assertEquals(2, schedules)
+        runBlocking { generator.makeAll() }
+        assertEquals(1, episodes.getValue("Ep 1").read()!!.frameCount)
+        assertEquals(100, episodes.getValue("Ep 2").read()!!.frameCount)
+        assertEquals("the first stopped, then the second and the third", 3, decoders.size)
+        assertTrue(generator.waiting.isEmpty())
+    }
+
+    @Test
+    fun `an episode downloaded once a run has ended has a run of its own`() {
+        val generator = generator()
+        assertEquals("nothing waiting", 0, schedules)
+        generator.downloaded(episode("Ep 1"))
+        generator.downloaded(episode("Ep 2"))
+        assertEquals(1, schedules)
+        runBlocking { generator.makeAll() }
+        generator.downloaded(episode("Ep 3"))
+        assertEquals(2, schedules)
+        runBlocking { generator.makeAll() }
+        assertNotNull(episodes.getValue("Ep 3").read())
     }
 }
