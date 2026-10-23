@@ -12,8 +12,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.RenderersFactory
 import androidx.media3.exoplayer.video.MediaCodecVideoRenderer
-import com.sf.tadami.data.download.isLocalFile
-import com.sf.tadami.source.model.StreamSource
 
 /** Where [positionMs] sits on a [durationMs]-long timeline, from 0 to 1 (0 while the duration is unknown). */
 fun seekFraction(positionMs: Long, durationMs: Long): Float {
@@ -71,20 +69,12 @@ const val PREVIEW_BITMAP_CACHE_BYTES = 24L * 1024 * 1024
 /** Between two prefetched steps of a downloaded episode: the main player decodes too. */
 const val PREVIEW_PREFETCH_GAP_LOCAL_MS = 500L
 
-/** Between two prefetched steps of a streamed episode, gentler: they load from the network (as the cast's). */
-const val PREVIEW_PREFETCH_GAP_STREAM_MS = 1_000L
-
-/** Whether the phone player prefetches its stream's preview frames: both settings on, a stream playing. */
-fun phonePreviewPrefetchOn(seekPreview: Boolean, prefetch: Boolean, hasSource: Boolean): Boolean =
-    seekPreview && prefetch && hasSource
-
 /**
- * Whether a prefetch may load now: a downloaded episode always (no network); a stream as the scrubs' own
- * fetches, on mobile data too unless "Only on Wi-Fi" ([onlyOnWifi]) is on, and only while the main player
- * can spare the network ([mainPlayerCanSpareNetwork]): it loads about the whole episode in low quality.
+ * Whether the phone player prefetches its preview frames: both settings on, a [downloaded] episode playing (a
+ * streamed one has no preview frames).
  */
-fun previewPrefetchMayLoad(localFile: Boolean, onlyOnWifi: Boolean, onWifi: Boolean, mainCanSpareNetwork: Boolean): Boolean =
-    localFile || ((!onlyOnWifi || onWifi) && mainCanSpareNetwork)
+fun phonePreviewPrefetchOn(seekPreview: Boolean, prefetch: Boolean, downloaded: Boolean): Boolean =
+    seekPreview && prefetch && downloaded
 
 /** A step whose frame hasn't come after this long gives none, and isn't fetched again for the stream. */
 const val PREVIEW_FETCH_TIMEOUT_MS = 10_000L
@@ -114,23 +104,6 @@ private const val PREVIEW_MIN_BUFFER_MS = 500
 private const val PREVIEW_MAX_BUFFER_MS = 1_000
 private const val PREVIEW_TARGET_BUFFER_BYTES = 4 * 1024 * 1024
 
-/** Buffer the main player keeps ahead before preview loads may share the network with it. */
-const val MAIN_PLAYER_MIN_BUFFER_AHEAD_MS = 10_000L
-
-/**
- * Whether the main player can spare network for preview loads: it isn't rebuffering, and it has
- * [MAIN_PLAYER_MIN_BUFFER_AHEAD_MS] buffered ahead or the whole video loaded.
- */
-fun mainPlayerCanSpareNetwork(
-    isBuffering: Boolean,
-    bufferedAheadMs: Long,
-    bufferedPositionMs: Long,
-    durationMs: Long,
-): Boolean {
-    if (isBuffering) return false
-    return bufferedAheadMs >= MAIN_PLAYER_MIN_BUFFER_AHEAD_MS || (durationMs > 0L && bufferedPositionMs >= durationMs)
-}
-
 /** Preview steps: 1% of the duration, so about 100 frames per video, but 5 s at least and 30 s at most. */
 const val PREVIEW_BUCKET_MIN_MS = 5_000L
 const val PREVIEW_BUCKET_MAX_MS = 30_000L
@@ -150,14 +123,6 @@ fun previewBucketRangeMs(bucket: Int, durationMs: Long): LongRange {
     val start = bucket * size
     val end = (start + size).coerceAtMost(durationMs.coerceAtLeast(start + 1))
     return start until end
-}
-
-/**
- * Identity of a stream for the preview frames: its URL with its server and quality, or the file of a
- * download. Frames of one identity never change, frames of another are never shown for it.
- */
-fun previewSourceIdentity(source: StreamSource): String {
-    return if (source.isLocalFile) source.url else "${source.url}|${source.server}|${source.quality}"
 }
 
 /** A preview frame: the step [bucket] of the stream [sourceId]. */

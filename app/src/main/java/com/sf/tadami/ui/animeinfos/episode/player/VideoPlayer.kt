@@ -80,14 +80,9 @@ import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.episodetoolti
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.SettingsDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.TracksSelectionDialog
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.videoselection.VideoSelectionDialog
-import com.sf.tadami.ui.animeinfos.episode.player.preview.PREVIEW_PREFETCH_GAP_LOCAL_MS
-import com.sf.tadami.ui.animeinfos.episode.player.preview.PREVIEW_PREFETCH_GAP_STREAM_MS
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch
 import com.sf.tadami.ui.animeinfos.episode.player.preview.phonePreviewPrefetchOn
-import com.sf.tadami.ui.animeinfos.episode.player.preview.previewPrefetchMayLoad
 import com.sf.tadami.ui.animeinfos.episode.player.preview.SeekPreviewPlayer
-import com.sf.tadami.ui.animeinfos.episode.player.preview.mainPlayerCanSpareNetwork
-import com.sf.tadami.ui.animeinfos.episode.player.preview.previewSourceIdentity
 import com.sf.tadami.ui.animeinfos.episode.player.subtitles.CustomSubtitleParserFactory
 import com.sf.tadami.ui.animeinfos.episode.player.subtitles.PlayerSubtitleView
 import com.sf.tadami.ui.animeinfos.episode.player.subtitles.SubtitleStyle
@@ -96,7 +91,6 @@ import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.convertToIetfLanguageTag
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.safeDrawing
-import com.sf.tadami.utils.isConnectedToWifi
 import kotlinx.coroutines.delay
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -208,29 +202,10 @@ fun VideoPlayer(
 
     val screenLifecycle = LocalLifecycleOwner.current.lifecycle
 
-    fun mainCanSpareNetwork() = mainPlayerCanSpareNetwork(
-        isBuffering = exoPlayer.playbackState == Player.STATE_BUFFERING,
-        bufferedAheadMs = exoPlayer.totalBufferedDuration,
-        bufferedPositionMs = exoPlayer.bufferedPosition,
-        durationMs = exoPlayer.duration,
-    )
-
-    // Second player of the seekbar preview, created on the first drag or by the prefetch
+    // Second player of the seekbar preview of a downloaded episode, created on the first drag or by the prefetch
     val seekPreviewPlayer = remember {
         SeekPreviewPlayer(
             context = context,
-            canLoad = {
-                // A downloaded episode takes no network from the main player
-                episodeUiState.selectedSource?.isLocalFile == true || mainCanSpareNetwork()
-            },
-            canPrefetch = {
-                previewPrefetchMayLoad(
-                    localFile = episodeUiState.selectedSource?.isLocalFile == true,
-                    onlyOnWifi = playerPreferences.seekPreviewOnlyOnWifi,
-                    onWifi = context.isConnectedToWifi(),
-                    mainCanSpareNetwork = mainCanSpareNetwork(),
-                )
-            },
             mainPlayback = {
                 // The prefetch waits while the screen isn't in front (paused, PiP, background)
                 if (screenLifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
@@ -459,38 +434,36 @@ fun VideoPlayer(
         }
     }
 
-    // The preview reads the stream as the player does: same factories, so same headers, HLS fixes and cache.
-    // A new stream or episode drops the preview player of the previous one, and its frames with another stream.
+    // Preview frames for a downloaded episode only, read from its file as the player does; a streamed episode
+    // shows the time alone, its preview player never created. A new episode drops the preview player of the
+    // previous one, and its frames with another file.
     LaunchedEffect(episodeUiState.selectedSource, currentEpisode?.id) {
         seekPreviewPlayer.release()
-        val source = episodeUiState.selectedSource
-        seekPreviewPlayer.setSource(source?.let(::previewSourceIdentity), source?.let {
+        val download = episodeUiState.selectedSource?.takeIf { it.isLocalFile }
+        seekPreviewPlayer.setSource(download?.url, download?.let {
             {
-                val mediaSourceFactory = if (it.isLocalFile) localMediaSourceFactory else dataSourceFactory
                 // The video alone: no side-loaded subtitles nor separate audio
-                mediaSourceFactory.createMediaSource(MediaItem.fromUri(it.url))
+                localMediaSourceFactory.createMediaSource(MediaItem.fromUri(it.url))
             }
         })
     }
 
-    // Every preview frame fetched in the background, so scrubs show them at once: a download freely, a stream
-    // only while the network can be spared (canPrefetch) and gentler
+    // Every preview frame of a downloaded episode fetched in the background, so scrubs show them at once
     LaunchedEffect(playerPreferences.seekPreview, playerPreferences.seekPreviewPrefetch, episodeUiState.selectedSource) {
-        val source = episodeUiState.selectedSource
         seekPreviewPlayer.setPrefetch(
-            enabled = phonePreviewPrefetchOn(playerPreferences.seekPreview, playerPreferences.seekPreviewPrefetch, source != null),
-            gapMs = if (source?.isLocalFile == true) PREVIEW_PREFETCH_GAP_LOCAL_MS else PREVIEW_PREFETCH_GAP_STREAM_MS,
+            phonePreviewPrefetchOn(
+                seekPreview = playerPreferences.seekPreview,
+                prefetch = playerPreferences.seekPreviewPrefetch,
+                downloaded = episodeUiState.selectedSource?.isLocalFile == true,
+            )
         )
     }
 
     val seekPreview = remember(playerPreferences.seekPreview) {
         if (!playerPreferences.seekPreview) return@remember null
         SeekBarPreview(
-            isAvailable = {
-                val source = episodeUiState.selectedSource
-                source != null && (source.isLocalFile || !playerPreferences.seekPreviewOnlyOnWifi ||
-                    context.isConnectedToWifi())
-            },
+            // A streamed episode previews too: the time alone
+            isAvailable = { episodeUiState.selectedSource != null },
             onScrub = { positionMs -> seekPreviewPlayer.scrubTo(positionMs, totalDuration) },
             onScrubEnd = seekPreviewPlayer::endScrub,
             onCommit = { positionMs ->

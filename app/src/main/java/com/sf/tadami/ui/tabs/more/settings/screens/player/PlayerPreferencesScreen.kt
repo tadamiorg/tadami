@@ -112,20 +112,6 @@ class PlayerPreferencesScreen(
                 ),
                 Preference.PreferenceItem.TogglePreference(
                     enabled = prefs.seekPreview,
-                    title = stringResource(id = R.string.player_pref_seek_preview_only_on_wifi),
-                    value = prefs.seekPreviewOnlyOnWifi,
-                    subtitle = stringResource(id = R.string.player_pref_seek_preview_only_on_wifi_subtitle),
-                    onValueChanged = {
-                        prefState.setValue(
-                            prefs.copy(
-                                seekPreviewOnlyOnWifi = it
-                            )
-                        )
-                        true
-                    }
-                ),
-                Preference.PreferenceItem.TogglePreference(
-                    enabled = prefs.seekPreview,
                     title = stringResource(id = R.string.player_pref_seek_preview_prefetch),
                     value = prefs.seekPreviewPrefetch,
                     subtitle = stringResource(id = R.string.player_pref_seek_preview_prefetch_subtitle),

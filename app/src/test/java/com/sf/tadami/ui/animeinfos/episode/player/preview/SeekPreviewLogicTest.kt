@@ -3,10 +3,8 @@ package com.sf.tadami.ui.animeinfos.episode.player.preview
 import android.content.ComponentCallbacks2
 import androidx.media3.common.C
 import androidx.media3.common.TrackSelectionParameters
-import com.sf.tadami.source.model.StreamSource
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -69,24 +67,6 @@ class SeekPreviewLogicTest {
         assertFalse(C.TRACK_TYPE_VIDEO in parameters.disabledTrackTypes)
     }
 
-    @Test
-    fun `main player spares the network with enough buffered ahead`() {
-        assertTrue(mainPlayerCanSpareNetwork(isBuffering = false, bufferedAheadMs = 10_000, bufferedPositionMs = 70_000, durationMs = 1_400_000))
-        assertFalse(mainPlayerCanSpareNetwork(isBuffering = false, bufferedAheadMs = 9_999, bufferedPositionMs = 70_000, durationMs = 1_400_000))
-    }
-
-    @Test
-    fun `main player never spares the network while rebuffering`() {
-        assertFalse(mainPlayerCanSpareNetwork(isBuffering = true, bufferedAheadMs = 60_000, bufferedPositionMs = 1_400_000, durationMs = 1_400_000))
-    }
-
-    @Test
-    fun `main player loaded to the end spares the network`() {
-        assertTrue(mainPlayerCanSpareNetwork(isBuffering = false, bufferedAheadMs = 2_000, bufferedPositionMs = 1_400_000, durationMs = 1_400_000))
-        // Unknown duration: only the buffer ahead counts
-        assertFalse(mainPlayerCanSpareNetwork(isBuffering = false, bufferedAheadMs = 2_000, bufferedPositionMs = 0, durationMs = C.TIME_UNSET))
-    }
-
     private val episode = 1_440_000L // 24 min
 
     @Test
@@ -129,18 +109,6 @@ class SeekPreviewLogicTest {
         assertEquals(1_425_600L until episode, previewBucketRangeMs(99, episode))
         // A 1 min 03 s video ends with a 3 s step
         assertEquals(60_000L until 63_000L, previewBucketRangeMs(12, 63_000))
-    }
-
-    @Test
-    fun `stream identity is its URL, server and quality, a download's its file`() {
-        val stream = StreamSource(url = "https://cdn.example/master.m3u8", server = "Kwik", quality = "720p")
-        assertEquals("https://cdn.example/master.m3u8|Kwik|720p", previewSourceIdentity(stream))
-        assertNotEquals(previewSourceIdentity(stream), previewSourceIdentity(stream.copy(quality = "1080p")))
-        assertNotEquals(previewSourceIdentity(stream), previewSourceIdentity(stream.copy(server = "Other")))
-        // Same stream from another fetch: same frames
-        assertEquals(previewSourceIdentity(stream), previewSourceIdentity(stream.copy(fullName = "Kwik - 720p")))
-        val download = StreamSource(url = "content://downloads/Episode 3.ts", server = "Kwik", quality = "720p")
-        assertEquals("content://downloads/Episode 3.ts", previewSourceIdentity(download))
     }
 
     private fun cache(maxBytes: Long = 300) = PreviewFrameCache<String>(maxBytes) { 100L }.apply { setSource("a") }

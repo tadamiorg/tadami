@@ -1,5 +1,9 @@
 package com.sf.tadami.ui.animeinfos.episode.player.preview
 
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.mutablePreferencesOf
+import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch.Playback
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -38,6 +42,22 @@ class LocalPreviewPrefetchTest {
         schedule.onDecodeEnded(500)
         time += 500
         return step
+    }
+
+    @Test
+    fun `the setting and the seekbar preview turn the prefetch on and off, for a downloaded episode only`() {
+        assertTrue(phonePreviewPrefetchOn(seekPreview = true, prefetch = true, downloaded = true))
+        assertFalse("prefetch off", phonePreviewPrefetchOn(seekPreview = true, prefetch = false, downloaded = true))
+        assertFalse("preview off", phonePreviewPrefetchOn(seekPreview = false, prefetch = true, downloaded = true))
+        assertFalse("a stream, or nothing playing", phonePreviewPrefetchOn(seekPreview = true, prefetch = true, downloaded = false))
+    }
+
+    @Test
+    fun `one setting for the phone and the cast, its stored choice kept`() {
+        assertTrue(PlayerPreferences.transform(emptyPreferences()).seekPreviewPrefetch)
+        // Stored under the key of the cast's former setting
+        val stored = mutablePreferencesOf(booleanPreferencesKey("player_seek_preview_cast_prefetch") to false)
+        assertFalse(PlayerPreferences.transform(stored).seekPreviewPrefetch)
     }
 
     @Test

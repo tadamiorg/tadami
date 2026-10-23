@@ -34,7 +34,7 @@ import com.sf.tadami.ui.utils.formatMinSec
  */
 @Stable
 class SeekBarPreview(
-    /** Whether a gesture starting now previews (the setting, the network); asked once per gesture. */
+    /** Whether a gesture starting now previews (something plays); asked once per gesture. */
     val isAvailable: () -> Boolean,
     val onScrub: (positionMs: Long) -> Unit,
     val onScrubEnd: () -> Unit,
@@ -49,6 +49,7 @@ private val PreviewHeight = 124.dp
 /**
  * The frame of the preview step [positionMs] falls in, with the exact [positionMs] under it. While the
  * step's frame loads, the last frame shown stays with a spinner over it, or the spinner alone at first.
+ * A streamed episode, or one the preview player failed on, shows the time alone.
  */
 @OptIn(UnstableApi::class)
 @Composable
@@ -65,7 +66,7 @@ fun SeekPreviewThumbnail(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             val frame = previewPlayer.frame
-            if (!previewPlayer.failed || frame != null) {
+            if (previewPlayer.hasSource && (!previewPlayer.failed || frame != null)) {
                 Box(
                     modifier = Modifier
                         .size(PreviewWidth, PreviewHeight)

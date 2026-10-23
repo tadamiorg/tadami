@@ -35,6 +35,7 @@ data class PlayerPreferences(
     val subtitleItalicFormat: Boolean,
     val subtitleBottomPadding: Float,
     val seekPreview: Boolean,
+    /** No longer in the settings (the phone previews streams with the time alone): only the cast still reads it. */
     val seekPreviewOnlyOnWifi: Boolean,
     /** The preview frames are fetched in the background, by the phone player and for the cast. */
     val seekPreviewPrefetch: Boolean,

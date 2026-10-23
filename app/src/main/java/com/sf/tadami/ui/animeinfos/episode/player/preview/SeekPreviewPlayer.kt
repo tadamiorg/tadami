@@ -16,7 +16,6 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.analytics.AnalyticsListener
@@ -28,28 +27,24 @@ import java.io.IOException
 import kotlin.math.roundToInt
 
 /**
- * Frames of the seekbar preview: one per preview step (see [previewBucketSizeMs]), kept per stream.
+ * Frames of the seekbar preview of a downloaded episode: one per preview step (see [previewBucketSizeMs]), kept
+ * per file. A streamed episode has none: its seekbar shows the time alone.
  *
- * A step's frame comes from a second, muted ExoPlayer that reads the stream through the main player's media
- * source factory (headers, HLS fixes, cache) but has its own bandwidth meter, track selection and load
- * control, so it never changes what the main player buffers or picks. It decodes into a hidden
- * [TextureView] ([attachSurface]), the frame is scaled into a bitmap and cached: a step already seen shows
- * at once, with no new load nor decode.
+ * A step's frame comes from a second, muted ExoPlayer that reads the episode's file, with its own bandwidth
+ * meter, track selection and load control, so it never changes what the main player buffers or picks. It
+ * decodes into a hidden [TextureView] ([attachSurface]), the frame is scaled into a bitmap and cached: a step
+ * already seen shows at once, with no new load nor decode.
  *
  * With [setPrefetch], every step is fetched in the background once the main player plays steadily
  * ([mainPlayback], [PreviewPrefetch]), nearest its position first, one at a time with a gap, so a scrub
- * finds its frame cached — while [canPrefetch] allows it (a stream: the "Only on Wi-Fi" setting, the main
- * player buffered ahead). A scrub's step comes first: it takes over a prefetch loading another step. Main thread
+ * finds its frame cached. A scrub's step comes first: it takes over a prefetch loading another step. Main thread
  * only.
  */
 @UnstableApi
 class SeekPreviewPlayer(
     private val context: Context,
-    private val canLoad: () -> Boolean,
     /** The main player's playback, null while the screen isn't in the foreground: the prefetch waits. */
     private val mainPlayback: () -> MainPlayback? = { null },
-    /** Whether a prefetch may load now ([previewPrefetchMayLoad]); asked before each. */
-    private val canPrefetch: () -> Boolean = { true },
 ) : TextureView.SurfaceTextureListener {
 
     /** The main player's [state], [positionMs] and [durationMs]. */
@@ -67,9 +62,8 @@ class SeekPreviewPlayer(
     private val schedule = PreviewPrefetch(SystemClock::elapsedRealtime)
     private val prefetchTick = Runnable { onPrefetchTick() }
     private var prefetchEnabled = false
-    private var prefetchGapMs = PREVIEW_PREFETCH_GAP_LOCAL_MS
 
-    // What the preview player's loads read for this stream, cache hits included (the logs' rough data cost)
+    // What the preview player's loads read from this file (logs)
     private var previewBytes = 0L
 
     // Frames dropped on memory pressure: not all made again for this stream
@@ -117,17 +111,25 @@ class SeekPreviewPlayer(
     var frameLoading by mutableStateOf(false)
         private set
 
-    /** The current stream can't be previewed (the preview player failed on it): no new frame is fetched. */
+    /** The current file can't be previewed (the preview player failed on it): no new frame is fetched. */
     var failed by mutableStateOf(false)
         private set
 
-    /** Sets the stream to preview, [sourceId] being its [previewSourceIdentity]; another stream drops the frames. */
+    /** A downloaded episode is set: its frames can be shown. Without one (a stream, nothing playing), none. */
+    var hasSource by mutableStateOf(false)
+        private set
+
+    /**
+     * Sets the downloaded episode to preview, [sourceId] being its file, or none (a stream, nothing playing).
+     * Another file drops the frames.
+     */
     fun setSource(sourceId: String?, factory: (() -> MediaSource)?) {
         if (sourceId == frames.sourceId) return
         release()
         frames.setSource(sourceId)
         unavailable.clear()
         sourceFactory = factory
+        hasSource = sourceId != null
         failed = false
         frame = null
         shownBucket = null
@@ -141,11 +143,10 @@ class SeekPreviewPlayer(
     }
 
     /**
-     * Whether every step of the stream is fetched in the background, [gapMs] apart. Off, a prefetch loading
-     * still lands, nothing more starts.
+     * Whether every step of the file is fetched in the background, [PREVIEW_PREFETCH_GAP_LOCAL_MS] apart. Off, a
+     * prefetch loading still lands, nothing more starts.
      */
-    fun setPrefetch(enabled: Boolean, gapMs: Long = PREVIEW_PREFETCH_GAP_LOCAL_MS) {
-        prefetchGapMs = gapMs
+    fun setPrefetch(enabled: Boolean) {
         if (enabled == prefetchEnabled) return
         prefetchEnabled = enabled
         if (enabled) scheduleTick(0L) else handler.removeCallbacks(prefetchTick)
@@ -209,6 +210,7 @@ class SeekPreviewPlayer(
         prefetchEnabled = false
         release()
         frames.setSource(null)
+        hasSource = false
         frame = null
         shownBucket = null
     }
@@ -274,11 +276,6 @@ class SeekPreviewPlayer(
         handler.removeCallbacks(pump)
         val target = fingerBucket ?: return
         if (failed || surface == null || sourceFactory == null || isDone(target)) return
-        if (!canLoad()) {
-            // Leaves the network to the main player while its buffer is short
-            handler.postDelayed(pump, WAIT_FOR_MAIN_PLAYER_MS)
-            return
-        }
         requests.next(::isDone)?.let(::fetch)
     }
 
@@ -292,8 +289,7 @@ class SeekPreviewPlayer(
         val main = mainPlayback()
         schedule.onStatus(main?.state, main?.positionMs ?: schedule.positionMs)
         val duration = main?.durationMs?.takeIf { it > 0L } ?: durationMs
-        // A stream waits while the network can't be spared (Wi-Fi only off Wi-Fi, main player short of buffer)
-        if (surface != null && sourceFactory != null && duration > 0L && canPrefetch()) {
+        if (surface != null && sourceFactory != null && duration > 0L) {
             when (val next = nextPreviewPrefetch(schedule, requests, duration, ::isDone, frames.hasRoomFor(frameBytes))) {
                 is PreviewPrefetchStep.Fetch -> if (requests.prefetch(next.bucket)) {
                     durationMs = duration
@@ -307,7 +303,7 @@ class SeekPreviewPlayer(
                         TAG,
                         "Prefetch complete: ${frames.size} frames, ${unavailable.size} without, " +
                             "${frames.bytes / 1024} KiB, in ${elapsed / 1000} s, " +
-                            "${previewBytes / 1024} KiB read by the preview player (cache hits included)",
+                            "${previewBytes / 1024} KiB read by the preview player",
                     )
                     return
                 }
@@ -322,8 +318,8 @@ class SeekPreviewPlayer(
         val wasPrefetch = requests.inFlightIsPrefetch
         requests.finished(bucket)
         if (wasPrefetch) {
-            schedule.onDecodeEnded(prefetchGapMs)
-            if (prefetchEnabled) scheduleTick(prefetchGapMs)
+            schedule.onDecodeEnded(PREVIEW_PREFETCH_GAP_LOCAL_MS)
+            if (prefetchEnabled) scheduleTick(PREVIEW_PREFETCH_GAP_LOCAL_MS)
         }
     }
 
@@ -454,8 +450,7 @@ class SeekPreviewPlayer(
                 error: IOException,
                 wasCanceled: Boolean,
             ) {
-                val code = (error as? HttpDataSource.InvalidResponseCodeException)?.responseCode
-                Log.d(TAG, "Load failed for step ${requests.inFlight}: ${code?.let { "HTTP $it" } ?: error.javaClass.simpleName}")
+                Log.d(TAG, "Load failed for step ${requests.inFlight}: ${error.javaClass.simpleName}")
             }
 
             // A software decoder taken as a fallback shows here
@@ -495,7 +490,6 @@ class SeekPreviewPlayer(
 
     private companion object {
         const val TAG = "SeekPreviewPlayer"
-        const val WAIT_FOR_MAIN_PLAYER_MS = 250L
         const val DEFAULT_ASPECT_RATIO = 16f / 9f
 
         /** How often the prefetch looks at the main player. */
