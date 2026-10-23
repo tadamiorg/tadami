@@ -1,5 +1,6 @@
 package com.sf.tadami.data.download
 
+import androidx.media3.common.PlaybackException
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewSidecar
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketRangeMs
 import kotlinx.coroutines.async
@@ -22,11 +23,13 @@ class PreviewGeneratorTest {
     private inner class FakeDecoder(
         private val durationMs: Long? = duration,
         private val noFrame: Set<Long> = emptySet(),
-        private val failAt: Long? = null,
+        // The errors at a position, in turn, before its frame
+        failures: Map<Long, List<Int>> = emptyMap(),
         private val onFrame: (Long) -> Unit = {},
     ) : PreviewFrameDecoder {
         val asked = mutableListOf<Pair<Long, Long>>()
         var released = false
+        private val failures = failures.mapValues { ArrayDeque(it.value) }
 
         override suspend fun durationMs() = durationMs
 
@@ -34,7 +37,7 @@ class PreviewGeneratorTest {
             assertFalse("used after its release", released)
             asked += positionMs to toleranceMs
             onFrame(positionMs)
-            if (positionMs == failAt) throw PreviewFrameDecoder.FailedException()
+            failures[positionMs]?.removeFirstOrNull()?.let { throw PreviewFrameDecoder.FailedException(it) }
             if (positionMs in noFrame) return null
             return PreviewFrameDecoder.DecodedFrame(byteArrayOf(positionMs.toByte()), 256, 144, positionMs - 100)
         }
@@ -75,11 +78,11 @@ class PreviewGeneratorTest {
         assertEquals(duration, sidecar.durationMs)
         assertEquals(14_300L, sidecar.stepMs)
         assertEquals(256 to 144, sidecar.frameWidth to sidecar.frameHeight)
-        assertEquals((0..99).toList(), sidecar.entries.map { it.step })
         assertEquals(listOf(7_150L to 7_150L, 21_450L to 7_150L), decoder.asked.take(2))
-        // The step without a frame in time is kept as such
+        assertEquals(100, decoder.asked.size)
+        // The step without a frame in time is left out, not kept as one without: fetched when it's needed
+        assertEquals((0..99).filter { it != 29 }, sidecar.entries.map { it.step })
         assertEquals(99, sidecar.frameCount)
-        assertFalse(sidecar.entries[29].hasFrame)
         // Each frame's own time
         assertEquals(7_050L, sidecar.entries[0].timeMs)
         assertTrue(decoder.released)
@@ -91,11 +94,38 @@ class PreviewGeneratorTest {
     fun `nothing for a video that can't be decoded`() = runBlocking {
         val paused = MutableStateFlow(false)
         assertNull(makePreviewSidecar(42, { FakeDecoder(durationMs = null) }, paused))
-        val failing = FakeDecoder(failAt = 21_450)
+        // The third error gives up on the video
+        val failing = FakeDecoder(failures = listOf(1, 5, 9).associate { middleOf(it) to listOf(PlaybackException.ERROR_CODE_IO_UNSPECIFIED) })
         assertNull(makePreviewSidecar(42, { failing }, paused))
         assertTrue("released", failing.released)
+        assertEquals("stopped at the third", middleOf(9), failing.asked.last().first)
         assertNull("not a single frame", makePreviewSidecar(42, { FakeDecoder(noFrame = (0..100L).map { it * 14_300 + 7_150 }.toSet()) }, paused))
     }
+
+    @Test
+    fun `an error costs its step only, a decoder taken back or that couldn't start tries it again`() = runBlocking {
+        val paused = MutableStateFlow(false)
+        // A part of the file that can't be read: its step is left out
+        val unreadable = makePreviewSidecar(42, { FakeDecoder(failures = mapOf(middleOf(5) to listOf(PlaybackException.ERROR_CODE_IO_UNSPECIFIED))) }, paused)!!
+        assertEquals((0..99).filter { it != 5 }, unreadable.entries.map { it.step })
+        // The decoder taken back (by the player, another app), then not starting: the step comes the third time
+        val decoder = FakeDecoder(
+            failures = mapOf(
+                middleOf(5) to listOf(
+                    PlaybackException.ERROR_CODE_DECODING_RESOURCES_RECLAIMED,
+                    PlaybackException.ERROR_CODE_DECODER_INIT_FAILED,
+                ),
+            ),
+        )
+        val retried = makePreviewSidecar(42, { decoder }, paused)!!
+        assertEquals((0..99).toList(), retried.entries.map { it.step })
+        assertEquals(3, decoder.asked.count { it.first == middleOf(5) })
+        // Taken back over and over: given up, as the player's preview does
+        val reclaimed = List(3) { PlaybackException.ERROR_CODE_DECODING_RESOURCES_RECLAIMED }
+        assertNull(makePreviewSidecar(42, { FakeDecoder(failures = mapOf(middleOf(5) to reclaimed)) }, paused))
+    }
+
+    private fun middleOf(step: Int) = previewBucketRangeMs(step, duration).let { (it.first + it.last + 1) / 2 }
 
     @Test
     fun `paused while the player screen is active, the decoder released, then it goes on where it was`() = runBlocking {

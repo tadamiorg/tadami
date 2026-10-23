@@ -6,10 +6,13 @@ import androidx.annotation.OptIn
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastFrameGrabber
+import com.sf.tadami.ui.animeinfos.episode.player.preview.PREVIEW_MAX_ERRORS
+import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewErrors
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewSidecar
 import com.sf.tadami.ui.animeinfos.episode.player.preview.phonePreviewBucketOf
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketRangeMs
@@ -91,14 +94,19 @@ interface PreviewFrameDecoder {
     /** [jpeg] ([width]×[height]), the frame at [timeMs] of the video. */
     class DecodedFrame(val jpeg: ByteArray, val width: Int, val height: Int, val timeMs: Long)
 
-    /** The video can't be decoded: no frame of it will come. */
-    class FailedException : Exception()
+    /** The decoder failed on [errorCode] ([PlaybackException.errorCode]): no frame of the step came. */
+    class FailedException(val errorCode: Int = PlaybackException.ERROR_CODE_UNSPECIFIED) : Exception()
 }
 
 /**
  * The seekbar preview frames of a [videoLength]-byte video, one per step of the phone player (see
  * [phonePreviewBucketOf]), decoded in turn by a decoder from [newDecoder]; null when the video can't be decoded.
  * Waits while [paused], its decoder released meanwhile, so the player screen has the decoder to itself.
+ *
+ * A step without a frame in time, or that failed to decode, is left out rather than kept as one without: a timeout
+ * or an error may not come again, the player and the cast fetch it when it's needed. A decoder taken back or that
+ * couldn't start tries its step again; the errors are counted as the player's preview counts them ([PreviewErrors]):
+ * the [PREVIEW_MAX_ERRORS]th gives up on the video.
  */
 suspend fun makePreviewSidecar(
     videoLength: Long,
@@ -116,27 +124,38 @@ suspend fun makePreviewSidecar(
         }
         return decoder ?: newDecoder().also { decoder = it }
     }
+    val errors = PreviewErrors()
+
+    // The frame of the step [range], null when it gives none; throws once the video is given up
+    suspend fun frameOf(range: LongRange): PreviewFrameDecoder.DecodedFrame? {
+        while (true) {
+            try {
+                return ready().frame((range.first + range.last + 1) / 2, (range.last + 1 - range.first) / 2)
+            } catch (e: PreviewFrameDecoder.FailedException) {
+                val outcome = errors.onError(e.errorCode)
+                if (outcome.failSource) throw e
+                if (outcome.markStepUnavailable) return null
+            }
+        }
+    }
+
     try {
         val durationMs = ready().durationMs()?.takeIf { it > 0L } ?: return null
         val last = phonePreviewBucketOf(durationMs - 1, durationMs)
         var width = 0
         var height = 0
-        val entries = (0..last).map { step ->
-            val range = previewBucketRangeMs(step, durationMs)
+        val entries = mutableListOf<PreviewSidecar.Entry>()
+        for (step in 0..last) {
             val frame = try {
-                ready().frame((range.first + range.last + 1) / 2, (range.last + 1 - range.first) / 2)
+                frameOf(previewBucketRangeMs(step, durationMs))
             } catch (_: PreviewFrameDecoder.FailedException) {
                 return null
+            } ?: continue
+            if (width == 0) {
+                width = frame.width
+                height = frame.height
             }
-            if (frame == null) {
-                PreviewSidecar.Entry(step, -1, null)
-            } else {
-                if (width == 0) {
-                    width = frame.width
-                    height = frame.height
-                }
-                PreviewSidecar.Entry(step, frame.timeMs, frame.jpeg)
-            }
+            entries += PreviewSidecar.Entry(step, frame.timeMs, frame.jpeg)
         }
         if (width == 0) return null
         return PreviewSidecar(videoLength, durationMs, previewBucketSizeMs(durationMs), width, height, entries)
@@ -223,7 +242,8 @@ class PreviewGenerator(
             return
         }
         logcat(tag = TAG) {
-            "Made ${sidecar.frameCount} preview frames of ${entry.episodeDir}, ${sidecar.entries.size - sidecar.frameCount} " +
+            val steps = phonePreviewBucketOf(sidecar.durationMs - 1, sidecar.durationMs) + 1
+            "Made ${sidecar.frameCount} preview frames of ${entry.episodeDir}, ${steps - sidecar.frameCount} " +
                 "steps without, in ${(SystemClock.elapsedRealtime() - startedAt) / 1000} s"
         }
         previews.write(context, sidecar)
@@ -262,7 +282,7 @@ class PreviewGenerator(
                 is CastFrameGrabber.Result.Frame ->
                     PreviewFrameDecoder.DecodedFrame(result.jpeg.bytes, result.jpeg.width, result.jpeg.height, result.timeMs)
                 CastFrameGrabber.Result.NoFrame -> null
-                CastFrameGrabber.Result.Failed -> throw PreviewFrameDecoder.FailedException()
+                is CastFrameGrabber.Result.Failed -> throw PreviewFrameDecoder.FailedException(result.errorCode)
             }
         }
 

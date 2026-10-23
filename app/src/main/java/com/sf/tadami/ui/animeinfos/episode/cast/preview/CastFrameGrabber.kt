@@ -43,8 +43,11 @@ class CastFrameGrabber(private val context: Context) {
         /** No frame in time (or none that fits a cast message): the step has none. */
         data object NoFrame : Result
 
-        /** The stream can't be played (or no offscreen surface): no frame of it will come. */
-        data object Failed : Result
+        /**
+         * The stream can't be played (or no offscreen surface): no frame of it will come. [errorCode] is the
+         * player's error ([PlaybackException.errorCode]): a decoder taken back or that couldn't start may work again.
+         */
+        class Failed(val errorCode: Int = PlaybackException.ERROR_CODE_UNSPECIFIED) : Result
     }
 
     private class Grab(val startedAtNs: Long, val windowUs: LongRange, val onResult: (Result) -> Unit)
@@ -128,12 +131,12 @@ class CastFrameGrabber(private val context: Context) {
         cancelGrab()
         val frameReader = reader ?: OffscreenFrameReader.create(handler, ::onFrameAvailable)?.also { reader = it }
         if (frameReader == null) {
-            onResult(Result.Failed)
+            onResult(Result.Failed())
             return
         }
         val previewPlayer = player ?: createPlayer(frameReader)
         if (previewPlayer == null) {
-            onResult(Result.Failed)
+            onResult(Result.Failed())
             return
         }
         // The seek lands within the tolerance, or on the next keyframe in a stream without a sync-point
@@ -168,7 +171,7 @@ class CastFrameGrabber(private val context: Context) {
             .onFailure { Log.w(TAG, "Frame read back failed", it) }
             .getOrNull()
         if (bitmap == null) {
-            finish(Result.Failed, releasePlayer = true)
+            finish(Result.Failed(), releasePlayer = true)
             return
         }
         val jpeg = CastPreviewProtocol.encodeWithinBudget { quality ->
@@ -228,7 +231,7 @@ class CastFrameGrabber(private val context: Context) {
                 // Released out of its own callback
                 handler.post {
                     if (player !== previewPlayer) return@post
-                    if (grab != null) finish(Result.Failed, releasePlayer = true) else releasePlayer()
+                    if (grab != null) finish(Result.Failed(error.errorCode), releasePlayer = true) else releasePlayer()
                 }
             }
         })
