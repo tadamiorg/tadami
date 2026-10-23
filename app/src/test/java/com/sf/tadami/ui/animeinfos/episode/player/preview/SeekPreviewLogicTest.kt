@@ -2,6 +2,7 @@ package com.sf.tadami.ui.animeinfos.episode.player.preview
 
 import android.content.ComponentCallbacks2
 import androidx.media3.common.C
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.TrackSelectionParameters
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -307,6 +308,43 @@ class SeekPreviewLogicTest {
         requests.next { false }
         requests.finished(9)
         assertEquals(2, requests.inFlight)
+    }
+
+    @Test
+    fun `a decoder error costs a new preview player only`() {
+        val errors = PreviewErrors()
+        assertEquals(
+            PreviewErrorOutcome(markStepUnavailable = false, failSource = false),
+            errors.onError(PlaybackException.ERROR_CODE_DECODER_INIT_FAILED),
+        )
+        assertEquals(
+            PreviewErrorOutcome(markStepUnavailable = false, failSource = false),
+            errors.onError(PlaybackException.ERROR_CODE_DECODING_RESOURCES_RECLAIMED),
+        )
+    }
+
+    @Test
+    fun `an unreadable part of the file costs its step`() {
+        assertEquals(
+            PreviewErrorOutcome(markStepUnavailable = true, failSource = false),
+            PreviewErrors().onError(PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED),
+        )
+        assertEquals(
+            PreviewErrorOutcome(markStepUnavailable = true, failSource = false),
+            PreviewErrors().onError(PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND),
+        )
+    }
+
+    @Test
+    fun `the third error on a file gives its preview up, until another file`() {
+        val errors = PreviewErrors()
+        assertFalse(errors.onError(PlaybackException.ERROR_CODE_DECODER_INIT_FAILED).failSource)
+        assertFalse(errors.onError(PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED).failSource)
+        assertTrue(errors.onError(PlaybackException.ERROR_CODE_DECODER_INIT_FAILED).failSource)
+        assertEquals(3, errors.count)
+        errors.reset()
+        assertEquals(0, errors.count)
+        assertFalse(errors.onError(PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED).failSource)
     }
 
     @Suppress("DEPRECATION")

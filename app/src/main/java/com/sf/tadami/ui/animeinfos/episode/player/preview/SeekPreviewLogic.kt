@@ -7,6 +7,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import androidx.annotation.OptIn
 import androidx.media3.common.C
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
@@ -84,6 +85,35 @@ fun phonePreviewPrefetch(now: () -> Long) = PreviewPrefetch(now).apply { stableM
  */
 fun phonePreviewPrefetchOn(seekPreview: Boolean, prefetch: Boolean, downloaded: Boolean): Boolean =
     seekPreview && prefetch && downloaded
+
+/** Errors of the preview player on one file before its preview gives up, until the file changes. */
+const val PREVIEW_MAX_ERRORS = 3
+
+/** What an error of the preview player costs: the step it was loading, and maybe the whole file. */
+data class PreviewErrorOutcome(val markStepUnavailable: Boolean, val failSource: Boolean)
+
+/**
+ * The preview player's errors on the current file. A decoder that couldn't start, or was taken back (by the
+ * main player, another app), costs nothing but a new preview player; any other error (a part of the file that
+ * can't be read) the step it was loading, as a timeout does. The [PREVIEW_MAX_ERRORS]th error fails the file.
+ */
+class PreviewErrors {
+    var count = 0
+        private set
+
+    /** An error of code [errorCode] ([PlaybackException.errorCode]) happened: what it costs. */
+    fun onError(errorCode: Int): PreviewErrorOutcome {
+        count++
+        val decoder = errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ||
+            errorCode == PlaybackException.ERROR_CODE_DECODING_RESOURCES_RECLAIMED
+        return PreviewErrorOutcome(markStepUnavailable = !decoder, failSource = count >= PREVIEW_MAX_ERRORS)
+    }
+
+    /** Another file: its errors only count. */
+    fun reset() {
+        count = 0
+    }
+}
 
 /** A step whose frame hasn't come after this long gives none, and isn't fetched again for the stream. */
 const val PREVIEW_FETCH_TIMEOUT_MS = 10_000L

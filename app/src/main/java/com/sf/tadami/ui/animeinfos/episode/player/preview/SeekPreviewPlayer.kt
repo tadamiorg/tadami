@@ -101,8 +101,9 @@ class SeekPreviewPlayer(
     private var fingerArrivedCached = false
     private var fingerStepDrawn = false
 
-    // The current file can't be previewed (the preview player failed on it): no new frame is fetched
+    // The current file can't be previewed (the preview player failed on it too often): no new frame is fetched
     private var failed = false
+    private val errors = PreviewErrors()
 
     /**
      * Changes whenever [frameAt] may answer otherwise: a frame cached or dropped, a step given up, the file
@@ -154,6 +155,7 @@ class SeekPreviewPlayer(
         prefetchStartedAt = null
         prefetchComplete = false
         previewBytes = 0L
+        errors.reset()
         // The previous file's duration would give this file's frames the wrong steps
         durationMs = 0L
         if (prefetchEnabled) scheduleTick(0L)
@@ -418,6 +420,28 @@ class SeekPreviewPlayer(
         pumpRequests()
     }
 
+    /**
+     * [failedPlayer] stopped on [error]: a new player takes the next fetch, the step loading is given up unless the
+     * decoder alone failed, and the file after [PREVIEW_MAX_ERRORS] errors.
+     */
+    private fun onPreviewError(failedPlayer: ExoPlayer, error: PlaybackException) {
+        val bucket = requests.inFlight
+        val outcome = errors.onError(error.errorCode)
+        Log.w(TAG, "Seekbar preview failed on step $bucket, error ${errors.count} of $PREVIEW_MAX_ERRORS on this file", error)
+        // Already dropped: a timeout or another file
+        if (player !== failedPlayer) return
+        handler.removeCallbacks(giveUp)
+        failedPlayer.release()
+        player = null
+        if (bucket != null) {
+            if (outcome.markStepUnavailable) unavailable += bucket
+            onFetchEnded(bucket)
+        }
+        if (outcome.failSource) failed = true
+        framesVersion++
+        pumpRequests()
+    }
+
     /** Logs a load of the preview player: its bytes, its own length, and when it ended since the last fetch started. */
     private fun logLoad(outcome: String, info: LoadEventInfo, data: MediaLoadData) {
         Log.d(
@@ -504,11 +528,8 @@ class SeekPreviewPlayer(
             }
 
             override fun onPlayerError(error: PlaybackException) {
-                // Not retried on every drag: no new frame until the source changes
-                Log.w(TAG, "Seekbar preview failed", error)
-                failed = true
-                framesVersion++
-                handler.post { release() }
+                // Out of the player's own callback
+                handler.post { onPreviewError(previewPlayer, error) }
             }
         })
         surface?.let(previewPlayer::setVideoSurface)
