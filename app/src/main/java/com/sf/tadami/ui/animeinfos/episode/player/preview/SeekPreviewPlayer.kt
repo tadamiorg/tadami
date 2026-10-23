@@ -477,7 +477,11 @@ class SeekPreviewPlayer(
             if (frames.sourceId != sourceId) return@launch
             sidecarLoading = false
             if (loaded == null) {
-                Log.d(TAG, "No preview frames kept next to this episode: the prefetch makes them")
+                Log.d(
+                    TAG,
+                    "No preview frames kept next to this episode: " +
+                        if (prefetchEnabled) "the prefetch makes them" else "the prefetch is off, each step is fetched when scrubbed",
+                )
                 return@launch
             }
             loadedSidecar = loaded
