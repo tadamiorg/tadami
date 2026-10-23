@@ -62,9 +62,18 @@ fun previewGenerationDecision(settingsOn: Boolean, videoExists: Boolean, hasVali
         else -> PreviewGenerationDecision.GENERATE
     }
 
-/** The episodes waiting for their frames, in download order, each once. Not thread-safe. */
+/**
+ * The episodes waiting for their frames, in download order, each once. The one whose frames are being made
+ * ([start]) waits still until they're done ([finish]): it is saved, and downloaded again meanwhile it comes again.
+ * Not thread-safe.
+ */
 class PreviewQueue(entries: List<PendingPreviews> = emptyList()) {
     private val pending = ArrayDeque(entries.distinct())
+    private var started: PendingPreviews? = null
+
+    /** The episode [start]ed was downloaded again since: what is being made is of its old file. */
+    var startedDownloadedAgain = false
+        private set
 
     val entries: List<PendingPreviews>
         get() = pending.toList()
@@ -72,15 +81,30 @@ class PreviewQueue(entries: List<PendingPreviews> = emptyList()) {
     val first: PendingPreviews?
         get() = pending.firstOrNull()
 
-    /** False when it waits already. */
+    /** False when it waits already; the one [start]ed is then [startedDownloadedAgain]. */
     fun add(entry: PendingPreviews): Boolean {
+        if (entry == started) startedDownloadedAgain = true
         if (entry in pending) return false
         pending.addLast(entry)
         return true
     }
 
-    fun remove(entry: PendingPreviews) {
-        pending.remove(entry)
+    /** The first episode waiting, its frames being made from now on; null when none waits. */
+    fun start(): PendingPreviews? {
+        started = pending.firstOrNull()
+        startedDownloadedAgain = false
+        return started
+    }
+
+    /**
+     * The frames of the episode [start]ed are done with: it leaves the queue, unless [kept] (to be made again) or
+     * downloaded again meanwhile.
+     */
+    fun finish(kept: Boolean = false) {
+        val entry = started ?: return
+        if (!kept && !startedDownloadedAgain) pending.remove(entry)
+        started = null
+        startedDownloadedAgain = false
     }
 }
 
@@ -229,12 +253,13 @@ class PreviewGenerator(
 
     /**
      * Makes the frames of the episodes waiting, one at a time, until none waits or the player screen or a cast is
-     * active: the episode it was on then waits still. For [PreviewWorker].
+     * active: the episode it was on then waits still. An episode downloaded again meanwhile is made again, from its
+     * new file. For [PreviewWorker].
      */
     suspend fun makeAll() = running.withLock {
         try {
             while (true) {
-                val next = synchronized(lock) { queue.first }?.takeUnless { paused.value } ?: break
+                val next = synchronized(lock) { if (paused.value) null else queue.start() } ?: break
                 val done = try {
                     process(next)
                 } catch (e: CancellationException) {
@@ -243,12 +268,15 @@ class PreviewGenerator(
                     logcat(LogPriority.WARN, e, tag = TAG) { "Couldn't make the preview frames of ${next.episodeDir}" }
                     true
                 }
-                if (!done) break
-                synchronized(lock) { queue.remove(next) }
+                synchronized(lock) { queue.finish(kept = !done) }
                 save()
             }
         } finally {
-            synchronized(lock) { scheduled = false }
+            // Stopped: the episode it was on waits still
+            synchronized(lock) {
+                queue.finish(kept = true)
+                scheduled = false
+            }
             // What came meanwhile (an episode downloaded as the run ended, the end of a pause) has its own run
             scheduleIfWaiting()
         }
@@ -261,8 +289,12 @@ class PreviewGenerator(
         if (start) schedule()
     }
 
-    /** Makes the frames of [entry], or finds there's nothing to make: false when stopped, the episode to make again. */
+    /**
+     * Makes the frames of [entry], or finds there's nothing to make: false when stopped, the episode to make again
+     * (the player screen or a cast is active, or it was downloaded again: its file changed under the decoder).
+     */
     private suspend fun process(entry: PendingPreviews): Boolean {
+        fun downloadedAgain() = synchronized(lock) { queue.startedDownloadedAgain }
         val previews = previewsOf(entry)
         val decision = previewGenerationDecision(
             settingsOn = settingsOn(),
@@ -276,9 +308,13 @@ class PreviewGenerator(
         }
         val startedAt = SystemClock.elapsedRealtime()
         logcat(tag = TAG) { "Making the preview frames of ${entry.episodeDir}" }
-        when (val made = makePreviewSidecar(previews.video.length(), { newDecoder(previews) }, stopped = { paused.value })) {
+        val stopped = { paused.value || downloadedAgain() }
+        when (val made = makePreviewSidecar(previews.video.length(), { newDecoder(previews) }, stopped)) {
             MadePreviews.Stopped -> {
-                logcat(tag = TAG) { "Stopped while the player screen or a cast is active: ${entry.episodeDir} made again after" }
+                logcat(tag = TAG) {
+                    "Stopped, ${if (downloadedAgain()) "downloaded again" else "the player screen or a cast is active"}: " +
+                        "${entry.episodeDir} made again"
+                }
                 return false
             }
             MadePreviews.Failed -> {
@@ -292,6 +328,8 @@ class PreviewGenerator(
                     "Made ${sidecar.frameCount} preview frames of ${entry.episodeDir}, ${steps - sidecar.frameCount} " +
                         "steps without, in ${(SystemClock.elapsedRealtime() - startedAt) / 1000} s"
                 }
+                // Of the old file: made again from the new one
+                if (downloadedAgain()) return false
                 write(previews, sidecar)
                 return true
             }

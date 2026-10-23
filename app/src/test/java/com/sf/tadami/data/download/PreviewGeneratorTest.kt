@@ -78,8 +78,32 @@ class PreviewGeneratorTest {
         val c = PendingPreviews("S", "B", "Ep 1")
         assertTrue(queue.add(c))
         assertEquals(a, queue.first)
-        queue.remove(a)
+        assertEquals(a, queue.start())
+        // Waiting still while its frames are made
+        assertEquals(listOf(a, b, c), queue.entries)
+        queue.finish()
         assertEquals(listOf(b, c), queue.entries)
+        // Stopped: it waits still
+        assertEquals(b, queue.start())
+        queue.finish(kept = true)
+        assertEquals(listOf(b, c), queue.entries)
+    }
+
+    @Test
+    fun `an episode downloaded again while its frames are made comes again`() {
+        val a = PendingPreviews("S", "A", "Ep 1")
+        val queue = PreviewQueue(listOf(a))
+        assertEquals(a, queue.start())
+        assertFalse("waiting already", queue.add(a))
+        assertTrue(queue.startedDownloadedAgain)
+        queue.finish()
+        assertEquals(listOf(a), queue.entries)
+        // Its turn again, made from the new file
+        assertEquals(a, queue.start())
+        assertFalse(queue.startedDownloadedAgain)
+        queue.finish()
+        assertTrue(queue.entries.isEmpty())
+        assertNull(queue.start())
     }
 
     @Test
@@ -261,6 +285,27 @@ class PreviewGeneratorTest {
         assertEquals(1, episodes.getValue("Ep 1").read()!!.frameCount)
         assertEquals(100, episodes.getValue("Ep 2").read()!!.frameCount)
         assertEquals("the first stopped, then the second and the third", 3, decoders.size)
+        assertTrue(generator.waiting.isEmpty())
+    }
+
+    @Test
+    fun `an episode downloaded again while its frames are made has them made from its new file`() {
+        val a = episode("Ep 1")
+        val generator = generator()
+        generator.downloaded(a)
+        // Downloaded again as step 10 decodes: a longer file in the same folder
+        var again = false
+        onFrame = {
+            if (it == middleOf(10) && !again) {
+                again = true
+                val dir = episodes.getValue("Ep 1").dir as MemoryUniFile
+                episodes["Ep 1"] = EpisodePreviews(dir, "Ep 1", dir.file("Ep 1.ts", ByteArray(8)))
+                generator.downloaded(a)
+            }
+        }
+        runBlocking { generator.makeAll() }
+        assertEquals("the old file's decode stopped, the new one's whole", listOf(11, 100), decoders.map { it.asked.size })
+        assertEquals(8L, episodes.getValue("Ep 1").read()!!.videoLength)
         assertTrue(generator.waiting.isEmpty())
     }
 
