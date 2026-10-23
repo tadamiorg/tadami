@@ -86,6 +86,14 @@ fun phonePreviewPrefetch(now: () -> Long) = PreviewPrefetch(now).apply { stableM
 fun phonePreviewPrefetchOn(seekPreview: Boolean, prefetch: Boolean, downloaded: Boolean): Boolean =
     seekPreview && prefetch && downloaded
 
+/**
+ * Whether the phone player's prefetched frames are saved next to the episode once its prefetch is done: a
+ * [downloaded] episode whose frames weren't [loadedFromSidecar] (none kept, or unusable), not [saved] already, and
+ * whose every step is done (a frame, or none in time); a cache that filled up first saves nothing.
+ */
+fun shouldSavePrefetchedPreviews(downloaded: Boolean, loadedFromSidecar: Boolean, saved: Boolean, everyStepDone: Boolean): Boolean =
+    downloaded && !loadedFromSidecar && !saved && everyStepDone
+
 /** Errors of the preview player on one file before its preview gives up, until the file changes. */
 const val PREVIEW_MAX_ERRORS = 3
 

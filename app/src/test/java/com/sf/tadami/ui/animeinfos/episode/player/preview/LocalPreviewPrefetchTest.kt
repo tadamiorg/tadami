@@ -221,6 +221,31 @@ class LocalPreviewPrefetchTest {
     }
 
     @Test
+    fun `an older download's prefetched frames are saved next to it once every step is done`() {
+        fun save(
+            downloaded: Boolean = true,
+            loadedFromSidecar: Boolean = false,
+            saved: Boolean = false,
+            everyStepDone: Boolean = true,
+        ) = shouldSavePrefetchedPreviews(downloaded, loadedFromSidecar, saved, everyStepDone)
+
+        assertTrue("no frames kept next to it", save())
+        assertFalse("its frames came from its sidecar", save(loadedFromSidecar = true))
+        assertFalse("saved already", save(saved = true))
+        assertFalse("the cache filled up first", save(everyStepDone = false))
+        assertFalse("nowhere to keep them", save(downloaded = false))
+    }
+
+    @Test
+    fun `the prefetch's done once the sidecar's frames fill every step, saving nothing`() {
+        playSteadily(positionMs = 0L)
+        // The sidecar's frames, put in the cache as the episode opens
+        done += 0..99
+        assertEquals(PreviewPrefetchStep.Done, next())
+        assertFalse(shouldSavePrefetchedPreviews(downloaded = true, loadedFromSidecar = true, saved = false, everyStepDone = true))
+    }
+
+    @Test
     fun `the cache tells when a frame would evict another`() {
         val cache = PreviewFrameCache<Long>(300) { it }.apply { setSource("a") }
         cache.put(PreviewFrameKey("a", 0), 200)
