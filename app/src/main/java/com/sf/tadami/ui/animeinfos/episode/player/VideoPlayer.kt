@@ -28,6 +28,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -62,6 +63,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.sf.tadami.R
 import com.sf.tadami.data.download.PreviewGenerator
+import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.download.isLocalFile
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
@@ -204,9 +206,11 @@ fun VideoPlayer(
     val screenLifecycle = LocalLifecycleOwner.current.lifecycle
 
     // Second player of the seekbar preview of a downloaded episode, created on the first drag or by the prefetch
+    val seekPreviewScope = rememberCoroutineScope()
     val seekPreviewPlayer = remember {
         SeekPreviewPlayer(
             context = context,
+            scope = seekPreviewScope,
             mainPlayback = {
                 // The prefetch waits while the screen isn't in front (paused, PiP, background)
                 if (screenLifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
@@ -438,7 +442,7 @@ fun VideoPlayer(
     // Preview frames for a downloaded episode only, read from its file as the player does; a streamed episode
     // shows the time alone, its preview player never created. A new episode drops the preview player of the
     // previous one, and its frames with another file.
-    LaunchedEffect(episodeUiState.selectedSource, currentEpisode?.id) {
+    LaunchedEffect(episodeUiState.selectedSource, currentEpisode?.id, playerPreferences.seekPreview) {
         // The same file again keeps the preview player, ready; another one releases it
         val download = episodeUiState.selectedSource?.takeIf { it.isLocalFile }
         seekPreviewPlayer.setSource(download?.url, download?.let {
@@ -447,6 +451,12 @@ fun VideoPlayer(
                 localMediaSourceFactory.createMediaSource(MediaItem.fromUri(it.url))
             }
         })
+        // Its frames kept next to it, every step ready before the first scrub
+        val episode = currentEpisode
+        if (download != null && episode != null && playerPreferences.seekPreview) {
+            val previews = Injekt.get<TadamiDownloadManager>().getLocalEpisode(episode)?.previews
+            seekPreviewPlayer.setPreviews(download.url, previews?.takeIf { it.video.uri.toString() == download.url })
+        }
     }
 
     // Every preview frame of a downloaded episode fetched in the background, so scrubs show them at once

@@ -2,6 +2,7 @@ package com.sf.tadami.ui.animeinfos.episode.player.preview
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.SurfaceTexture
 import android.os.Handler
 import android.os.Looper
@@ -24,6 +25,12 @@ import androidx.media3.exoplayer.source.LoadEventInfo
 import androidx.media3.exoplayer.source.MediaLoadData
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
+import com.sf.tadami.data.download.EpisodePreviews
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import kotlin.math.roundToInt
 
@@ -36,14 +43,18 @@ import kotlin.math.roundToInt
  * decodes into a hidden [TextureView] ([attachSurface]), the frame is scaled into a bitmap and cached: a step
  * already seen shows at once, with no new load nor decode.
  *
+ * The frames kept next to the episode ([setPreviews], made after its download, see PreviewGenerator) are read
+ * off the main thread as it opens, so every step is ready before the first scrub; nothing is decoded for them.
+ *
  * With [setPrefetch], every step is fetched in the background once the main player plays steadily
  * ([mainPlayback], [PreviewPrefetch]), nearest its position first, one at a time with a gap, so a scrub
  * finds its frame cached. A scrub's step comes first: it takes over a prefetch loading another step. Main thread
- * only.
+ * only, [scope] being the main thread's.
  */
 @UnstableApi
 class SeekPreviewPlayer(
     private val context: Context,
+    private val scope: CoroutineScope,
     /** The main player's playback, null while the screen isn't in the foreground: the prefetch waits. */
     private val mainPlayback: () -> MainPlayback? = { null },
 ) : TextureView.SurfaceTextureListener {
@@ -75,6 +86,16 @@ class SeekPreviewPlayer(
 
     // Steps that gave no frame in time: not fetched again for this stream
     private val unavailable = mutableSetOf<Int>()
+
+    // The episode's frames kept next to it: read once the file is set, put in the cache once the duration is known
+    private var previews: EpisodePreviews? = null
+    private var sidecarJob: Job? = null
+    private var sidecarLoading = false
+    private var loadedSidecar: LoadedSidecar? = null
+    private var sidecarApplied = false
+
+    /** A sidecar's frames, decoded, by the sidecar's own steps; [readMs] what reading and decoding took. */
+    private class LoadedSidecar(val sidecar: PreviewSidecar, val bitmaps: Map<Int, Bitmap>, val readMs: Long)
     private val handler = Handler(Looper.getMainLooper())
     private val pump = Runnable { pumpRequests() }
     private val giveUp = Runnable { onFetchTimeout() }
@@ -150,6 +171,11 @@ class SeekPreviewPlayer(
         release()
         frames.setSource(sourceId)
         unavailable.clear()
+        sidecarJob?.cancel()
+        previews = null
+        sidecarLoading = false
+        loadedSidecar = null
+        sidecarApplied = false
         sourceFactory = factory
         failed = false
         framesVersion++
@@ -162,6 +188,16 @@ class SeekPreviewPlayer(
         // The previous file's duration would give this file's frames the wrong steps
         durationMs = 0L
         if (prefetchEnabled) scheduleTick(0L)
+    }
+
+    /**
+     * Where the frames of the downloaded episode [sourceId] (the file of [setSource]) are kept: they are read now,
+     * off the main thread, and put in the cache, every step at once, as soon as the main player's duration is known.
+     */
+    fun setPreviews(sourceId: String, previews: EpisodePreviews?) {
+        if (sourceId != frames.sourceId || previews == null) return
+        this.previews = previews
+        loadSidecar()
     }
 
     /**
@@ -178,6 +214,7 @@ class SeekPreviewPlayer(
     fun scrubTo(positionMs: Long, durationMs: Long) {
         if (durationMs <= 0L || frames.sourceId == null) return
         this.durationMs = durationMs
+        applySidecar()
         val bucket = phonePreviewBucketOf(positionMs, durationMs)
         if (bucket == fingerBucket) return
         fingerBucket = bucket
@@ -246,6 +283,8 @@ class SeekPreviewPlayer(
         handler.removeCallbacks(prefetchTick)
         prefetchEnabled = false
         release()
+        sidecarJob?.cancel()
+        loadedSidecar = null
         frames.setSource(null)
         framesVersion++
     }
@@ -253,6 +292,7 @@ class SeekPreviewPlayer(
     fun onTrimMemory(level: Int) {
         if (!shouldDropPreviewFrames(level)) return
         frames.clear()
+        loadedSidecar = null
         framesVersion++
         prefetchSuspended = true
     }
@@ -323,8 +363,12 @@ class SeekPreviewPlayer(
         val main = mainPlayback()
         schedule.onStatus(main?.state, main?.positionMs ?: schedule.positionMs)
         val duration = main?.durationMs?.takeIf { it > 0L } ?: durationMs
-        if (surface != null && sourceFactory != null && duration > 0L) {
+        if (duration > 0L) {
             durationMs = duration
+            applySidecar()
+        }
+        // The sidecar's frames come first: nothing is decoded before they are known
+        if (surface != null && sourceFactory != null && duration > 0L && !sidecarLoading) {
             when (val next = nextPreviewPrefetch(schedule, requests, duration, ::isDone, frames.hasRoomFor(frameBytes))) {
                 is PreviewPrefetchStep.Fetch -> if (requests.prefetch(next.bucket)) {
                     if (prefetchStartedAt == null) prefetchStartedAt = SystemClock.elapsedRealtime()
@@ -345,6 +389,65 @@ class SeekPreviewPlayer(
             }
         }
         scheduleTick(PREFETCH_TICK_MS)
+    }
+
+    /** Reads the episode's sidecar off the main thread, its frames decoded as the cache keeps them. */
+    private fun loadSidecar() {
+        val target = previews ?: return
+        val sourceId = frames.sourceId
+        sidecarJob?.cancel()
+        sidecarLoading = true
+        val startedAt = SystemClock.elapsedRealtime()
+        sidecarJob = scope.launch {
+            val loaded = withContext(Dispatchers.IO) {
+                target.read()?.let { sidecar ->
+                    val options = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.RGB_565 }
+                    val bitmaps = sidecar.entries.mapNotNull { entry ->
+                        val jpeg = entry.jpeg ?: return@mapNotNull null
+                        BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size, options)?.let { entry.step to it }
+                    }.toMap()
+                    LoadedSidecar(sidecar, bitmaps, SystemClock.elapsedRealtime() - startedAt)
+                }
+            }
+            if (frames.sourceId != sourceId) return@launch
+            sidecarLoading = false
+            if (loaded == null) {
+                Log.d(TAG, "No preview frames kept next to this episode: the prefetch makes them")
+                return@launch
+            }
+            loadedSidecar = loaded
+            applySidecar()
+        }
+    }
+
+    /**
+     * Puts the loaded sidecar's frames in the cache, each step of the main player's timeline taking the frame of its
+     * time; kept for a later duration while the main player's isn't the sidecar's (another file was playing).
+     */
+    private fun applySidecar() {
+        val loaded = loadedSidecar ?: return
+        val duration = durationMs.takeIf { it > 0L } ?: return
+        if (!loaded.sidecar.matchesDuration(duration)) {
+            Log.d(TAG, "Preview frames kept for ${loaded.sidecar.durationMs} ms, the player plays $duration ms")
+            return
+        }
+        loadedSidecar = null
+        sidecarApplied = true
+        val last = phonePreviewBucketOf(duration - 1, duration)
+        for (step in 0..last) {
+            val entry = loaded.sidecar.entryAt(previewBucketRangeMs(step, duration)) ?: continue
+            val bitmap = loaded.bitmaps[entry.step]
+            when {
+                bitmap != null -> frames.put(key(step), bitmap)
+                !entry.hasFrame -> unavailable += step
+            }
+        }
+        framesVersion++
+        Log.i(
+            TAG,
+            "Loaded ${frames.size} preview frames kept next to the episode, ${unavailable.size} steps without, " +
+                "read and decoded in ${loaded.readMs} ms",
+        )
     }
 
     /** A fetch of [bucket] ended; after a prefetch, the next one comes after a gap. */
