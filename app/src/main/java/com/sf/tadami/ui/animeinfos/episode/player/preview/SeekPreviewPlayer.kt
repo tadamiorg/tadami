@@ -500,6 +500,8 @@ class SeekPreviewPlayer(
      * JPEGs off the main thread, so its next opening (or a cast) has them at once.
      */
     private fun savePrefetchedFrames(duration: Long) {
+        // Frames kept for another duration than the player's: every step is made now, they're of no use
+        loadedSidecar = null
         val target = previews
         val last = phonePreviewBucketOf(duration - 1, duration)
         val save = shouldSavePrefetchedPreviews(
