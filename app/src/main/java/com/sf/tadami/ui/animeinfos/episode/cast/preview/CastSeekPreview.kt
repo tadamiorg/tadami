@@ -7,51 +7,37 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DataSource
-import androidx.media3.datasource.DataSpec
-import androidx.media3.datasource.DefaultDataSource
-import androidx.media3.datasource.ResolvingDataSource
-import androidx.media3.datasource.TransferListener
-import androidx.media3.datasource.cache.CacheDataSource
-import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import androidx.media3.exoplayer.source.MediaSource
-import com.sf.tadami.network.player.HlsPlaylistFixingDataSource
-import com.sf.tadami.network.player.PlayerNetworkHelper
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketOf
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketRangeMs
 import com.sf.tadami.ui.animeinfos.episode.player.preview.shouldDropPreviewFrames
-import java.util.Locale
-import java.util.concurrent.atomic.AtomicLong
 
 /**
- * The cast session's seekbar preview: frames of the stream the TV plays, decoded on the phone
- * ([CastFrameGrabber]), cached for the session ([CastPreviewFrames]) and sent to the web receiver.
- * Owned by the cast service, so it works with the player screen closed.
+ * The cast session's seekbar preview of a downloaded episode: frames of the file the phone serves to the TV,
+ * decoded on the phone ([CastFrameGrabber]), cached for the session ([CastPreviewFrames]) and sent to the web
+ * receiver. Owned by the cast service, so it works with the player screen closed. A streamed episode has none,
+ * as in the phone player: the phone doesn't announce previews for it, refuses its requests ("off") and never
+ * reads it, so its scrubs show the time alone and cost no data.
  *
  * - Prefetch: once the receiver announces its stream ([onSource]) and the TV has played steadily for
  *   a few seconds, every step is decoded in the background, nearest the playback position first
  *   ([PreviewPrefetch]), and pushed to the receiver unsolicited, paced on the cast channel.
  * - Scrub: a step the receiver lacks is asked for ([onRequest]) and decoded before any prefetch.
  *
- * The stream is the one the receiver names — the URL and headers the phone sent with the load, read
- * as the phone player reads them (OkHttp, the player cache, HLS segment IV fix) — or, behind a proxy
- * `/local-` URL, the downloaded file itself ([localFileUri]). The decoder is released after
- * [IDLE_RELEASE_MS] without decoding, and everything with [destroy] at the end of the session. The
- * network bytes each stream's previews cost are logged. Main thread only.
+ * The file is the one behind the proxy `/local-` URL the receiver names ([localFileUri]). The decoder is
+ * released after [IDLE_RELEASE_MS] without decoding, and everything with [destroy] at the end of the session.
+ * Main thread only.
  */
 @UnstableApi
 class CastSeekPreview(
     private val context: Context,
-    private val playerNetworkHelper: PlayerNetworkHelper,
     /** Sends a message on the control channel. */
     private val send: (String) -> Unit,
     /** The downloaded file a proxy `/local-` URL serves, null for any other URL. */
     private val localFileUri: (String) -> String?,
     /** The receiver announced the seekPreview capability. */
     private val receiverCapable: () -> Boolean,
-    private val isOnWifi: () -> Boolean,
     /** The TV's playback (the receiver's MediaStatus), null without media. */
     private val playback: () -> CastPlayback?,
     private val newGrabber: () -> CastFrameGrabber = { CastFrameGrabber(context) },
@@ -64,21 +50,18 @@ class CastSeekPreview(
      */
     data class Settings(
         val enabled: Boolean = false,
-        val onlyOnWifi: Boolean = false,
-        val userAgent: String = "",
         val prefetch: Boolean = true,
     )
 
     /** The TV's player state and position. */
     data class CastPlayback(val state: PreviewPrefetch.Playback?, val positionMs: Long)
 
-    /** What the previews of the current stream cost so far. */
+    /** Where the previews of the current stream are. */
     data class Stats(
         val sourceId: String?,
         val steps: Int,
         val frames: Int,
         val withoutFrame: Int,
-        val downloadedBytes: Long,
         val prefetchMs: Long?,
         val complete: Boolean,
     )
@@ -102,13 +85,15 @@ class CastSeekPreview(
     private val receiverHas = mutableSetOf<Int>()
     private val pushes = ArrayDeque<Pair<Int, String>>()
 
-    private val downloadedBytes = AtomicLong()
     private var prefetchStartedAt: Long? = null
     private var prefetchMs: Long? = null
 
-    /** The receiver's stream, to prefetch (control channel). */
+    /** The receiver's stream, to prefetch (control channel): a downloaded episode's only. */
     fun onSource(announced: CastPreviewSource) {
-        if (!settings.enabled || !receiverCapable()) return
+        if (!allowed(localFileUri(announced.url) != null)) {
+            Log.d(TAG, "No preview for the stream announced: not a downloaded episode, or previews off")
+            return
+        }
         if (frames.select(announced.sourceId) || source?.sourceId != announced.sourceId) {
             startStream(announced)
         } else {
@@ -172,7 +157,6 @@ class CastSeekPreview(
             steps = current?.let { previewBucketOf(it.duration - 1, it.duration) + 1 } ?: 0,
             frames = frames.size,
             withoutFrame = frames.unavailableCount,
-            downloadedBytes = downloadedBytes.get(),
             prefetchMs = prefetchMs,
             complete = prefetchMs != null,
         )
@@ -185,21 +169,12 @@ class CastSeekPreview(
         receiverHas.clear()
         receiverHas += announced.steps
         pushes.clear()
-        downloadedBytes.set(0L)
         prefetchStartedAt = null
         prefetchMs = null
     }
 
-    private fun allowed(local: Boolean): Boolean {
-        val current = settings
-        return castSeekPreviewAllowed(
-            settingOn = current.enabled,
-            onlyOnWifi = current.onlyOnWifi,
-            onWifi = isOnWifi(),
-            receiverCapable = receiverCapable(),
-            localFile = local,
-        )
-    }
+    private fun allowed(local: Boolean): Boolean =
+        castSeekPreviewAllowed(settingOn = settings.enabled, receiverCapable = receiverCapable(), localFile = local)
 
     // --- Prefetch -----------------------------------------------------------------------------
 
@@ -240,8 +215,7 @@ class CastSeekPreview(
         Log.i(
             TAG,
             "$event: ${stats.frames} frames, ${stats.withoutFrame} without, of ${stats.steps} steps" +
-                (stats.prefetchMs?.let { ", prefetched in ${it / 1000} s" } ?: "") +
-                String.format(Locale.ROOT, ", %.1f MB downloaded", stats.downloadedBytes / 1_000_000.0),
+                (stats.prefetchMs?.let { ", prefetched in ${it / 1000} s" } ?: ""),
         )
     }
 
@@ -272,10 +246,12 @@ class CastSeekPreview(
     }
 
     private fun fetch(request: CastPreviewRequest) {
-        val localUri = localFileUri(request.url)
+        // Allowed for a downloaded episode only
+        val localUri = localFileUri(request.url) ?: return
         val previewGrabber = grabber ?: newGrabber().also { grabber = it }
         if (grabberSourceId != request.sourceId) {
-            previewGrabber.setSource(mediaSourceFactory(request, localUri))
+            // Read as it is, as the phone player reads a download
+            previewGrabber.setSource { DefaultMediaSourceFactory(context).createMediaSource(MediaItem.fromUri(localUri)) }
             grabberSourceId = request.sourceId
         }
         val range = previewBucketRangeMs(request.step, request.duration)
@@ -299,45 +275,11 @@ class CastSeekPreview(
         )
         frames.onFetched(request, frame, sourceFailed = result is CastFrameGrabber.Result.Failed).forEach(::perform)
         if (request.requestId == null) {
-            val local = localFileUri(request.url) != null
-            val gapMs = if (local) CAST_PREFETCH_GAP_LOCAL_MS else CAST_PREFETCH_GAP_ONLINE_MS
-            prefetch.onDecodeEnded(gapMs)
+            prefetch.onDecodeEnded(CAST_PREFETCH_GAP_LOCAL_MS)
             // The next prefetch right after its gap
-            if (source != null) scheduleTick(gapMs)
+            if (source != null) scheduleTick(CAST_PREFETCH_GAP_LOCAL_MS)
         }
         scheduleIdleRelease()
-    }
-
-    /** Reads the stream as the phone player does: its headers (or the User-Agent setting), cache and HLS fix. */
-    private fun mediaSourceFactory(request: CastPreviewRequest, localUri: String?): () -> MediaSource {
-        if (localUri != null) {
-            // Downloaded files: read as they are, no headers
-            return { DefaultMediaSourceFactory(context).createMediaSource(MediaItem.fromUri(localUri)) }
-        }
-        val headers = request.headers ?: mapOf("User-Agent" to settings.userAgent)
-        return {
-            val network = OkHttpDataSource.Factory(playerNetworkHelper.okHttpClient).setTransferListener(byteCounter)
-            val upstream = DefaultDataSource.Factory(context, network)
-            val cached = CacheDataSource.Factory()
-                .setCache(playerNetworkHelper.cache)
-                .setUpstreamDataSourceFactory(upstream)
-            val resolving = ResolvingDataSource.Factory(HlsPlaylistFixingDataSource.Factory(cached)) { dataSpec ->
-                dataSpec.withRequestHeaders(headers)
-            }
-            DefaultMediaSourceFactory(context)
-                .setDataSourceFactory(resolving)
-                .createMediaSource(MediaItem.fromUri(request.url))
-        }
-    }
-
-    // Network bytes of the previews: what they cost in data (cache hits don't reach the network)
-    private val byteCounter = object : TransferListener {
-        override fun onTransferInitializing(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean) = Unit
-        override fun onTransferStart(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean) = Unit
-        override fun onTransferEnd(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean) = Unit
-        override fun onBytesTransferred(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean, bytesTransferred: Int) {
-            if (isNetwork) downloadedBytes.addAndGet(bytesTransferred.toLong())
-        }
     }
 
     // --- Pushes -------------------------------------------------------------------------------

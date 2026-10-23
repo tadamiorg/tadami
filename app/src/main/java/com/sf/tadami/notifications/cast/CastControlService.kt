@@ -26,7 +26,6 @@ import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.isEpisodeWatched
 import com.sf.tadami.domain.episode.toSEpisode
 import com.sf.tadami.extension.util.callGuarded
-import com.sf.tadami.network.player.PlayerNetworkHelper
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
 import com.sf.tadami.preferences.cast.CastPreferences
@@ -54,7 +53,6 @@ import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
-import com.sf.tadami.utils.isConnectedToWifi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -62,7 +60,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -129,27 +126,17 @@ class CastControlService : Service() {
         CastProxyHolder.server = proxyServer
         seekPreview = CastSeekPreview(
             context = applicationContext,
-            playerNetworkHelper = Injekt.get<PlayerNetworkHelper>(),
             send = { message ->
                 castContext?.sessionManager?.currentCastSession?.let { sendCastMessage(it, ControlChannel.NAMESPACE, message) }
             },
             localFileUri = proxyServer::localFileUri,
             receiverCapable = { CastPreviewProtocol.CAPABILITY in CastSessionState.receiverCapabilities.value },
-            isOnWifi = { applicationContext.isConnectedToWifi() },
             playback = ::castPlayback,
         )
         scope.launch {
-            combine(
-                dataStore.getPreferencesGroupAsFlow(PlayerPreferences),
-                dataStore.getPreferencesGroupAsFlow(AdvancedPreferences),
-            ) { player, advanced ->
-                CastSeekPreview.Settings(
-                    enabled = player.seekPreview,
-                    onlyOnWifi = player.seekPreviewOnlyOnWifi,
-                    userAgent = advanced.userAgent,
-                    prefetch = player.seekPreviewPrefetch,
-                )
-            }.collect { seekPreview.settings = it }
+            dataStore.getPreferencesGroupAsFlow(PlayerPreferences).collect { player ->
+                seekPreview.settings = CastSeekPreview.Settings(enabled = player.seekPreview, prefetch = player.seekPreviewPrefetch)
+            }
         }
         scope.launch(Dispatchers.IO) {
             // The proxy is stateless; the UA preference is its only phone-side input (applied when

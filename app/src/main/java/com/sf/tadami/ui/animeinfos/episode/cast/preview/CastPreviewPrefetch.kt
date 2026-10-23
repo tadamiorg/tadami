@@ -2,9 +2,6 @@ package com.sf.tadami.ui.animeinfos.episode.cast.preview
 
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch
 
-/** Between two prefetch decodes of an online stream: leaves the network to the TV. */
-const val CAST_PREFETCH_GAP_ONLINE_MS = 1_000L
-
 /** Between two prefetch decodes of a downloaded episode, read from the phone's storage. */
 const val CAST_PREFETCH_GAP_LOCAL_MS = 100L
 

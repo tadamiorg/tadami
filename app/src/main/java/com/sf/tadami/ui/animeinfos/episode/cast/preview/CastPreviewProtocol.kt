@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode.cast.preview
 
+import com.sf.tadami.ui.animeinfos.episode.cast.proxy.isLocalMediaUrl
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PREVIEW_FRAME_WIDTH_PX
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketRangeMs
 import kotlinx.serialization.Serializable
@@ -12,7 +13,8 @@ import kotlin.math.roundToInt
  * (`urn:x-cast:com.sf.tadami.control`). Negotiated, so old phones and old receivers never see it:
  * - the web receiver announces [CAPABILITY] in its handshake reply (`capabilities`);
  * - the phone announces it in the LOAD customData (`seekPreview: true`) while its "Seekbar preview"
- *   setting is on.
+ *   setting is on, for a downloaded episode it serves only ([castAnnouncesSeekPreview]): a streamed
+ *   episode's scrubs show the time alone, as on the phone.
  * The receiver announces the stream it plays ([CastPreviewSource]); the phone prefetches its frames
  * in the background and pushes them unsolicited ([CastPreviewFrame] without request id). A scrub on
  * a step the receiver lacks asks for it ([CastPreviewRequest], steps as in previewBucketSizeMs, from
@@ -31,7 +33,7 @@ object CastPreviewProtocol {
     /** This step has no frame (none in time): the receiver doesn't ask for it again. */
     const val STATUS_NONE = "none"
 
-    /** No preview for this stream (setting off, Wi-Fi only, the stream can't be decoded). */
+    /** No preview for this stream (setting off, a streamed episode, the file can't be decoded). */
     const val STATUS_OFF = "off"
 
     /**
@@ -185,13 +187,16 @@ fun previewFrameSize(aspectRatio: Float): Pair<Int, Int> {
 
 /**
  * Whether the phone makes the frames a request asks for: the "Seekbar preview" setting is on, the
- * receiver announced [CastPreviewProtocol.CAPABILITY], and, for an online stream, "Only on Wi-Fi" is
- * off or the phone is on Wi-Fi (a downloaded episode needs no network, as in the phone player).
+ * receiver announced [CastPreviewProtocol.CAPABILITY], and the stream is a downloaded episode's
+ * [localFile] (a streamed one has no preview frames, as in the phone player).
  */
-fun castSeekPreviewAllowed(
-    settingOn: Boolean,
-    onlyOnWifi: Boolean,
-    onWifi: Boolean,
-    receiverCapable: Boolean,
-    localFile: Boolean,
-): Boolean = settingOn && receiverCapable && (localFile || !onlyOnWifi || onWifi)
+fun castSeekPreviewAllowed(settingOn: Boolean, receiverCapable: Boolean, localFile: Boolean): Boolean =
+    settingOn && receiverCapable && localFile
+
+/**
+ * Whether a cast LOAD of [selectedSourceUrl] announces seekbar previews (`seekPreview`): the setting is on and
+ * it is a downloaded episode the phone serves (a proxy `/local-` URL). A streamed episode's isn't announced:
+ * the receiver shows the time alone while scrubbing it, and asks for nothing.
+ */
+fun castAnnouncesSeekPreview(settingOn: Boolean, selectedSourceUrl: String): Boolean =
+    settingOn && isLocalMediaUrl(selectedSourceUrl)
