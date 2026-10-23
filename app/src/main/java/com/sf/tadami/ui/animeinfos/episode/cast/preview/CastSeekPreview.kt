@@ -412,8 +412,12 @@ class CastSeekPreview(
     }
 
     private fun fetch(request: CastPreviewRequest) {
-        // Allowed for a downloaded episode only
-        val localUri = localFileUri(request.url) ?: return
+        // Allowed for a downloaded episode only. One not served any more (another episode cast since) gives no frame:
+        // its decode ends now, or it would stay in flight, holding back every later one and the decoder's release
+        val localUri = localFileUri(request.url) ?: run {
+            frames.onFetched(request, null, sourceFailed = true).forEach(::perform)
+            return
+        }
         val previewGrabber = grabber ?: newGrabber().also { grabber = it }
         if (grabberSourceId != request.sourceId) {
             // Read as it is, as the phone player reads a download
