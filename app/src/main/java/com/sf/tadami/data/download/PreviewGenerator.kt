@@ -238,8 +238,9 @@ class PreviewGenerator(
         }
     }
 
-    private fun save() {
-        val entries = synchronized(lock) { queue.entries }
+    // The queue as it is, written before any later change of it: two saves never mix nor go back in time
+    private fun save() = synchronized(lock) {
+        val entries = queue.entries
         if (entries.isEmpty()) store.delete() else StoreFiles.writeAtomically(store, DownloadStore.DEFAULT_JSON.encodeToString(entries))
     }
 
