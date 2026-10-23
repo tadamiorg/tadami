@@ -116,7 +116,6 @@ class CastSeekPreview(
     private var sidecarJob: Job? = null
     private var sidecarLoading = false
     private var sidecarFound = false
-    private var sidecarUsed = false
     private var sidecarSaved = false
 
     // A request waiting for the frames kept next to the episode, and the time of each decoded frame
@@ -238,7 +237,6 @@ class CastSeekPreview(
         sidecarJob?.cancel()
         sidecarLoading = false
         sidecarFound = false
-        sidecarUsed = false
         sidecarSaved = false
         previews = localPreviews(announced.url)
         loadSidecar(announced)
@@ -266,7 +264,6 @@ class CastSeekPreview(
                 )
             } else {
                 frames.fill(stream.sourceId, known)
-                sidecarUsed = true
                 Log.i(
                     TAG,
                     "Loaded ${known.frames.size} preview frames kept next to the episode, ${known.none.size} steps " +
