@@ -7,13 +7,12 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import androidx.annotation.OptIn
 import androidx.media3.common.C
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.RenderersFactory
 import androidx.media3.exoplayer.video.MediaCodecVideoRenderer
-import com.sf.tadami.data.download.isLocalFile
-import com.sf.tadami.source.model.StreamSource
 
 /** Where [positionMs] sits on a [durationMs]-long timeline, from 0 to 1 (0 while the duration is unknown). */
 fun seekFraction(positionMs: Long, durationMs: Long): Float {
@@ -71,23 +70,73 @@ const val PREVIEW_BITMAP_CACHE_BYTES = 24L * 1024 * 1024
 /** Between two prefetched steps of a downloaded episode: the main player decodes too. */
 const val PREVIEW_PREFETCH_GAP_LOCAL_MS = 500L
 
-/** Between two prefetched steps of a streamed episode, gentler: they load from the network (as the cast's). */
-const val PREVIEW_PREFETCH_GAP_STREAM_MS = 1_000L
-
-/** Whether the phone player prefetches its stream's preview frames: both settings on, a stream playing. */
-fun phonePreviewPrefetchOn(seekPreview: Boolean, prefetch: Boolean, hasSource: Boolean): Boolean =
-    seekPreview && prefetch && hasSource
+/**
+ * The phone player's steady playback before its prefetch starts: shorter than the cast's [PreviewPrefetch.STABLE_MS],
+ * a downloaded episode's prefetch reads no network, so the first scrubs find the preview player ready sooner.
+ */
+const val PHONE_PREFETCH_STABLE_LOCAL_MS = 1_000L
 
 /**
- * Whether a prefetch may load now: a downloaded episode always (no network); a stream as the scrubs' own
- * fetches, on mobile data too unless "Only on Wi-Fi" ([onlyOnWifi]) is on, and only while the main player
- * can spare the network ([mainPlayerCanSpareNetwork]): it loads about the whole episode in low quality.
+ * Steps around the playback position the phone player's prefetch makes first, before the coarse to fine grid of
+ * the whole timeline ([coarseToFineOrder]): ±2 min of a 24 min episode, past the +85 s intro skip.
  */
-fun previewPrefetchMayLoad(localFile: Boolean, onlyOnWifi: Boolean, onWifi: Boolean, mainCanSpareNetwork: Boolean): Boolean =
-    localFile || ((!onlyOnWifi || onWifi) && mainCanSpareNetwork)
+const val PHONE_PREFETCH_NEAR_STEPS = 8
+
+/** The phone player's prefetch schedule, on the clock [now]. */
+fun phonePreviewPrefetch(now: () -> Long) = PreviewPrefetch(now).apply { stableMs = PHONE_PREFETCH_STABLE_LOCAL_MS }
+
+/**
+ * Whether the phone player prefetches its preview frames: both settings on, a [downloaded] episode playing (a
+ * streamed one has no preview frames).
+ */
+fun phonePreviewPrefetchOn(seekPreview: Boolean, prefetch: Boolean, downloaded: Boolean): Boolean =
+    seekPreview && prefetch && downloaded
+
+/**
+ * Whether the phone player's prefetched frames are saved next to the episode once its prefetch is done: a
+ * [downloaded] episode whose frames weren't [loadedFromSidecar] (none kept, or unusable), not [saved] already, and
+ * whose every step is done (a frame, or none in time); a cache that filled up first saves nothing.
+ */
+fun shouldSavePrefetchedPreviews(downloaded: Boolean, loadedFromSidecar: Boolean, saved: Boolean, everyStepDone: Boolean): Boolean =
+    downloaded && !loadedFromSidecar && !saved && everyStepDone
+
+/** Errors of the preview player on one file before its preview gives up, until the file changes. */
+const val PREVIEW_MAX_ERRORS = 3
+
+/** What an error of the preview player costs: the step it was loading, and maybe the whole file. */
+data class PreviewErrorOutcome(val markStepUnavailable: Boolean, val failSource: Boolean)
+
+/**
+ * The preview player's errors on the current file. A decoder that couldn't start, or was taken back (by the
+ * main player, another app), costs nothing but a new preview player; any other error (a part of the file that
+ * can't be read) the step it was loading, as a timeout does. The [PREVIEW_MAX_ERRORS]th error fails the file.
+ */
+class PreviewErrors {
+    var count = 0
+        private set
+
+    /** An error of code [errorCode] ([PlaybackException.errorCode]) happened: what it costs. */
+    fun onError(errorCode: Int): PreviewErrorOutcome {
+        count++
+        val decoder = errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ||
+            errorCode == PlaybackException.ERROR_CODE_DECODING_RESOURCES_RECLAIMED
+        return PreviewErrorOutcome(markStepUnavailable = !decoder, failSource = count >= PREVIEW_MAX_ERRORS)
+    }
+
+    /** Another file: its errors only count. */
+    fun reset() {
+        count = 0
+    }
+}
 
 /** A step whose frame hasn't come after this long gives none, and isn't fetched again for the stream. */
 const val PREVIEW_FETCH_TIMEOUT_MS = 10_000L
+
+/**
+ * A fetch for a step the finger left is given up after this long for the finger's step: a frame comes in well
+ * under it (0.4 s median, 0.9 s p90 on a software decoder), a step that never renders holds on to its timeout.
+ */
+const val PREVIEW_STALE_FETCH_MS = 1_500L
 
 /** A single video renderer for the preview players: no audio, text nor metadata renderer is even created. */
 @OptIn(UnstableApi::class)
@@ -114,23 +163,6 @@ private const val PREVIEW_MIN_BUFFER_MS = 500
 private const val PREVIEW_MAX_BUFFER_MS = 1_000
 private const val PREVIEW_TARGET_BUFFER_BYTES = 4 * 1024 * 1024
 
-/** Buffer the main player keeps ahead before preview loads may share the network with it. */
-const val MAIN_PLAYER_MIN_BUFFER_AHEAD_MS = 10_000L
-
-/**
- * Whether the main player can spare network for preview loads: it isn't rebuffering, and it has
- * [MAIN_PLAYER_MIN_BUFFER_AHEAD_MS] buffered ahead or the whole video loaded.
- */
-fun mainPlayerCanSpareNetwork(
-    isBuffering: Boolean,
-    bufferedAheadMs: Long,
-    bufferedPositionMs: Long,
-    durationMs: Long,
-): Boolean {
-    if (isBuffering) return false
-    return bufferedAheadMs >= MAIN_PLAYER_MIN_BUFFER_AHEAD_MS || (durationMs > 0L && bufferedPositionMs >= durationMs)
-}
-
 /** Preview steps: 1% of the duration, so about 100 frames per video, but 5 s at least and 30 s at most. */
 const val PREVIEW_BUCKET_MIN_MS = 5_000L
 const val PREVIEW_BUCKET_MAX_MS = 30_000L
@@ -144,20 +176,47 @@ fun previewBucketOf(positionMs: Long, durationMs: Long): Int {
     return (clamped / previewBucketSizeMs(durationMs)).toInt()
 }
 
+/**
+ * The phone player's preview step of [positionMs]: [previewBucketOf], but a last step shorter than half a step
+ * belongs to the one before it. The step size is rounded down, so the last step is often a leftover of a few ms
+ * (26 ms of a 1,430,026 ms episode), too short for a seek to render a frame in it.
+ */
+fun phonePreviewBucketOf(positionMs: Long, durationMs: Long): Int {
+    val bucket = previewBucketOf(positionMs, durationMs)
+    if (durationMs <= 0L) return bucket
+    val last = previewBucketOf(durationMs - 1, durationMs)
+    val size = previewBucketSizeMs(durationMs)
+    return if (bucket == last && last > 0 && durationMs - last * size < size / 2) last - 1 else bucket
+}
+
+/**
+ * The step whose frame stands for [bucket]: itself when it [has] one, else the nearest within [maxSteps] steps
+ * between 0 and [last], the earlier on a tie; null when none has.
+ */
+fun nearestPreviewBucket(bucket: Int, last: Int, maxSteps: Int, has: (Int) -> Boolean): Int? {
+    if (has(bucket)) return bucket
+    for (distance in 1..maxSteps) {
+        val before = bucket - distance
+        if (before >= 0 && has(before)) return before
+        val after = bucket + distance
+        if (after <= last && has(after)) return after
+    }
+    return null
+}
+
+/** How far a stand-in frame may be from its step: 4 steps and 60 s at most, 1 step at least. */
+fun previewNearestMaxSteps(durationMs: Long): Int =
+    (PREVIEW_NEAREST_MAX_MS / previewBucketSizeMs(durationMs)).toInt().coerceIn(1, PREVIEW_NEAREST_MAX_STEPS)
+
+private const val PREVIEW_NEAREST_MAX_MS = 60_000L
+private const val PREVIEW_NEAREST_MAX_STEPS = 4
+
 /** Start and end (exclusive) of the preview step [bucket]; the last step ends with the video. */
 fun previewBucketRangeMs(bucket: Int, durationMs: Long): LongRange {
     val size = previewBucketSizeMs(durationMs)
     val start = bucket * size
     val end = (start + size).coerceAtMost(durationMs.coerceAtLeast(start + 1))
     return start until end
-}
-
-/**
- * Identity of a stream for the preview frames: its URL with its server and quality, or the file of a
- * download. Frames of one identity never change, frames of another are never shown for it.
- */
-fun previewSourceIdentity(source: StreamSource): String {
-    return if (source.isLocalFile) source.url else "${source.url}|${source.server}|${source.quality}"
 }
 
 /** A preview frame: the step [bucket] of the stream [sourceId]. */
@@ -248,6 +307,19 @@ class BucketRequests {
         return bucket
     }
 
+    /**
+     * How long the fetch in flight, loading for [loadingForMs], still holds up the finger's step: it is for a step
+     * the finger left, and a frame not come in [PREVIEW_STALE_FETCH_MS] may never come (a stall, no error) while
+     * its timeout is far. 0: give it up ([finished]) for the finger's step. Null when it holds up nothing: no
+     * finger, nothing loading, the finger's own step loading, or a prefetch, which the finger's step takes over.
+     */
+    fun staleFetchWaitMs(loadingForMs: Long): Long? {
+        val loading = inFlight ?: return null
+        val bucket = target ?: return null
+        if (inFlightIsPrefetch || loading == bucket) return null
+        return (PREVIEW_STALE_FETCH_MS - loadingForMs).coerceAtLeast(0L)
+    }
+
     /** Marks the prefetch of [bucket] as loading: false when a fetch loads or a finger is on the seekbar. */
     fun prefetch(bucket: Int): Boolean {
         if (inFlight != null || target != null) return false
@@ -297,7 +369,13 @@ fun nextPreviewPrefetch(
     if (!schedule.runnable() || !schedule.ready() || requests.inFlight != null || requests.scrubbing) {
         return PreviewPrefetchStep.Wait
     }
-    val bucket = schedule.nextStep(durationMs, isDone) ?: return PreviewPrefetchStep.Done
+    // A downloaded episode's: the whole timeline soon has a frame near each position, see previewNearestMaxSteps
+    val bucket = schedule.nextStep(
+        durationMs,
+        last = phonePreviewBucketOf(durationMs - 1, durationMs),
+        order = { center, last -> coarseToFineOrder(center, last, PHONE_PREFETCH_NEAR_STEPS) },
+        isDone = isDone,
+    ) ?: return PreviewPrefetchStep.Done
     return if (hasRoom) PreviewPrefetchStep.Fetch(bucket) else PreviewPrefetchStep.Done
 }
 
@@ -314,7 +392,7 @@ fun toPreviewFrame(argb: Bitmap): Bitmap {
 
 /**
  * Whether a memory trim drops the preview frames: on memory pressure, or once the app is a background
- * process. Hiding the UI alone (pause, PiP, home) keeps them.
+ * process (which leaving for the home screen may make it). Hiding the UI alone (pause, PiP) keeps them.
  */
 @Suppress("DEPRECATION")
 fun shouldDropPreviewFrames(trimLevel: Int): Boolean {
@@ -322,3 +400,15 @@ fun shouldDropPreviewFrames(trimLevel: Int): Boolean {
         trimLevel == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL ||
         trimLevel >= ComponentCallbacks2.TRIM_MEMORY_BACKGROUND
 }
+
+/** Whether a trim at [trimLevel] comes from memory pressure, not from the app going to the background. */
+@Suppress("DEPRECATION")
+fun isMemoryPressureTrim(trimLevel: Int): Boolean =
+    trimLevel == ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW || trimLevel == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL
+
+/**
+ * Whether the preview frames a trim dropped come back as the player screen resumes: a [downloaded] episode's, its
+ * frames [dropped] by the app going to the background, not by [memoryPressure], and memory isn't [lowMemory] now.
+ */
+fun shouldRestorePreviewFrames(dropped: Boolean, downloaded: Boolean, memoryPressure: Boolean, lowMemory: Boolean): Boolean =
+    dropped && downloaded && !memoryPressure && !lowMemory

@@ -182,7 +182,8 @@ object LocalCast {
                 null
             }
             is Plan.Phone -> {
-                val urlPrefix = baseUrl + proxy.serveLocal(plan.media)
+                // Its seekbar preview frames go to the TV with it
+                val urlPrefix = baseUrl + proxy.serveLocal(plan.media.copy(previews = local.previews))
                 Log.i(TAG, "Casting ${episode.name} from the phone: $urlPrefix${plan.master ?: plan.video}")
                 Media(
                     source = castSource(local.toStreamSource(context.getString(R.string.episode_downloaded)), plan, urlPrefix),

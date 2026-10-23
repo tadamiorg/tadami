@@ -3,6 +3,7 @@ package com.sf.tadami.ui.animeinfos.episode.cast.proxy
 import android.content.Context
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import com.sf.tadami.data.download.EpisodePreviews
 import com.sf.tadami.data.download.SegmentMetadata
 import fi.iki.elonen.NanoHTTPD
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -16,12 +17,25 @@ import java.security.SecureRandom
 /**
  * What the proxy serves of the downloaded episode being cast, by name: its files, read through
  * their content URIs, and playlists over them. [key] tells one episode's files from another's.
+ * [previews], its seekbar preview frames: the cast's seekbar preview reads them for the web
+ * receiver, and their file is served as [PREVIEWS_NAME] to the TV app, which decodes it itself.
  */
 data class LocalMedia(
     val key: String,
     val files: Map<String, LocalFile>,
     val playlists: Map<String, LocalPlaylist> = emptyMap(),
-)
+    val previews: EpisodePreviews? = null,
+) {
+    init {
+        // The route would serve the frames instead
+        require(PREVIEWS_NAME !in files && PREVIEWS_NAME !in playlists) { "$PREVIEWS_NAME names the preview frames" }
+    }
+
+    companion object {
+        /** The name of the file of [previews] on the route, as the TV app asks for it. No file or playlist has it. */
+        const val PREVIEWS_NAME = "previews.tdp"
+    }
+}
 
 data class LocalFile(val uri: String, val mimeType: String)
 
@@ -150,7 +164,9 @@ sealed interface ByteRange {
  * The route serving the downloaded episode being cast: `/local-<token>-<name>`, `<name>` one of
  * [LocalMedia]'s, never a path. The token is random (128 bits), renewed for each other episode,
  * gone when the proxy stops: other devices on the network can't guess it, and nothing but the
- * files of the episode cast is reachable with it.
+ * files of the episode cast is reachable with it. [LocalMedia.PREVIEWS_NAME] is the file of its
+ * seekbar preview frames, whole, while they describe its video; not found otherwise (no frames,
+ * another token, no episode served).
  */
 internal class LocalMediaRoute(private val opener: LocalFileOpener) {
 
@@ -192,19 +208,35 @@ internal class LocalMediaRoute(private val opener: LocalFileOpener) {
         return current.media.files[name]?.uri
     }
 
+    /** The seekbar preview frames of the episode served, when [path] is one of its URL paths; null otherwise. */
+    fun previews(path: String): EpisodePreviews? {
+        val current = served ?: return null
+        val rest = path.removePrefix(PATH_PREFIX).takeIf { path.startsWith(PATH_PREFIX) } ?: return null
+        if (!sameToken(rest.substringBefore('-', ""), current.token)) return null
+        return current.media.previews
+    }
+
     fun respond(method: NanoHTTPD.Method, path: String, rangeHeader: String?): NanoHTTPD.Response {
-        val current = served
         val rest = path.removePrefix(PATH_PREFIX)
         val token = rest.substringBefore('-', "")
-        if (current == null || !sameToken(token, current.token)) return text(NanoHTTPD.Response.Status.FORBIDDEN, "forbidden")
+        val current = served?.takeIf { sameToken(token, it.token) }
         val name = rest.substringAfter('-')
         val head = method == NanoHTTPD.Method.HEAD
+        // The TV app asks for the frames of any episode it plays from the phone: none to show, whatever the reason
+        if (name == LocalMedia.PREVIEWS_NAME) return respondPreviews(current?.media?.previews, head)
+        if (current == null) return text(NanoHTTPD.Response.Status.FORBIDDEN, "forbidden")
         current.media.playlists[name]?.let { playlist ->
             val bytes = playlistText(playlist, "${PATH_PREFIX.removePrefix("/")}${current.token}-").toByteArray(Charsets.UTF_8)
             return response(NanoHTTPD.Response.Status.OK, LocalPlaylists.MIME_TYPE, if (head) ByteArray(0) else bytes, bytes.size.toLong())
         }
         val file = current.media.files[name] ?: return text(NanoHTTPD.Response.Status.NOT_FOUND, "not found")
         return respondFile(file, head, rangeHeader)
+    }
+
+    // Whole, read under the episode's lock, and only while they describe its video
+    private fun respondPreviews(previews: EpisodePreviews?, head: Boolean): NanoHTTPD.Response {
+        val bytes = previews?.readBytes() ?: return text(NanoHTTPD.Response.Status.NOT_FOUND, "not found")
+        return response(NanoHTTPD.Response.Status.OK, PREVIEWS_MIME_TYPE, if (head) ByteArray(0) else bytes, bytes.size.toLong())
     }
 
     private fun respondFile(file: LocalFile, head: Boolean, rangeHeader: String?): NanoHTTPD.Response {
@@ -273,6 +305,7 @@ internal class LocalMediaRoute(private val opener: LocalFileOpener) {
     companion object {
         const val PATH_PREFIX = "/local-"
         private const val TOKEN_BYTES = 16
+        private const val PREVIEWS_MIME_TYPE = "application/octet-stream"
     }
 }
 

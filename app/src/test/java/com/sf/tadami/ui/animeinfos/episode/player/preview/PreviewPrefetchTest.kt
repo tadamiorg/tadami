@@ -61,6 +61,13 @@ class PreviewPrefetchTest {
     }
 
     @Test
+    fun `the cast waits 5 s of steady playback, the phone 1 s`() {
+        assertEquals(5_000L, PreviewPrefetch { 0L }.stableMs)
+        assertEquals(PreviewPrefetch.STABLE_MS, PreviewPrefetch { 0L }.stableMs)
+        assertEquals(1_000L, phonePreviewPrefetch { 0L }.stableMs)
+    }
+
+    @Test
     fun `starts only once the cast has played steadily`() {
         assertFalse("nothing reported yet", prefetch.runnable())
         prefetch.onStatus(Playback.PLAYING, 0L)
@@ -123,6 +130,49 @@ class PreviewPrefetchTest {
         prefetch.onDecodeEnded(gapMs = 100)
         advance(100)
         assertTrue(prefetch.ready())
+    }
+
+    @Test
+    fun `coarse to fine, every step once, the near ones first`() {
+        for (last in listOf(0, 1, 99, 299)) {
+            for (center in listOf(0, last / 2, last)) {
+                val order = coarseToFineOrder(center, last, near = 8).toList()
+                assertEquals("last $last, centre $center", (0..last).toList(), order.sorted())
+            }
+        }
+        assertTrue(coarseToFineOrder(0, -1, near = 8).toList().isEmpty())
+        // As prefetchOrder within ±8 of the centre
+        assertEquals(prefetchOrder(40, 99).take(17).toList(), coarseToFineOrder(40, 99, near = 8).take(17).toList())
+        assertEquals(listOf(40, 41, 39, 42, 38), coarseToFineOrder(40, 99, near = 8).take(5).toList())
+    }
+
+    @Test
+    fun `coarse to fine, then every 8th step from step 0, nearest the centre first, then finer`() {
+        val order = coarseToFineOrder(40, 99, near = 8).toList()
+        // 0, 8, … 96 but those near the centre (32, 40, 48), the nearest first
+        assertEquals(listOf(56, 24, 64, 16, 72, 8, 80, 0, 88, 96), order.subList(17, 27))
+        // Then every 4th, nearest first
+        assertEquals(listOf(52, 28, 60, 20), order.subList(27, 31))
+        assertTrue(order.subList(27, 37).all { it % 4 == 0 && it % 8 != 0 })
+    }
+
+    @Test
+    fun `coarse to fine, the grid stays where it is when the centre moves`() {
+        val grid = (0..99 step 8).toSet()
+        for (center in listOf(3, 37, 61, 99)) {
+            val order = coarseToFineOrder(center, 99, near = 8).toList()
+            val nearby = order.takeWhile { kotlin.math.abs(it - center) <= 8 }
+            val coarse = order.drop(nearby.size).take((grid - nearby.toSet()).size)
+            assertEquals("centre $center", grid - nearby.toSet(), coarse.toSet())
+        }
+    }
+
+    @Test
+    fun `the prefetch takes its order from its caller, the nearest first by default`() {
+        playSteadily(positionMs = 40 * 14_400L)
+        assertEquals(40, prefetch.nextStep(duration) { false })
+        val step = prefetch.nextStep(duration, order = { c, l -> coarseToFineOrder(c, l, near = 8) }) { it in 32..48 }
+        assertEquals(56, step)
     }
 
     @Test

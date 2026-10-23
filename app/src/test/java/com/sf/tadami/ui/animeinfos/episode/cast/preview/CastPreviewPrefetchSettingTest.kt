@@ -22,8 +22,8 @@ class CastPreviewPrefetchSettingTest {
     // 60 s: 5 s steps, 0..11
     private val source = CastPreviewSource(
         type = CastPreviewProtocol.TYPE_SOURCE,
-        sourceId = "7|https://h.example/ep.m3u8|S|1080p",
-        url = "https://h.example/ep.m3u8",
+        sourceId = "7|http://192.168.1.4:8214/local-0123456789abcdef0123456789abcdef-video.m3u8|Downloaded|",
+        url = "http://192.168.1.4:8214/local-0123456789abcdef0123456789abcdef-video.m3u8",
         duration = 60_000,
     )
 
@@ -43,8 +43,8 @@ class CastPreviewPrefetchSettingTest {
         assertTrue("expected a decode, got $decision", decision is PrefetchDecision.Start)
         val request = (decision as PrefetchDecision.Start).fetch.request
         frames.onFetched(request, jpeg())
-        prefetch.onDecodeEnded(CAST_PREFETCH_GAP_ONLINE_MS)
-        time += CAST_PREFETCH_GAP_ONLINE_MS
+        prefetch.onDecodeEnded(CAST_PREFETCH_GAP_LOCAL_MS)
+        time += CAST_PREFETCH_GAP_LOCAL_MS
         return request.step
     }
 

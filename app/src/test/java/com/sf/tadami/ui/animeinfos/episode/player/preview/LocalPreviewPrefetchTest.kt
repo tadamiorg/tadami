@@ -1,5 +1,9 @@
 package com.sf.tadami.ui.animeinfos.episode.player.preview
 
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.mutablePreferencesOf
+import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch.Playback
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -14,7 +18,7 @@ import org.junit.Test
 class LocalPreviewPrefetchTest {
 
     private var time = 1_000_000L
-    private val schedule = PreviewPrefetch { time }
+    private val schedule = phonePreviewPrefetch { time }
     private val requests = BucketRequests()
     private val done = mutableSetOf<Int>()
 
@@ -41,6 +45,22 @@ class LocalPreviewPrefetchTest {
     }
 
     @Test
+    fun `the setting and the seekbar preview turn the prefetch on and off, for a downloaded episode only`() {
+        assertTrue(phonePreviewPrefetchOn(seekPreview = true, prefetch = true, downloaded = true))
+        assertFalse("prefetch off", phonePreviewPrefetchOn(seekPreview = true, prefetch = false, downloaded = true))
+        assertFalse("preview off", phonePreviewPrefetchOn(seekPreview = false, prefetch = true, downloaded = true))
+        assertFalse("a stream, or nothing playing", phonePreviewPrefetchOn(seekPreview = true, prefetch = true, downloaded = false))
+    }
+
+    @Test
+    fun `one setting for the phone and the cast, its stored choice kept`() {
+        assertTrue(PlayerPreferences.transform(emptyPreferences()).seekPreviewPrefetch)
+        // Stored under the key of the cast's former setting
+        val stored = mutablePreferencesOf(booleanPreferencesKey("player_seek_preview_cast_prefetch") to false)
+        assertFalse(PlayerPreferences.transform(stored).seekPreviewPrefetch)
+    }
+
+    @Test
     fun `nearest the playback position first, then outward`() {
         playSteadily(positionMs = 40 * 14_300L)
         assertEquals(listOf(40, 41, 39, 42, 38), List(5) { prefetchNext() })
@@ -52,6 +72,23 @@ class LocalPreviewPrefetchTest {
         assertEquals(listOf(0, 1), List(2) { prefetchNext() })
         schedule.onStatus(Playback.PLAYING, 80 * 14_300L)
         assertEquals(listOf(80, 81, 79), List(3) { prefetchNext() })
+    }
+
+    @Test
+    fun `starts after one second of playback`() {
+        schedule.onStatus(Playback.PLAYING, 0L)
+        time += 999
+        schedule.onStatus(Playback.PLAYING, 0L)
+        assertEquals(PreviewPrefetchStep.Wait, next())
+        time += 1
+        schedule.onStatus(Playback.PLAYING, 0L)
+        assertEquals(PreviewPrefetchStep.Fetch(0), next())
+        // A buffering main player starts the second again
+        schedule.onStatus(Playback.BUFFERING, 0L)
+        schedule.onStatus(Playback.PLAYING, 0L)
+        time += 999
+        schedule.onStatus(Playback.PLAYING, 0L)
+        assertEquals(PreviewPrefetchStep.Wait, next())
     }
 
     @Test
@@ -133,6 +170,26 @@ class LocalPreviewPrefetchTest {
     }
 
     @Test
+    fun `never prefetches a leftover end step, merged into the one before it`() {
+        // 23:50.026: steps 0..99, step 100 being 26 ms long
+        val download = 1_430_026L
+        playSteadily(positionMs = download - 1)
+        assertEquals(PreviewPrefetchStep.Fetch(99), nextPreviewPrefetch(schedule, requests, download, { it in done }, true))
+        done += 0..99
+        assertEquals(PreviewPrefetchStep.Done, nextPreviewPrefetch(schedule, requests, download, { it in done }, true))
+        // The cast's own picks keep every step
+        assertEquals(100, schedule.nextStep(download) { it in done })
+    }
+
+    @Test
+    fun `a new file's duration picks the step at the position`() {
+        // 10:00 into a 23:50.026 episode: step 41 of 14.3 s steps; into a 48:00 one: step 20 of 28.8 s steps
+        playSteadily(positionMs = 600_000L)
+        assertEquals(PreviewPrefetchStep.Fetch(41), nextPreviewPrefetch(schedule, requests, 1_430_026L, { false }, true))
+        assertEquals(PreviewPrefetchStep.Fetch(20), nextPreviewPrefetch(schedule, requests, 2_880_000L, { false }, true))
+    }
+
+    @Test
     fun `stops once every step is done`() {
         playSteadily(positionMs = 0L)
         done += 0..99
@@ -161,6 +218,31 @@ class LocalPreviewPrefetchTest {
         assertEquals(341L, PREVIEW_BITMAP_CACHE_BYTES / PREVIEW_FRAME_BYTES)
         // As ARGB frames (twice the bytes) a film wouldn't fit
         assertTrue(PREVIEW_BITMAP_CACHE_BYTES / (PREVIEW_FRAME_BYTES * 2) < 300)
+    }
+
+    @Test
+    fun `an older download's prefetched frames are saved next to it once every step is done`() {
+        fun save(
+            downloaded: Boolean = true,
+            loadedFromSidecar: Boolean = false,
+            saved: Boolean = false,
+            everyStepDone: Boolean = true,
+        ) = shouldSavePrefetchedPreviews(downloaded, loadedFromSidecar, saved, everyStepDone)
+
+        assertTrue("no frames kept next to it", save())
+        assertFalse("its frames came from its sidecar", save(loadedFromSidecar = true))
+        assertFalse("saved already", save(saved = true))
+        assertFalse("the cache filled up first", save(everyStepDone = false))
+        assertFalse("nowhere to keep them", save(downloaded = false))
+    }
+
+    @Test
+    fun `the prefetch's done once the sidecar's frames fill every step, saving nothing`() {
+        playSteadily(positionMs = 0L)
+        // The sidecar's frames, put in the cache as the episode opens
+        done += 0..99
+        assertEquals(PreviewPrefetchStep.Done, next())
+        assertFalse(shouldSavePrefetchedPreviews(downloaded = true, loadedFromSidecar = true, saved = false, everyStepDone = true))
     }
 
     @Test

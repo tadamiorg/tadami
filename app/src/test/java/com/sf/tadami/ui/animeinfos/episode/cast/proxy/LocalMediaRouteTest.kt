@@ -1,13 +1,19 @@
 package com.sf.tadami.ui.animeinfos.episode.cast.proxy
 
 import android.content.ContextWrapper
+import com.hippo.unifile.MemoryUniFile
+import com.sf.tadami.data.download.EpisodePreviews
 import com.sf.tadami.data.download.SegmentMetadata
+import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewSidecar
+import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketSizeMs
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -212,5 +218,100 @@ class LocalMediaRouteTest {
         proxy.stop()
         assertTrue(proxy.startSafely())
         call("${prefix}video.ts").use { assertEquals(403, it.code) }
+    }
+
+    // The seekbar preview frames of a downloaded episode, kept next to its video, for the TV app
+
+    private val previewDir = MemoryUniFile.root("Episode 1")
+    private val previewVideo = previewDir.file("Episode 1.ts", ByteArray(64))
+    private val previews = EpisodePreviews(previewDir, "Episode 1", previewVideo)
+
+    private fun sidecarBytes(videoLength: Long = previewVideo.length()): ByteArray {
+        val durationMs = 1_430_026L
+        return PreviewSidecar.encode(
+            PreviewSidecar(
+                videoLength = videoLength,
+                durationMs = durationMs,
+                stepMs = previewBucketSizeMs(durationMs),
+                frameWidth = 256,
+                frameHeight = 144,
+                entries = listOf(
+                    PreviewSidecar.Entry(0, 0L, byteArrayOf(1, 2, 3)),
+                    PreviewSidecar.Entry(1, 14_300L, null),
+                ),
+            ),
+        )
+    }
+
+    private fun keepSidecar(bytes: ByteArray) {
+        previewDir.file("Episode 1.preview.tdp", bytes)
+    }
+
+    @Test
+    fun theTvAppGetsThePreviewFramesOfTheEpisode() {
+        val sidecar = sidecarBytes()
+        keepSidecar(sidecar)
+        val prefix = proxy.serveLocal(media().copy(previews = previews))
+        call("${prefix}previews.tdp").use { response ->
+            assertEquals(200, response.code)
+            assertArrayEquals(sidecar, response.body.bytes())
+            assertEquals("application/octet-stream", response.header("Content-Type"))
+            assertEquals("${sidecar.size}", response.header("Content-Length"))
+        }
+        call("${prefix}previews.tdp", method = "HEAD").use { response ->
+            assertEquals(200, response.code)
+            assertEquals("${sidecar.size}", response.header("Content-Length"))
+            assertEquals(0, response.body.bytes().size)
+        }
+        // Not a file the cast's seekbar preview decodes
+        assertNull(proxy.localFileUri("http://127.0.0.1:${proxy.listeningPort}${prefix}previews.tdp"))
+        assertTrue("no file opened", opened.isEmpty())
+    }
+
+    @Test
+    fun noUsablePreviewFramesAreNotFound() {
+        // None kept with the episode, none written yet, frames of another video, a broken file
+        val noPreviews = proxy.serveLocal(media())
+        call("${noPreviews}previews.tdp").use { assertEquals(404, it.code) }
+        val prefix = proxy.serveLocal(media().copy(previews = previews))
+        call("${prefix}previews.tdp").use { assertEquals(404, it.code) }
+        keepSidecar(sidecarBytes(videoLength = previewVideo.length() + 1))
+        call("${prefix}previews.tdp").use { assertEquals(404, it.code) }
+        call("${prefix}previews.tdp", method = "HEAD").use { assertEquals(404, it.code) }
+        keepSidecar(sidecarBytes().copyOf(40))
+        call("${prefix}previews.tdp").use { assertEquals(404, it.code) }
+    }
+
+    @Test
+    fun thePreviewFramesOfAWrongTokenOrOfNoEpisodeAreNotFound() {
+        keepSidecar(sidecarBytes())
+        val prefix = proxy.serveLocal(media().copy(previews = previews))
+        val token = prefix.removePrefix(LocalMediaRoute.PATH_PREFIX).removeSuffix("-")
+        val wrong = token.substring(0, 31) + (if (token.last() == '0') "1" else "0")
+        call("${LocalMediaRoute.PATH_PREFIX}$wrong-previews.tdp").use { assertEquals(404, it.code) }
+        call("${LocalMediaRoute.PATH_PREFIX}previews.tdp").use { assertEquals(404, it.code) }
+        call("${LocalMediaRoute.PATH_PREFIX}-previews.tdp").use { assertEquals(404, it.code) }
+        // Another episode served since: its own frames only, under its own token
+        val other = proxy.serveLocal(media(key = "episode 2"))
+        call("${prefix}previews.tdp").use { assertEquals(404, it.code) }
+        call("${other}previews.tdp").use { assertEquals(404, it.code) }
+        // Served again: a new URL, so the TV app's frames kept by URL are never another episode's; none once the proxy stops
+        proxy.serveLocal(media().copy(previews = previews)).let { served ->
+            assertNotEquals(prefix, served)
+            call("${served}previews.tdp").use { assertEquals(200, it.code) }
+            proxy.stop()
+            assertTrue(proxy.startSafely())
+            call("${served}previews.tdp").use { assertEquals(404, it.code) }
+        }
+    }
+
+    @Test
+    fun noFileOrPlaylistTakesTheNameOfThePreviewFrames() {
+        assertThrows(IllegalArgumentException::class.java) {
+            LocalMedia(key = "episode", files = mapOf("previews.tdp" to LocalFile(video.path, "video/mp2t")))
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            LocalMedia(key = "episode", files = emptyMap(), playlists = mapOf("previews.tdp" to LocalPlaylist.Media("video.ts", segments)))
+        }
     }
 }

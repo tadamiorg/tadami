@@ -2,11 +2,10 @@ package com.sf.tadami.ui.animeinfos.episode.player.preview
 
 import android.content.ComponentCallbacks2
 import androidx.media3.common.C
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.TrackSelectionParameters
-import com.sf.tadami.source.model.StreamSource
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -69,24 +68,6 @@ class SeekPreviewLogicTest {
         assertFalse(C.TRACK_TYPE_VIDEO in parameters.disabledTrackTypes)
     }
 
-    @Test
-    fun `main player spares the network with enough buffered ahead`() {
-        assertTrue(mainPlayerCanSpareNetwork(isBuffering = false, bufferedAheadMs = 10_000, bufferedPositionMs = 70_000, durationMs = 1_400_000))
-        assertFalse(mainPlayerCanSpareNetwork(isBuffering = false, bufferedAheadMs = 9_999, bufferedPositionMs = 70_000, durationMs = 1_400_000))
-    }
-
-    @Test
-    fun `main player never spares the network while rebuffering`() {
-        assertFalse(mainPlayerCanSpareNetwork(isBuffering = true, bufferedAheadMs = 60_000, bufferedPositionMs = 1_400_000, durationMs = 1_400_000))
-    }
-
-    @Test
-    fun `main player loaded to the end spares the network`() {
-        assertTrue(mainPlayerCanSpareNetwork(isBuffering = false, bufferedAheadMs = 2_000, bufferedPositionMs = 1_400_000, durationMs = 1_400_000))
-        // Unknown duration: only the buffer ahead counts
-        assertFalse(mainPlayerCanSpareNetwork(isBuffering = false, bufferedAheadMs = 2_000, bufferedPositionMs = 0, durationMs = C.TIME_UNSET))
-    }
-
     private val episode = 1_440_000L // 24 min
 
     @Test
@@ -123,24 +104,97 @@ class SeekPreviewLogicTest {
     }
 
     @Test
+    fun `the phone merges a leftover end step into the one before it`() {
+        // 23:50.026 in 14.3 s steps: step 100 is 26 ms long
+        val download = 1_430_026L
+        assertEquals(100, previewBucketOf(download - 1, download))
+        assertEquals(99, phonePreviewBucketOf(1_429_999, download))
+        assertEquals(99, phonePreviewBucketOf(1_430_000, download))
+        assertEquals(99, phonePreviewBucketOf(1_430_025, download))
+        assertEquals(99, phonePreviewBucketOf(download + 5_000, download))
+        assertEquals(98, phonePreviewBucketOf(1_415_699, download))
+        // 23:40.050 in 14.2 s steps: a 50 ms step 100
+        assertEquals(99, phonePreviewBucketOf(1_420_049, 1_420_050))
+        // 5 s steps of a 5:01 to 5:03 video: a 1 or 2 s leftover is merged, a 3 s one (half a step or more) kept
+        assertEquals(59, phonePreviewBucketOf(300_500, 301_000))
+        assertEquals(59, phonePreviewBucketOf(301_500, 302_000))
+        assertEquals(60, phonePreviewBucketOf(302_500, 303_000))
+        // A 7 s clip: its 2 s second step too
+        assertEquals(0, phonePreviewBucketOf(6_000, 7_000))
+    }
+
+    @Test
+    fun `the phone keeps a full or long enough end step`() {
+        // 24:00 in 14.4 s steps: step 99 is a full one
+        assertEquals(99, phonePreviewBucketOf(episode - 1, episode))
+        assertEquals(previewBucketOf(1_430_000, episode), phonePreviewBucketOf(1_430_000, episode))
+        // Exactly half a step left: kept
+        assertEquals(60, phonePreviewBucketOf(302_499, 302_500))
+    }
+
+    @Test
+    fun `the phone's steps of an unknown or tiny duration are the shared ones`() {
+        assertEquals(0, phonePreviewBucketOf(5_000, 0))
+        assertEquals(0, phonePreviewBucketOf(5_000, -1))
+        assertEquals(0, phonePreviewBucketOf(0, 1))
+    }
+
+    @Test
+    fun `a step shows its own frame, else the nearest one, the earlier on a tie`() {
+        val cached = setOf(3, 7, 9)
+        assertEquals(7, nearestPreviewBucket(7, last = 99, maxSteps = 4) { it in cached })
+        assertEquals(9, nearestPreviewBucket(10, last = 99, maxSteps = 4) { it in cached })
+        // 5 is 2 steps from both 3 and 7
+        assertEquals(3, nearestPreviewBucket(5, last = 99, maxSteps = 4) { it in cached })
+        assertEquals(7, nearestPreviewBucket(6, last = 99, maxSteps = 4) { it in cached })
+    }
+
+    @Test
+    fun `a stand-in frame is never further than the reach, nor out of the video`() {
+        assertNull(nearestPreviewBucket(20, last = 99, maxSteps = 4) { it == 15 || it == 25 })
+        assertEquals(16, nearestPreviewBucket(20, last = 99, maxSteps = 4) { it == 16 })
+        // Steps past the ends are never asked for
+        val asked = mutableListOf<Int>()
+        assertNull(nearestPreviewBucket(1, last = 2, maxSteps = 4) { asked += it; false })
+        assertEquals(listOf(1, 0, 2), asked)
+        assertNull(nearestPreviewBucket(0, last = 0, maxSteps = 4) { false })
+        assertEquals(0, nearestPreviewBucket(0, last = 0, maxSteps = 4) { true })
+    }
+
+    @Test
+    fun `the reach is 4 steps and 60 s at most`() {
+        // 5 s steps (a 3 min video): 4 steps, 20 s
+        assertEquals(4, previewNearestMaxSteps(180_000))
+        // 14.3 s steps (a 24 min episode): 4 steps, 57.2 s
+        assertEquals(4, previewNearestMaxSteps(1_430_026))
+        // 20 s steps: 3 steps, 60 s
+        assertEquals(3, previewNearestMaxSteps(2_000_000))
+        // 30 s steps (a film): 2 steps
+        assertEquals(2, previewNearestMaxSteps(7_200_000))
+        assertEquals(4, previewNearestMaxSteps(0))
+    }
+
+    @Test
+    fun `looking for a stand-in frame doesn't change which frame is evicted first`() {
+        val cache = cache(maxBytes = 300)
+        cache.put(PreviewFrameKey("a", 1), "a1")
+        cache.put(PreviewFrameKey("a", 2), "a2")
+        cache.put(PreviewFrameKey("a", 3), "a3")
+        // A stand-in for step 0: step 1, found without being made recently used
+        assertEquals(1, nearestPreviewBucket(0, last = 99, maxSteps = 4) { PreviewFrameKey("a", it) in cache })
+        cache.put(PreviewFrameKey("a", 4), "a4")
+        assertFalse("step 1 is still the least recently used", PreviewFrameKey("a", 1) in cache)
+        assertTrue(PreviewFrameKey("a", 2) in cache)
+        assertTrue(PreviewFrameKey("a", 3) in cache)
+    }
+
+    @Test
     fun `step ranges cover the video without gaps`() {
         assertEquals(0L until 14_400L, previewBucketRangeMs(0, episode))
         assertEquals(14_400L until 28_800L, previewBucketRangeMs(1, episode))
         assertEquals(1_425_600L until episode, previewBucketRangeMs(99, episode))
         // A 1 min 03 s video ends with a 3 s step
         assertEquals(60_000L until 63_000L, previewBucketRangeMs(12, 63_000))
-    }
-
-    @Test
-    fun `stream identity is its URL, server and quality, a download's its file`() {
-        val stream = StreamSource(url = "https://cdn.example/master.m3u8", server = "Kwik", quality = "720p")
-        assertEquals("https://cdn.example/master.m3u8|Kwik|720p", previewSourceIdentity(stream))
-        assertNotEquals(previewSourceIdentity(stream), previewSourceIdentity(stream.copy(quality = "1080p")))
-        assertNotEquals(previewSourceIdentity(stream), previewSourceIdentity(stream.copy(server = "Other")))
-        // Same stream from another fetch: same frames
-        assertEquals(previewSourceIdentity(stream), previewSourceIdentity(stream.copy(fullName = "Kwik - 720p")))
-        val download = StreamSource(url = "content://downloads/Episode 3.ts", server = "Kwik", quality = "720p")
-        assertEquals("content://downloads/Episode 3.ts", previewSourceIdentity(download))
     }
 
     private fun cache(maxBytes: Long = 300) = PreviewFrameCache<String>(maxBytes) { 100L }.apply { setSource("a") }
@@ -248,12 +302,84 @@ class SeekPreviewLogicTest {
     }
 
     @Test
+    fun `a fetch the finger left is given up for the finger's step once it's long`() {
+        val requests = BucketRequests()
+        requests.aim(29)
+        assertEquals(29, requests.next { false })
+        // The finger's own step: waited for, up to its timeout
+        assertNull(requests.staleFetchWaitMs(5_000))
+        requests.aim(11)
+        // A frame usually comes well within the wait
+        assertEquals(PREVIEW_STALE_FETCH_MS - 400, requests.staleFetchWaitMs(400))
+        assertNull(requests.next { false })
+        // Past it, the step left is given up: the finger's comes next
+        assertEquals(0L, requests.staleFetchWaitMs(PREVIEW_STALE_FETCH_MS + 200))
+        requests.finished(29)
+        assertEquals(11, requests.next { false })
+        assertNull(requests.staleFetchWaitMs(PREVIEW_STALE_FETCH_MS + 200))
+    }
+
+    @Test
+    fun `nothing to give up without a finger, nor for a prefetch`() {
+        val requests = BucketRequests()
+        assertNull(requests.staleFetchWaitMs(5_000))
+        // The drag ended: the fetch in flight lands
+        requests.aim(4)
+        requests.next { false }
+        requests.aim(null)
+        assertNull(requests.staleFetchWaitMs(5_000))
+        requests.finished(4)
+        // A prefetch: the finger's step takes it over at once
+        assertTrue(requests.prefetch(40))
+        requests.aim(12)
+        assertNull(requests.staleFetchWaitMs(5_000))
+        assertEquals(12, requests.next { false })
+    }
+
+    @Test
     fun `a stale end of fetch doesn't free the step loading`() {
         val requests = BucketRequests()
         requests.aim(2)
         requests.next { false }
         requests.finished(9)
         assertEquals(2, requests.inFlight)
+    }
+
+    @Test
+    fun `a decoder error costs a new preview player only`() {
+        val errors = PreviewErrors()
+        assertEquals(
+            PreviewErrorOutcome(markStepUnavailable = false, failSource = false),
+            errors.onError(PlaybackException.ERROR_CODE_DECODER_INIT_FAILED),
+        )
+        assertEquals(
+            PreviewErrorOutcome(markStepUnavailable = false, failSource = false),
+            errors.onError(PlaybackException.ERROR_CODE_DECODING_RESOURCES_RECLAIMED),
+        )
+    }
+
+    @Test
+    fun `an unreadable part of the file costs its step`() {
+        assertEquals(
+            PreviewErrorOutcome(markStepUnavailable = true, failSource = false),
+            PreviewErrors().onError(PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED),
+        )
+        assertEquals(
+            PreviewErrorOutcome(markStepUnavailable = true, failSource = false),
+            PreviewErrors().onError(PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND),
+        )
+    }
+
+    @Test
+    fun `the third error on a file gives its preview up, until another file`() {
+        val errors = PreviewErrors()
+        assertFalse(errors.onError(PlaybackException.ERROR_CODE_DECODER_INIT_FAILED).failSource)
+        assertFalse(errors.onError(PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED).failSource)
+        assertTrue(errors.onError(PlaybackException.ERROR_CODE_DECODER_INIT_FAILED).failSource)
+        assertEquals(3, errors.count)
+        errors.reset()
+        assertEquals(0, errors.count)
+        assertFalse(errors.onError(PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED).failSource)
     }
 
     @Suppress("DEPRECATION")
@@ -265,5 +391,22 @@ class SeekPreviewLogicTest {
         assertTrue(shouldDropPreviewFrames(ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL))
         assertTrue(shouldDropPreviewFrames(ComponentCallbacks2.TRIM_MEMORY_BACKGROUND))
         assertTrue(shouldDropPreviewFrames(ComponentCallbacks2.TRIM_MEMORY_COMPLETE))
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun `a downloaded episode's frames come back after a background trim, not after memory pressure`() {
+        assertTrue(isMemoryPressureTrim(ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW))
+        assertTrue(isMemoryPressureTrim(ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL))
+        assertFalse(isMemoryPressureTrim(ComponentCallbacks2.TRIM_MEMORY_BACKGROUND))
+        assertFalse(isMemoryPressureTrim(ComponentCallbacks2.TRIM_MEMORY_COMPLETE))
+
+        fun restore(dropped: Boolean = true, downloaded: Boolean = true, memoryPressure: Boolean = false, lowMemory: Boolean = false) =
+            shouldRestorePreviewFrames(dropped, downloaded, memoryPressure, lowMemory)
+        assertTrue("dropped by the app going to the background", restore())
+        assertFalse("nothing dropped", restore(dropped = false))
+        assertFalse("a stream has none", restore(downloaded = false))
+        assertFalse("dropped by memory pressure", restore(memoryPressure = true))
+        assertFalse("memory low now", restore(lowMemory = true))
     }
 }

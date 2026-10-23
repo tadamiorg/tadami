@@ -1,6 +1,7 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -249,7 +250,8 @@ private fun SeekPreviewOverlay(
             }
         }
     ) {
-        AnimatedVisibility(visible = visible, enter = fadeIn(), exit = fadeOut()) {
+        // Fully shown 80 ms after the finger starts dragging (the default spring takes about 200 ms)
+        AnimatedVisibility(visible = visible, enter = fadeIn(tween(80)), exit = fadeOut(tween(120))) {
             preview.thumbnail(positionMs)
         }
     }

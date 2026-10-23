@@ -1,9 +1,11 @@
 package com.sf.tadami.ui.animeinfos.episode.player.preview
 
+import kotlin.math.abs
+
 /**
  * When and which preview step is prefetched in the background, from the status of the player that
  * plays the stream (the phone's own, or the TV's when casting): only once it has been PLAYING steadily
- * for [STABLE_MS], never while it buffers or loads, and not after [LONG_PAUSE_MS] of pause (battery,
+ * for [stableMs], never while it buffers or loads, and not after [LONG_PAUSE_MS] of pause (battery,
  * data). Steps go nearest the playback position first, then outward, re-centred on every pick (so
  * after a seek too); one decode at a time with a gap after each. Pure: the clock is given.
  */
@@ -15,6 +17,9 @@ class PreviewPrefetch(private val now: () -> Long) {
     /** The playback position, as last reported. */
     var positionMs = 0L
         private set
+
+    /** Playing this long without buffering before the prefetch starts (or starts again). */
+    var stableMs = STABLE_MS
 
     private var playingSince: Long? = null
     private var pausedSince: Long? = null
@@ -37,7 +42,7 @@ class PreviewPrefetch(private val now: () -> Long) {
             Playback.PLAYING -> {
                 val since = playingSince ?: time.also { playingSince = it }
                 pausedSince = null
-                if (time - since >= STABLE_MS) stable = true
+                if (time - since >= stableMs) stable = true
             }
             // A pause keeps the steadiness: the prefetch goes on, for a while
             Playback.PAUSED -> {
@@ -67,22 +72,52 @@ class PreviewPrefetch(private val now: () -> Long) {
         nextAt = now() + gapMs
     }
 
-    /** The step to prefetch now in a [durationMs]-long stream: the nearest the position not [isDone]; null when all are. */
-    fun nextStep(durationMs: Long, isDone: (Int) -> Boolean): Int? {
+    /**
+     * The step to prefetch now in a [durationMs]-long stream, up to the [last] one: the nearest the position not
+     * [isDone]; null when all are.
+     */
+    fun nextStep(
+        durationMs: Long,
+        last: Int = previewBucketOf(durationMs - 1, durationMs),
+        order: (center: Int, last: Int) -> Sequence<Int> = ::prefetchOrder,
+        isDone: (Int) -> Boolean,
+    ): Int? {
         if (durationMs <= 0L) return null
-        val last = previewBucketOf(durationMs - 1, durationMs)
         val center = previewBucketOf(positionMs, durationMs)
-        return prefetchOrder(center, last).firstOrNull { !isDone(it) }
+        return order(center, last).firstOrNull { !isDone(it) }
     }
 
     companion object {
-        /** Playing this long without buffering before the prefetch starts (or starts again). */
+        /** The cast's [stableMs]: playing this long without buffering before the prefetch starts (or starts again). */
         const val STABLE_MS = 5_000L
 
         /** A pause longer than this stops the prefetch until playback resumes. */
         const val LONG_PAUSE_MS = 10 * 60_000L
     }
 }
+
+/**
+ * Every step of 0..[last] once, so the whole timeline has a frame near each position early: first the steps within
+ * [near] of [center] in [prefetchOrder] (an intro skip, a short rewind), then those on a grid of every 8th step from
+ * step 0, every 4th, 2nd, and the rest; within a grid level the nearest the centre first. The grid is absolute: a
+ * centre moving (the order is computed again at each pick) doesn't shift it.
+ */
+fun coarseToFineOrder(center: Int, last: Int, near: Int): Sequence<Int> {
+    if (last < 0) return emptySequence()
+    val start = center.coerceIn(0, last)
+    return sequence {
+        val nearby = prefetchOrder(start, last).takeWhile { abs(it - start) <= near }.toList()
+        yieldAll(nearby)
+        val seen = nearby.toMutableSet()
+        for (stride in COARSE_TO_FINE_STRIDES) {
+            val level = (0..last step stride).filter { seen.add(it) }
+            // As prefetchOrder: nearest first, the later one first at the same distance
+            yieldAll(level.sortedWith(compareBy<Int> { abs(it - start) }.thenByDescending { it }))
+        }
+    }
+}
+
+private val COARSE_TO_FINE_STRIDES = listOf(8, 4, 2, 1)
 
 /** Steps from [center] outward within 0..[last]: center, center+1, center-1, center+2, … */
 fun prefetchOrder(center: Int, last: Int): Sequence<Int> {

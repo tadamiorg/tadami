@@ -2,6 +2,7 @@ package com.sf.tadami.ui.animeinfos.episode.cast.proxy
 
 import android.content.Context
 import android.util.Log
+import com.sf.tadami.data.download.EpisodePreviews
 import com.sf.tadami.network.player.HlsSegmentIvs
 import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
 import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyServer.Companion.DEFAULT_PORT
@@ -38,7 +39,8 @@ import java.util.concurrent.TimeUnit
  * - `GET /echo?body=<enc>&type=<enc>` — reflects a receiver-composed body back verbatim.
  * - `GET /health` — plain "ok", for LAN reachability checks.
  * - `GET|HEAD /local-<token>-<name>` — the downloaded episode being cast, read from the phone's
- *   storage ([LocalMediaRoute]): its files with Range support, and HLS playlists over them. The
+ *   storage ([LocalMediaRoute]): its files with Range support, HLS playlists over them, and the
+ *   file of its seekbar preview frames for the TV app ([LocalMedia.PREVIEWS_NAME], 404 without). The
  *   only phone-side state, set by [serveLocal]. The receiver wraps these http URLs in `/proxy`
  *   like any other: such a request is answered here directly, not fetched back over the network.
  *
@@ -113,6 +115,9 @@ class CastProxyServer(
      * seekbar preview decodes the file rather than its playlist over the network); null otherwise.
      */
     fun localFileUri(url: String): String? = url.toHttpUrlOrNull()?.encodedPath?.let(localRoute::fileUri)
+
+    /** The seekbar preview frames of the downloaded episode behind [url], as [localFileUri]; null otherwise. */
+    fun localPreviews(url: String): EpisodePreviews? = url.toHttpUrlOrNull()?.encodedPath?.let(localRoute::previews)
 
     private inner class Server(port: Int) : NanoHTTPD(port) {
         override fun serve(session: IHTTPSession): Response = this@CastProxyServer.route(session)

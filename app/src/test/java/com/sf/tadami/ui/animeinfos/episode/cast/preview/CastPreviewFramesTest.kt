@@ -83,6 +83,78 @@ class CastPreviewFramesTest {
     }
 
     @Test
+    fun `the requests that lost their turn are decoded after, oldest first, before any prefetch`() {
+        val frames = CastPreviewFrames()
+        val first = frames.onRequest(request(1)).fetched()
+        // A quick drag: each request replaces the one waiting, answered "none" meanwhile and never asked again
+        val (second, third, latest) = listOf(request(2), request(3), request(4))
+        listOf(second, third, latest).forEach { assertNull(frames.onRequest(it)) }
+
+        assertSame(latest, frames.onFetched(first, jpeg())[1].fetched())
+        assertNull("they come first", frames.prefetch(source().requestFor(50)))
+        assertSame(second, frames.onFetched(latest, jpeg())[1].fetched())
+        assertNull(frames.prefetch(source().requestFor(50)))
+        assertSame(third, frames.onFetched(second, jpeg())[1].fetched())
+        assertEquals(1, frames.onFetched(third, jpeg()).size)
+        assertTrue((1..4).all(frames::isDone))
+        assertNull(frames.inFlight)
+        frames.prefetch(source().requestFor(50))!!
+    }
+
+    @Test
+    fun `a request that lost its turn but is known by then is answered without a decode`() {
+        val frames = CastPreviewFrames()
+        val first = frames.onRequest(request(1)).fetched()
+        val dropped = request(2)
+        assertNull(frames.onRequest(dropped))
+        val latest = request(3)
+        assertNull(frames.onRequest(latest))
+        // Step 2 known meanwhile (the frames kept next to the episode)
+        frames.fill(SOURCE_A, CastSidecarFrames(mapOf(2 to jpeg()), emptySet()))
+        frames.onFetched(first, jpeg())
+        val actions = frames.onFetched(latest, jpeg())
+        assertEquals(listOf(CastPreviewProtocol.STATUS_OK, CastPreviewProtocol.STATUS_OK), actions.map { it.status() })
+        assertSame(dropped, (actions[1] as Action.Reply).request)
+        assertNull(frames.inFlight)
+    }
+
+    @Test
+    fun `a request that joined a prefetch taken over is decoded after`() {
+        val frames = CastPreviewFrames()
+        frames.select(SOURCE_A)
+        frames.prefetch(source().requestFor(10))!!
+        val joined = request(10)
+        assertNull(frames.onRequest(joined))
+        val scrub = frames.onRequest(request(40)).fetched()
+        assertSame(joined, frames.onFetched(scrub, jpeg())[1].fetched())
+    }
+
+    @Test
+    fun `the requests that lost their turn are kept within a bound, a step once`() {
+        val frames = CastPreviewFrames()
+        var inFlight = frames.onRequest(request(0)).fetched()
+        // Step 1 asked twice: kept once
+        (listOf(1, 1) + (2..12)).forEach { assertNull(frames.onRequest(request(it))) }
+        val decoded = mutableListOf<Int>()
+        while (true) {
+            val next = frames.onFetched(inFlight, jpeg()).lastOrNull() as? Action.Fetch ?: break
+            inFlight = next.request
+            decoded += inFlight.step
+        }
+        // The latest, then the 8 dropped last, oldest first
+        assertEquals(listOf(12) + (4..11), decoded)
+    }
+
+    @Test
+    fun `another stream forgets the requests that lost their turn`() {
+        val frames = CastPreviewFrames()
+        frames.onRequest(request(1)).fetched()
+        listOf(2, 3).forEach { assertNull(frames.onRequest(request(it))) }
+        val other = frames.onRequest(request(1, SOURCE_B)).fetched()
+        assertEquals(1, frames.onFetched(other, jpeg()).size)
+    }
+
+    @Test
     fun `a waiting request for a step just decoded is answered from the cache`() {
         val frames = CastPreviewFrames()
         val first = frames.onRequest(request(4)).fetched()

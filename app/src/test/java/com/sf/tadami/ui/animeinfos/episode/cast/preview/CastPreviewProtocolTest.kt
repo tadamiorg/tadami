@@ -176,21 +176,22 @@ class CastPreviewProtocolTest {
     }
 
     @Test
-    fun `previews need the setting, the receiver's capability and Wi-Fi when asked for`() {
-        fun allowed(
-            settingOn: Boolean = true,
-            onlyOnWifi: Boolean = false,
-            onWifi: Boolean = false,
-            receiverCapable: Boolean = true,
-            localFile: Boolean = false,
-        ) = castSeekPreviewAllowed(settingOn, onlyOnWifi, onWifi, receiverCapable, localFile)
+    fun `previews need the setting, the receiver's capability and a downloaded episode`() {
+        fun allowed(settingOn: Boolean = true, receiverCapable: Boolean = true, localFile: Boolean = true) =
+            castSeekPreviewAllowed(settingOn, receiverCapable, localFile)
 
         assertTrue(allowed())
         assertFalse("setting off", allowed(settingOn = false))
-        assertFalse("setting off, even for a download", allowed(settingOn = false, localFile = true))
         assertFalse("receiver without the capability", allowed(receiverCapable = false))
-        assertFalse("Wi-Fi only, on mobile data", allowed(onlyOnWifi = true, onWifi = false))
-        assertTrue("Wi-Fi only, on Wi-Fi", allowed(onlyOnWifi = true, onWifi = true))
-        assertTrue("Wi-Fi only doesn't apply to a download", allowed(onlyOnWifi = true, onWifi = false, localFile = true))
+        assertFalse("a streamed episode makes no frames", allowed(localFile = false))
+    }
+
+    @Test
+    fun `a cast load announces previews for a downloaded episode the phone serves only`() {
+        val local = "http://192.168.1.4:8214/local-0123456789abcdef0123456789abcdef-video.m3u8"
+        assertTrue(castAnnouncesSeekPreview(settingOn = true, selectedSourceUrl = local))
+        assertFalse("setting off", castAnnouncesSeekPreview(settingOn = false, selectedSourceUrl = local))
+        assertFalse("a streamed episode", castAnnouncesSeekPreview(settingOn = true, selectedSourceUrl = "https://h.example/ep.m3u8"))
+        assertFalse("a stream behind the proxy", castAnnouncesSeekPreview(settingOn = true, selectedSourceUrl = "http://192.168.1.4:8214/proxy?url=x"))
     }
 }

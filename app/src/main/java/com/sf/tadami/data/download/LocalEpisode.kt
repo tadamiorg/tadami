@@ -12,6 +12,8 @@ class LocalEpisode(
     val subtitles: List<Pair<UniFile, DownloadNames.TrackFile>>,
     /** The sidecar, null for the downloads made before it */
     val metadata: EpisodeMetadata? = null,
+    /** Where its seekbar preview frames are kept, made or not yet */
+    val previews: EpisodePreviews? = null,
 ) {
 
     /**
@@ -46,6 +48,7 @@ class LocalEpisode(
                 audios = parsed.audios.mapNotNull { track -> files[track.name]?.let { it to track.lang } },
                 subtitles = parsed.subtitles.mapNotNull { track -> files[track.name]?.let { it to track } },
                 metadata = parsed.metadata?.let(files::get)?.let(EpisodeMetadata::read),
+                previews = EpisodePreviews(dir, episodeDirName, video),
             )
         }
 
