@@ -303,6 +303,9 @@ class SeekPreviewPlayer(
 
     fun onTrimMemory(level: Int) {
         if (!shouldDropPreviewFrames(level)) return
+        // A sidecar being read would put its frames back
+        sidecarJob?.cancel()
+        sidecarLoading = false
         frames.clear()
         loadedSidecar = null
         trimUnderPressure = isMemoryPressureTrim(level)
