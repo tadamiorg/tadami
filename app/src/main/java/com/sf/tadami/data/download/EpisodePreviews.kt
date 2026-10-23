@@ -17,15 +17,21 @@ import java.util.concurrent.ConcurrentHashMap
 class EpisodePreviews(val dir: UniFile, val episodeDirName: String, val video: UniFile) {
 
     /** The frames, null when there are none yet or they don't describe [video] (another version, a cut file). */
-    fun read(): PreviewSidecar? = synchronized(lock()) { readFile() }
+    fun read(): PreviewSidecar? = synchronized(lock()) { readFile()?.second }
 
-    private fun readFile(): PreviewSidecar? {
+    /** The file of the frames as it is, for another device to decode: null when [read] would give null. */
+    fun readBytes(): ByteArray? = synchronized(lock()) { readFile()?.first }
+
+    private fun readFile(): Pair<ByteArray, PreviewSidecar>? {
         return try {
             val file = dir.findFile(DownloadNames.previewsFileName(episodeDirName)) ?: return null
             val bytes = file.openInputStream().use { it.readBytes() }
-            PreviewSidecar.decode(bytes, video.length()).also {
-                if (it == null) logcat(LogPriority.WARN, tag = TAG) { "Ignoring the unusable ${file.name}" }
+            val sidecar = PreviewSidecar.decode(bytes, video.length())
+            if (sidecar == null) {
+                logcat(LogPriority.WARN, tag = TAG) { "Ignoring the unusable ${file.name}" }
+                return null
             }
+            bytes to sidecar
         } catch (e: Exception) {
             logcat(LogPriority.WARN, e, tag = TAG) { "Couldn't read the preview frames of $episodeDirName" }
             null
@@ -57,7 +63,7 @@ class EpisodePreviews(val dir: UniFile, val episodeDirName: String, val video: U
                 logcat(tag = TAG) { "Not writing the preview frames of $episodeDirName: its video is gone or changed" }
                 return false
             }
-            if (readFile()?.let(keeps) == true) {
+            if (readFile()?.second?.let(keeps) == true) {
                 logcat(tag = TAG) { "Not writing the preview frames of $episodeDirName: made meanwhile" }
                 return false
             }
