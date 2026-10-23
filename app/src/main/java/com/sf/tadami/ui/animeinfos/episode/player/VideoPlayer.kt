@@ -438,7 +438,7 @@ fun VideoPlayer(
     // shows the time alone, its preview player never created. A new episode drops the preview player of the
     // previous one, and its frames with another file.
     LaunchedEffect(episodeUiState.selectedSource, currentEpisode?.id) {
-        seekPreviewPlayer.release()
+        // The same file again keeps the preview player, ready; another one releases it
         val download = episodeUiState.selectedSource?.takeIf { it.isLocalFile }
         seekPreviewPlayer.setSource(download?.url, download?.let {
             {
@@ -745,7 +745,8 @@ fun VideoPlayer(
 
                     when (event) {
                         Lifecycle.Event.ON_PAUSE -> {
-                            seekPreviewPlayer.release()
+                            // Kept a while in PiP (controls locked, no prefetch): a short stint comes back warm
+                            seekPreviewPlayer.releaseLater()
                             updateTime()
                             if (!lockedControls) {
                                 exoPlayer.pause()
@@ -753,10 +754,14 @@ fun VideoPlayer(
                         }
 
                         Lifecycle.Event.ON_RESUME -> {
+                            seekPreviewPlayer.cancelRelease()
                             if (!playerInitiatedPause) {
                                 exoPlayer.play()
                             }
                         }
+
+                        // Out of sight (home, another screen, background playback): freed at once
+                        Lifecycle.Event.ON_STOP -> seekPreviewPlayer.release()
 
                         else -> {}
                     }

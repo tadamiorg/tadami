@@ -77,6 +77,7 @@ class SeekPreviewPlayer(
     private val handler = Handler(Looper.getMainLooper())
     private val pump = Runnable { pumpRequests() }
     private val giveUp = Runnable { onFetchTimeout() }
+    private val delayedRelease = Runnable { release() }
 
     private var durationMs = 0L
     private var fingerBucket: Int? = null
@@ -213,11 +214,26 @@ class SeekPreviewPlayer(
 
     /** Frees the decoder, the loads and the playback thread. The frames are kept. */
     fun release() {
+        handler.removeCallbacks(delayedRelease)
         endScrub()
         handler.removeCallbacks(giveUp)
         requests.clear()
         player?.release()
         player = null
+    }
+
+    /**
+     * The screen paused but is still seen (PiP): [release] in [IDLE_RELEASE_MS], so a short stint comes back with
+     * the decoder ready, unless [cancelRelease] comes first.
+     */
+    fun releaseLater() {
+        handler.removeCallbacks(delayedRelease)
+        handler.postDelayed(delayedRelease, IDLE_RELEASE_MS)
+    }
+
+    /** The screen is back: the decoder is kept. */
+    fun cancelRelease() {
+        handler.removeCallbacks(delayedRelease)
     }
 
     /** The player screen is gone: releases everything, frames included. */
@@ -504,6 +520,9 @@ class SeekPreviewPlayer(
     private companion object {
         const val TAG = "SeekPreviewPlayer"
         const val DEFAULT_ASPECT_RATIO = 16f / 9f
+
+        /** A paused screen keeps the decoder this long, as the cast's idle grabber. */
+        const val IDLE_RELEASE_MS = 30_000L
 
         /** How often the prefetch looks at the main player. */
         const val PREFETCH_TICK_MS = 1_000L
