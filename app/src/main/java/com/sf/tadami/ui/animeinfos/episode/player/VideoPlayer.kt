@@ -471,7 +471,7 @@ fun VideoPlayer(
                 // Shown at once, the player reports the new position a frame later
                 currentTime = positionMs.coerceIn(0L, totalDuration)
             },
-            thumbnail = { positionMs -> SeekPreviewThumbnail(seekPreviewPlayer, positionMs) },
+            thumbnail = { positionMs -> SeekPreviewThumbnail(seekPreviewPlayer, positionMs, totalDuration) },
         )
     }
 

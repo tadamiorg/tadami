@@ -139,6 +139,55 @@ class SeekPreviewLogicTest {
     }
 
     @Test
+    fun `a step shows its own frame, else the nearest one, the earlier on a tie`() {
+        val cached = setOf(3, 7, 9)
+        assertEquals(7, nearestPreviewBucket(7, last = 99, maxSteps = 4) { it in cached })
+        assertEquals(9, nearestPreviewBucket(10, last = 99, maxSteps = 4) { it in cached })
+        // 5 is 2 steps from both 3 and 7
+        assertEquals(3, nearestPreviewBucket(5, last = 99, maxSteps = 4) { it in cached })
+        assertEquals(7, nearestPreviewBucket(6, last = 99, maxSteps = 4) { it in cached })
+    }
+
+    @Test
+    fun `a stand-in frame is never further than the reach, nor out of the video`() {
+        assertNull(nearestPreviewBucket(20, last = 99, maxSteps = 4) { it == 15 || it == 25 })
+        assertEquals(16, nearestPreviewBucket(20, last = 99, maxSteps = 4) { it == 16 })
+        // Steps past the ends are never asked for
+        val asked = mutableListOf<Int>()
+        assertNull(nearestPreviewBucket(1, last = 2, maxSteps = 4) { asked += it; false })
+        assertEquals(listOf(1, 0, 2), asked)
+        assertNull(nearestPreviewBucket(0, last = 0, maxSteps = 4) { false })
+        assertEquals(0, nearestPreviewBucket(0, last = 0, maxSteps = 4) { true })
+    }
+
+    @Test
+    fun `the reach is 4 steps and 60 s at most`() {
+        // 5 s steps (a 3 min video): 4 steps, 20 s
+        assertEquals(4, previewNearestMaxSteps(180_000))
+        // 14.3 s steps (a 24 min episode): 4 steps, 57.2 s
+        assertEquals(4, previewNearestMaxSteps(1_430_026))
+        // 20 s steps: 3 steps, 60 s
+        assertEquals(3, previewNearestMaxSteps(2_000_000))
+        // 30 s steps (a film): 2 steps
+        assertEquals(2, previewNearestMaxSteps(7_200_000))
+        assertEquals(4, previewNearestMaxSteps(0))
+    }
+
+    @Test
+    fun `looking for a stand-in frame doesn't change which frame is evicted first`() {
+        val cache = cache(maxBytes = 300)
+        cache.put(PreviewFrameKey("a", 1), "a1")
+        cache.put(PreviewFrameKey("a", 2), "a2")
+        cache.put(PreviewFrameKey("a", 3), "a3")
+        // A stand-in for step 0: step 1, found without being made recently used
+        assertEquals(1, nearestPreviewBucket(0, last = 99, maxSteps = 4) { PreviewFrameKey("a", it) in cache })
+        cache.put(PreviewFrameKey("a", 4), "a4")
+        assertFalse("step 1 is still the least recently used", PreviewFrameKey("a", 1) in cache)
+        assertTrue(PreviewFrameKey("a", 2) in cache)
+        assertTrue(PreviewFrameKey("a", 3) in cache)
+    }
+
+    @Test
     fun `step ranges cover the video without gaps`() {
         assertEquals(0L until 14_400L, previewBucketRangeMs(0, episode))
         assertEquals(14_400L until 28_800L, previewBucketRangeMs(1, episode))

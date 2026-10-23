@@ -130,6 +130,28 @@ fun phonePreviewBucketOf(positionMs: Long, durationMs: Long): Int {
     return if (bucket == last && last > 0 && durationMs - last * size < size / 2) last - 1 else bucket
 }
 
+/**
+ * The step whose frame stands for [bucket]: itself when it [has] one, else the nearest within [maxSteps] steps
+ * between 0 and [last], the earlier on a tie; null when none has.
+ */
+fun nearestPreviewBucket(bucket: Int, last: Int, maxSteps: Int, has: (Int) -> Boolean): Int? {
+    if (has(bucket)) return bucket
+    for (distance in 1..maxSteps) {
+        val before = bucket - distance
+        if (before >= 0 && has(before)) return before
+        val after = bucket + distance
+        if (after <= last && has(after)) return after
+    }
+    return null
+}
+
+/** How far a stand-in frame may be from its step: 4 steps and 60 s at most, 1 step at least. */
+fun previewNearestMaxSteps(durationMs: Long): Int =
+    (PREVIEW_NEAREST_MAX_MS / previewBucketSizeMs(durationMs)).toInt().coerceIn(1, PREVIEW_NEAREST_MAX_STEPS)
+
+private const val PREVIEW_NEAREST_MAX_MS = 60_000L
+private const val PREVIEW_NEAREST_MAX_STEPS = 4
+
 /** Start and end (exclusive) of the preview step [bucket]; the last step ends with the video. */
 fun previewBucketRangeMs(bucket: Int, durationMs: Long): LongRange {
     val size = previewBucketSizeMs(durationMs)

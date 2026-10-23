@@ -10,7 +10,7 @@ import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -100,24 +100,41 @@ class SeekPreviewPlayer(
     private var fingerArrivedCached = false
     private var fingerStepDrawn = false
 
-    // The step of the frame shown
-    private var shownBucket: Int? = null
+    // The current file can't be previewed (the preview player failed on it): no new frame is fetched
+    private var failed = false
 
-    /** The frame shown: the one of the step under the finger, or the last one shown while it loads. */
-    var frame by mutableStateOf<Bitmap?>(null)
+    /**
+     * Changes whenever [frameAt] may answer otherwise: a frame cached or dropped, a step given up, the file
+     * failed or changed. Read it in composition to show [frameAt] again.
+     */
+    var framesVersion by mutableIntStateOf(0)
         private set
 
-    /** The frame of the step under the finger is loading: [frame] is an older one meanwhile, or none. */
-    var frameLoading by mutableStateOf(false)
-        private set
+    /**
+     * What the thumbnail of [positionMs] shows in a [durationMs]-long video: the frame of its step, or while
+     * that one is missing the cached frame of the nearest step within [previewNearestMaxSteps]; nothing without
+     * a file (a stream, nothing playing) or a duration. Never a frame of another file. Not a state read: key it
+     * on [framesVersion].
+     */
+    fun frameAt(positionMs: Long, durationMs: Long): PreviewShown {
+        if (durationMs <= 0L || frames.sourceId == null) return PreviewShown.NONE
+        val bucket = phonePreviewBucketOf(positionMs, durationMs)
+        val shown = nearestCachedBucket(bucket, durationMs)
+        return PreviewShown(
+            bucket = bucket,
+            // The chosen frame only is read: a read makes it the most recently used
+            frame = shown?.let { frames[key(it)] },
+            exact = shown == bucket,
+            loading = shown != bucket && !failed && bucket !in unavailable,
+        )
+    }
 
-    /** The current file can't be previewed (the preview player failed on it): no new frame is fetched. */
-    var failed by mutableStateOf(false)
-        private set
-
-    /** A downloaded episode is set: its frames can be shown. Without one (a stream, nothing playing), none. */
-    var hasSource by mutableStateOf(false)
-        private set
+    /** What the thumbnail shows for the step [bucket]; [exact] when [frame] is that step's own. */
+    data class PreviewShown(val bucket: Int?, val frame: Bitmap?, val exact: Boolean, val loading: Boolean) {
+        companion object {
+            val NONE = PreviewShown(bucket = null, frame = null, exact = false, loading = false)
+        }
+    }
 
     /**
      * Sets the downloaded episode to preview, [sourceId] being its file, or none (a stream, nothing playing).
@@ -129,11 +146,8 @@ class SeekPreviewPlayer(
         frames.setSource(sourceId)
         unavailable.clear()
         sourceFactory = factory
-        hasSource = sourceId != null
         failed = false
-        frame = null
-        shownBucket = null
-        frameLoading = false
+        framesVersion++
         schedule.reset()
         prefetchSuspended = false
         prefetchStartedAt = null
@@ -169,17 +183,17 @@ class SeekPreviewPlayer(
             failed || bucket in unavailable -> "no frame"
             else -> "loading"
         }
-        Log.d(TAG, "Finger on step $bucket: $status")
+        val nearest = if (fingerArrivedCached) null else nearestCachedBucket(bucket, durationMs)
+        Log.d(TAG, "Finger on step $bucket: $status" + (nearest?.let { ", nearest $it" } ?: ""))
         requests.aim(bucket)
-        showBucket(bucket)
         pumpRequests()
     }
 
     /**
-     * The thumbnail was drawn, [exact] when with the frame of the step under the finger: logs the time since
-     * the finger reached that step, once per step.
+     * The thumbnail of the step [shownBucket] was drawn, [exact] when with that step's own frame: logs the time
+     * since the finger reached that step, once per step.
      */
-    fun onThumbnailDrawn(exact: Boolean) {
+    fun onThumbnailDrawn(shownBucket: Int?, exact: Boolean) {
         val bucket = fingerBucket ?: return
         if (!exact || fingerStepDrawn || shownBucket != bucket) return
         fingerStepDrawn = true
@@ -212,14 +226,13 @@ class SeekPreviewPlayer(
         prefetchEnabled = false
         release()
         frames.setSource(null)
-        hasSource = false
-        frame = null
-        shownBucket = null
+        framesVersion++
     }
 
     fun onTrimMemory(level: Int) {
         if (!shouldDropPreviewFrames(level)) return
         frames.clear()
+        framesVersion++
         prefetchSuspended = true
     }
 
@@ -265,14 +278,12 @@ class SeekPreviewPlayer(
     /** Cached, or known to give no frame: nothing to fetch. */
     private fun isDone(bucket: Int) = key(bucket) in frames || bucket in unavailable
 
-    private fun showBucket(bucket: Int) {
-        val cached = frames[key(bucket)]
-        if (cached != null) {
-            frame = cached
-            shownBucket = bucket
-        }
-        frameLoading = cached == null && !failed && bucket !in unavailable
-    }
+    /** [bucket], or the nearest step to it with a frame cached; looked up without changing what's evicted first. */
+    private fun nearestCachedBucket(bucket: Int, durationMs: Long): Int? = nearestPreviewBucket(
+        bucket = bucket,
+        last = phonePreviewBucketOf(durationMs - 1, durationMs),
+        maxSteps = previewNearestMaxSteps(durationMs),
+    ) { key(it) in frames }
 
     private fun pumpRequests() {
         handler.removeCallbacks(pump)
@@ -358,6 +369,7 @@ class SeekPreviewPlayer(
         val bitmap = view.getBitmap(PREVIEW_FRAME_WIDTH_PX, height)?.let(::toPreviewFrame) ?: return
         frameBytes = bitmap.allocationByteCount.toLong()
         frames.put(key(bucket), bitmap)
+        framesVersion++
         val framePtsMs = releasedFramePtsUs / 1000
         val textureMatches = view.surfaceTexture?.timestamp == releasedFrameAtNs
         Log.d(
@@ -371,7 +383,6 @@ class SeekPreviewPlayer(
         )
         handler.removeCallbacks(giveUp)
         onFetchEnded(bucket)
-        fingerBucket?.let(::showBucket)
         pumpRequests()
     }
 
@@ -386,8 +397,8 @@ class SeekPreviewPlayer(
         player?.release()
         player = null
         unavailable += bucket
+        framesVersion++
         onFetchEnded(bucket)
-        fingerBucket?.let(::showBucket)
         pumpRequests()
     }
 
@@ -480,7 +491,7 @@ class SeekPreviewPlayer(
                 // Not retried on every drag: no new frame until the source changes
                 Log.w(TAG, "Seekbar preview failed", error)
                 failed = true
-                frameLoading = false
+                framesVersion++
                 handler.post { release() }
             }
         })
