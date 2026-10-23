@@ -103,6 +103,42 @@ class SeekPreviewLogicTest {
     }
 
     @Test
+    fun `the phone merges a leftover end step into the one before it`() {
+        // 23:50.026 in 14.3 s steps: step 100 is 26 ms long
+        val download = 1_430_026L
+        assertEquals(100, previewBucketOf(download - 1, download))
+        assertEquals(99, phonePreviewBucketOf(1_429_999, download))
+        assertEquals(99, phonePreviewBucketOf(1_430_000, download))
+        assertEquals(99, phonePreviewBucketOf(1_430_025, download))
+        assertEquals(99, phonePreviewBucketOf(download + 5_000, download))
+        assertEquals(98, phonePreviewBucketOf(1_415_699, download))
+        // 23:40.050 in 14.2 s steps: a 50 ms step 100
+        assertEquals(99, phonePreviewBucketOf(1_420_049, 1_420_050))
+        // 5 s steps of a 5:01 to 5:03 video: a 1 or 2 s leftover is merged, a 3 s one (half a step or more) kept
+        assertEquals(59, phonePreviewBucketOf(300_500, 301_000))
+        assertEquals(59, phonePreviewBucketOf(301_500, 302_000))
+        assertEquals(60, phonePreviewBucketOf(302_500, 303_000))
+        // A 7 s clip: its 2 s second step too
+        assertEquals(0, phonePreviewBucketOf(6_000, 7_000))
+    }
+
+    @Test
+    fun `the phone keeps a full or long enough end step`() {
+        // 24:00 in 14.4 s steps: step 99 is a full one
+        assertEquals(99, phonePreviewBucketOf(episode - 1, episode))
+        assertEquals(previewBucketOf(1_430_000, episode), phonePreviewBucketOf(1_430_000, episode))
+        // Exactly half a step left: kept
+        assertEquals(60, phonePreviewBucketOf(302_499, 302_500))
+    }
+
+    @Test
+    fun `the phone's steps of an unknown or tiny duration are the shared ones`() {
+        assertEquals(0, phonePreviewBucketOf(5_000, 0))
+        assertEquals(0, phonePreviewBucketOf(5_000, -1))
+        assertEquals(0, phonePreviewBucketOf(0, 1))
+    }
+
+    @Test
     fun `step ranges cover the video without gaps`() {
         assertEquals(0L until 14_400L, previewBucketRangeMs(0, episode))
         assertEquals(14_400L until 28_800L, previewBucketRangeMs(1, episode))

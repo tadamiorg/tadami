@@ -67,10 +67,16 @@ class PreviewPrefetch(private val now: () -> Long) {
         nextAt = now() + gapMs
     }
 
-    /** The step to prefetch now in a [durationMs]-long stream: the nearest the position not [isDone]; null when all are. */
-    fun nextStep(durationMs: Long, isDone: (Int) -> Boolean): Int? {
+    /**
+     * The step to prefetch now in a [durationMs]-long stream, up to the [last] one: the nearest the position not
+     * [isDone]; null when all are.
+     */
+    fun nextStep(
+        durationMs: Long,
+        last: Int = previewBucketOf(durationMs - 1, durationMs),
+        isDone: (Int) -> Boolean,
+    ): Int? {
         if (durationMs <= 0L) return null
-        val last = previewBucketOf(durationMs - 1, durationMs)
         val center = previewBucketOf(positionMs, durationMs)
         return prefetchOrder(center, last).firstOrNull { !isDone(it) }
     }

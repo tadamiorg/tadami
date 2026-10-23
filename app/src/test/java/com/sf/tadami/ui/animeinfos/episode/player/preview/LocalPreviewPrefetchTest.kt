@@ -153,6 +153,26 @@ class LocalPreviewPrefetchTest {
     }
 
     @Test
+    fun `never prefetches a leftover end step, merged into the one before it`() {
+        // 23:50.026: steps 0..99, step 100 being 26 ms long
+        val download = 1_430_026L
+        playSteadily(positionMs = download - 1)
+        assertEquals(PreviewPrefetchStep.Fetch(99), nextPreviewPrefetch(schedule, requests, download, { it in done }, true))
+        done += 0..99
+        assertEquals(PreviewPrefetchStep.Done, nextPreviewPrefetch(schedule, requests, download, { it in done }, true))
+        // The cast's own picks keep every step
+        assertEquals(100, schedule.nextStep(download) { it in done })
+    }
+
+    @Test
+    fun `a new file's duration picks the step at the position`() {
+        // 10:00 into a 23:50.026 episode: step 41 of 14.3 s steps; into a 48:00 one: step 20 of 28.8 s steps
+        playSteadily(positionMs = 600_000L)
+        assertEquals(PreviewPrefetchStep.Fetch(41), nextPreviewPrefetch(schedule, requests, 1_430_026L, { false }, true))
+        assertEquals(PreviewPrefetchStep.Fetch(20), nextPreviewPrefetch(schedule, requests, 2_880_000L, { false }, true))
+    }
+
+    @Test
     fun `stops once every step is done`() {
         playSteadily(positionMs = 0L)
         done += 0..99

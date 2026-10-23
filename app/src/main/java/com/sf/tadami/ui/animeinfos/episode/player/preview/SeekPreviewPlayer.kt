@@ -139,6 +139,8 @@ class SeekPreviewPlayer(
         prefetchStartedAt = null
         prefetchComplete = false
         previewBytes = 0L
+        // The previous file's duration would give this file's frames the wrong steps
+        durationMs = 0L
         if (prefetchEnabled) scheduleTick(0L)
     }
 
@@ -156,7 +158,7 @@ class SeekPreviewPlayer(
     fun scrubTo(positionMs: Long, durationMs: Long) {
         if (durationMs <= 0L || frames.sourceId == null) return
         this.durationMs = durationMs
-        val bucket = previewBucketOf(positionMs, durationMs)
+        val bucket = phonePreviewBucketOf(positionMs, durationMs)
         if (bucket == fingerBucket) return
         fingerBucket = bucket
         fingerArrivedAt = SystemClock.elapsedRealtime()
@@ -290,9 +292,9 @@ class SeekPreviewPlayer(
         schedule.onStatus(main?.state, main?.positionMs ?: schedule.positionMs)
         val duration = main?.durationMs?.takeIf { it > 0L } ?: durationMs
         if (surface != null && sourceFactory != null && duration > 0L) {
+            durationMs = duration
             when (val next = nextPreviewPrefetch(schedule, requests, duration, ::isDone, frames.hasRoomFor(frameBytes))) {
                 is PreviewPrefetchStep.Fetch -> if (requests.prefetch(next.bucket)) {
-                    durationMs = duration
                     if (prefetchStartedAt == null) prefetchStartedAt = SystemClock.elapsedRealtime()
                     fetch(next.bucket)
                 }

@@ -117,6 +117,19 @@ fun previewBucketOf(positionMs: Long, durationMs: Long): Int {
     return (clamped / previewBucketSizeMs(durationMs)).toInt()
 }
 
+/**
+ * The phone player's preview step of [positionMs]: [previewBucketOf], but a last step shorter than half a step
+ * belongs to the one before it. The step size is rounded down, so the last step is often a leftover of a few ms
+ * (26 ms of a 1,430,026 ms episode), too short for a seek to render a frame in it.
+ */
+fun phonePreviewBucketOf(positionMs: Long, durationMs: Long): Int {
+    val bucket = previewBucketOf(positionMs, durationMs)
+    if (durationMs <= 0L) return bucket
+    val last = previewBucketOf(durationMs - 1, durationMs)
+    val size = previewBucketSizeMs(durationMs)
+    return if (bucket == last && last > 0 && durationMs - last * size < size / 2) last - 1 else bucket
+}
+
 /** Start and end (exclusive) of the preview step [bucket]; the last step ends with the video. */
 fun previewBucketRangeMs(bucket: Int, durationMs: Long): LongRange {
     val size = previewBucketSizeMs(durationMs)
@@ -262,7 +275,8 @@ fun nextPreviewPrefetch(
     if (!schedule.runnable() || !schedule.ready() || requests.inFlight != null || requests.scrubbing) {
         return PreviewPrefetchStep.Wait
     }
-    val bucket = schedule.nextStep(durationMs, isDone) ?: return PreviewPrefetchStep.Done
+    val bucket = schedule.nextStep(durationMs, last = phonePreviewBucketOf(durationMs - 1, durationMs), isDone = isDone)
+        ?: return PreviewPrefetchStep.Done
     return if (hasRoom) PreviewPrefetchStep.Fetch(bucket) else PreviewPrefetchStep.Done
 }
 
