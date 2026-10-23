@@ -302,6 +302,41 @@ class SeekPreviewLogicTest {
     }
 
     @Test
+    fun `a fetch the finger left is given up for the finger's step once it's long`() {
+        val requests = BucketRequests()
+        requests.aim(29)
+        assertEquals(29, requests.next { false })
+        // The finger's own step: waited for, up to its timeout
+        assertNull(requests.staleFetchWaitMs(5_000))
+        requests.aim(11)
+        // A frame usually comes well within the wait
+        assertEquals(PREVIEW_STALE_FETCH_MS - 400, requests.staleFetchWaitMs(400))
+        assertNull(requests.next { false })
+        // Past it, the step left is given up: the finger's comes next
+        assertEquals(0L, requests.staleFetchWaitMs(PREVIEW_STALE_FETCH_MS + 200))
+        requests.finished(29)
+        assertEquals(11, requests.next { false })
+        assertNull(requests.staleFetchWaitMs(PREVIEW_STALE_FETCH_MS + 200))
+    }
+
+    @Test
+    fun `nothing to give up without a finger, nor for a prefetch`() {
+        val requests = BucketRequests()
+        assertNull(requests.staleFetchWaitMs(5_000))
+        // The drag ended: the fetch in flight lands
+        requests.aim(4)
+        requests.next { false }
+        requests.aim(null)
+        assertNull(requests.staleFetchWaitMs(5_000))
+        requests.finished(4)
+        // A prefetch: the finger's step takes it over at once
+        assertTrue(requests.prefetch(40))
+        requests.aim(12)
+        assertNull(requests.staleFetchWaitMs(5_000))
+        assertEquals(12, requests.next { false })
+    }
+
+    @Test
     fun `a stale end of fetch doesn't free the step loading`() {
         val requests = BucketRequests()
         requests.aim(2)

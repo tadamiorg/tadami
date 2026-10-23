@@ -132,6 +132,12 @@ class PreviewErrors {
 /** A step whose frame hasn't come after this long gives none, and isn't fetched again for the stream. */
 const val PREVIEW_FETCH_TIMEOUT_MS = 10_000L
 
+/**
+ * A fetch for a step the finger left is given up after this long for the finger's step: a frame comes in well
+ * under it (0.4 s median, 0.9 s p90 on a software decoder), a step that never renders holds on to its timeout.
+ */
+const val PREVIEW_STALE_FETCH_MS = 1_500L
+
 /** A single video renderer for the preview players: no audio, text nor metadata renderer is even created. */
 @OptIn(UnstableApi::class)
 fun previewRenderersFactory(context: Context) = RenderersFactory { handler, videoListener, _, _, _ ->
@@ -299,6 +305,19 @@ class BucketRequests {
         inFlight = bucket
         inFlightIsPrefetch = false
         return bucket
+    }
+
+    /**
+     * How long the fetch in flight, loading for [loadingForMs], still holds up the finger's step: it is for a step
+     * the finger left, and a frame not come in [PREVIEW_STALE_FETCH_MS] may never come (a stall, no error) while
+     * its timeout is far. 0: give it up ([finished]) for the finger's step. Null when it holds up nothing: no
+     * finger, nothing loading, the finger's own step loading, or a prefetch, which the finger's step takes over.
+     */
+    fun staleFetchWaitMs(loadingForMs: Long): Long? {
+        val loading = inFlight ?: return null
+        val bucket = target ?: return null
+        if (inFlightIsPrefetch || loading == bucket) return null
+        return (PREVIEW_STALE_FETCH_MS - loadingForMs).coerceAtLeast(0L)
     }
 
     /** Marks the prefetch of [bucket] as loading: false when a fetch loads or a finger is on the seekbar. */

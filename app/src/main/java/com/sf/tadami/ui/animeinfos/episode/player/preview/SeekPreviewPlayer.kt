@@ -393,7 +393,28 @@ class SeekPreviewPlayer(
         handler.removeCallbacks(pump)
         val target = fingerBucket ?: return
         if (failed || surface == null || sourceFactory == null || isDone(target)) return
+        requests.staleFetchWaitMs(SystemClock.elapsedRealtime() - fetchStartedAt)?.let { waitMs ->
+            if (waitMs > 0L) {
+                handler.postDelayed(pump, waitMs)
+                return
+            }
+            abandonFetch()
+        }
         requests.next(::isDone)?.let(::fetch)
+    }
+
+    /**
+     * Gives up the fetch in flight, for a step the finger left, as a timeout does but for the step: it isn't marked
+     * as giving no frame (it may, fetched again later). A late frame mustn't be taken for the next step: a new
+     * player takes it.
+     */
+    private fun abandonFetch() {
+        val bucket = requests.inFlight ?: return
+        Log.d(TAG, "Leaving step $bucket after ${SystemClock.elapsedRealtime() - fetchStartedAt} ms for the finger's step")
+        handler.removeCallbacks(giveUp)
+        player?.release()
+        player = null
+        onFetchEnded(bucket)
     }
 
     private fun scheduleTick(delayMs: Long) {
