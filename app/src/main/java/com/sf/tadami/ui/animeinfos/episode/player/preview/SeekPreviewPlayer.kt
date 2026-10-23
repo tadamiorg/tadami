@@ -466,13 +466,15 @@ class SeekPreviewPlayer(
 
     /**
      * Puts the loaded sidecar's frames in the cache, each step of the main player's timeline taking the frame of its
-     * time; kept for a later duration while the main player's isn't the sidecar's (another file was playing).
+     * time; kept until the main player's duration is known (reset with the file), dropped when it isn't the sidecar's.
      */
     private fun applySidecar() {
         val loaded = loadedSidecar ?: return
         val duration = durationMs.takeIf { it > 0L } ?: return
         if (!loaded.sidecar.matchesDuration(duration)) {
-            Log.d(TAG, "Preview frames kept for ${loaded.sidecar.durationMs} ms, the player plays $duration ms")
+            // Of no use for this file: their bitmaps go now, not with the prefetch's end (never, with it off)
+            Log.d(TAG, "Preview frames kept for ${loaded.sidecar.durationMs} ms, the player plays $duration ms: dropped")
+            loadedSidecar = null
             return
         }
         loadedSidecar = null
