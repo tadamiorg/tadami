@@ -3,6 +3,7 @@ package com.sf.tadami.ui.animeinfos.episode.cast.preview
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewSidecar
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketSizeMs
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -151,5 +152,24 @@ class CastPreviewPushesTest {
         replies.waiting(source().requestFor(16).copy(requestId = 8))
         replies.clear()
         assertNull(replies.answerEarly(8))
+    }
+
+    @Test
+    fun `the TV moving on to a streamed episode stops the previews, nothing else does`() {
+        val watch = TvMediaWatch()
+        val stream = "https://h.example/ep4.m3u8"
+        val otherLocal = "http://192.168.1.4:8214/local-fedcba9876543210fedcba9876543210-video.m3u8"
+        // Announced while the TV's media still shows the stream before it: not a change yet
+        assertFalse(watch.movedToStream(stream))
+        assertFalse(watch.movedToStream(url))
+        assertFalse("unknown, nothing loaded", watch.movedToStream(null))
+        assertFalse(watch.movedToStream(url))
+        // Another downloaded episode: announced, its own stream
+        assertFalse(watch.movedToStream(otherLocal))
+        assertTrue(watch.movedToStream(stream))
+        assertFalse("once", watch.movedToStream(stream))
+        // A new announcement: what is seen first doesn't count
+        watch.reset()
+        assertFalse(watch.movedToStream("https://h.example/ep5.m3u8"))
     }
 }

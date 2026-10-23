@@ -290,7 +290,8 @@ class CastControlService : Service() {
             MediaStatus.PLAYER_STATE_IDLE -> PreviewPrefetch.Playback.IDLE
             else -> null
         }
-        return CastSeekPreview.CastPlayback(state, client.approximateStreamPosition)
+        val media = client.mediaInfo
+        return CastSeekPreview.CastPlayback(state, client.approximateStreamPosition, media?.contentUrl ?: media?.contentId)
     }
 
     /** Control messages from the TV: persist watch time, switch episodes, or mirror TV-local track selection. */

@@ -38,8 +38,10 @@ import kotlinx.coroutines.withContext
  *   before any prefetch; one not there within [CAST_PREVIEW_REPLY_MS] is answered "none" (the receiver shows the
  *   time alone), its frame pushed once decoded ([PendingReplies]).
  *
- * The file is the one behind the proxy `/local-` URL the receiver names ([localFileUri]). The decoder is
- * released after [IDLE_RELEASE_MS] without decoding, and everything with [destroy] at the end of the session.
+ * The file is the one behind the proxy `/local-` URL the receiver names ([localFileUri]). The TV moving on to a
+ * streamed episode, whose load announces nothing, stops it all: the TV's media changes ([TvMediaWatch]). The
+ * decoder is released after [IDLE_RELEASE_MS] without decoding, and everything with [destroy] at the end of the
+ * session.
  * Main thread only.
  */
 @UnstableApi
@@ -75,8 +77,8 @@ class CastSeekPreview(
         val prefetch: Boolean = true,
     )
 
-    /** The TV's player state and position. */
-    data class CastPlayback(val state: PreviewPrefetch.Playback?, val positionMs: Long)
+    /** The TV's player state and position, and the URL of its media (null when unknown). */
+    data class CastPlayback(val state: PreviewPrefetch.Playback?, val positionMs: Long, val mediaUrl: String? = null)
 
     /** Where the previews of the current stream are. */
     data class Stats(
@@ -102,6 +104,9 @@ class CastSeekPreview(
 
     // The stream the receiver plays, from its announcement (or its last request)
     private var source: CastPreviewSource? = null
+
+    // The TV moving on to a streamed episode, which announces nothing: the previews of the downloaded one stop
+    private val tvMedia = TvMediaWatch()
 
     // Steps the receiver holds: neither pushed nor prefetched for it again
     private val receiverHas = mutableSetOf<Int>()
@@ -135,6 +140,7 @@ class CastSeekPreview(
             Log.d(TAG, "No preview for the stream announced: not a downloaded episode, or previews off")
             return
         }
+        tvMedia.reset()
         if (frames.select(announced.sourceId) || source?.sourceId != announced.sourceId) {
             startStream(announced)
         } else {
@@ -191,15 +197,31 @@ class CastSeekPreview(
     /** The cast session ended: decoder, pushes and frames released. */
     fun destroy() {
         logStats("Session ended")
+        dropStream()
+    }
+
+    /** No more previews of the current stream: its prefetch, pushes and frames go, the decoder released. */
+    private fun dropStream() {
         handler.removeCallbacks(tick)
         handler.removeCallbacks(pushNext)
         pushes.clear()
+        pushToken++
         sidecarJob?.cancel()
+        sidecarLoading = false
+        held.clear()
         replies.clear()
         source = null
         // Cleared first: a decode in flight is dropped, so nothing holds the decoder back
         frames.clear()
         releaseGrabber()
+    }
+
+    /** The TV moved on to a streamed episode: the downloaded one's previews stop, true then. */
+    private fun dropIfTvMovedOn(): Boolean {
+        if (!tvMedia.movedToStream(playback()?.mediaUrl)) return false
+        logStats("The TV plays a streamed episode")
+        dropStream()
+        return true
     }
 
     fun onTrimMemory(level: Int) {
@@ -222,6 +244,7 @@ class CastSeekPreview(
     private fun startStream(announced: CastPreviewSource) {
         if (source != null) logStats("Stream changed")
         source = announced
+        tvMedia.reset()
         prefetch.reset()
         receiverHas.clear()
         receiverHas += announced.steps
@@ -308,6 +331,7 @@ class CastSeekPreview(
 
     private fun onTick() {
         val current = source ?: return
+        if (dropIfTvMovedOn()) return
         playback()?.let { prefetch.onStatus(it.state, it.positionMs) } ?: prefetch.onStatus(null, prefetch.positionMs)
         if (frames.isFailed) return
         // The frames kept next to the episode come first: nothing is decoded before they are known
@@ -475,7 +499,9 @@ class CastSeekPreview(
             handler.postDelayed(pushNext, wait)
             return
         }
-        val action = pushes.removeFirstOrNull() ?: return
+        // The prefetch may be over: the pushes look too
+        if (pushes.isEmpty() || dropIfTvMovedOn()) return
+        val action = pushes.removeFirst()
         val message = message(action)
         receiverHas += action.request.step
         if (pushBurstStartedAt == null) {

@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode.cast.preview
 
+import com.sf.tadami.ui.animeinfos.episode.cast.proxy.isLocalMediaUrl
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewSidecar
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketOf
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketRangeMs
@@ -112,3 +113,27 @@ class PendingReplies {
 
 /** How long a receiver's request waits for its frame before it is answered "none" (the frame then pushed). */
 const val CAST_PREVIEW_REPLY_MS = 300L
+
+/**
+ * Whether the TV moved on from the downloaded episode whose previews are made to a streamed one: a stream's load
+ * announces nothing to the previews, the TV's media (its content URL) changing to one not served by the phone tells.
+ */
+class TvMediaWatch {
+    private var seen: String? = null
+
+    /** A downloaded episode was announced: the TV's media seen next may still be the one before it, not updated yet. */
+    fun reset() {
+        seen = null
+    }
+
+    /**
+     * The TV plays [mediaUrl] (null when unknown, nothing loaded): true when it changed, since the last one seen, to
+     * a URL the phone doesn't serve ([isLocal] false).
+     */
+    fun movedToStream(mediaUrl: String?, isLocal: (String) -> Boolean = ::isLocalMediaUrl): Boolean {
+        val url = mediaUrl ?: return false
+        val previous = seen
+        seen = url
+        return previous != null && url != previous && !isLocal(url)
+    }
+}
