@@ -71,6 +71,8 @@ class Downloader(
     private val store: DownloadStore,
     private val resumeStore: ResumeStore,
     private val scope: CoroutineScope,
+    /** An episode is downloaded, in the folders named so (source, anime, episode): it doesn't wait for it. */
+    private val onDownloaded: (sourceDir: String, animeDir: String, episodeDir: String) -> Unit = { _, _, _ -> },
 ) {
 
     private val sourceManager: SourceManager by injectLazy()
@@ -426,17 +428,21 @@ class Downloader(
             animeDir.findFile(download.dirName)?.deleteRecursively()
             if (!tmpDir.renameTo(download.dirName)) throw IOException("Can't rename ${tmpDir.name}")
         }
-        cache.addEpisode(
-            provider.getSourceDirName(download.source),
-            animeDir.name ?: provider.getAnimeDirName(download.anime),
-            download.dirName,
-        )
+        val sourceDirName = provider.getSourceDirName(download.source)
+        val animeDirName = animeDir.name ?: provider.getAnimeDirName(download.anime)
+        cache.addEpisode(sourceDirName, animeDirName, download.dirName)
         val saved = synchronized(lock) { setQueue(_queueState.value - download) }
         resumeStore.delete(download.episode.id)
         download.progress = 100
         // Before the wait: a pause now doesn't turn it back to queued
         download.status = Download.State.DOWNLOADED
         withContext(NonCancellable) { saved.join() }
+        // Its seekbar preview frames, made after: they never fail nor hold back the download
+        try {
+            onDownloaded(sourceDirName, animeDirName, download.dirName)
+        } catch (e: Exception) {
+            logcat(LogPriority.WARN, e) { "Couldn't queue the preview frames of ${download.episode.name}" }
+        }
     }
 
     /** The episode dirs in the anime dir of [download], read from the storage: the cache may not be filled yet. */

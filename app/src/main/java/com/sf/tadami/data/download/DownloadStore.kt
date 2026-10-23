@@ -124,7 +124,7 @@ data class FileProgress(
     val sizes: List<Long>? = null,
 )
 
-private object StoreFiles {
+internal object StoreFiles {
     // A failed write keeps the previous content: losing a resume point or a queue change isn't worth a crash
     fun writeAtomically(file: File, text: String) {
         val tmp = File(file.parentFile, "${file.name}.tmp")

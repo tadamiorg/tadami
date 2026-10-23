@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.SystemClock
 import android.util.Log
+import androidx.media3.common.C
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
@@ -24,7 +26,8 @@ import java.util.concurrent.atomic.AtomicReference
  * Decodes preview frames of one stream at a time, with no view: a muted, video-only ExoPlayer (the
  * phone player's preview configuration) renders into an offscreen GL surface ([OffscreenFrameReader])
  * and the frame after each seek is read back, downscaled, as a JPEG within the cast message budget.
- * Works with the phone's player screen closed, from the cast session's service.
+ * Works with the phone's player screen closed, from the cast session's service, and in the background
+ * for the seekbar preview frames kept next to a downloaded episode (PreviewGenerator).
  *
  * Everything runs on its own thread; results are delivered there. One grab at a time: a new grab or
  * [setSource] drops the grab in flight (its result is never delivered), and a frame is only taken
@@ -34,7 +37,8 @@ import java.util.concurrent.atomic.AtomicReference
 class CastFrameGrabber(private val context: Context) {
 
     sealed interface Result {
-        class Frame(val jpeg: PreviewJpeg) : Result
+        /** [jpeg], the frame at [timeMs] of the stream. */
+        class Frame(val jpeg: PreviewJpeg, val timeMs: Long) : Result
 
         /** No frame in time (or none that fits a cast message): the step has none. */
         data object NoFrame : Result
@@ -77,6 +81,36 @@ class CastFrameGrabber(private val context: Context) {
      */
     fun grab(positionMs: Long, toleranceMs: Long, onResult: (Result) -> Unit) {
         handler.post { startGrab(positionMs, toleranceMs, onResult) }
+    }
+
+    /**
+     * The stream's duration once its player has read it, null when it can't be read within
+     * [PREVIEW_FETCH_TIMEOUT_MS]. [onResult] is called on the grabber's thread, once.
+     */
+    fun duration(onResult: (Long?) -> Unit) {
+        handler.post {
+            val frameReader = reader ?: OffscreenFrameReader.create(handler, ::onFrameAvailable)?.also { reader = it }
+            val previewPlayer = frameReader?.let { player ?: createPlayer(it) }
+            if (previewPlayer == null) {
+                onResult(null)
+                return@post
+            }
+            if (previewPlayer.playbackState == Player.STATE_IDLE) previewPlayer.prepare()
+            val deadline = SystemClock.elapsedRealtime() + PREVIEW_FETCH_TIMEOUT_MS
+            val poll = object : Runnable {
+                override fun run() {
+                    // Failed or dropped meanwhile: no duration will come
+                    if (player !== previewPlayer || previewPlayer.playerError != null) return onResult(null)
+                    val durationMs = previewPlayer.duration.takeIf { it != C.TIME_UNSET && it > 0L }
+                    when {
+                        durationMs != null -> onResult(durationMs)
+                        SystemClock.elapsedRealtime() >= deadline -> onResult(null)
+                        else -> handler.postDelayed(this, DURATION_POLL_MS)
+                    }
+                }
+            }
+            poll.run()
+        }
     }
 
     /** Frees the player, the GL surface and the thread. */
@@ -141,7 +175,8 @@ class CastFrameGrabber(private val context: Context) {
             ByteArrayOutputStream().also { bitmap.compress(Bitmap.CompressFormat.JPEG, quality, it) }.toByteArray()
         }
         bitmap.recycle()
-        finish(if (jpeg != null) Result.Frame(PreviewJpeg(jpeg, width, height)) else Result.NoFrame, releasePlayer = false)
+        val result = if (jpeg != null) Result.Frame(PreviewJpeg(jpeg, width, height), released.presentationTimeUs / 1000) else Result.NoFrame
+        finish(result, releasePlayer = false)
     }
 
     private fun finish(result: Result, releasePlayer: Boolean) {
@@ -217,5 +252,8 @@ class CastFrameGrabber(private val context: Context) {
 
         /** Beyond the seek tolerance, how far after: up to a keyframe interval, for streams seeking by bytes. */
         const val FRAME_WINDOW_AFTER_MS = 10_000L
+
+        /** How often [duration] looks at the player while it reads the stream. */
+        const val DURATION_POLL_MS = 50L
     }
 }

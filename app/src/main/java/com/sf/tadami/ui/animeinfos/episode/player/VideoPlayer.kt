@@ -61,6 +61,7 @@ import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.sf.tadami.R
+import com.sf.tadami.data.download.PreviewGenerator
 import com.sf.tadami.data.download.isLocalFile
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
@@ -457,6 +458,15 @@ fun VideoPlayer(
                 downloaded = episodeUiState.selectedSource?.isLocalFile == true,
             )
         )
+    }
+
+    // The preview frames of new downloads wait while this screen is seen (PiP included) or plays: the playback
+    // keeps the device's decoders
+    val screenState by screenLifecycle.currentStateFlow.collectAsState()
+    val previewGenerationPaused = screenState.isAtLeast(Lifecycle.State.STARTED) || isPlaying
+    DisposableEffect(previewGenerationPaused) {
+        PreviewGenerator.playerActive.value = previewGenerationPaused
+        onDispose { PreviewGenerator.playerActive.value = false }
     }
 
     val seekPreview = remember(playerPreferences.seekPreview) {

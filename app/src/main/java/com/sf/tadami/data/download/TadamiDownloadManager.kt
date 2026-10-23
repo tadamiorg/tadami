@@ -55,6 +55,15 @@ class TadamiDownloadManager(
 
     private val cache = DownloadCache(provider, Injekt.get(), scope)
 
+    // The seekbar preview frames of each episode, made once it is downloaded
+    private val previewGenerator = PreviewGenerator(
+        context = context,
+        provider = provider,
+        store = File(File(context.filesDir, DOWNLOADS_DATA_DIR), "previews.json"),
+        dataStore = Injekt.get(),
+        scope = scope,
+    )
+
     private val downloader = File(context.filesDir, DOWNLOADS_DATA_DIR).let { dir ->
         Downloader(
             context = context,
@@ -63,6 +72,7 @@ class TadamiDownloadManager(
             store = DownloadStore(File(dir, "queue.json")),
             resumeStore = ResumeStore(File(dir, "resume")),
             scope = scope,
+            onDownloaded = previewGenerator::onDownloaded,
         )
     }
 
