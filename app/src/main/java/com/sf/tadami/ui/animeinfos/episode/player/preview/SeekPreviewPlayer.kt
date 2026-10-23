@@ -329,6 +329,8 @@ class SeekPreviewPlayer(
         prefetchSuspended = false
         prefetchComplete = false
         prefetchStartedAt = null
+        // The new prefetch's reads only, in its logs
+        previewBytes = 0L
         sidecarApplied = false
         loadSidecar()
         framesVersion++
