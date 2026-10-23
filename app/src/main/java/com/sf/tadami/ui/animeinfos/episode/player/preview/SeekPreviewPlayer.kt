@@ -512,19 +512,17 @@ class SeekPreviewPlayer(
         )
         if (!save || target == null) return
         sidecarSaved = true
-        // What the cache holds now: a frame dropped later stays in the sidecar
-        val steps = (0..last).map { step -> Triple(step, frames[key(step)], frameTimesMs[step]) }
+        // What the cache holds now: a frame dropped later stays in the sidecar. A step without one (none in time, an
+        // error) is left out, not kept as one without: it may come next time, fetched when it's needed
+        val steps = (0..last).mapNotNull { step -> frames[key(step)]?.let { Triple(step, it, frameTimesMs[step]) } }
         val startedAt = SystemClock.elapsedRealtime()
         scope.launch(Dispatchers.IO) {
-            val entries = steps.map { (step, bitmap, timeMs) ->
-                val jpeg = bitmap?.let {
-                    CastPreviewProtocol.encodeWithinBudget { quality ->
-                        ByteArrayOutputStream().also { out -> it.compress(Bitmap.CompressFormat.JPEG, quality, out) }.toByteArray()
-                    }
-                }
-                PreviewSidecar.Entry(step, timeMs ?: -1L, jpeg)
+            val entries = steps.mapNotNull { (step, bitmap, timeMs) ->
+                CastPreviewProtocol.encodeWithinBudget { quality ->
+                    ByteArrayOutputStream().also { out -> bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out) }.toByteArray()
+                }?.let { PreviewSidecar.Entry(step, timeMs ?: -1L, it) }
             }
-            val first = steps.firstNotNullOfOrNull { it.second } ?: return@launch
+            val first = steps.firstOrNull()?.second ?: return@launch
             val sidecar = PreviewSidecar(
                 videoLength = target.video.length(),
                 durationMs = duration,
