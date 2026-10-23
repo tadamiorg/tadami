@@ -17,7 +17,8 @@ import kotlin.math.abs
  * As in the phone player: frames are kept LRU within [PREVIEW_FRAME_CACHE_BYTES] (every step of an
  * episode fits); a step that gave no frame isn't decoded again; one decode at a time. A receiver's
  * request (a scrub) always comes before the background prefetch: it takes over a prefetch decode in
- * flight (or joins it, same step), and no prefetch starts while one waits. Main thread only.
+ * flight (or joins it, same step), and no prefetch starts while one waits. One that lost its turn to a
+ * later one is decoded after it. Main thread only.
  */
 class CastPreviewFrames(maxBytes: Long = PREVIEW_FRAME_CACHE_BYTES) {
 
@@ -49,6 +50,11 @@ class CastPreviewFrames(maxBytes: Long = PREVIEW_FRAME_CACHE_BYTES) {
 
     // A receiver's request for the very step the prefetch in flight decodes
     private var joined: CastPreviewRequest? = null
+
+    // Receivers' requests that lost their turn to a later one (the finger moved on): answered "none" meanwhile, never
+    // asked again, they're decoded once nothing else waits, oldest first, whether the prefetch is on or not, so their
+    // steps don't stay without a frame for the session
+    private val dropped = ArrayDeque<CastPreviewRequest>()
 
     /** The stream whose frames are kept, null before the first request or after [clear]. */
     val sourceId: String?
@@ -100,6 +106,7 @@ class CastPreviewFrames(maxBytes: Long = PREVIEW_FRAME_CACHE_BYTES) {
         val current = inFlight
         if (current != null) {
             if (current.requestId != null) {
+                waiting?.let { drop(it, request) }
                 waiting = request
                 return null
             }
@@ -109,6 +116,8 @@ class CastPreviewFrames(maxBytes: Long = PREVIEW_FRAME_CACHE_BYTES) {
                 return null
             }
         }
+        // Taking over a prefetch: the request that joined it waits its turn
+        joined?.let { drop(it, request) }
         inFlight = request
         joined = null
         return Action.Fetch(request)
@@ -116,7 +125,7 @@ class CastPreviewFrames(maxBytes: Long = PREVIEW_FRAME_CACHE_BYTES) {
 
     /** The prefetch of [request]'s step (no request id), unless a decode runs or waits, or it's done. */
     fun prefetch(request: CastPreviewRequest): Action.Fetch? {
-        if (request.sourceId != frames.sourceId || inFlight != null || waiting != null) return null
+        if (request.sourceId != frames.sourceId || inFlight != null || waiting != null || dropped.isNotEmpty()) return null
         if (failed || prefetchSuspended || isDone(request.step)) return null
         inFlight = request
         return Action.Fetch(request)
@@ -125,7 +134,8 @@ class CastPreviewFrames(maxBytes: Long = PREVIEW_FRAME_CACHE_BYTES) {
     /**
      * The decode of [request] ended with [frame], or none ([sourceFailed]: the stream can't be decoded
      * at all). Returns the reply (to the receiver's request that joined a prefetch, if any), then what
-     * the waiting request needs; nothing when it was taken over or the stream changed meanwhile.
+     * the waiting request needs, then the requests dropped meanwhile; nothing when it was taken over or
+     * the stream changed meanwhile.
      */
     fun onFetched(request: CastPreviewRequest, frame: PreviewJpeg?, sourceFailed: Boolean = false): List<Action> {
         if (inFlight !== request) return emptyList()
@@ -147,11 +157,20 @@ class CastPreviewFrames(maxBytes: Long = PREVIEW_FRAME_CACHE_BYTES) {
                 Action.Reply(answered, CastPreviewProtocol.STATUS_NONE)
             }
         }
-        waiting?.let { next ->
-            waiting = null
+        // The request waiting, then those dropped: answered at once when known, until one is decoded
+        while (inFlight == null) {
+            val next = waiting?.also { waiting = null } ?: dropped.removeFirstOrNull() ?: break
             onRequest(next)?.let(actions::add)
         }
         return actions
+    }
+
+    /** [request] loses its turn to [by]: decoded later, unless it's the same step or one dropped already. */
+    private fun drop(request: CastPreviewRequest, by: CastPreviewRequest) {
+        if (request.step == by.step || dropped.any { it.step == request.step }) return
+        dropped.addLast(request)
+        // The oldest, farthest from where the finger is, go first: the prefetch, when on, makes them
+        if (dropped.size > MAX_DROPPED) dropped.removeFirst()
     }
 
     /**
@@ -205,5 +224,11 @@ class CastPreviewFrames(maxBytes: Long = PREVIEW_FRAME_CACHE_BYTES) {
         inFlight = null
         waiting = null
         joined = null
+        dropped.clear()
+    }
+
+    private companion object {
+        /** Requests dropped kept to decode at most: a quick drag's last steps. */
+        const val MAX_DROPPED = 8
     }
 }

@@ -118,8 +118,9 @@ class CastSeekPreview(
     private var sidecarFound = false
     private var sidecarSaved = false
 
-    // A request waiting for the frames kept next to the episode, and the time of each decoded frame
-    private var held: CastPreviewRequest? = null
+    // The requests waiting for the frames kept next to the episode (all of them, a slow read sees several), and the
+    // time of each decoded frame
+    private val held = mutableListOf<CastPreviewRequest>()
     private val frameTimesMs = mutableMapOf<Int, Long>()
     private val replies = PendingReplies()
 
@@ -171,7 +172,7 @@ class CastSeekPreview(
         }
         if (sidecarLoading) {
             // Answered from the frames kept next to the episode once they are read
-            held = request
+            held += request
             awaitReply(request)
         } else {
             when (val action = frames.onRequest(request)) {
@@ -227,7 +228,7 @@ class CastSeekPreview(
         pushes.clear()
         prefetchStartedAt = null
         prefetchMs = null
-        held = null
+        held.clear()
         frameTimesMs.clear()
         replies.clear()
         pacer.reset()
@@ -274,10 +275,11 @@ class CastSeekPreview(
                     frames.knownPushes(stream, center, receiverHas).forEach(::queuePush)
                 }
             }
-            held?.let { request ->
-                held = null
-                frames.onRequest(request)?.let(::perform)
-            }
+            // In turn: those not in the frames decoded one after another, the latest first after the one decoding,
+            // with the prefetch on or off
+            val waiting = held.toList()
+            held.clear()
+            waiting.forEach { request -> frames.onRequest(request)?.let(::perform) }
             scheduleTick(0L)
         }
     }
