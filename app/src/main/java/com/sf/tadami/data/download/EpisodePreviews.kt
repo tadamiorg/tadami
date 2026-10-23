@@ -6,6 +6,7 @@ import com.sf.tadami.data.download.stream.DownloadOutput
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewSidecar
 import com.sf.tadami.utils.logcat
 import logcat.LogPriority
+import java.io.OutputStream
 
 /**
  * The seekbar preview frames of a downloaded episode ([PreviewSidecar]), `<episode>.preview.tdp` in its folder
@@ -33,16 +34,20 @@ class EpisodePreviews(val dir: UniFile, val episodeDirName: String, val video: U
      * reader never sees half a file. Nothing when the video is gone or changed (the episode deleted or downloaded
      * again meanwhile): its folder is never made again. False when it wasn't written.
      */
-    fun write(context: Context, sidecar: PreviewSidecar): Boolean {
+    fun write(context: Context, sidecar: PreviewSidecar): Boolean = write(sidecar) { DownloadOutput.openAt(context, it, 0) }
+
+    /** [write], the file written opened by [open]. */
+    internal fun write(sidecar: PreviewSidecar, open: (UniFile) -> OutputStream): Boolean {
         val name = DownloadNames.previewsFileName(episodeDirName)
+        var tmp: UniFile? = null
         return try {
             if (!video.exists() || video.length() != sidecar.videoLength) {
                 logcat(tag = TAG) { "Not writing the preview frames of $episodeDirName: its video is gone or changed" }
                 return false
             }
             val bytes = PreviewSidecar.encode(sidecar)
-            val tmp = DownloadOutput.getOrCreateFile(dir, DownloadNames.previewsTmpFileName(episodeDirName))
-            DownloadOutput.openAt(context, tmp, 0).use { DownloadOutput.write(it, bytes) }
+            tmp = DownloadOutput.getOrCreateFile(dir, DownloadNames.previewsTmpFileName(episodeDirName))
+            open(tmp).use { DownloadOutput.write(it, bytes) }
             // A storage folder renames to "<name> (1)" rather than replace
             dir.findFile(name)?.delete()
             if (!tmp.renameTo(name) || tmp.name != name) {
@@ -54,6 +59,8 @@ class EpisodePreviews(val dir: UniFile, val episodeDirName: String, val video: U
             logcat(tag = TAG) { "Wrote $name: ${sidecar.frameCount} frames, ${bytes.size / 1024} KiB" }
             true
         } catch (e: Exception) {
+            // Never left half written
+            tmp?.let { runCatching { it.delete() } }
             logcat(LogPriority.WARN, e, tag = TAG) { "Couldn't write the preview frames of $episodeDirName" }
             false
         }
