@@ -90,7 +90,7 @@ class CastPreviewPushesTest {
     }
 
     /** Pushes [count] frames, the channel confirming each [sentAfterMs] later (null: never): when the last went. */
-    private fun pushAll(count: Int, sentAfterMs: Long?, pacer: PushPacer = PushPacer(gapMs = 20, sentTimeoutMs = 500)): List<Long> {
+    private fun pushAll(count: Int, sentAfterMs: Long?, pacer: PushPacer = PushPacer(CastSeekPreview.PUSH_GAP_MS, CastSeekPreview.PUSH_SENT_TIMEOUT_MS)): List<Long> {
         var now = 0L
         val sendTimes = mutableListOf<Long>()
         repeat(count) {
@@ -109,10 +109,10 @@ class CastPreviewPushesTest {
 
     @Test
     fun `pushes go one at a time, as fast as the channel takes them`() {
-        // A channel that takes each at once: 100 frames in about 2 s
-        assertEquals(99 * 20L, pushAll(100, sentAfterMs = 0).last())
-        // One taking 30 ms for each: about 5 s
-        assertEquals(99 * 50L, pushAll(100, sentAfterMs = 30).last())
+        // A channel that takes each at once: 100 frames in about 1 s
+        assertEquals(99 * 10L, pushAll(100, sentAfterMs = 0).last())
+        // One taking 30 ms for each: about 4 s
+        assertEquals(99 * 40L, pushAll(100, sentAfterMs = 30).last())
         // One that never says: one every half second
         assertEquals(99 * 500L, pushAll(100, sentAfterMs = null).last())
     }

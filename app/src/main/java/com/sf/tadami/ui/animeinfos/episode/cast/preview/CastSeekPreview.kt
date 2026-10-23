@@ -105,7 +105,8 @@ class CastSeekPreview(
 
     // Steps the receiver holds: neither pushed nor prefetched for it again
     private val receiverHas = mutableSetOf<Int>()
-    private val pushes = ArrayDeque<Pair<Int, String>>()
+    // Encoded as each goes, not all at once on the main thread
+    private val pushes = ArrayDeque<CastPreviewFrames.Action.Reply>()
 
     private var prefetchStartedAt: Long? = null
     private var prefetchMs: Long? = null
@@ -449,8 +450,8 @@ class CastSeekPreview(
 
     private fun queuePush(action: CastPreviewFrames.Action.Reply) {
         val step = action.request.step
-        if (step in receiverHas || pushes.any { it.first == step }) return
-        pushes.addLast(step to message(action))
+        if (step in receiverHas || pushes.any { it.request.step == step }) return
+        pushes.addLast(action)
         if (pushes.size == 1) {
             handler.removeCallbacks(pushNext)
             handler.postDelayed(pushNext, pacer.delayAt(clock()))
@@ -468,8 +469,9 @@ class CastSeekPreview(
             handler.postDelayed(pushNext, wait)
             return
         }
-        val (step, message) = pushes.removeFirstOrNull() ?: return
-        receiverHas += step
+        val action = pushes.removeFirstOrNull() ?: return
+        val message = message(action)
+        receiverHas += action.request.step
         if (pushBurstStartedAt == null) {
             pushBurstStartedAt = clock()
             pushBurstCount = 0
@@ -522,8 +524,8 @@ class CastSeekPreview(
         /** How often the prefetch looks at the TV's playback. */
         const val TICK_MS = 1_000L
 
-        /** After the channel sent a pushed frame, before the next one. */
-        const val PUSH_GAP_MS = 20L
+        /** After the channel sent a pushed frame, before the next one: room for the playback's messages. */
+        const val PUSH_GAP_MS = 10L
 
         /** A pushed frame the channel never confirmed: the next one goes after this long anyway. */
         const val PUSH_SENT_TIMEOUT_MS = 500L

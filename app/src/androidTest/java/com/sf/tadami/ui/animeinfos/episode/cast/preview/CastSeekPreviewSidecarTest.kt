@@ -53,7 +53,8 @@ class CastSeekPreviewSidecarTest {
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
-    private val messages = LinkedBlockingQueue<Pair<Long, JsonObject>>()
+    // Parsed by the test thread: the channel's thread only notes when each came
+    private val sent = LinkedBlockingQueue<Pair<Long, String>>()
     private val scope = MainScope()
     private val main = Handler(Looper.getMainLooper())
     private lateinit var dir: File
@@ -103,14 +104,14 @@ class CastSeekPreviewSidecarTest {
         instrumentation.runOnMainSync {
             preview = CastSeekPreview(
                 context = context,
-                send = { messages.put(SystemClock.elapsedRealtime() to Json.parseToJsonElement(it).jsonObject) },
+                send = { sent.put(SystemClock.elapsedRealtime() to it) },
                 localFileUri = { url -> if (url == LOCAL_URL) UniFile.fromFile(File(dir, "$EPISODE.ts"))!!.uri.toString() else null },
                 receiverCapable = { true },
                 playback = { CastSeekPreview.CastPlayback(PreviewPrefetch.Playback.PLAYING, positionMs) },
                 scope = scope,
                 localPreviews = { url -> if (url == LOCAL_URL) previews else null },
                 sendPush = { message, onSent ->
-                    messages.put(SystemClock.elapsedRealtime() to Json.parseToJsonElement(message).jsonObject)
+                    sent.put(SystemClock.elapsedRealtime() to message)
                     // The channel takes it after a while
                     main.postDelayed(onSent, sentAfterMs)
                 },
@@ -130,6 +131,10 @@ class CastSeekPreviewSidecarTest {
         duration = DURATION_MS,
     )
 
+    /** The next message within [seconds], parsed, with when it was sent. */
+    private fun poll(seconds: Long): Pair<Long, JsonObject>? =
+        sent.poll(seconds, TimeUnit.SECONDS)?.let { (at, message) -> at to Json.parseToJsonElement(message).jsonObject }
+
     private val JsonObject.step get() = this["step"]!!.jsonPrimitive.content.toInt()
     private val JsonObject.status get() = this["status"]!!.jsonPrimitive.content
 
@@ -140,11 +145,11 @@ class CastSeekPreviewSidecarTest {
         val steps = previewBucketOf(DURATION_MS - 1, DURATION_MS) + 1
         val announcedAt = SystemClock.elapsedRealtime()
         instrumentation.runOnMainSync { preview.onSource(source(LOCAL_URL)) }
-        val pushes = (1..steps).map { messages.poll(30, TimeUnit.SECONDS) ?: throw AssertionError("${it - 1} pushes only") }
+        val pushes = (1..steps).map { poll(30) ?: throw AssertionError("${it - 1} pushes only") }
         val firstMs = pushes.first().first - announcedAt
         val lastMs = pushes.last().first - announcedAt
         Log.i(TAG, "Channel taking each push in $sentAfterMs ms: ${pushes.size} pushes, the first $firstMs ms, the last $lastMs ms after the announcement")
-        assertNull("nothing more", messages.poll(1, TimeUnit.SECONDS))
+        assertNull("nothing more", poll(1))
         instrumentation.runOnMainSync { preview.destroy() }
         return pushes.map { (time, message) -> time - announcedAt to message }
     }
@@ -180,10 +185,10 @@ class CastSeekPreviewSidecarTest {
             preview.onSource(source(LOCAL_URL))
         }
         // No prefetch: nothing pushed, the scrub asks
-        assertNull(messages.poll(1, TimeUnit.SECONDS))
+        assertNull(poll(1))
         val askedAt = SystemClock.elapsedRealtime()
         instrumentation.runOnMainSync { preview.onRequest(source(LOCAL_URL).requestFor(64).copy(requestId = 3)) }
-        val (at, reply) = messages.poll(5, TimeUnit.SECONDS)!!
+        val (at, reply) = poll(5)!!
         Log.i(TAG, "Scrub of a step kept next to the episode answered in ${at - askedAt} ms")
         assertEquals(64, reply.step)
         assertEquals("3", reply["requestId"]!!.jsonPrimitive.content)
@@ -198,16 +203,16 @@ class CastSeekPreviewSidecarTest {
         val preview = newPreview(positionMs = 0)
         val stream = "https://h.example/ep.m3u8"
         instrumentation.runOnMainSync { preview.onSource(source(stream)) }
-        assertNull("nothing pushed", messages.poll(2, TimeUnit.SECONDS))
+        assertNull("nothing pushed", poll(2))
         var stats: CastSeekPreview.Stats? = null
         instrumentation.runOnMainSync { stats = preview.stats() }
         assertNull("not even prefetched", stats!!.sourceId)
         // A scrub's request (an older phone announced it) is refused at once
         instrumentation.runOnMainSync { preview.onRequest(source(stream).requestFor(3).copy(requestId = 1)) }
-        val reply = messages.poll(1, TimeUnit.SECONDS)?.second
+        val reply = poll(1)?.second
         assertNotNull(reply)
         assertEquals("off", reply!!.status)
-        assertNull(messages.poll(1, TimeUnit.SECONDS))
+        assertNull(poll(1))
         instrumentation.runOnMainSync { preview.destroy() }
         assertEquals("never decoded", 0, grabbers)
         assertFalse(File(dir, DownloadNames.previewsTmpFileName(EPISODE)).exists())
