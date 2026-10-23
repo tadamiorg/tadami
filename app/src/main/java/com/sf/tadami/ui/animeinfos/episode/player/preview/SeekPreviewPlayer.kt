@@ -533,7 +533,9 @@ class SeekPreviewPlayer(
                 frameHeight = first.height,
                 entries = entries,
             )
-            if (target.write(context, sidecar)) {
+            // Frames for this player's duration made meanwhile (after the download, by a cast) stay: another
+            // duration's are replaced
+            if (target.write(context, sidecar, keeps = { it.matchesDuration(duration) })) {
                 Log.i(TAG, "Saved the prefetched preview frames next to the episode in ${SystemClock.elapsedRealtime() - startedAt} ms")
             }
         }

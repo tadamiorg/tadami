@@ -9,6 +9,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** The seekbar preview frames kept next to a downloaded episode: written whole, or not at all. */
 class EpisodePreviewsTest {
@@ -62,10 +63,43 @@ class EpisodePreviewsTest {
     }
 
     @Test
-    fun `replaces older frames`() {
+    fun `frames made meanwhile stay, unless the writer replaces them`() {
         assertTrue(write(sidecar(frames = 2)))
         assertNotNull(previews.read())
-        assertTrue(write(sidecar(frames = 3, durationMs = duration + 5_000)))
+        // By default, any valid frames there win: made by another writer meanwhile
+        assertFalse(write(sidecar(frames = 3)))
+        assertEquals(2, previews.read()!!.frameCount)
+        // The player keeps those of its own duration, and replaces another duration's
+        val longer = sidecar(frames = 3, durationMs = duration + 5_000)
+        assertFalse(previews.write(sidecar(frames = 3), keeps = { it.matchesDuration(duration) }) { it.openOutputStream() })
+        assertTrue(previews.write(longer, keeps = { it.matchesDuration(longer.durationMs) }) { it.openOutputStream() })
+        assertEquals(setOf("E.ts", "E.preview.tdp"), dir.names)
+        assertEquals(3, previews.read()!!.frameCount)
+        // Unusable frames don't count
+        dir.findFile("E.preview.tdp")!!.let { (it as MemoryUniFile).bytes = byteArrayOf(1, 2, 3) }
+        assertTrue(write(sidecar(frames = 1)))
+        assertEquals(1, previews.read()!!.frameCount)
+    }
+
+    @Test
+    fun `one reader or writer of an episode's frames at a time`() {
+        // The writers share the temporary name: another one (the player's, while the frames made after the
+        // download are written) waits for the first to be done
+        val other = EpisodePreviews(dir, "E", video)
+        val otherOpened = AtomicBoolean(false)
+        lateinit var second: Thread
+        assertTrue(
+            previews.write(sidecar(frames = 2), keeps = { false }) { tmp ->
+                second = Thread {
+                    other.write(sidecar(frames = 3), keeps = { false }) { otherOpened.set(true); it.openOutputStream() }
+                }.apply { start() }
+                second.join(200)
+                assertFalse("the other writer waits", otherOpened.get())
+                tmp.openOutputStream()
+            }
+        )
+        second.join()
+        assertTrue(otherOpened.get())
         assertEquals(setOf("E.ts", "E.preview.tdp"), dir.names)
         assertEquals(3, previews.read()!!.frameCount)
     }
