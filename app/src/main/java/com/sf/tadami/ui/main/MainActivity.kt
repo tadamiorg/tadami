@@ -3,12 +3,20 @@ package com.sf.tadami.ui.main
 import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.ColorFilter
+import android.graphics.PixelFormat
+import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.ViewGroup
+import android.window.SplashScreenView
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.OptIn
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +27,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.graphics.withClip
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.children
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.fragment.app.DialogFragment
@@ -239,18 +249,33 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // The logo of Android 12+ ends its entrance before the splash is handed over to the activity, then grows
+        // a little as the splash fades out. It starts before the activity, so it has ended when the time below is up.
+        // The logo and the view animations follow the animator duration scale: they end at once when it's 0.
+        val iconDuration = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val attributes = obtainStyledAttributes(
+                R.style.Theme_Tadami_SplashScreen,
+                intArrayOf(androidx.core.splashscreen.R.attr.windowSplashScreenAnimationDuration),
+            )
+            (attributes.getInt(0, 0) * ValueAnimator.getDurationScale()).toLong().also { attributes.recycle() }
+        } else {
+            0L
+        }
+        // Some devices (OnePlus) hide the system splash a frame before its logo reaches the copy handed over to the
+        // activity, so the logo blinks: the activity draws the final logo under the one of the copy for that frame.
+        val logoStandIn = if (splashScreen != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            SplashLogoStandIn(window.decorView as ViewGroup, getDrawable(R.drawable.ic_tada_splash)!!)
+                .also { window.decorView.overlay.add(it) }
+        } else {
+            null
+        }
         val startTime = System.currentTimeMillis()
         splashScreen?.setKeepOnScreenCondition {
             val elapsed = System.currentTimeMillis() - startTime
-            elapsed <= SPLASH_MIN_DURATION || (!ready && elapsed <= SPLASH_MAX_DURATION)
+            elapsed <= maxOf(SPLASH_MIN_DURATION.toLong(), iconDuration) || (!ready && elapsed <= SPLASH_MAX_DURATION)
         }
         splashScreen?.setOnExitAnimationListener { provider ->
-            // The logo first ends its entrance (Android 12+), then grows a little as the splash fades out.
-            // The view animations follow the animator duration scale: they end at once when it's 0.
-            // The start is a wall clock time (0 below Android 12, where the icon doesn't move). The icon follows
-            // the animator duration scale too, its reported duration doesn't.
-            val iconDuration = (provider.iconAnimationDurationMillis * ValueAnimator.getDurationScale()).toLong()
-            val delay = (provider.iconAnimationStartMillis + iconDuration - System.currentTimeMillis()).coerceIn(0L, iconDuration)
+            // The exit waits for the logo of the copy to be shown for sure, then the stand-in leaves.
             // The logo fades on its own, a bit faster than the splash, so it is never left on a faded background:
             // on Android 12+ it is drawn by a surface that the alpha of the splash view doesn't reach.
             // Some Android 12 launches show no icon: the view is then missing
@@ -258,13 +283,14 @@ class MainActivity : AppCompatActivity() {
                 ?.alpha(0f)
                 ?.scaleX(SPLASH_EXIT_ICON_SCALE)
                 ?.scaleY(SPLASH_EXIT_ICON_SCALE)
-                ?.setStartDelay(delay)
+                ?.setStartDelay(SPLASH_EXIT_DELAY)
                 ?.setDuration(SPLASH_EXIT_ICON_DURATION)
                 ?.start()
             provider.view.animate()
                 .alpha(0f)
-                .setStartDelay(delay)
+                .setStartDelay(SPLASH_EXIT_DELAY)
                 .setDuration(SPLASH_EXIT_DURATION)
+                .withStartAction { logoStandIn?.let { window.decorView.overlay.remove(it) } }
                 .withEndAction { provider.remove() }
                 .start()
         }
@@ -405,6 +431,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val SPLASH_MIN_DURATION = 500 // ms
         const val SPLASH_MAX_DURATION = 5000 // ms
+        const val SPLASH_EXIT_DELAY = 100L // ms
         const val SPLASH_EXIT_DURATION = 300L // ms
         const val SPLASH_EXIT_ICON_DURATION = 200L // ms
         const val SPLASH_EXIT_ICON_SCALE = 1.2f
@@ -418,4 +445,33 @@ class MainActivity : AppCompatActivity() {
         /** Opens the download queue, from the download notifications. */
         const val ACTION_OPEN_DOWNLOADS = "com.sf.tadami.DOWNLOADS"
     }
+}
+
+/**
+ * Draws [logo] where the splash copy handed over to the activity shows its own logo, a surface above the window,
+ * so it is under it. Nothing before the hand-over. Like the system, the logo is the foreground of an adaptive icon:
+ * 1.5 times the size of its view, clipped to it.
+ */
+@RequiresApi(Build.VERSION_CODES.S)
+private class SplashLogoStandIn(private val decorView: ViewGroup, private val logo: Drawable) : Drawable() {
+    private val location = IntArray(2)
+
+    override fun draw(canvas: Canvas) {
+        val iconView = decorView.children.firstNotNullOfOrNull { (it as? SplashScreenView)?.iconView } ?: return
+        iconView.getLocationInWindow(location)
+        val (left, top) = location
+        val right = left + iconView.width
+        val bottom = top + iconView.height
+        canvas.withClip(left, top, right, bottom) {
+            logo.setBounds(left - iconView.width / 4, top - iconView.height / 4, right + iconView.width / 4, bottom + iconView.height / 4)
+            logo.draw(this)
+        }
+    }
+
+    override fun setAlpha(alpha: Int) {}
+
+    override fun setColorFilter(colorFilter: ColorFilter?) {}
+
+    @Deprecated("Deprecated in Java")
+    override fun getOpacity() = PixelFormat.TRANSLUCENT
 }
