@@ -350,7 +350,10 @@ class CastSeekPreview(
         if (sidecarFound || sidecarSaved || !settings.prefetch || (0..last).any { !frames.isDone(it) }) return
         val first = (0..last).firstNotNullOfOrNull(frames::frameOf) ?: return
         sidecarSaved = true
-        val entries = (0..last).map { step -> PreviewSidecar.Entry(step, frameTimesMs[step] ?: -1L, frames.frameOf(step)?.bytes) }
+        // A step without a frame (none in time) is left out, not kept as one without: it may come next time
+        val entries = (0..last).mapNotNull { step ->
+            frames.frameOf(step)?.let { PreviewSidecar.Entry(step, frameTimesMs[step] ?: -1L, it.bytes) }
+        }
         scope.launch(Dispatchers.IO) {
             val sidecar = PreviewSidecar(
                 videoLength = target.video.length(),
