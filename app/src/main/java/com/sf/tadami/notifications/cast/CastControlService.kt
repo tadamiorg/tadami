@@ -132,6 +132,9 @@ class CastControlService : Service() {
             localFileUri = proxyServer::localFileUri,
             receiverCapable = { CastPreviewProtocol.CAPABILITY in CastSessionState.receiverCapabilities.value },
             playback = ::castPlayback,
+            scope = scope,
+            localPreviews = proxyServer::localPreviews,
+            sendPush = ::sendPreviewPush,
         )
         scope.launch {
             dataStore.getPreferencesGroupAsFlow(PlayerPreferences).collect { player ->
@@ -257,6 +260,20 @@ class CastControlService : Service() {
 
     private val remoteMediaClient: RemoteMediaClient?
         get() = castContext?.sessionManager?.currentCastSession?.remoteMediaClient
+
+    /** Sends a pushed seekbar preview frame, [onSent] once the cast channel took it (or couldn't): the pushes' pacing. */
+    private fun sendPreviewPush(message: String, onSent: () -> Unit) {
+        val session = castContext?.sessionManager?.currentCastSession ?: return onSent()
+        try {
+            session.sendMessage(ControlChannel.NAMESPACE, message).setResultCallback { status ->
+                if (!status.isSuccess) Log.d("CastControlService", "Preview frame push failed: ${status.statusCode}")
+                onSent()
+            }
+        } catch (e: Exception) {
+            Log.d("CastControlService", "Preview frame push failed", e)
+            onSent()
+        }
+    }
 
     /** The TV's player state and position, for the seekbar preview prefetch. */
     private fun castPlayback(): CastSeekPreview.CastPlayback? {

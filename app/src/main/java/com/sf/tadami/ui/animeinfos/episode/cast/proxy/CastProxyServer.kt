@@ -2,6 +2,7 @@ package com.sf.tadami.ui.animeinfos.episode.cast.proxy
 
 import android.content.Context
 import android.util.Log
+import com.sf.tadami.data.download.EpisodePreviews
 import com.sf.tadami.network.player.HlsSegmentIvs
 import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
 import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyServer.Companion.DEFAULT_PORT
@@ -113,6 +114,9 @@ class CastProxyServer(
      * seekbar preview decodes the file rather than its playlist over the network); null otherwise.
      */
     fun localFileUri(url: String): String? = url.toHttpUrlOrNull()?.encodedPath?.let(localRoute::fileUri)
+
+    /** The seekbar preview frames of the downloaded episode behind [url], as [localFileUri]; null otherwise. */
+    fun localPreviews(url: String): EpisodePreviews? = url.toHttpUrlOrNull()?.encodedPath?.let(localRoute::previews)
 
     private inner class Server(port: Int) : NanoHTTPD(port) {
         override fun serve(session: IHTTPSession): Response = this@CastProxyServer.route(session)

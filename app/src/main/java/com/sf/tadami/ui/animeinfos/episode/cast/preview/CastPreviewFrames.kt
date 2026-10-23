@@ -77,6 +77,19 @@ class CastPreviewFrames(maxBytes: Long = PREVIEW_FRAME_CACHE_BYTES) {
     /** The step has its frame, or is known to have none. */
     fun isDone(step: Int): Boolean = PreviewFrameKey(frames.sourceId.orEmpty(), step) in frames || step in unavailable
 
+    /** The step's frame, null when it has none (yet). */
+    fun frameOf(step: Int): PreviewJpeg? = frames[PreviewFrameKey(frames.sourceId.orEmpty(), step)]
+
+    /**
+     * The frames kept next to the downloaded episode [sourceId] plays, from [sidecar]: known at once, neither
+     * decoded nor fetched. Nothing when another stream is kept.
+     */
+    fun fill(sourceId: String, sidecar: CastSidecarFrames) {
+        if (sourceId != frames.sourceId) return
+        sidecar.frames.forEach { (step, frame) -> frames.put(PreviewFrameKey(sourceId, step), frame) }
+        unavailable += sidecar.none
+    }
+
     /**
      * A request from the receiver: its reply when it's known (cached frame, frameless step, stream
      * off), the decode to start, or null when it waits for the decode in flight.

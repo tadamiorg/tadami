@@ -8,10 +8,18 @@ import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import com.sf.tadami.data.download.EpisodePreviews
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch
+import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewSidecar
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketOf
 import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketRangeMs
+import com.sf.tadami.ui.animeinfos.episode.player.preview.previewBucketSizeMs
 import com.sf.tadami.ui.animeinfos.episode.player.preview.shouldDropPreviewFrames
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * The cast session's seekbar preview of a downloaded episode: frames of the file the phone serves to the TV,
@@ -20,10 +28,15 @@ import com.sf.tadami.ui.animeinfos.episode.player.preview.shouldDropPreviewFrame
  * as in the phone player: the phone doesn't announce previews for it, refuses its requests ("off") and never
  * reads it, so its scrubs show the time alone and cost no data.
  *
- * - Prefetch: once the receiver announces its stream ([onSource]) and the TV has played steadily for
- *   a few seconds, every step is decoded in the background, nearest the playback position first
- *   ([PreviewPrefetch]), and pushed to the receiver unsolicited, paced on the cast channel.
- * - Scrub: a step the receiver lacks is asked for ([onRequest]) and decoded before any prefetch.
+ * - Frames kept next to the episode ([localPreviews], made after its download): as soon as the receiver
+ *   announces its stream ([onSource]), every step's frame is pushed to it, the JPEG as stored, nearest the
+ *   playback position first, as fast as the cast channel takes them ([PushPacer]): nothing is decoded.
+ * - Otherwise, prefetch: once the TV has played steadily for a few seconds, every step is decoded in the
+ *   background, nearest the playback position first ([PreviewPrefetch]), and pushed the same way; once every
+ *   step is done, the frames are kept next to the episode for the next time.
+ * - Scrub: a step the receiver lacks is asked for ([onRequest]), answered from the cache at once, else decoded
+ *   before any prefetch; one not there within [CAST_PREVIEW_REPLY_MS] is answered "none" (the receiver shows the
+ *   time alone), its frame pushed once decoded ([PendingReplies]).
  *
  * The file is the one behind the proxy `/local-` URL the receiver names ([localFileUri]). The decoder is
  * released after [IDLE_RELEASE_MS] without decoding, and everything with [destroy] at the end of the session.
@@ -40,6 +53,15 @@ class CastSeekPreview(
     private val receiverCapable: () -> Boolean,
     /** The TV's playback (the receiver's MediaStatus), null without media. */
     private val playback: () -> CastPlayback?,
+    /** The main thread's: the frames kept next to the episode are read and written off it. */
+    private val scope: CoroutineScope,
+    /** The frames kept next to the downloaded episode a proxy `/local-` URL serves, null for any other URL. */
+    private val localPreviews: (String) -> EpisodePreviews? = { null },
+    /** Sends a pushed frame on the control channel, [onSent] (any thread) once the channel took it. */
+    private val sendPush: (message: String, onSent: () -> Unit) -> Unit = { message, onSent ->
+        send(message)
+        onSent()
+    },
     private val newGrabber: () -> CastFrameGrabber = { CastFrameGrabber(context) },
     private val clock: () -> Long = SystemClock::elapsedRealtime,
 ) {
@@ -88,6 +110,24 @@ class CastSeekPreview(
     private var prefetchStartedAt: Long? = null
     private var prefetchMs: Long? = null
 
+    // The frames kept next to the downloaded episode: read as its stream starts, written once all are decoded
+    private var previews: EpisodePreviews? = null
+    private var sidecarJob: Job? = null
+    private var sidecarLoading = false
+    private var sidecarFound = false
+    private var sidecarUsed = false
+    private var sidecarSaved = false
+
+    // A request waiting for the frames kept next to the episode, and the time of each decoded frame
+    private var held: CastPreviewRequest? = null
+    private val frameTimesMs = mutableMapOf<Int, Long>()
+    private val replies = PendingReplies()
+
+    private val pacer = PushPacer(PUSH_GAP_MS, PUSH_SENT_TIMEOUT_MS)
+    private var pushToken = 0
+    private var pushBurstStartedAt: Long? = null
+    private var pushBurstCount = 0
+
     /** The receiver's stream, to prefetch (control channel): a downloaded episode's only. */
     fun onSource(announced: CastPreviewSource) {
         if (!allowed(localFileUri(announced.url) != null)) {
@@ -129,7 +169,21 @@ class CastSeekPreview(
             )
             scheduleTick(0L)
         }
-        frames.onRequest(request)?.let(::perform)
+        if (sidecarLoading) {
+            // Answered from the frames kept next to the episode once they are read
+            held = request
+            awaitReply(request)
+        } else {
+            when (val action = frames.onRequest(request)) {
+                is CastPreviewFrames.Action.Reply -> perform(action)
+                is CastPreviewFrames.Action.Fetch -> {
+                    awaitReply(request)
+                    perform(action)
+                }
+                // Behind the decode in flight
+                null -> awaitReply(request)
+            }
+        }
         scheduleIdleRelease()
     }
 
@@ -139,6 +193,8 @@ class CastSeekPreview(
         handler.removeCallbacks(tick)
         handler.removeCallbacks(pushNext)
         pushes.clear()
+        sidecarJob?.cancel()
+        replies.clear()
         source = null
         // Cleared first: a decode in flight is dropped, so nothing holds the decoder back
         frames.clear()
@@ -171,6 +227,73 @@ class CastSeekPreview(
         pushes.clear()
         prefetchStartedAt = null
         prefetchMs = null
+        held = null
+        frameTimesMs.clear()
+        replies.clear()
+        pacer.reset()
+        pushToken++
+        pushBurstStartedAt = null
+        handler.removeCallbacks(pushNext)
+        sidecarJob?.cancel()
+        sidecarLoading = false
+        sidecarFound = false
+        sidecarUsed = false
+        sidecarSaved = false
+        previews = localPreviews(announced.url)
+        loadSidecar(announced)
+    }
+
+    /** Reads the frames kept next to the episode off the main thread, then pushes them all to the receiver. */
+    private fun loadSidecar(stream: CastPreviewSource) {
+        val target = previews ?: return
+        sidecarLoading = true
+        val startedAt = clock()
+        sidecarJob = scope.launch {
+            val sidecar = withContext(Dispatchers.IO) { target.read() }
+            if (source?.sourceId != stream.sourceId) return@launch
+            sidecarLoading = false
+            sidecarFound = sidecar != null
+            val known = sidecar?.let { castSidecarFrames(it, stream.duration) }
+            if (known == null) {
+                Log.i(
+                    TAG,
+                    if (sidecar == null) {
+                        "No preview frames kept next to the episode: decoded on the phone"
+                    } else {
+                        "Preview frames kept for ${sidecar.durationMs} ms, the TV plays ${stream.duration} ms: decoded on the phone"
+                    },
+                )
+            } else {
+                frames.fill(stream.sourceId, known)
+                sidecarUsed = true
+                Log.i(
+                    TAG,
+                    "Loaded ${known.frames.size} preview frames kept next to the episode, ${known.none.size} steps " +
+                        "without, in ${clock() - startedAt} ms",
+                )
+                if (settings.prefetch) {
+                    val center = previewBucketOf(playback()?.positionMs ?: prefetch.positionMs, stream.duration)
+                    frames.knownPushes(stream, center, receiverHas).forEach(::queuePush)
+                }
+            }
+            held?.let { request ->
+                held = null
+                frames.onRequest(request)?.let(::perform)
+            }
+            scheduleTick(0L)
+        }
+    }
+
+    /** [request] isn't answered at once: "none" in [CAST_PREVIEW_REPLY_MS] if its frame isn't there by then. */
+    private fun awaitReply(request: CastPreviewRequest) {
+        val id = request.requestId ?: return
+        replies.waiting(request)
+        handler.postDelayed({
+            replies.answerEarly(id)?.let { early ->
+                Log.d(TAG, "Step ${early.step}: no frame yet, answered none at once")
+                send(CastPreviewProtocol.statusMessage(early, CastPreviewProtocol.STATUS_NONE))
+            }
+        }, CAST_PREVIEW_REPLY_MS)
     }
 
     private fun allowed(local: Boolean): Boolean =
@@ -187,6 +310,11 @@ class CastSeekPreview(
         val current = source ?: return
         playback()?.let { prefetch.onStatus(it.state, it.positionMs) } ?: prefetch.onStatus(null, prefetch.positionMs)
         if (frames.isFailed) return
+        // The frames kept next to the episode come first: nothing is decoded before they are known
+        if (sidecarLoading) {
+            scheduleTick(TICK_MS)
+            return
+        }
         val allowed = settings.prefetch && allowed(localFileUri(current.url) != null)
         when (val next = nextPrefetch(current, prefetch, frames, allowed, receiverHas)) {
             PrefetchDecision.Complete -> {
@@ -207,6 +335,32 @@ class CastSeekPreview(
         if (prefetchMs != null) return
         prefetchMs = prefetchStartedAt?.let { clock() - it } ?: 0L
         logStats("Prefetch complete")
+        saveSidecar()
+    }
+
+    /**
+     * Every step decoded on the phone: the frames are kept next to the episode, as the JPEGs pushed, so the next
+     * cast (or the phone player) has them at once. Not over frames kept already, even another duration's.
+     */
+    private fun saveSidecar() {
+        val stream = source ?: return
+        val target = previews ?: return
+        val last = previewBucketOf(stream.duration - 1, stream.duration)
+        if (sidecarFound || sidecarSaved || !settings.prefetch || (0..last).any { !frames.isDone(it) }) return
+        val first = (0..last).firstNotNullOfOrNull(frames::frameOf) ?: return
+        sidecarSaved = true
+        val entries = (0..last).map { step -> PreviewSidecar.Entry(step, frameTimesMs[step] ?: -1L, frames.frameOf(step)?.bytes) }
+        scope.launch(Dispatchers.IO) {
+            val sidecar = PreviewSidecar(
+                videoLength = target.video.length(),
+                durationMs = stream.duration,
+                stepMs = previewBucketSizeMs(stream.duration),
+                frameWidth = first.width,
+                frameHeight = first.height,
+                entries = entries,
+            )
+            target.write(context, sidecar)
+        }
     }
 
     private fun logStats(event: String) {
@@ -239,10 +393,18 @@ class CastSeekPreview(
     }
 
     private fun reply(action: CastPreviewFrames.Action.Reply) {
-        val message = message(action)
-        Log.d(TAG, "Step ${action.request.step} -> ${action.status}, ${message.length} chars")
-        receiverHas += action.request.step
-        send(message)
+        when (replies.onReply(action.request, action.status)) {
+            PendingReplies.Answer.REPLY -> {
+                val message = message(action)
+                Log.d(TAG, "Step ${action.request.step} -> ${action.status}, ${message.length} chars")
+                receiverHas += action.request.step
+                send(message)
+            }
+            // Answered "none" already: the frame comes as a push
+            PendingReplies.Answer.PUSH ->
+                queuePush(CastPreviewFrames.Action.Reply(action.request.copy(requestId = null), action.status, action.frame))
+            PendingReplies.Answer.DROP -> Unit
+        }
     }
 
     private fun fetch(request: CastPreviewRequest) {
@@ -268,6 +430,7 @@ class CastSeekPreview(
 
     private fun onGrabbed(request: CastPreviewRequest, result: CastFrameGrabber.Result, elapsedMs: Long) {
         val frame = (result as? CastFrameGrabber.Result.Frame)?.jpeg
+        (result as? CastFrameGrabber.Result.Frame)?.let { frameTimesMs[request.step] = it.timeMs }
         Log.d(
             TAG,
             "Step ${request.step}: ${result::class.simpleName} in $elapsedMs ms" +
@@ -290,16 +453,45 @@ class CastSeekPreview(
         pushes.addLast(step to message(action))
         if (pushes.size == 1) {
             handler.removeCallbacks(pushNext)
-            handler.post(pushNext)
+            handler.postDelayed(pushNext, pacer.delayAt(clock()))
         }
     }
 
-    /** One push at a time, [PUSH_INTERVAL_MS] apart: the cast channel also carries the playback's messages. */
+    /**
+     * One push at a time, the next [PUSH_GAP_MS] after the channel sent the previous one: as fast as it takes them,
+     * never piling up in front of the playback's messages.
+     */
     private fun onPush() {
+        handler.removeCallbacks(pushNext)
+        val wait = pacer.delayAt(clock())
+        if (wait > 0L) {
+            handler.postDelayed(pushNext, wait)
+            return
+        }
         val (step, message) = pushes.removeFirstOrNull() ?: return
         receiverHas += step
-        send(message)
-        if (pushes.isNotEmpty()) handler.postDelayed(pushNext, PUSH_INTERVAL_MS)
+        if (pushBurstStartedAt == null) {
+            pushBurstStartedAt = clock()
+            pushBurstCount = 0
+        }
+        pushBurstCount++
+        pacer.onSending(clock())
+        val token = ++pushToken
+        sendPush(message) { handler.post { onPushSent(token) } }
+        // Should the channel never say it sent it
+        handler.postDelayed(pushNext, PUSH_SENT_TIMEOUT_MS)
+    }
+
+    private fun onPushSent(token: Int) {
+        if (token != pushToken) return
+        pacer.onSent(clock())
+        handler.removeCallbacks(pushNext)
+        if (pushes.isNotEmpty()) {
+            handler.postDelayed(pushNext, PUSH_GAP_MS)
+            return
+        }
+        pushBurstStartedAt?.let { Log.i(TAG, "Pushed $pushBurstCount frames to the TV in ${clock() - it} ms") }
+        pushBurstStartedAt = null
     }
 
     // --- Lifecycle ----------------------------------------------------------------------------
@@ -330,7 +522,10 @@ class CastSeekPreview(
         /** How often the prefetch looks at the TV's playback. */
         const val TICK_MS = 1_000L
 
-        /** Between two pushed frames. */
-        const val PUSH_INTERVAL_MS = 100L
+        /** After the channel sent a pushed frame, before the next one. */
+        const val PUSH_GAP_MS = 20L
+
+        /** A pushed frame the channel never confirmed: the next one goes after this long anyway. */
+        const val PUSH_SENT_TIMEOUT_MS = 500L
     }
 }

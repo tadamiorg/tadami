@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch
+import kotlinx.coroutines.MainScope
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -57,6 +58,7 @@ class CastSeekPreviewPrefetchTest {
                 receiverCapable = { true },
                 // The TV plays steadily at positionMs
                 playback = { CastSeekPreview.CastPlayback(PreviewPrefetch.Playback.PLAYING, positionMs) },
+                scope = MainScope(),
             )
             preview.settings = CastSeekPreview.Settings(enabled = true)
         }

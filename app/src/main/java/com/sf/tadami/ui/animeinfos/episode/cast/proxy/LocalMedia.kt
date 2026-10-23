@@ -3,6 +3,7 @@ package com.sf.tadami.ui.animeinfos.episode.cast.proxy
 import android.content.Context
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import com.sf.tadami.data.download.EpisodePreviews
 import com.sf.tadami.data.download.SegmentMetadata
 import fi.iki.elonen.NanoHTTPD
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -16,11 +17,13 @@ import java.security.SecureRandom
 /**
  * What the proxy serves of the downloaded episode being cast, by name: its files, read through
  * their content URIs, and playlists over them. [key] tells one episode's files from another's.
+ * [previews], its seekbar preview frames, aren't served: the cast's seekbar preview reads them.
  */
 data class LocalMedia(
     val key: String,
     val files: Map<String, LocalFile>,
     val playlists: Map<String, LocalPlaylist> = emptyMap(),
+    val previews: EpisodePreviews? = null,
 )
 
 data class LocalFile(val uri: String, val mimeType: String)
@@ -190,6 +193,14 @@ internal class LocalMediaRoute(private val opener: LocalFileOpener) {
         (current.media.playlists[name] as? LocalPlaylist.Master)?.let { name = it.video }
         (current.media.playlists[name] as? LocalPlaylist.Media)?.let { name = it.file }
         return current.media.files[name]?.uri
+    }
+
+    /** The seekbar preview frames of the episode served, when [path] is one of its URL paths; null otherwise. */
+    fun previews(path: String): EpisodePreviews? {
+        val current = served ?: return null
+        val rest = path.removePrefix(PATH_PREFIX).takeIf { path.startsWith(PATH_PREFIX) } ?: return null
+        if (!sameToken(rest.substringBefore('-', ""), current.token)) return null
+        return current.media.previews
     }
 
     fun respond(method: NanoHTTPD.Method, path: String, rangeHeader: String?): NanoHTTPD.Response {
