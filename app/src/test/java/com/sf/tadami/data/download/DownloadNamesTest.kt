@@ -4,6 +4,7 @@ import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.utils.DiskUtil
 import com.sf.tadami.utils.Lang
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -208,7 +209,13 @@ class DownloadNamesTest {
         assertNull(DownloadNames.parseFiles("E", listOf("E.preview.tdp", "E.preview-tmp.tdp")).video)
         // None until they are made
         assertNull(DownloadNames.parseFiles("E", listOf("E.mp4")).previews)
-        // A version without them sees no video in them either: a dot before their extension
-        assertTrue(names.filter { it.startsWith("E.preview") }.all { '.' in it.removePrefix("E.") })
+        // A version without them sees neither a video in them (it takes "<episode>.<ext>" for one), nor a track
+        val audioPrefix = DownloadNames.audioFileBase("E", "").removePrefix("E.")
+        listOf(DownloadNames.previewsFileName("E"), DownloadNames.previewsTmpFileName("E")).forEach { name ->
+            val rest = name.removePrefix("E.")
+            assertTrue(name, '.' in rest)
+            assertFalse(name, rest.substringAfterLast('.').lowercase() in DownloadNames.SUBTITLE_EXTENSIONS)
+            assertFalse(name, rest.startsWith(audioPrefix))
+        }
     }
 }
