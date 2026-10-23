@@ -28,6 +28,7 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import com.sf.tadami.data.download.EpisodePreviews
 import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastPreviewProtocol
+import com.sf.tadami.ui.animeinfos.episode.cast.preview.previewFrameSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -35,7 +36,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.IOException
-import kotlin.math.roundToInt
 
 /**
  * Frames of the seekbar preview of a downloaded episode: one per preview step (see [previewBucketSizeMs]), kept
@@ -580,8 +580,9 @@ class SeekPreviewPlayer(
         val bucket = requests.inFlight ?: return
         if (!frameReleasedSinceFetch) return
         val view = textureView ?: return
-        val height = (PREVIEW_FRAME_WIDTH_PX / videoAspectRatio).roundToInt().coerceAtLeast(1)
-        val bitmap = view.getBitmap(PREVIEW_FRAME_WIDTH_PX, height)?.let(::toPreviewFrame) ?: return
+        // Both sides within PREVIEW_FRAME_WIDTH_PX, a portrait video's too: what the frames kept next to the episode allow
+        val (width, height) = previewFrameSize(videoAspectRatio)
+        val bitmap = view.getBitmap(width, height)?.let(::toPreviewFrame) ?: return
         frameBytes = bitmap.allocationByteCount.toLong()
         frames.put(key(bucket), bitmap)
         framesVersion++

@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode.player.preview
 
+import com.sf.tadami.ui.animeinfos.episode.cast.preview.previewFrameSize
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -49,6 +50,20 @@ class PreviewSidecarTest {
         val none = read.entries.single { it.step == 29 }
         assertFalse(none.hasFrame)
         assertEquals(-1L, none.timeMs)
+    }
+
+    @Test
+    fun `a portrait video's frames, as the phone and the cast capture them, read back`() {
+        // 9:16: 144×256, both sides within the bound, never 256 wide and 455 high
+        val (width, height) = previewFrameSize(9f / 16f)
+        assertTrue(width <= PREVIEW_FRAME_WIDTH_PX && height <= PREVIEW_FRAME_WIDTH_PX)
+        val portrait = PreviewSidecar(videoLength, duration, previewBucketSizeMs(duration), width, height, sidecar().entries)
+        val read = PreviewSidecar.decode(PreviewSidecar.encode(portrait), videoLength)!!
+        assertEquals(144 to 256, read.frameWidth to read.frameHeight)
+        assertEquals(99, read.frameCount)
+        // Higher than the bound, as the phone captured them before: refused
+        val tooHigh = PreviewSidecar(videoLength, duration, previewBucketSizeMs(duration), 256, 455, sidecar().entries)
+        assertNull(PreviewSidecar.decode(PreviewSidecar.encode(tooHigh), videoLength))
     }
 
     @Test
