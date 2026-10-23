@@ -775,6 +775,8 @@ fun VideoPlayer(
 
                         Lifecycle.Event.ON_RESUME -> {
                             seekPreviewPlayer.cancelRelease()
+                            // The preview frames a background trim dropped come back
+                            seekPreviewPlayer.onResume()
                             if (!playerInitiatedPause) {
                                 exoPlayer.play()
                             }

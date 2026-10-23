@@ -357,4 +357,21 @@ class SeekPreviewLogicTest {
         assertTrue(shouldDropPreviewFrames(ComponentCallbacks2.TRIM_MEMORY_BACKGROUND))
         assertTrue(shouldDropPreviewFrames(ComponentCallbacks2.TRIM_MEMORY_COMPLETE))
     }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun `a downloaded episode's frames come back after a background trim, not after memory pressure`() {
+        assertTrue(isMemoryPressureTrim(ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW))
+        assertTrue(isMemoryPressureTrim(ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL))
+        assertFalse(isMemoryPressureTrim(ComponentCallbacks2.TRIM_MEMORY_BACKGROUND))
+        assertFalse(isMemoryPressureTrim(ComponentCallbacks2.TRIM_MEMORY_COMPLETE))
+
+        fun restore(dropped: Boolean = true, downloaded: Boolean = true, memoryPressure: Boolean = false, lowMemory: Boolean = false) =
+            shouldRestorePreviewFrames(dropped, downloaded, memoryPressure, lowMemory)
+        assertTrue("dropped by the app going to the background", restore())
+        assertFalse("nothing dropped", restore(dropped = false))
+        assertFalse("a stream has none", restore(downloaded = false))
+        assertFalse("dropped by memory pressure", restore(memoryPressure = true))
+        assertFalse("memory low now", restore(lowMemory = true))
+    }
 }

@@ -373,7 +373,7 @@ fun toPreviewFrame(argb: Bitmap): Bitmap {
 
 /**
  * Whether a memory trim drops the preview frames: on memory pressure, or once the app is a background
- * process. Hiding the UI alone (pause, PiP, home) keeps them.
+ * process (which leaving for the home screen may make it). Hiding the UI alone (pause, PiP) keeps them.
  */
 @Suppress("DEPRECATION")
 fun shouldDropPreviewFrames(trimLevel: Int): Boolean {
@@ -381,3 +381,15 @@ fun shouldDropPreviewFrames(trimLevel: Int): Boolean {
         trimLevel == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL ||
         trimLevel >= ComponentCallbacks2.TRIM_MEMORY_BACKGROUND
 }
+
+/** Whether a trim at [trimLevel] comes from memory pressure, not from the app going to the background. */
+@Suppress("DEPRECATION")
+fun isMemoryPressureTrim(trimLevel: Int): Boolean =
+    trimLevel == ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW || trimLevel == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL
+
+/**
+ * Whether the preview frames a trim dropped come back as the player screen resumes: a [downloaded] episode's, its
+ * frames [dropped] by the app going to the background, not by [memoryPressure], and memory isn't [lowMemory] now.
+ */
+fun shouldRestorePreviewFrames(dropped: Boolean, downloaded: Boolean, memoryPressure: Boolean, lowMemory: Boolean): Boolean =
+    dropped && downloaded && !memoryPressure && !lowMemory

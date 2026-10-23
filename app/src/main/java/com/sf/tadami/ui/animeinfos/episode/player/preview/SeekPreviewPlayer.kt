@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode.player.preview
 
+import android.app.ActivityManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -82,6 +83,9 @@ class SeekPreviewPlayer(
 
     // Frames dropped on memory pressure: not all made again for this stream
     private var prefetchSuspended = false
+
+    // The last trim that dropped the frames came from memory pressure, not from the app going to the background
+    private var trimUnderPressure = false
     private var prefetchStartedAt: Long? = null
     private var prefetchComplete = false
     private var frameBytes = PREVIEW_FRAME_BYTES
@@ -301,8 +305,36 @@ class SeekPreviewPlayer(
         if (!shouldDropPreviewFrames(level)) return
         frames.clear()
         loadedSidecar = null
+        trimUnderPressure = isMemoryPressureTrim(level)
         framesVersion++
         prefetchSuspended = true
+    }
+
+    /**
+     * The player screen is in front again: the frames a background trim dropped come back, from the sidecar kept
+     * next to the episode, else by a new prefetch. Not after memory pressure, nor while memory is low.
+     */
+    fun onResume() {
+        val restore = shouldRestorePreviewFrames(
+            dropped = prefetchSuspended,
+            downloaded = frames.sourceId != null,
+            memoryPressure = trimUnderPressure,
+            lowMemory = isLowOnMemory(),
+        )
+        if (!restore) return
+        Log.i(TAG, "Getting back the preview frames a background trim dropped")
+        prefetchSuspended = false
+        prefetchComplete = false
+        prefetchStartedAt = null
+        sidecarApplied = false
+        loadSidecar()
+        framesVersion++
+        if (prefetchEnabled) scheduleTick(0L)
+    }
+
+    private fun isLowOnMemory(): Boolean {
+        val activityManager = context.getSystemService(ActivityManager::class.java) ?: return false
+        return ActivityManager.MemoryInfo().also(activityManager::getMemoryInfo).lowMemory
     }
 
     fun attachSurface(view: TextureView) {
