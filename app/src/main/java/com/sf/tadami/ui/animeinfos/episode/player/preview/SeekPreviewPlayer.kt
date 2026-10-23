@@ -11,6 +11,7 @@ import android.view.Surface
 import android.view.TextureView
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -80,7 +81,9 @@ class SeekPreviewPlayer(
     private val delayedRelease = Runnable { release() }
 
     private var durationMs = 0L
-    private var fingerBucket: Int? = null
+    // A state: the thumbnail reads it when drawn, so a gesture's first step, set after the thumbnail's first
+    // draw, draws again and logs its latency
+    private var fingerBucket by mutableStateOf<Int?>(null)
     private var videoAspectRatio = DEFAULT_ASPECT_RATIO
     private var fetchStartedAtNs = 0L
     private var fetchStartedAt = 0L
