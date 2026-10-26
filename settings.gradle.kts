@@ -19,7 +19,8 @@ dependencyResolutionManagement {
         create("androidx") {
             from(files("gradle/androidx.versions.toml"))
         }
-        create("compose") {
+        // Not "compose": the Compose Multiplatform plugin registers an extension of that name
+        create("composeLibs") {
             from(files("gradle/compose.versions.toml"))
         }
     }
@@ -30,5 +31,7 @@ if (System.getenv("JITPACK") != "true") {
     include(":app")
     // An extension built against the lib, for :app's instrumented tests
     include(":extensions-lib:sample")
+    // The desktop app (Windows, macOS, Linux)
+    include(":desktop")
 }
 include(":extensions-lib")

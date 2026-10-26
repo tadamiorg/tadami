@@ -2,6 +2,7 @@
 kotlin_version = "2.4.21"
 serialization_version = "1.11.0"
 xml_serialization_version = "1.0.2.1"
+compose_multiplatform = "1.12.2"
 
 [libraries]
 immutables = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version = "0.5.2" }
@@ -28,3 +29,5 @@ serialization = ["serialization-json", "serialization-json-okio", "serialization
 android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin_version" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin_version" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin_version" }
+jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin_version" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose_multiplatform" }

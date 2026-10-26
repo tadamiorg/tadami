@@ -321,12 +321,12 @@ dependencies {
     implementation(androidx.bundles.exoplayerGroup)
 
     // Compose
-    implementation(platform(compose.bom))
-    implementation(compose.activity)
-    implementation(compose.bundles.animationGroup)
-    implementation(compose.bundles.uiGroup)
-    implementation(compose.bundles.runtimeGroup)
-    implementation(compose.bundles.material)
+    implementation(platform(composeLibs.bom))
+    implementation(composeLibs.activity)
+    implementation(composeLibs.bundles.animationGroup)
+    implementation(composeLibs.bundles.uiGroup)
+    implementation(composeLibs.bundles.runtimeGroup)
+    implementation(composeLibs.bundles.material)
     implementation(libs.compose.webview)
     implementation(androidx.bundles.navigation)
 

@@ -16,6 +16,8 @@ plugins {
     alias(kotlinx.plugins.compose.compiler) apply false
     alias(kotlinx.plugins.android) apply false
     alias(kotlinx.plugins.serialization) apply false
+    alias(kotlinx.plugins.jvm) apply false
+    alias(kotlinx.plugins.compose.multiplatform) apply false
     alias(libs.plugins.dotenv)
 }
 

@@ -42,8 +42,8 @@ dependencies {
     api(platform(kotlinx.coroutines.bom))
     api(kotlinx.coroutines.core)
     api(androidx.datastore)
-    api(platform(compose.bom))
-    api(compose.ui)
+    api(platform(composeLibs.bom))
+    api(composeLibs.ui)
     api(androidx.annotation)
 }
 
