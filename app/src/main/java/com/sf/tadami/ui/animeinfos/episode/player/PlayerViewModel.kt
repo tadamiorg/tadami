@@ -212,10 +212,10 @@ class PlayerViewModel(
                     val src = sel.sourceIndex?.let { st.availableSources.getOrNull(it) } ?: st.selectedSource
                     st.copy(
                         selectedSource = src,
-                        selectedSubtitleTrack = when (sel.subtitleIndex) {
+                        selectedSubtitleTrack = when (val subtitleIndex = sel.subtitleIndex) {
                             null -> st.selectedSubtitleTrack
                             -1 -> null
-                            else -> src?.subtitleTracks?.getOrNull(sel.subtitleIndex)
+                            else -> src?.subtitleTracks?.getOrNull(subtitleIndex)
                         },
                         selectedAudioTrack = sel.audioIndex?.let { src?.audioTracks?.getOrNull(it) }
                             ?: st.selectedAudioTrack,

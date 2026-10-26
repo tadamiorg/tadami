@@ -30,4 +30,5 @@ android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin_version" 
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin_version" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin_version" }
 jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin_version" }
+multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin_version" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose_multiplatform" }

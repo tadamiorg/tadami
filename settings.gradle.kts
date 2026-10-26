@@ -31,6 +31,8 @@ if (System.getenv("JITPACK") != "true") {
     include(":app")
     // An extension built against the lib, for :app's instrumented tests
     include(":extensions-lib:sample")
+    // The code of the Android and desktop apps
+    include(":shared")
     // The desktop app (Windows, macOS, Linux)
     include(":desktop")
 }

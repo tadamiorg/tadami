@@ -6,19 +6,10 @@ import java.util.TimeZone
 plugins {
     id("com.android.application")
     kotlin("plugin.serialization")
-    id("app.cash.sqldelight")
     alias(kotlinx.plugins.compose.compiler)
 }
 
-sqldelight {
-    databases {
-        create("Database") {
-            packageName.set("com.sf.tadami")
-            dialect(libs.sqldelight.dialects.sql)
-            schemaOutputDirectory.set(file("src/main/sqldelight/databases"))
-        }
-    }
-}
+// The database (sqldelight) is generated in :shared
 
 // Release keystore, from environment variables (CI) or the local .env. Read through fetchOrNull: the
 // generated env.X accessors only exist for keys present in .env, so a checkout without it (forks, CI)
@@ -298,6 +289,9 @@ fun getBuildDate(): String {
 }
 
 dependencies {
+
+    // The code shared with the desktop app
+    implementation(project(":shared"))
 
     implementation(androidx.core.ktx)
 
