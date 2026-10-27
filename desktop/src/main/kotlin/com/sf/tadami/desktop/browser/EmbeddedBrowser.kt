@@ -29,9 +29,13 @@ import okhttp3.Interceptor
 import org.cef.CefApp
 import org.cef.CefSettings
 import org.cef.browser.CefBrowser
+import com.sun.jna.platform.win32.User32
+import com.sun.jna.platform.win32.WinUser
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import javax.swing.SwingUtilities
+import javax.swing.Timer
 
 /**
  * Chromium (JCEF), the desktop's WebView: the WebView screen, the Cloudflare challenges and the pages
@@ -60,7 +64,28 @@ object EmbeddedBrowser : DesktopBrowser {
             cefSettings.windowless_rendering_enabled = true
             cefSettings.log_severity = CefSettings.LogSeverity.LOGSEVERITY_ERROR
             build()
-        }.also { app = it }
+        }.also {
+            app = it
+            if (isWindows) SwingUtilities.invokeLater { Timer(PUMP_MILLIS) { pumpWindowsMessages() }.start() }
+        }
+    }
+
+    private val isWindows = System.getProperty("os.name").lowercase().contains("win")
+
+    private const val PUMP_MILLIS = 10
+    private const val PM_REMOVE = 0x0001
+
+    /**
+     * Chromium runs on the UI thread (the pages nobody sees need its off-screen mode), so the windows
+     * of the WebView belong to it. On Windows their messages (the clicks, the keys) wait in the
+     * thread's queue, which a Java UI thread never reads: this reads it, as an app's message loop does.
+     */
+    private fun pumpWindowsMessages() {
+        val message = WinUser.MSG()
+        while (User32.INSTANCE.PeekMessage(message, null, 0, 0, PM_REMOVE)) {
+            User32.INSTANCE.TranslateMessage(message)
+            User32.INSTANCE.DispatchMessage(message)
+        }
     }
 
     val isStarted: Boolean get() = app != null
