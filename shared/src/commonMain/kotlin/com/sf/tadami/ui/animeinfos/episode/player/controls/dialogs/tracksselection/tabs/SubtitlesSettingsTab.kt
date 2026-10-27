@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.tabs
 
-import androidx.annotation.OptIn
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -17,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.util.UnstableApi
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.model.DataStoreState
@@ -30,7 +28,6 @@ import com.sf.tadami.ui.tabs.more.settings.widget.PrefsHorizontalPadding
 import com.sf.tadami.ui.utils.padding
 
 /** The subtitle appearance, applied live. */
-@OptIn(UnstableApi::class)
 @Composable()
 fun SubtitleSettingsTab() {
     val playerPreferencesState = rememberDataStoreState(PlayerPreferences)
@@ -43,7 +40,6 @@ fun SubtitleSettingsTab() {
     )
 }
 
-@OptIn(UnstableApi::class)
 @Composable
 fun getSubtitlesGroup(
     prefState: DataStoreState<PlayerPreferences>,

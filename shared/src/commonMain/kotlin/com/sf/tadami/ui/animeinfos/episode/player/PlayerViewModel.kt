@@ -1,7 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode.player
 
 import com.sf.tadami.utils.stringRes
-import android.app.Application
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.SavedStateHandle
@@ -58,12 +57,13 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
 class PlayerViewModelFactory(
     private var isResumedFromCast: Boolean = false
 ) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+    override fun <T : ViewModel> create(modelClass: KClass<T>, extras: CreationExtras): T {
         return PlayerViewModel(extras.createSavedStateHandle(), isResumedFromCast) as T
     }
 }

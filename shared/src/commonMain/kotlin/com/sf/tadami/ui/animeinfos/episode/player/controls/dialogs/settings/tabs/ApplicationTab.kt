@@ -1,20 +1,11 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.tabs
 
-import com.sf.tadami.R
+import androidx.compose.runtime.getValue
 
-import android.content.Context
-import android.graphics.Typeface
-import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.res.ResourcesCompat
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.ui.CaptionStyleCompat
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.model.DataStoreState
@@ -24,23 +15,6 @@ import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.tabs.more.settings.components.PreferenceParser
 
 
-@OptIn(UnstableApi::class)
-fun PlayerPreferences.toSubtitlesStyle(context: Context): CaptionStyleCompat {
-    return CaptionStyleCompat(
-        this.subtitleTextColor,
-        this.subtitleBackgroundColor,
-        Color.Transparent.toArgb(), // Edge color handled separately
-        this.subtitleEdgeType,
-        this.subtitleEdgeColor,
-        getCustomTypeface(context) // We'll set the typeface through PlayerView
-    )
-}
-
-private fun getCustomTypeface(context: Context): Typeface {
-    return ResourcesCompat.getFont(context, R.font.roboto_extrabold) ?: Typeface.DEFAULT
-}
-
-@OptIn(UnstableApi::class)
 @Composable()
 fun ApplicationTab() {
     val playerPreferencesState = rememberDataStoreState(PlayerPreferences)
@@ -55,7 +29,6 @@ fun ApplicationTab() {
     )
 }
 
-@OptIn(UnstableApi::class)
 @Composable
 private fun getTimelineGroup(
     prefState: DataStoreState<PlayerPreferences>,
@@ -124,7 +97,6 @@ private fun getTimelineGroup(
 }
 
 
-@OptIn(UnstableApi::class)
 @Composable
 private fun getSubtitlesGroup(
     prefState: DataStoreState<PlayerPreferences>,
@@ -167,7 +139,6 @@ private fun getSubtitlesGroup(
     )
 }
 
-@OptIn(UnstableApi::class)
 @Composable
 private fun getDisplayGroup(
     prefState: DataStoreState<PlayerPreferences>,

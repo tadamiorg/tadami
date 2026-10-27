@@ -1,5 +1,6 @@
 package com.sf.tadami.ui
 
+import androidx.compose.ui.Modifier
 import android.app.Application
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -86,9 +87,10 @@ class AndroidPlatformUi(private val app: Application) : PlatformUi {
     override val hasCastButton: Boolean by lazy { castContextOrNull(app) != null }
 
     @Composable
-    override fun CastButton(tint: Color) {
+    override fun CastButton(tint: Color, modifier: Modifier) {
         val argb = tint.toArgb()
         AndroidView(
+            modifier = modifier,
             factory = { context -> MediaRouteButton(context) },
             update = { mediaButton ->
                 CastButtonFactory.setUpMediaRouteButton(app, mediaButton)

@@ -1,6 +1,8 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls
 
-import androidx.annotation.OptIn
+import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.Injekt
+import com.sf.tadami.ui.PlatformUi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,27 +18,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.common.util.UnstableApi
-import androidx.mediarouter.app.MediaRouteButton
-import com.google.android.gms.cast.framework.CastButtonFactory
-import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
-import com.sf.tadami.ui.animeinfos.episode.cast.setCastIconTint
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
-import com.sf.tadami.ui.animeinfos.episode.EpisodeActivity
 import com.sf.tadami.ui.components.material.IconButton
 import com.sf.tadami.ui.utils.padding
 
-@OptIn(UnstableApi::class)
 @Composable
 fun TopControl(
     modifier: Modifier = Modifier,
@@ -49,7 +41,6 @@ fun TopControl(
 ) {
     val videoTitle = remember(title) { title() }
     val paddingMedium = MaterialTheme.padding.medium
-    val context = LocalContext.current
 
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.Absolute.Left) {
 
@@ -111,20 +102,11 @@ fun TopControl(
                 tint = MaterialTheme.colorScheme.onSurface)
         }
 
-        val castIconTint = MaterialTheme.colorScheme.onSurface.toArgb()
         // No cast button without working Google Play services
-        if (remember { castContextOrNull(context) != null }) AndroidView(
+        val platformUi = remember { Injekt.get<PlatformUi>() }
+        if (platformUi.hasCastButton) platformUi.CastButton(
+            tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(36.dp + MaterialTheme.padding.medium),
-            factory = {
-                MediaRouteButton(context)
-            },
-            update = { mediaButton ->
-                CastButtonFactory.setUpMediaRouteButton(
-                    (context as EpisodeActivity).applicationContext,
-                    mediaButton
-                )
-                mediaButton.setCastIconTint(castIconTint)
-            }
         )
     }
 }

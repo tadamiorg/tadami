@@ -1,5 +1,6 @@
 package com.sf.tadami.ui
 
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavGraphBuilder
@@ -28,7 +29,7 @@ interface PlatformUi {
 
     /** The button to cast to a TV, see [hasCastButton]. */
     @Composable
-    fun CastButton(tint: Color) = Unit
+    fun CastButton(tint: Color, modifier: Modifier = Modifier) = Unit
 
     /**
      * Asks for a folder the app keeps access to: the returned function opens the picker, [onPicked]

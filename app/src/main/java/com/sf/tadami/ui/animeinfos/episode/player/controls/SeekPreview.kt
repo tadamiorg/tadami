@@ -1,5 +1,7 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import android.view.TextureView
 import androidx.annotation.OptIn
 import androidx.compose.foundation.BorderStroke
@@ -16,11 +18,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -33,20 +32,6 @@ import androidx.media3.common.util.UnstableApi
 import com.sf.tadami.ui.animeinfos.episode.player.preview.SeekPreviewPlayer
 import com.sf.tadami.ui.utils.formatMinSec
 import kotlinx.coroutines.delay
-
-/**
- * Seekbar preview hooks. With them, dragging the seekbar shows [thumbnail] above the thumb and seeks the
- * player only once, through [onCommit], when the gesture ends. Without them the seekbar seeks as it moves.
- */
-@Stable
-class SeekBarPreview(
-    /** Whether a gesture starting now previews (something plays); asked once per gesture. */
-    val isAvailable: () -> Boolean,
-    val onScrub: (positionMs: Long) -> Unit,
-    val onScrubEnd: () -> Unit,
-    val onCommit: (positionMs: Long) -> Unit,
-    val thumbnail: @Composable (positionMs: Long) -> Unit,
-)
 
 /** Aniyomi's seekbar preview size, 16:9. */
 private val PreviewWidth = 220.dp
