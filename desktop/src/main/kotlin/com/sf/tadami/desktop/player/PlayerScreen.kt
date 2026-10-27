@@ -559,11 +559,18 @@ private fun mediaData(source: StreamSource, viewModel: PlayerViewModel, userAgen
     )
 }
 
-/** mpv, as `rememberMediampPlayer` gives it, its streams resolved with the app's DNS: the system's may block the hosts. */
+/**
+ * mpv, as `rememberMediampPlayer` gives it, its streams resolved with the app's DNS: the system's may
+ * block the hosts. After a stall it waits for as much video as the Android player does: resumed with
+ * 1 s, a host slower than its stream (AnsEmbed's at times) stutters every few seconds.
+ */
 @Composable
 private fun rememberMpvPlayer(): MediampPlayer {
     val player = remember {
-        MpvMediampPlayer(Unit, EmptyCoroutineContext, configureOptions = { it.option("http-proxy", DnsProxy.url) })
+        MpvMediampPlayer(Unit, EmptyCoroutineContext, configureOptions = {
+            it.option("http-proxy", DnsProxy.url)
+            it.option("cache-pause-wait", "3.5")
+        })
     }
     DisposableEffect(player) {
         onDispose { player.close() }
