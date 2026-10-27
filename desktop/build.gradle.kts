@@ -20,6 +20,17 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 
+// The mpv runtime of the OS the app runs or is packaged on: each OS builds its own installer
+val mpvRuntime = run {
+    val os = System.getProperty("os.name").lowercase()
+    val arm = System.getProperty("os.arch") in setOf("aarch64", "arm64")
+    when {
+        "win" in os -> if (arm) "windows-arm64" else "windows-x64"
+        "mac" in os -> if (arm) "macos-arm64" else "macos-x64"
+        else -> "linux-x64"
+    }
+}
+
 dependencies {
     implementation(project(":shared"))
     implementation(compose.desktop.currentOs)
@@ -31,7 +42,7 @@ dependencies {
 
     // Player: libmpv drawn inside Compose (LGPL runtime per OS)
     implementation("org.openani.mediamp:mediamp-all:0.5.3")
-    runtimeOnly("org.openani.mediamp:mediamp-mpv-runtime-windows-x64:0.5.3")
+    runtimeOnly("org.openani.mediamp:mediamp-mpv-runtime-$mpvRuntime:0.5.3")
 }
 
 compose.desktop {

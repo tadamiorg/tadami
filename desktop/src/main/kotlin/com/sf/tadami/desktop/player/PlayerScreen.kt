@@ -195,7 +195,6 @@ fun EpisodePlayerScreen(
     }
 
     val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     ContentLoader(isLoading = playerScreenLoading, delay = 500) {
         Box(
@@ -215,6 +214,9 @@ fun EpisodePlayerScreen(
                     true
                 },
         ) {
+            // The keys reach the player once it's there, not while the screen loads
+            LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
             if (episodeUiState.availableSources.isNotEmpty()) {
                 VideoSelectionDialog(
                     opened = openVideoSelectionDialog,
