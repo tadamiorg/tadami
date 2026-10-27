@@ -24,11 +24,11 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /**
- * The desktop's HTTP clients, the Android ones without a WebView: no Cloudflare solving yet, [client]
- * fails on a challenge like [nonCloudflareClient]. The user agent is the settings' one, by default the
- * mobile one of the Android app: the sites serve the pages the extensions were written for.
+ * The desktop's HTTP clients, the Android ones with the app's embedded [browser] in place of the
+ * WebView: [client] solves the Cloudflare challenges in it. The user agent is the settings' one, by
+ * default the mobile one of the Android app: the sites serve the pages the extensions were written for.
  */
-actual class NetworkHelper(cacheDir: File) {
+actual class NetworkHelper(cacheDir: File, browser: DesktopBrowser? = null) {
 
     private val dataStore: DataStore<Preferences> = Injekt.get()
 
@@ -80,12 +80,14 @@ actual class NetworkHelper(cacheDir: File) {
 
     actual val nonCloudflareClient: OkHttpClient = clientBuilder.build()
 
-    actual val client: OkHttpClient = nonCloudflareClient
+    actual val client: OkHttpClient = browser?.let {
+        clientBuilder.addInterceptor(it.cloudflareInterceptor(::userAgent)).build()
+    } ?: nonCloudflareClient
 
     @Deprecated("The regular client handles Cloudflare by default")
     actual val cloudflareClient: OkHttpClient = client
 
-    actual val webViewResolver: WebViewResolver = WebViewResolver.Unavailable()
+    actual val webViewResolver: WebViewResolver = browser?.webViewResolver(::userAgent) ?: WebViewResolver.Unavailable()
 
     actual companion object {
         const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36"

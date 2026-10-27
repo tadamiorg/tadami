@@ -31,6 +31,23 @@ val mpvRuntime = run {
     }
 }
 
+// Chromium for the WebView and the Cloudflare challenges, bundled for the same OS as mpv
+val jcefVersion = "152.0.6"
+val jcefNatives = "jcef-17e805a+cef-152.0.6+g708dc14+chromium-152.0.7977.83"
+val jcefPlatform = when (mpvRuntime) {
+    "windows-x64" -> "windows-amd64"
+    "windows-arm64" -> "windows-arm64"
+    "macos-x64" -> "macosx-amd64"
+    "macos-arm64" -> "macosx-arm64"
+    else -> "linux-amd64"
+}
+// JCEF reaches the native window handles of AWT
+val jcefJvmArgs = when {
+    mpvRuntime.startsWith("macos") -> listOf("sun.awt", "sun.lwawt", "sun.lwawt.macosx")
+    mpvRuntime.startsWith("windows") -> listOf("sun.awt", "sun.awt.windows")
+    else -> listOf("sun.awt", "sun.awt.X11")
+}.map { "--add-opens=java.desktop/$it=ALL-UNNAMED" }
+
 dependencies {
     implementation(project(":shared"))
     implementation(compose.desktop.currentOs)
@@ -43,11 +60,15 @@ dependencies {
     // Player: libmpv drawn inside Compose (LGPL runtime per OS)
     implementation("org.openani.mediamp:mediamp-all:0.5.3")
     runtimeOnly("org.openani.mediamp:mediamp-mpv-runtime-$mpvRuntime:0.5.3")
+
+    implementation("me.friwi:jcefmaven:$jcefVersion")
+    runtimeOnly("me.friwi:jcef-natives-$jcefPlatform:$jcefNatives")
 }
 
 compose.desktop {
     application {
         mainClass = "com.sf.tadami.desktop.MainKt"
+        jvmArgs += jcefJvmArgs
         nativeDistributions {
             targetFormats(TargetFormat.Msi, TargetFormat.Exe, TargetFormat.Dmg, TargetFormat.Deb)
             packageName = "Tadami"

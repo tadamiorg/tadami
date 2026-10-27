@@ -10,6 +10,7 @@ import com.sf.tadami.DataStoresHandler
 import com.sf.tadami.Database
 import com.sf.tadami.data.download.DownloadPlatform
 import com.sf.tadami.data.providers.FoldersProvider
+import com.sf.tadami.desktop.browser.EmbeddedBrowser
 import com.sf.tadami.desktop.extension.DesktopExtensionPlatform
 import com.sf.tadami.extension.util.ExtensionPlatform
 import com.sf.tadami.network.NetworkHelper
@@ -65,7 +66,7 @@ class DesktopModule(private val platformUi: DesktopPlatformUi) : InjektModule {
         addSingletonFactory<BackgroundJobs> { DesktopBackgroundJobs() }
         addSingletonFactory<FoldersProvider> { DesktopFoldersProvider() }
 
-        addSingletonFactory { NetworkHelper(AppDirs.cache) }
+        addSingletonFactory { NetworkHelper(AppDirs.cache, EmbeddedBrowser) }
 
         // mpv caches the streams itself, in memory
         addSingletonFactory<VideoCache> {
