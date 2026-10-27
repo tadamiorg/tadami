@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.sf.tadami.ui.utils.handCursor
 import com.sf.tadami.ui.utils.padding
 import androidx.compose.material3.ButtonDefaults as M3ButtonDefaults
 
@@ -544,6 +545,7 @@ fun IconButton(
             .minimumInteractiveComponentSize()
             /*.clip(IconButtonTokens.StateLayerShape.value)*/
             .background(color = colors.containerColor(enabled))
+            .handCursor(enabled)
             .clickable(
                 onClick = onClick,
                 enabled = enabled,

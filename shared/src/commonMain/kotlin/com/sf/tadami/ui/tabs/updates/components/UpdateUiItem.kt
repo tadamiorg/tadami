@@ -33,6 +33,8 @@ import com.sf.tadami.ui.animeinfos.details.infos.AnimeCover
 import com.sf.tadami.ui.animeinfos.details.infos.DotSeparatorText
 import com.sf.tadami.ui.utils.SeenItemAlpha
 import com.sf.tadami.ui.components.material.LanguageBadge
+import com.sf.tadami.ui.utils.handCursor
+import com.sf.tadami.ui.utils.onSecondaryClick
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.selectedBackground
 
@@ -53,6 +55,8 @@ fun UpdatesUiItem(
     Row(
         modifier = modifier
             .selectedBackground(selected)
+            .handCursor()
+            .onSecondaryClick(onLongClick)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = {

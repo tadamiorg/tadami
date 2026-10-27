@@ -21,7 +21,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
@@ -36,6 +38,12 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.isSecondaryPressed
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
@@ -65,17 +73,41 @@ fun Modifier.verticalGradientBackground(from : Color,to : Color) = this.then(
 
 fun Modifier.secondaryItemAlpha(): Modifier = this.alpha(.78f)
 
+/** The hand cursor of the mouse over a clickable element */
+fun Modifier.handCursor(enabled: Boolean = true): Modifier =
+    if (enabled) this.pointerHoverIcon(PointerIcon.Hand) else this
+
+/** A right click runs [onClick], the long press of the mouse. Touch has no secondary button: unchanged */
+fun Modifier.onSecondaryClick(onClick: (() -> Unit)?): Modifier = if (onClick == null) this else composed {
+    val currentOnClick by rememberUpdatedState(onClick)
+    this.pointerInput(Unit) {
+        awaitPointerEventScope {
+            while (true) {
+                // Before the clickables, so the press isn't also a click of the element
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                if (event.type == PointerEventType.Press && event.buttons.isSecondaryPressed) {
+                    event.changes.forEach { it.consume() }
+                    currentOnClick()
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 fun Modifier.clickableNoIndication(
     onLongClick: (() -> Unit)? = null,
     onClick: () -> Unit,
 ): Modifier = composed {
-    this.combinedClickable(
-        interactionSource = remember { MutableInteractionSource() },
-        indication = null,
-        onLongClick = onLongClick,
-        onClick = onClick,
-    )
+    this
+        .handCursor()
+        .onSecondaryClick(onLongClick)
+        .combinedClickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            onLongClick = onLongClick,
+            onClick = onClick,
+        )
 }
 
 fun Modifier.selectedBackground(isSelected: Boolean): Modifier = if (isSelected) {

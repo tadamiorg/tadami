@@ -49,6 +49,8 @@ import com.sf.tadami.source.model.SAnimeStatus
 import com.sf.tadami.ui.components.modal.ModalAction
 import com.sf.tadami.ui.components.modal.ModalBodyText
 import com.sf.tadami.ui.components.modal.TadaDialog
+import com.sf.tadami.ui.utils.handCursor
+import com.sf.tadami.ui.utils.onSecondaryClick
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.secondaryItemAlpha
 
@@ -95,18 +97,22 @@ fun AnimeAndSourceTitles(
             contentDescription = "",
         )
         Column(modifier = Modifier.padding(start = MaterialTheme.padding.medium)) {
+            val copyTitle = {
+                if (title.isNotBlank()) {
+                    // The OS shows its own copy confirmation, so no toast here.
+                    clipboardManager.setText(AnnotatedString(title))
+                }
+            }
             Text(
                 text = title.ifBlank { "" },
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.combinedClickable(
-                    onClick = onTitleClicked,
-                    onLongClick = {
-                        if (title.isNotBlank()) {
-                            // The OS shows its own copy confirmation, so no toast here.
-                            clipboardManager.setText(AnnotatedString(title))
-                        }
-                    },
-                )
+                modifier = Modifier
+                    .handCursor()
+                    .onSecondaryClick(copyTitle)
+                    .combinedClickable(
+                        onClick = onTitleClicked,
+                        onLongClick = copyTitle,
+                    )
             )
             Spacer(modifier = Modifier.height(2.dp))
             // Studio (primary metadata line)

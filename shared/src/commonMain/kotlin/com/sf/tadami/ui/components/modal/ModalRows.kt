@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.sf.tadami.ui.utils.handCursor
 
 /** The control of a choice row. */
 sealed interface ChoiceControl {
@@ -41,11 +42,11 @@ sealed interface ChoiceControl {
 }
 
 private fun Modifier.choiceClick(control: ChoiceControl, enabled: Boolean, onClick: () -> Unit): Modifier =
-    when (control) {
+    handCursor(enabled).then(when (control) {
         is ChoiceControl.Radio -> selectable(control.selected, enabled = enabled, role = Role.RadioButton, onClick = onClick)
         is ChoiceControl.Check -> toggleable(control.checked, enabled = enabled, role = Role.Checkbox) { onClick() }
         is ChoiceControl.TriState -> triStateToggleable(control.state, enabled = enabled, role = Role.Checkbox, onClick = onClick)
-    }
+    })
 
 /**
  * A row of a choice list: 48dp, inset 8dp, 12dp corners. A single choice has no radio: the selected
@@ -119,6 +120,7 @@ fun ModalCheckboxRow(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = ModalDefaults.RowHeight)
+            .handCursor(enabled)
             .toggleable(checked, enabled = enabled, role = Role.Checkbox, onValueChange = onCheckedChange)
             .padding(horizontal = horizontalPadding),
     ) {

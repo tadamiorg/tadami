@@ -25,6 +25,8 @@ import com.sf.tadami.data.download.model.EpisodeDownloadState
 import com.sf.tadami.ui.animeinfos.details.infos.DotSeparatorText
 import com.sf.tadami.ui.utils.SecondaryItemAlpha
 import com.sf.tadami.ui.utils.SeenItemAlpha
+import com.sf.tadami.ui.utils.handCursor
+import com.sf.tadami.ui.utils.onSecondaryClick
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.selectedBackground
 
@@ -49,6 +51,8 @@ fun EpisodeListItem(
     Row(
         modifier = modifier
             .selectedBackground(selected)
+            .handCursor()
+            .onSecondaryClick(onLongClick)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick

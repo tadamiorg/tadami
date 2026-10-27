@@ -11,6 +11,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.sf.tadami.ui.utils.handCursor
+import com.sf.tadami.ui.utils.onSecondaryClick
 import com.sf.tadami.ui.utils.selectedOutline
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -25,6 +27,8 @@ fun GridItemSelectable(
     Box(
         modifier = modifier
             .clip(MaterialTheme.shapes.small)
+            .handCursor()
+            .onSecondaryClick(onLongClick)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,

@@ -49,7 +49,9 @@ fun DetailsToolbar(
     actionModeCounter: Int,
     onCloseClicked: () -> Unit,
     onToggleAll: () -> Unit,
-    onInverseAll: () -> Unit
+    onInverseAll: () -> Unit,
+    // The episodes list scrolls on its own pane, under the bar: always shown
+    twoPane: Boolean = false,
 ) {
     val firstVisibleItemIndex by remember {
         derivedStateOf { episodesListState.firstVisibleItemIndex }
@@ -58,10 +60,10 @@ fun DetailsToolbar(
         derivedStateOf { episodesListState.firstVisibleItemScrollOffset }
     }
     val animatedTitleAlpha by animateFloatAsState(
-        if (firstVisibleItemIndex > 0) 1f else 0f, label = "title_alpha",
+        if (twoPane || firstVisibleItemIndex > 0) 1f else 0f, label = "title_alpha",
     )
     val animatedBgAlpha by animateFloatAsState(
-        if (firstVisibleItemIndex > 0 || firstVisibleItemScrollOffset > 0) 1f else 0f,
+        if (twoPane || firstVisibleItemIndex > 0 || firstVisibleItemScrollOffset > 0) 1f else 0f,
         label = "bg_alpha",
     )
     ContextualTopAppBar(

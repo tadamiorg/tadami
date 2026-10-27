@@ -17,6 +17,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.stringResource
 import androidx.navigation.NavHostController
@@ -28,12 +35,109 @@ import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
+import com.sf.tadami.ui.components.widgets.TwoPanelBox
+import com.sf.tadami.ui.tabs.more.settings.components.LocalSettingsEndPane
+import com.sf.tadami.ui.tabs.more.settings.search.SearchableSettings
+import com.sf.tadami.ui.utils.isTabletUi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
+) {
+    val twoPane = isTabletUi()
+    // The category on the end pane of the two-pane settings, the first one at first
+    var selectedRoute by rememberSaveable { mutableStateOf(SettingsRoutes.APPEARANCE) }
+    val openCategory: (String) -> Unit = { route ->
+        if (twoPane) selectedRoute = route else navController.navigate(route)
+    }
+    val categories = listOf(
+        SettingsRoutes.APPEARANCE to Preference.PreferenceItem.TextPreference(
+            title = stringResource(Res.string.label_appearance),
+            subtitle = stringResource(Res.string.pref_appearance_summary),
+            icon = Icons.Outlined.Palette,
+            onClick = {
+                openCategory(SettingsRoutes.APPEARANCE)
+            }
+        ),
+        SettingsRoutes.LIBRARY to Preference.PreferenceItem.TextPreference(
+            title = stringResource(Res.string.settings_tab_library_preferences_title),
+            subtitle = stringResource(Res.string.settings_tab_library_preferences_subtitle),
+            icon = Icons.Outlined.VideoLibrary,
+            onClick = {
+                openCategory(SettingsRoutes.LIBRARY)
+            }
+        ),
+        SettingsRoutes.PLAYER to Preference.PreferenceItem.TextPreference(
+            title = stringResource(Res.string.settings_tab_library_player_preferences_title),
+            subtitle = stringResource(Res.string.settings_tab_library_player_preferences_subtitle),
+            icon = Icons.Outlined.OndemandVideo,
+            onClick = {
+                openCategory(SettingsRoutes.PLAYER)
+            }
+        ),
+        SettingsRoutes.DOWNLOADS to Preference.PreferenceItem.TextPreference(
+            title = stringResource(Res.string.preferences_download_title),
+            subtitle = stringResource(Res.string.preferences_download_summary),
+            icon = Icons.Outlined.Download,
+            onClick = {
+                openCategory(SettingsRoutes.DOWNLOADS)
+            }
+        ),
+        DataSettingsRoutes.HOME to Preference.PreferenceItem.TextPreference(
+            title = stringResource(Res.string.settings_tab_library_data_preferences_title),
+            subtitle = stringResource(Res.string.settings_tab_library_backup_preferences_subtitle),
+            icon = Icons.Outlined.Backup,
+            onClick = {
+                openCategory(DataSettingsRoutes.HOME)
+            }
+        ),
+        AdvancedSettingsRoutes.HOME to Preference.PreferenceItem.TextPreference(
+            title = stringResource(Res.string.preferences_advanced),
+            subtitle = stringResource(Res.string.preferences_advanced_subtitle),
+            icon = Icons.Outlined.Code,
+            onClick = {
+                openCategory(AdvancedSettingsRoutes.HOME)
+            }
+        )
+    )
+
+    val categoriesList = @Composable { listModifier: Modifier ->
+        SettingsCategories(
+            modifier = listModifier,
+            navController = navController,
+            categories = categories.map { it.second },
+            selectedIndex = categories.indexOfFirst { it.first == selectedRoute }.takeIf { twoPane },
+        )
+    }
+
+    if (!twoPane) {
+        categoriesList(modifier)
+    } else {
+        TwoPanelBox(
+            modifier = modifier,
+            startContent = { categoriesList(Modifier) },
+            endContent = {
+                // A new screen and its state for each category, as when opened by its route
+                key(selectedRoute) {
+                    val screen = remember { SearchableSettings.screens.first { it.route == selectedRoute }.create(navController) }
+                    CompositionLocalProvider(LocalSettingsEndPane provides true) {
+                        screen.Content()
+                    }
+                }
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsCategories(
+    modifier: Modifier,
+    navController: NavHostController,
+    categories: List<Preference.PreferenceItem.TextPreference>,
+    selectedIndex: Int?,
 ) {
     Scaffold(
         modifier = modifier,
@@ -65,56 +169,8 @@ fun SettingsScreen(
     ) {
         SettingsComponent(
             modifier = Modifier.padding(it),
-            preferences = listOf(
-                Preference.PreferenceItem.TextPreference(
-                    title = stringResource(Res.string.label_appearance),
-                    subtitle = stringResource(Res.string.pref_appearance_summary),
-                    icon = Icons.Outlined.Palette,
-                    onClick = {
-                        navController.navigate(SettingsRoutes.APPEARANCE)
-                    }
-                ),
-                Preference.PreferenceItem.TextPreference(
-                    title = stringResource(Res.string.settings_tab_library_preferences_title),
-                    subtitle = stringResource(Res.string.settings_tab_library_preferences_subtitle),
-                    icon = Icons.Outlined.VideoLibrary,
-                    onClick = {
-                        navController.navigate(SettingsRoutes.LIBRARY)
-                    }
-                ),
-                Preference.PreferenceItem.TextPreference(
-                    title = stringResource(Res.string.settings_tab_library_player_preferences_title),
-                    subtitle = stringResource(Res.string.settings_tab_library_player_preferences_subtitle),
-                    icon = Icons.Outlined.OndemandVideo,
-                    onClick = {
-                        navController.navigate(SettingsRoutes.PLAYER)
-                    }
-                ),
-                Preference.PreferenceItem.TextPreference(
-                    title = stringResource(Res.string.preferences_download_title),
-                    subtitle = stringResource(Res.string.preferences_download_summary),
-                    icon = Icons.Outlined.Download,
-                    onClick = {
-                        navController.navigate(SettingsRoutes.DOWNLOADS)
-                    }
-                ),
-                Preference.PreferenceItem.TextPreference(
-                    title = stringResource(Res.string.settings_tab_library_data_preferences_title),
-                    subtitle = stringResource(Res.string.settings_tab_library_backup_preferences_subtitle),
-                    icon = Icons.Outlined.Backup,
-                    onClick = {
-                        navController.navigate(DataSettingsRoutes.HOME)
-                    }
-                ),
-                Preference.PreferenceItem.TextPreference(
-                    title = stringResource(Res.string.preferences_advanced),
-                    subtitle = stringResource(Res.string.preferences_advanced_subtitle),
-                    icon = Icons.Outlined.Code,
-                    onClick = {
-                        navController.navigate(AdvancedSettingsRoutes.HOME)
-                    }
-                )
-            )
+            preferences = categories,
+            selectedIndex = selectedIndex,
         )
     }
 }

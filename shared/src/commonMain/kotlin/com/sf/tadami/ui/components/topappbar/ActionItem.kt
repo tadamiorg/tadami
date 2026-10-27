@@ -8,17 +8,27 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.stub_text
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.material.DropdownMenu
+import com.sf.tadami.ui.utils.handCursor
 
 
 @Composable
@@ -30,8 +40,9 @@ fun ActionItem(
     val platformUi = remember { Injekt.get<PlatformUi>() }
 
     when (action) {
-        is Action.Drawable -> {
+        is Action.Drawable -> ActionTooltip(action.title) {
             IconButton(
+                modifier = Modifier.handCursor(enabled),
                 enabled = enabled,
                 onClick = {
                     itemClick?.invoke()
@@ -47,9 +58,10 @@ fun ActionItem(
             }
         }
 
-        is Action.Vector -> {
+        is Action.Vector -> ActionTooltip(action.title) {
 
             IconButton(
+                modifier = Modifier.handCursor(enabled),
                 enabled = enabled,
                 onClick = {
                     itemClick?.invoke()
@@ -67,6 +79,7 @@ fun ActionItem(
 
         is Action.CastButton -> if (platformUi.hasCastButton) {
             IconButton(
+                modifier = Modifier.handCursor(enabled),
                 enabled = enabled,
                 onClick = {
                     itemClick?.invoke()
@@ -79,19 +92,22 @@ fun ActionItem(
 
         is Action.DropDownVector -> {
             var showMenu by remember { mutableStateOf(false) }
-            IconButton(
-                enabled = enabled,
-                onClick = {
-                    itemClick?.invoke()
-                    showMenu = !showMenu
-                }
-            ) {
-                Icon(
-                    imageVector = action.icon,
-                    tint = action.tint ?: LocalContentColor.current,
-                    contentDescription = stringResource(action.title
+            ActionTooltip(action.title) {
+                IconButton(
+                    modifier = Modifier.handCursor(enabled),
+                    enabled = enabled,
+                    onClick = {
+                        itemClick?.invoke()
+                        showMenu = !showMenu
+                    }
+                ) {
+                    Icon(
+                        imageVector = action.icon,
+                        tint = action.tint ?: LocalContentColor.current,
+                        contentDescription = stringResource(action.title
+                        )
                     )
-                )
+                }
             }
             DropdownMenu(
                 expanded = showMenu,
@@ -114,19 +130,22 @@ fun ActionItem(
         }
         is Action.DropDownDrawable -> {
             var showMenu by remember { mutableStateOf(false) }
-            IconButton(
-                enabled = enabled,
-                onClick = {
-                    itemClick?.invoke()
-                    showMenu = !showMenu
-                }
-            ) {
-                Icon(
-                    painterResource(action.icon),
-                    tint = action.tint ?: LocalContentColor.current,
-                    contentDescription = stringResource(action.title
+            ActionTooltip(action.title) {
+                IconButton(
+                    modifier = Modifier.handCursor(enabled),
+                    enabled = enabled,
+                    onClick = {
+                        itemClick?.invoke()
+                        showMenu = !showMenu
+                    }
+                ) {
+                    Icon(
+                        painterResource(action.icon),
+                        tint = action.tint ?: LocalContentColor.current,
+                        contentDescription = stringResource(action.title
+                        )
                     )
-                )
+                }
             }
             DropdownMenu(
                 expanded = showMenu,
@@ -147,5 +166,20 @@ fun ActionItem(
                 }
             }
         }
+    }
+}
+
+/** The title of an icon-only action, on hover or a long press. [Res.string.stub_text] is an action without a title */
+@Composable
+private fun ActionTooltip(title: StringResource, content: @Composable () -> Unit) {
+    if (title == Res.string.stub_text) {
+        content()
+    } else {
+        TooltipBox(
+            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+            tooltip = { PlainTooltip { Text(stringResource(title)) } },
+            state = rememberTooltipState(),
+            content = content,
+        )
     }
 }

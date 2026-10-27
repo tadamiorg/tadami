@@ -9,6 +9,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.sf.tadami.ui.utils.handCursor
+import com.sf.tadami.ui.utils.onSecondaryClick
 import com.sf.tadami.ui.utils.padding
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -23,6 +25,8 @@ fun BaseBrowseItem(
 ) {
     Row(
         modifier = modifier
+            .handCursor()
+            .onSecondaryClick(onLongClickItem)
             .combinedClickable(
                 onClick = onClickItem,
                 onLongClick = onLongClickItem,

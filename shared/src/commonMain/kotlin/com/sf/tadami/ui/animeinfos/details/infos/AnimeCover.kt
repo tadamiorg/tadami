@@ -17,6 +17,7 @@ import androidx.compose.ui.semantics.Role
 import coil3.compose.AsyncImage
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
+import com.sf.tadami.ui.utils.handCursor
 
 enum class AnimeCover(val ratio: Float) {
     Square(1f / 1f),
@@ -40,7 +41,7 @@ enum class AnimeCover(val ratio: Float) {
                 .clip(shape)
                 .then(
                     if (onClick != null) {
-                        Modifier.clickable(
+                        Modifier.handCursor().clickable(
                             role = Role.Button,
                             onClick = onClick,
                         )

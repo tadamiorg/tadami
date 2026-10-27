@@ -26,6 +26,7 @@ import com.sf.tadami.domain.anime.AnimeCoverData
 import com.sf.tadami.domain.history.HistoryWithRelations
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeCover
 import com.sf.tadami.ui.components.material.LanguageBadge
+import com.sf.tadami.ui.utils.handCursor
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.toTimestampString
 import java.text.DecimalFormat
@@ -43,6 +44,7 @@ fun HistoryItem(
 ) {
     Row(
         modifier = modifier
+            .handCursor()
             .clickable(onClick = onClickResume)
             .height(HISTORY_ITEM_HEIGHT)
             .padding(horizontal = MaterialTheme.padding.medium, vertical = MaterialTheme.padding.extraSmall),

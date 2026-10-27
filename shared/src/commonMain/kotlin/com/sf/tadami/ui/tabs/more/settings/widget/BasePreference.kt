@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sf.tadami.ui.utils.handCursor
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
 
@@ -55,6 +56,7 @@ public fun BasePreference(
         modifier = modifier
             .highlightBackground(highlighted)
             .sizeIn(minHeight = minHeight)
+            .handCursor(enabled = onClick != null)
             .clickable(enabled = onClick != null, onClick = { onClick?.invoke() })
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,

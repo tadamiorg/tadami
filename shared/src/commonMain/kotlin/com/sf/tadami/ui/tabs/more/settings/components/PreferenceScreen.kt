@@ -12,6 +12,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.stringResource
@@ -22,6 +23,9 @@ import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.ActionItem
+
+/** The screen is the end pane of the two-pane settings: the categories stay next to it, no back button */
+val LocalSettingsEndPane = compositionLocalOf { false }
 
 interface PreferenceScreen {
 
@@ -54,7 +58,7 @@ interface PreferenceScreen {
                 TopAppBar(
                     title = { Text(text = getTitle()) },
                     navigationIcon = {
-                        if (backHandler != null) {
+                        if (backHandler != null && !LocalSettingsEndPane.current) {
                             IconButton(onClick = backHandler!!) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Outlined.ArrowBack,

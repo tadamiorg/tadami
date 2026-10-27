@@ -58,6 +58,7 @@ import com.sf.tadami.ui.components.modal.TadaDestructiveDialog
 import com.sf.tadami.ui.discover.migrate.dialog.MigrateDialog
 import com.sf.tadami.ui.discover.migrate.dialog.MigrationState
 import com.sf.tadami.ui.utils.UiToasts
+import com.sf.tadami.ui.utils.isTabletUi
 import com.sf.tadami.ui.utils.isScrolledToEnd
 import com.sf.tadami.ui.utils.isScrollingUp
 import java.net.URLEncoder
@@ -86,6 +87,8 @@ fun DetailsScreen(
     var showDeleteDownloadsDialog by rememberSaveable { mutableStateOf(false) }
 
     val scaffoldInsets =  WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
+
+    val twoPane = isTabletUi()
 
     Box {
         TadaBottomSheetScaffold(
@@ -145,7 +148,8 @@ fun DetailsScreen(
                     onDownloadClicked = detailsViewModel::runDownloadAction,
                     onDeleteDownloadsClicked = { showDeleteDownloadsDialog = true },
                     hasDownloads = uiState.episodes.fastAny { it.download.state != Download.State.NOT_DOWNLOADED },
-                    downloadedOnly = uiState.downloadedOnly
+                    downloadedOnly = uiState.downloadedOnly,
+                    twoPane = twoPane,
                 )
             },
             floatingActionButton = {
@@ -285,7 +289,8 @@ fun DetailsScreen(
                 onTitleSearch = { query ->
                     // Encoded so a '&', '#' or '%' in the title can't break the route, navigation decodes it
                     navHostController.navigate("${DiscoverRoutes.GLOBAL_SEARCH}?initialQuery=${query.encodeUriComponent()}")
-                }
+                },
+                twoPane = twoPane,
             )
         }
         uiState.setCategoriesDialog?.let { dialog ->

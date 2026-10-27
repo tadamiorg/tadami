@@ -29,6 +29,8 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.sf.tadami.ui.utils.handCursor
+import com.sf.tadami.ui.utils.onSecondaryClick
 import kotlin.math.ln
 
 /**
@@ -70,6 +72,8 @@ fun Surface(
                     border = border,
                     shadowElevation = shadowElevation,
                 )
+                .handCursor(enabled)
+                .onSecondaryClick(onLongClick?.takeIf { enabled })
                 .combinedClickable(
                     interactionSource = interactionSource,
                     indication = ripple(),
