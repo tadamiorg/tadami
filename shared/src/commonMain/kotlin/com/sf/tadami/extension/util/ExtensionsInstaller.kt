@@ -1,8 +1,8 @@
 package com.sf.tadami.extension.util
 
+import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.Injekt
 import org.jetbrains.compose.resources.StringResource
-import android.content.Context
-import androidx.core.content.pm.PackageInfoCompat
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.extensions.Extension
@@ -23,13 +23,12 @@ import java.util.zip.ZipFile
  * Installs the extensions into [ExtensionsStorage]: their APK is downloaded or copied into a
  * temporary file, then verified before it replaces the installed one.
  *
- * @param context The application context.
  */
-public class ExtensionsInstaller(private val context: Context) {
+public class ExtensionsInstaller {
 
     private val network: NetworkHelper by injectLazy()
 
-    private val dir = ExtensionsStorage.dir(context)
+    private val dir = ExtensionsStorage.dir(Injekt.get<ExtensionPlatform>().filesDir)
 
     fun newTmpFile(pkgName: String): File = ExtensionsStorage.newTmpFile(dir, pkgName)
 
@@ -57,8 +56,7 @@ public class ExtensionsInstaller(private val context: Context) {
     /** The version code of the installed extension [pkgName], null when there is none. */
     fun installedVersionCode(pkgName: String): Long? {
         val file = ExtensionsStorage.apkFile(dir, pkgName).takeIf { it.isFile } ?: return null
-        return ExtensionsLoader.getArchivePackageInfo(context, file)
-            ?.let { PackageInfoCompat.getLongVersionCode(it) }
+        return ExtensionsLoader.readApk(file)?.versionCode
     }
 
     /**
@@ -81,20 +79,20 @@ public class ExtensionsInstaller(private val context: Context) {
         rejectionOf(apk, pkgName, listed, installed, allowSameVersion)?.let { return it }
         ExtensionsStorage.commit(dir, pkgName, tmp)
         // Another APK, maybe the fix of the crash it was quarantined for
-        ExtensionsGuard.clearQuarantine(context, pkgName)
+        ExtensionsGuard.clearQuarantine(pkgName)
         return null
     }
 
     private fun readApk(file: File): ApkInfo? {
-        val pkgInfo = ExtensionsLoader.getArchivePackageInfo(context, file) ?: return null
+        val apk = ExtensionsLoader.readApk(file) ?: return null
         return ApkInfo(
-            pkgName = pkgInfo.packageName,
-            versionCode = PackageInfoCompat.getLongVersionCode(pkgInfo),
-            versionName = pkgInfo.versionName,
-            isExtension = ExtensionsLoader.isPackageAnExtension(pkgInfo),
+            pkgName = apk.packageName,
+            versionCode = apk.versionCode,
+            versionName = apk.versionName,
+            isExtension = ExtensionsLoader.isPackageAnExtension(apk),
             hasNativeLibs = hasNativeLibs(file),
-            signatureHashes = ExtensionsLoader.signatureHashes(pkgInfo),
-            multipleSigners = pkgInfo.signingInfo?.hasMultipleSigners() == true,
+            signatureHashes = apk.signatureHashes,
+            multipleSigners = apk.multipleSigners,
         )
     }
 

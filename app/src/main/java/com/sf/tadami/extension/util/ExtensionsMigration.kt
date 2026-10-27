@@ -1,5 +1,6 @@
 package com.sf.tadami.extension.util
 
+import com.sf.tadami.extension.util.AndroidExtensionPlatform.Companion.isTadamiExtension
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
@@ -43,7 +44,7 @@ public object ExtensionsMigration {
             return emptyList()
         }
 
-        val installer = ExtensionsInstaller(context)
+        val installer = ExtensionsInstaller()
         packages.forEach { pkgInfo ->
             try {
                 adopt(context, installer, pkgInfo)
@@ -58,7 +59,7 @@ public object ExtensionsMigration {
 
     /** The extension apps that have a private copy, so aren't needed anymore. */
     fun legacyPackages(context: Context, packages: List<PackageInfo> = installedExtensionPackages(context)): List<String> {
-        val dir = ExtensionsStorage.dir(context)
+        val dir = ExtensionsStorage.dir(context.filesDir)
         return packages
             .map { it.packageName }
             .filter { ExtensionsStorage.isValidPkgName(it) && ExtensionsStorage.apkFile(dir, it).isFile }
@@ -87,8 +88,8 @@ public object ExtensionsMigration {
         } catch (e: PackageManager.NameNotFoundException) {
             return false
         }
-        if (!ExtensionsLoader.isPackageAnExtension(pkgInfo)) return false
-        return adopt(context, ExtensionsInstaller(context), pkgInfo)
+        if (!pkgInfo.isTadamiExtension()) return false
+        return adopt(context, ExtensionsInstaller(), pkgInfo)
     }
 
     /**
@@ -119,7 +120,7 @@ public object ExtensionsMigration {
                 privateVersionCode = installer.installedVersionCode(pkgName),
                 debug = AppBuildInfo.DEBUG,
                 isSameFile = {
-                    val privateApk = ExtensionsStorage.apkFile(ExtensionsStorage.dir(context), pkgName)
+                    val privateApk = ExtensionsStorage.apkFile(ExtensionsStorage.dir(context.filesDir), pkgName)
                     apk.readBytes().contentEquals(privateApk.readBytes())
                 },
             )
@@ -133,7 +134,7 @@ public object ExtensionsMigration {
                 if (rejection == null) {
                     // From no repo: installed with adb in a debug build, unknown for an app installed before
                     val origin = ExtensionOrigin(manual = true).takeIf { AppBuildInfo.DEBUG }
-                    ExtensionsStorage.writeOrigin(ExtensionsStorage.dir(context), pkgName, origin)
+                    ExtensionsStorage.writeOrigin(ExtensionsStorage.dir(context.filesDir), pkgName, origin)
                 }
                 rejection == null
             } finally {
@@ -149,6 +150,6 @@ public object ExtensionsMigration {
         } else {
             pkgManager.getInstalledPackages(PackageManager.GET_CONFIGURATIONS)
         }
-        return packages.filter { ExtensionsLoader.isPackageAnExtension(it) }
+        return packages.filter { it.isTadamiExtension() }
     }
 }

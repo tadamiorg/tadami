@@ -1,5 +1,7 @@
 package com.sf.tadami
 
+import com.sf.tadami.extension.util.AndroidExtensionPlatform
+import com.sf.tadami.extension.util.ExtensionPlatform
 import android.app.Application
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.cash.sqldelight.db.SqlDriver
@@ -124,7 +126,9 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
 
         // Extensions
 
-        addSingletonFactory { ExtensionManager(app) }
+        addSingletonFactory<ExtensionPlatform> { AndroidExtensionPlatform(app) }
+
+        addSingletonFactory { ExtensionManager() }
 
         // Sources
         addSingletonFactory<StubSourceRepository>{

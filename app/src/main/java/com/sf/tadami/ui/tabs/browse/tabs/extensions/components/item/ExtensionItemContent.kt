@@ -58,7 +58,7 @@ fun ExtensionItemContent(
 
                 val warning = when {
                     // Why it can't be used comes first, it's what the user has to fix
-                    extension is Extension.Installed && extension.loadIssue != null -> extension.loadIssue.labelRes
+                    extension is Extension.Installed && extension.loadIssue != null -> extension.loadIssue!!.labelRes
                     extension is Extension.Installed && extension.isObsolete -> Res.string.ext_obsolete
                     else -> null
                 }

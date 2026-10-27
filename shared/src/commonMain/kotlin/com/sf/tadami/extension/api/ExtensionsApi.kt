@@ -1,6 +1,8 @@
 package com.sf.tadami.extension.api
 
-import android.content.Context
+import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.Injekt
+import com.sf.tadami.extension.util.ExtensionPlatform
 import com.sf.tadami.utils.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -13,7 +15,6 @@ import com.sf.tadami.network.GET
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.awaitSuccess
 import com.sf.tadami.network.parseAs
-import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerNotifier
 import com.sf.tadami.preferences.sources.SourcesPreferences
 import com.sf.tadami.utils.Lang
 import com.sf.tadami.utils.editPreference
@@ -139,7 +140,6 @@ public class ExtensionsApi {
     }
 
     suspend fun checkForUpdates(
-        context: Context,
         fromAvailableExtensionList: Boolean = false,
     ): List<Extension.Installed>? {
         // Limit checks to once a day at most
@@ -170,7 +170,7 @@ public class ExtensionsApi {
         }
 
         if (extensionsWithUpdate.isNotEmpty()) {
-            ExtensionInstallerNotifier(context).promptUpdates(extensionsWithUpdate.map { it.name })
+            Injekt.get<ExtensionPlatform>().promptUpdates(extensionsWithUpdate.map { it.name })
         }
 
         return extensionsWithUpdate

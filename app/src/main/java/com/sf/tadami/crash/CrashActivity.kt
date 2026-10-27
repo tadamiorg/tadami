@@ -62,7 +62,7 @@ class CrashActivity : AppCompatActivity() {
                 },
                 onRestartWithoutExtensionsClick = {
                     // Read by the next launch, nothing of the extensions is built in this process
-                    runCatching { ExtensionsGuard.setSafeMode(this@CrashActivity, true) }
+                    runCatching { ExtensionsGuard.setSafeMode(true) }
                     CrashReporter.clearPending(this@CrashActivity)
                     restart()
                 },

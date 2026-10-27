@@ -1,13 +1,7 @@
 package com.sf.tadami.extension
 
-import android.app.Application
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import com.sf.tadami.utils.Log
-import androidx.core.content.ContextCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -26,14 +20,13 @@ import com.sf.tadami.extension.model.LoadResult
 import com.sf.tadami.extension.model.SourceIdConflict
 import com.sf.tadami.extension.util.ExtensionsGuard
 import com.sf.tadami.extension.util.ExtensionsInstaller
+import com.sf.tadami.extension.util.ExtensionPlatform
 import com.sf.tadami.extension.util.ExtensionsLoader
 import com.sf.tadami.extension.util.ExtensionOrigin
-import com.sf.tadami.extension.util.ExtensionsMigration
 import com.sf.tadami.extension.util.ExtensionsStorage
 import com.sf.tadami.extension.util.conflictsBeforeLoading
 import com.sf.tadami.extension.util.resolveSourceIdConflicts
 import com.sf.tadami.extension.util.sourceIdConflictOf
-import com.sf.tadami.notifications.extensionsinstaller.ExtensionInstallerNotifier
 import com.sf.tadami.preferences.extensions.SourceIdOwnersPreferences
 import com.sf.tadami.preferences.extensions.TrustedExtensionsPreferences
 import com.sf.tadami.preferences.sources.SourcesPreferences
@@ -68,7 +61,7 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 class ExtensionManager(
-    private val context: Context,
+    private val platform: ExtensionPlatform = Injekt.get(),
     private val dataStore: DataStore<Preferences> = Injekt.get()
 ) {
     var isInitialized = false
@@ -84,9 +77,9 @@ class ExtensionManager(
     /**
      * The installer which installs and updates the extensions.
      */
-    private val installer by lazy { ExtensionsInstaller(context) }
+    private val installer by lazy { ExtensionsInstaller() }
 
-    private val storageDir: File = ExtensionsStorage.dir(context)
+    private val storageDir: File = ExtensionsStorage.dir(platform.filesDir)
 
     /** Runs the installs and uninstalls, which go on without the screen that started them. */
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -168,7 +161,12 @@ class ExtensionManager(
         // Before the extensions are loaded: a crash of their code the app survives disables them
         instance = this
         initExtensions()
-        if (AppBuildInfo.DEBUG) registerDebugPackageReceiver()
+        if (AppBuildInfo.DEBUG) {
+            platform.watchDebugPackages { pkgName ->
+                ExtensionsStorage.withLock(pkgName) { reloadExtension(pkgName) }
+                updatePendingUpdatesCount()
+            }
+        }
     }
 
     companion object {
@@ -185,24 +183,24 @@ class ExtensionManager(
     private fun initExtensions() {
         // Not from another process, the crash screen's for instance: it would delete the downloads
         // the main process is running
-        if (Application.getProcessName() == context.packageName) {
+        if (platform.isMainProcess) {
             ExtensionsStorage.cleanTmp(storageDir)
             ExtensionsStorage.cleanOrphanOatFiles(storageDir)
             ExtensionsStorage.cleanOrphanOrigins(storageDir)
-            ExtensionsGuard.checkPreviousExit(context)
+            ExtensionsGuard.checkPreviousExit()
         }
-        val safeMode = ExtensionsGuard.isSafeMode(context)
+        val safeMode = ExtensionsGuard.isSafeMode()
         _safeModeFlow.value = safeMode
         sourceIdOwners = runCatching { runBlocking { dataStore.getPreferencesGroup(SourceIdOwnersPreferences).owners } }
             .onFailure { Log.d("SourceIdOwners", it.stackTraceToString()) }
             .getOrDefault(emptyMap())
         // Before the extensions are loaded, so that the ones still installed as apps are loaded
         // from their copy. A failure must not prevent the others from loading: retried next launch
-        _legacyPackagesFlow.value = runCatching { runBlocking { ExtensionsMigration.migrate(context, dataStore) } }
+        _legacyPackagesFlow.value = runCatching { runBlocking { platform.migrateLegacyPackages(dataStore) } }
             .onFailure { Log.d("ExtensionsMigration", it.stackTraceToString()) }
             .getOrDefault(emptyList())
 
-        val extensions = ExtensionsLoader.loadExtensions(context, safeMode, sourceIdCheck, ::onLateExtensionLoaded)
+        val extensions = ExtensionsLoader.loadExtensions(safeMode, sourceIdCheck, ::onLateExtensionLoaded)
 
         val loadedExtensions = extensions
             .filterIsInstance<LoadResult.Success>()
@@ -218,33 +216,7 @@ class ExtensionManager(
         }
 
         isInitialized = true
-        ExtensionsGuard.onExtensionsLoaded(context)
-    }
-
-    /** Debug builds: copies an extension as soon as it's installed with adb, then loads it. */
-    private fun registerDebugPackageReceiver() {
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                // The update of an app is also given as PACKAGE_REPLACED
-                if (intent.action == Intent.ACTION_PACKAGE_ADDED &&
-                    intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
-                ) {
-                    return
-                }
-                val pkgName = intent.data?.encodedSchemeSpecificPart ?: return
-                scope.launch {
-                    if (!ExtensionsMigration.adoptPackage(context, pkgName)) return@launch
-                    ExtensionsStorage.withLock(pkgName) { reloadExtension(pkgName) }
-                    updatePendingUpdatesCount()
-                }
-            }
-        }
-        val filter = IntentFilter().apply {
-            addAction(Intent.ACTION_PACKAGE_ADDED)
-            addAction(Intent.ACTION_PACKAGE_REPLACED)
-            addDataScheme("package")
-        }
-        ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        ExtensionsGuard.onExtensionsLoaded()
     }
 
     /** Registers an extension that finished loading after its time limit. */
@@ -527,7 +499,7 @@ class ExtensionManager(
         scope.launch {
             ExtensionsStorage.withLock(extension.pkgName) {
                 ExtensionsStorage.delete(storageDir, extension.pkgName)
-                ExtensionsGuard.clearQuarantine(context, extension.pkgName)
+                ExtensionsGuard.clearQuarantine(extension.pkgName)
                 ExtensionsGuard.forgetClassLoaders(extension.pkgName)
                 unregisterExtension(extension.pkgName)
             }
@@ -537,13 +509,13 @@ class ExtensionManager(
 
     /** Updates the list of the extension apps not needed anymore, see [legacyPackagesFlow]. */
     suspend fun refreshLegacyPackages(): List<String> {
-        return withContext(Dispatchers.IO) { ExtensionsMigration.legacyPackages(context) }
+        return withContext(Dispatchers.IO) { platform.legacyPackages() }
             .also { _legacyPackagesFlow.value = it }
     }
 
     /** Asks the system to uninstall the extension app [pkgName], see [legacyPackagesFlow]. */
     fun requestUninstallLegacyPackage(pkgName: String) {
-        ExtensionsMigration.requestUninstall(context, pkgName)
+        platform.requestUninstallLegacyPackage(pkgName)
     }
 
     /**
@@ -583,7 +555,7 @@ class ExtensionManager(
     suspend fun retryExtension(extension: Extension.Installed) {
         withContext(Dispatchers.IO) {
             ExtensionsStorage.withLock(extension.pkgName) {
-                ExtensionsGuard.clearQuarantine(context, extension.pkgName)
+                ExtensionsGuard.clearQuarantine(extension.pkgName)
                 reloadExtension(extension.pkgName)
             }
             updatePendingUpdatesCount()
@@ -593,7 +565,7 @@ class ExtensionManager(
     /** Leaves the safe mode, see [safeModeFlow]: loads the extensions it didn't load. */
     suspend fun loadExtensionsAgain() {
         withContext(Dispatchers.IO) {
-            ExtensionsGuard.setSafeMode(context, false)
+            ExtensionsGuard.setSafeMode(false)
             _safeModeFlow.value = false
             reloadExtensions(
                 _installedExtensionsFlow.value
@@ -617,7 +589,7 @@ class ExtensionManager(
             withLocks(pkgNames.distinct().sorted()) {
                 val results = withContext(Dispatchers.IO) {
                     pkgNames.distinct().let { distinct ->
-                        distinct.zip(ExtensionsLoader.reloadExtensions(context, distinct, sourceIdCheck, ::onLateExtensionLoaded))
+                        distinct.zip(ExtensionsLoader.reloadExtensions(distinct, sourceIdCheck, ::onLateExtensionLoaded))
                     }
                 }
                 updateInstalledExtensions { installedExtensions ->
@@ -648,7 +620,7 @@ class ExtensionManager(
      * loaded, see [onLateExtensionLoaded].
      */
     private fun reloadExtension(pkgName: String) {
-        when (val result = ExtensionsLoader.reloadExtension(context, pkgName, sourceIdCheck, ::onLateExtensionLoaded)) {
+        when (val result = ExtensionsLoader.reloadExtension(pkgName, sourceIdCheck, ::onLateExtensionLoaded)) {
             is LoadResult.Success -> registerUpdatedExtension(result.extension.withUpdateCheck())
             LoadResult.Error -> unregisterExtension(pkgName)
         }
@@ -692,7 +664,7 @@ class ExtensionManager(
      * loading, or since then, see [disableCrashedExtensions].
      */
     private fun Extension.Installed.withoutQuarantinedCode(): Extension.Installed {
-        if (sources.isEmpty() && refusedSources.isEmpty() || !ExtensionsGuard.isQuarantined(context, pkgName)) return this
+        if (sources.isEmpty() && refusedSources.isEmpty() || !ExtensionsGuard.isQuarantined(pkgName)) return this
         return copy(
             sources = emptyList(),
             refusedSources = emptyList(),
@@ -815,7 +787,7 @@ class ExtensionManager(
             dataStore.editPreference(pendingUpdateCount,SourcesPreferences.EXT_UPDATES_COUNT)
         }
         if (pendingUpdateCount == 0) {
-            ExtensionInstallerNotifier(context).dismiss()
+            platform.dismissUpdatesNotification()
         }
     }
 }

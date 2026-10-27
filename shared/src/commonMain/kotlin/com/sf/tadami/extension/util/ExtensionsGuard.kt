@@ -1,12 +1,8 @@
 package com.sf.tadami.extension.util
 
-import android.app.ActivityManager
-import android.app.ApplicationExitInfo
-import android.content.Context
-import android.os.Build
-import android.os.Process
+import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.Injekt
 import com.sf.tadami.utils.Log
-import androidx.core.content.getSystemService
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.Collections
@@ -90,19 +86,21 @@ public object ExtensionsGuard {
     @Volatile
     private var startupCompleted = false
 
-    fun dir(context: Context): File = File(context.filesDir, DIR_NAME)
+    private val platform: ExtensionPlatform get() = Injekt.get()
+
+    fun dir(): File = File(platform.filesDir, DIR_NAME)
 
     /** Records that the code of [pkgName] is being loaded, until [clearInFlight]. */
-    fun markInFlight(context: Context, pkgName: String) {
+    fun markInFlight(pkgName: String) {
         inFlight += pkgName
-        markInFlight(dir(context), pkgName, Process.myPid())
+        markInFlight(dir(), pkgName, platform.processId())
     }
 
     /** The code of [pkgName] loaded, or failed to, without crashing the app: not a suspect anymore. */
-    fun clearInFlight(context: Context, pkgName: String) {
+    fun clearInFlight(pkgName: String) {
         inFlight -= pkgName
-        clearInFlight(dir(context), pkgName)
-        clearSuspect(dir(context), pkgName)
+        clearInFlight(dir(), pkgName)
+        clearSuspect(dir(), pkgName)
     }
 
     /**
@@ -136,19 +134,19 @@ public object ExtensionsGuard {
         }
     }.getOrDefault(emptySet())
 
-    fun isQuarantined(context: Context, pkgName: String): Boolean = isQuarantined(dir(context), pkgName)
+    fun isQuarantined(pkgName: String): Boolean = isQuarantined(dir(), pkgName)
 
     /** Whether [pkgName] is loaded alone, after the others, see `suspects` above. */
-    fun isSuspect(context: Context, pkgName: String): Boolean = isSuspect(dir(context), pkgName)
+    fun isSuspect(pkgName: String): Boolean = isSuspect(dir(), pkgName)
 
     /** Lets [pkgName] be loaded again: retried by the user, or replaced by another APK. */
-    fun clearQuarantine(context: Context, pkgName: String) {
-        file(dir(context), QUARANTINE_DIR, pkgName).delete()
+    fun clearQuarantine(pkgName: String) {
+        file(dir(), QUARANTINE_DIR, pkgName).delete()
     }
 
-    fun isSafeMode(context: Context): Boolean = isSafeMode(dir(context))
+    fun isSafeMode(): Boolean = isSafeMode(dir())
 
-    fun setSafeMode(context: Context, enabled: Boolean) = setSafeMode(dir(context), enabled)
+    fun setSafeMode(enabled: Boolean) = setSafeMode(dir(), enabled)
 
     /**
      * Called by the uncaught exception handler before the process dies: quarantines the [culprits],
@@ -156,16 +154,16 @@ public object ExtensionsGuard {
      * loaded, see [recordCrash]. Counts the crash when it happened before the startup completed.
      * Never throws.
      */
-    fun onUncaughtException(context: Context, culprits: Set<String>) {
-        runCatching { recordCrash(dir(context), culprits, inFlight.toSet(), startupCompleted) }
+    fun onUncaughtException(culprits: Set<String>) {
+        runCatching { recordCrash(dir(), culprits, inFlight.toSet(), startupCompleted) }
     }
 
     /**
      * Quarantines the extensions [pkgNames] a crash the app survived comes from, see [culpritsOf]:
      * a thread other than the main one ended, the process goes on.
      */
-    fun quarantine(context: Context, pkgNames: Set<String>) {
-        pkgNames.forEach { quarantine(dir(context), it) }
+    fun quarantine(pkgNames: Set<String>) {
+        pkgNames.forEach { quarantine(dir(), it) }
     }
 
     /**
@@ -174,39 +172,29 @@ public object ExtensionsGuard {
      * Before Android 11 the exit reasons are unknown: the marks are only cleared,
      * [onUncaughtException] dealt with the crashes it caught.
      */
-    fun checkPreviousExit(context: Context) {
+    fun checkPreviousExit() {
         runCatching {
-            val activityManager = context.getSystemService<ActivityManager>()
-            checkLeftoverMarks(dir(context)) { pid, markedAt ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    // The last exit of that pid, if it's the death of the process that left the mark
-                    activityManager?.getHistoricalProcessExitReasons(context.packageName, pid, 1)
-                        ?.firstOrNull { it.processName == context.packageName && it.timestamp >= markedAt }
-                        ?.reason
-                } else {
-                    null
-                }
-            }
+            checkLeftoverMarks(dir()) { pid, markedAt -> platform.processExitReason(pid, markedAt) }
         }.onFailure { Log.d("ExtensionsGuard", it.stackTraceToString()) }
     }
 
     /** The main screen resumed: the startup completes once the extensions are loaded as well. */
-    fun onActivityResumed(context: Context) {
+    fun onActivityResumed() {
         activityResumed = true
-        completeStartupIfReady(context)
+        completeStartupIfReady()
     }
 
     /** The extensions are loaded: the startup completes once the main screen resumed as well. */
-    fun onExtensionsLoaded(context: Context) {
+    fun onExtensionsLoaded() {
         extensionsLoaded = true
-        completeStartupIfReady(context)
+        completeStartupIfReady()
     }
 
     @Synchronized
-    private fun completeStartupIfReady(context: Context) {
+    private fun completeStartupIfReady() {
         if (startupCompleted || !activityResumed || !extensionsLoaded) return
         startupCompleted = true
-        resetStartupCrashes(dir(context))
+        resetStartupCrashes(dir())
     }
 
     public fun markInFlight(dir: File, pkgName: String, pid: Int) {
@@ -297,7 +285,7 @@ public object ExtensionsGuard {
      * exception isn't one: [onUncaughtException] already dealt with it.
      */
     public fun isCrashExit(reason: Int?): Boolean {
-        return reason == ApplicationExitInfo.REASON_CRASH_NATIVE || reason == ApplicationExitInfo.REASON_ANR
+        return reason == REASON_CRASH_NATIVE || reason == REASON_ANR
     }
 
     /**
@@ -367,4 +355,7 @@ public object ExtensionsGuard {
         require(ExtensionsStorage.isValidPkgName(pkgName)) { "Invalid package name $pkgName" }
         return File(File(dir, subDir), pkgName)
     }
+    // The ApplicationExitInfo reasons of a crash in native code and of an app not responding
+    private const val REASON_CRASH_NATIVE = 5
+    private const val REASON_ANR = 6
 }

@@ -359,7 +359,7 @@ class MainActivity : AppCompatActivity() {
         // Extensions updates
         LaunchedEffect(Unit) {
             try {
-                val extsUpdates = ExtensionsApi().checkForUpdates(context)
+                val extsUpdates = ExtensionsApi().checkForUpdates()
                 // null when the check was skipped (throttled), keep the current count then
                 if (extsUpdates != null) {
                     dataStore.editPreference(
@@ -374,7 +374,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-        ExtensionsGuard.onActivityResumed(applicationContext)
+        ExtensionsGuard.onActivityResumed()
         castContext?.sessionManager?.addSessionManagerListener(
             castSessionManagerListener!!,
             CastSession::class.java

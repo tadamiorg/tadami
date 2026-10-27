@@ -1,6 +1,5 @@
 package com.sf.tadami.extension.util
 
-import android.content.Context
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
@@ -33,7 +32,7 @@ public object ExtensionsStorage {
 
     fun isValidPkgName(pkgName: String): Boolean = PKG_NAME_REGEX.matches(pkgName)
 
-    fun dir(context: Context): File = File(context.filesDir, DIR_NAME)
+    fun dir(filesDir: File): File = File(filesDir, DIR_NAME)
 
     fun apkFile(dir: File, pkgName: String): File {
         require(isValidPkgName(pkgName)) { "Invalid package name $pkgName" }

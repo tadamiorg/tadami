@@ -49,7 +49,7 @@ class GlobalExceptionHandler private constructor(
             return
         }
         // First, so that the next launch doesn't crash the same way
-        ExtensionsGuard.onUncaughtException(applicationContext, culprits)
+        ExtensionsGuard.onUncaughtException(culprits)
         // Here: the crash screen's process doesn't load the extensions
         val culpritsInfo = runCatching { culpritsInfo(culprits) }.getOrDefault(emptyList())
         CrashReporter.writeCrash(applicationContext, exception, timestamp, culprits = culpritsInfo)
@@ -69,7 +69,7 @@ class GlobalExceptionHandler private constructor(
      */
     private fun disableCrashedExtensions(culprits: Set<String>, exception: Throwable, timestamp: Long): Boolean {
         return runCatching {
-            ExtensionsGuard.quarantine(applicationContext, culprits)
+            ExtensionsGuard.quarantine(culprits)
             // Not built yet while its startup loads them: it leaves the quarantined ones out then
             ExtensionManager.instance?.disableCrashedExtensions(culprits)
             logcat(LogPriority.ERROR, exception) { "Extensions disabled after a crash: $culprits" }
