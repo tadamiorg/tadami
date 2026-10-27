@@ -1,20 +1,21 @@
 package com.sf.tadami.desktop.browser
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
-import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.CancelPresentation
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Cookie
-import androidx.compose.material.icons.outlined.OpenInBrowser
-import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -33,7 +34,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.network.DesktopCookieJar
@@ -44,10 +50,12 @@ import com.sf.tadami.shared.resources.action_open_in_browser
 import com.sf.tadami.shared.resources.action_webview_block_ads
 import com.sf.tadami.shared.resources.action_webview_close_window
 import com.sf.tadami.shared.resources.cookies_cleared
+import com.sf.tadami.shared.resources.ic_vertical_settings
 import com.sf.tadami.shared.resources.pref_clear_cookies
 import com.sf.tadami.shared.resources.refresh
 import com.sf.tadami.shared.resources.stub_text
 import com.sf.tadami.ui.components.data.Action
+import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 import com.sf.tadami.ui.webview.NavigationDecision
 import com.sf.tadami.ui.webview.WebViewNavigationPolicy
@@ -59,6 +67,9 @@ import com.sf.tadami.utils.openInBrowser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.cef.CefApp
@@ -74,10 +85,12 @@ import org.cef.handler.CefResourceRequestHandlerAdapter
 import org.cef.misc.BoolRef
 import org.cef.network.CefRequest
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.skia.Image as SkiaImage
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.awt.BorderLayout
 import java.awt.CardLayout
+import java.util.Base64
 import java.util.concurrent.Executors
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
@@ -98,6 +111,9 @@ fun WebViewScreen(url: String, title: String, userAgent: String?, onBack: () -> 
     var adBlockOn by remember { mutableStateOf(true) }
     // What the toolbar tells for a moment, in place of the address: a toast would be under the browser
     var notice by remember { mutableStateOf<String?>(null) }
+    // The menu would open below the browser: while it's open, a picture of the page takes its place
+    var menuOpen by remember { mutableStateOf(false) }
+    var pagePicture by remember { mutableStateOf<ImageBitmap?>(null) }
     // The windows: drawn by the browser, over the window, one at a time
     val container = remember { JPanel(CardLayout()) }
     val agent = remember(userAgent) { Injekt.get<NetworkHelper>().resolveUserAgent(userAgent) }
@@ -181,7 +197,6 @@ fun WebViewScreen(url: String, title: String, userAgent: String?, onBack: () -> 
                             Icon(imageVector = Icons.Outlined.Close, contentDescription = null)
                         }
                     },
-                    // Icons only: a menu would open below the browser, which is drawn over the window
                     actions = listOfNotNull(
                         // Shown while a popup is open: back to the page below it
                         Action.Vector(
@@ -201,31 +216,20 @@ fun WebViewScreen(url: String, title: String, userAgent: String?, onBack: () -> 
                             onClick = { current?.browser?.goForward() },
                             enabled = current?.canGoForward == true,
                         ),
-                        Action.Vector(
-                            title = Res.string.refresh,
-                            icon = Icons.Outlined.Refresh,
-                            onClick = { current?.browser?.reload() },
-                            enabled = current != null,
-                        ),
-                        Action.Vector(
-                            title = Res.string.action_open_in_browser,
-                            icon = Icons.Outlined.OpenInBrowser,
-                            onClick = { openInBrowser(current?.address ?: url) },
-                        ),
-                        Action.Vector(
-                            title = Res.string.pref_clear_cookies,
-                            icon = Icons.Outlined.Cookie,
-                            onClick = { current?.clearCookies { notice = cookiesCleared } },
-                            enabled = current != null,
-                        ),
-                        Action.Vector(
-                            title = Res.string.action_webview_block_ads,
-                            icon = Icons.Outlined.Block,
+                        Action.Drawable(
+                            title = Res.string.stub_text,
+                            icon = Res.drawable.ic_vertical_settings,
                             onClick = {
-                                adBlockOn = !adBlockOn
-                                current?.browser?.reload()
+                                val page = current
+                                if (page == null) {
+                                    menuOpen = true
+                                } else {
+                                    page.snapshot { picture ->
+                                        pagePicture = picture
+                                        menuOpen = true
+                                    }
+                                }
                             },
-                            tint = if (adBlockOn) MaterialTheme.colorScheme.primary else null,
                         ),
                     ),
                 )
@@ -237,13 +241,68 @@ fun WebViewScreen(url: String, title: String, userAgent: String?, onBack: () -> 
     ) { contentPadding ->
         Box(Modifier.fillMaxSize().padding(contentPadding), contentAlignment = Alignment.Center) {
             when {
-                current != null -> SwingPanel(
-                    background = Color.White,
-                    factory = { container },
-                    modifier = Modifier.fillMaxSize(),
-                )
+                current != null -> {
+                    pagePicture?.takeIf { menuOpen }?.let {
+                        Image(it, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds)
+                    }
+                    // Out of the window rather than out of the composition, which would close the browser;
+                    // its size kept, the page doesn't lay out again
+                    SwingPanel(
+                        background = Color.White,
+                        factory = { container },
+                        modifier = Modifier.fillMaxSize().offset { if (menuOpen) IntOffset(OUT_OF_WINDOW, 0) else IntOffset.Zero },
+                    )
+                }
                 failed -> Text("Chromium could not start", style = MaterialTheme.typography.bodyLarge)
                 else -> CircularProgressIndicator()
+            }
+            Box(Modifier.align(Alignment.TopEnd)) {
+                DropdownMenu(
+                    expanded = menuOpen,
+                    onDismissRequest = {
+                        menuOpen = false
+                        pagePicture = null
+                    },
+                ) {
+                    listOf(
+                        DropDownAction(
+                            title = stringResource(Res.string.refresh),
+                            onClick = { current?.browser?.reload() },
+                            enabled = current != null,
+                        ),
+                        DropDownAction(
+                            title = stringResource(Res.string.action_open_in_browser),
+                            onClick = { openInBrowser(current?.address ?: url) },
+                        ),
+                        DropDownAction(
+                            title = stringResource(Res.string.pref_clear_cookies),
+                            onClick = { current?.clearCookies { notice = cookiesCleared } },
+                            enabled = current != null,
+                        ),
+                        DropDownAction(
+                            title = stringResource(Res.string.action_webview_block_ads),
+                            checked = adBlockOn,
+                            onClick = {
+                                adBlockOn = !adBlockOn
+                                current?.browser?.reload()
+                            },
+                        ),
+                    ).forEach { item ->
+                        // As the top bar's menus
+                        DropdownMenuItem(
+                            onClick = {
+                                item.onClick()
+                                menuOpen = false
+                                pagePicture = null
+                            },
+                            text = { Text(item.title, fontWeight = FontWeight.Normal) },
+                            enabled = item.enabled,
+                            trailingIcon = item.checked?.let { checked ->
+                                { Checkbox(checked = checked, onCheckedChange = null) }
+                            },
+                        )
+                    }
+                }
             }
         }
     }
@@ -423,6 +482,18 @@ private class VisiblePage(
     }
 
     /** Forgets the cookies of the page, then loads it again without them. */
+    /** The page as it shows, on the UI thread: null when the browser can't draw it. */
+    fun snapshot(onTaken: (ImageBitmap?) -> Unit) {
+        worker.execute {
+            val picture = runCatching {
+                val data = browser.devTools("Page.captureScreenshot", buildJsonObject { put("format", "png") })
+                    .getValue("data").jsonPrimitive.content
+                SkiaImage.makeFromEncoded(Base64.getDecoder().decode(data)).toComposeImageBitmap()
+            }.onFailure { Log.d(TAG, "No picture of the page: ${it.message}") }.getOrNull()
+            SwingUtilities.invokeLater { onTaken(picture) }
+        }
+    }
+
     fun clearCookies(onCleared: () -> Unit) {
         val target = (address ?: url).toHttpUrlOrNull() ?: return
         worker.execute {
@@ -451,4 +522,6 @@ private class VisiblePage(
 private const val TAG = "WebViewScreen"
 private const val BLANK = "about:blank"
 private const val NOTICE_MILLIS = 3000L
+// Far enough for any screen
+private const val OUT_OF_WINDOW = 100_000
 private val LOCAL_SCHEMES = setOf("about", "blob", "data", "devtools", "chrome")
