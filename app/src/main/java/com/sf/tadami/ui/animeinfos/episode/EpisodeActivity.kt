@@ -566,7 +566,7 @@ class EpisodeActivity : AppCompatActivity() {
         lifecycleScope.launch {
             // The cast service starts the proxy as the cast starts
             withTimeoutOrNull(PROXY_START_WAIT_MS) { CastSessionState.proxyBaseUrl.first { it != null } }
-            val media = LocalCast.resolve(applicationContext, episode, CastProxyHolder.server)
+            val media = LocalCast.resolve(episode, CastProxyHolder.server)
             // Moved on meanwhile: another episode or stream, or the cast ended
             if (castSession == null || selectedSource != local || playerViewModel.currentEpisode.value?.id != episode.id) {
                 return@launch

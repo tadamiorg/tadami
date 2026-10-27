@@ -1,7 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode.cast
 
 import com.sf.tadami.utils.stringRes
-import android.content.Context
 import com.sf.tadami.utils.Log
 import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.shared.resources.Res
@@ -161,7 +160,7 @@ object LocalCast {
      * The downloaded [episode] served by [proxy], to cast; null to cast its source's streams (the
      * reason logged).
      */
-    suspend fun resolve(context: Context, episode: Episode, proxy: CastProxyServer?): Media? = withContext(Dispatchers.IO) {
+    suspend fun resolve(episode: Episode, proxy: CastProxyServer?): Media? = withContext(Dispatchers.IO) {
         val baseUrl = proxy?.baseUrl()
         if (baseUrl == null) {
             Log.i(TAG, "Casting ${episode.name} online: the proxy isn't running or the phone has no LAN address")

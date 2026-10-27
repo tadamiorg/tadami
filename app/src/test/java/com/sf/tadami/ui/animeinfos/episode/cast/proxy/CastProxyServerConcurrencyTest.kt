@@ -37,7 +37,7 @@ class CastProxyServerConcurrencyTest {
             }
         }
         upstream.start()
-        proxy = CastProxyServer(ContextWrapper(null), OkHttpClient())
+        proxy = CastProxyServer({ null }, OkHttpClient(), ContentFileOpener(ContextWrapper(null)))
         assertTrue(proxy.startSafely())
     }
 

@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.animeinfos.episode.cast.proxy
 
-import android.content.ContextWrapper
 import com.hippo.unifile.MemoryUniFile
 import com.sf.tadami.data.download.EpisodePreviews
 import com.sf.tadami.data.download.SegmentMetadata
@@ -49,7 +48,7 @@ class LocalMediaRouteTest {
             synchronized(opened) { opened += uri }
             File(uri).takeIf { it.isFile }?.let(::FileInputStream)
         }
-        proxy = CastProxyServer(ContextWrapper(null), OkHttpClient(), opener)
+        proxy = CastProxyServer({ null }, OkHttpClient(), opener)
         assertTrue(proxy.startSafely())
     }
 

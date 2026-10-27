@@ -1,10 +1,8 @@
 package com.sf.tadami.ui.animeinfos.episode.cast.proxy
 
-import android.content.Context
 import com.sf.tadami.utils.Log
 import com.sf.tadami.data.download.EpisodePreviews
 import com.sf.tadami.network.player.HlsSegmentIvs
-import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
 import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyServer.Companion.DEFAULT_PORT
 import fi.iki.elonen.NanoHTTPD
 import okhttp3.HttpUrl
@@ -48,12 +46,14 @@ import java.util.concurrent.TimeUnit
  * sequential startup requests in 5s read-timeout quanta, while LAN reconnects are sub-millisecond.
  *
  * Owned by CastControlService (started/stopped with it); the phone-side load path reaches it
- * through [CastProxyHolder] for `baseUrl()`.
+ * through [CastProxyHolder] for `baseUrl()`. The desktop's cast session owns its own.
+ *
+ * @param localAddress the LAN address of the device, null without one
  */
 class CastProxyServer(
-    private val appContext: Context,
+    private val localAddress: () -> String?,
     private val client: OkHttpClient,
-    localFiles: LocalFileOpener = ContentFileOpener(appContext),
+    localFiles: LocalFileOpener,
 ) {
 
     private val localRoute = LocalMediaRoute(localFiles)
@@ -72,7 +72,7 @@ class CastProxyServer(
     /** `http://<lanIp>:<port>`, or null when not running / no LAN address (recomputed per call — the IP can change). */
     fun baseUrl(): String? {
         val port = listeningPort ?: return null
-        val ip = getLocalIPAddress(appContext) ?: return null
+        val ip = localAddress() ?: return null
         return "http://$ip:$port"
     }
 

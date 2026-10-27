@@ -81,6 +81,8 @@ kotlin {
             api(libs.okhttp.brotli)
             api(libs.okio)
             api(libs.jsoup)
+            // The cast proxy the web receiver streams through
+            api(libs.nanohttpd)
             api(libs.rxjava3)
             api(libs.injekt)
             api(libs.jsunpacker)

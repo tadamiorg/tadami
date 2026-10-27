@@ -2,7 +2,6 @@ package com.sf.tadami.ui.animeinfos.episode.cast.channels
 
 import com.sf.tadami.utils.Log
 import com.google.android.gms.cast.CastDevice
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
@@ -29,14 +28,3 @@ class HandshakeChannel(
         private val json = Json { ignoreUnknownKeys = true; isLenient = true }
     }
 }
-
-/** Receiver → phone handshake reply. Only the web receiver sends this. */
-@Serializable
-data class ReceiverHandshakeMessage(
-    /** "web" (the native receiver never replies). */
-    val receiverType: String = "",
-    val receiverProtocol: Int = 0,
-    val receiverVersion: String = "",
-    /** Optional features of the receiver (e.g. "seekPreview"); absent from older receivers. */
-    val capabilities: List<String> = emptyList(),
-)

@@ -48,6 +48,8 @@ import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastPreviewProtocol
 import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastSeekPreview
 import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyHolder
 import com.sf.tadami.ui.animeinfos.episode.cast.proxy.CastProxyServer
+import com.sf.tadami.ui.animeinfos.episode.cast.proxy.ContentFileOpener
+import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
 import com.sf.tadami.ui.animeinfos.episode.cast.sendCastMessage
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastCustomChannel
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewPrefetch
@@ -123,7 +125,11 @@ class CastControlService : Service() {
         // The proxy lives and dies with this service (which spans the whole cast session). Started
         // for every session: it idles for free, and having proxyBaseUrl known before the first load
         // keeps the load path independent of (racy) receiver-type detection.
-        proxyServer = CastProxyServer(applicationContext, OkHttpClient.Builder().build())
+        proxyServer = CastProxyServer(
+            localAddress = { getLocalIPAddress(applicationContext) },
+            client = OkHttpClient.Builder().build(),
+            localFiles = ContentFileOpener(applicationContext),
+        )
         CastProxyHolder.server = proxyServer
         // The frames made after a download wait for the session's end: its decoding and its proxy come first
         PreviewGenerator.castActive.value = true
@@ -388,7 +394,7 @@ class CastControlService : Service() {
 
         fetchJob?.cancel()
         // A downloaded episode is served by the phone, when the receiver can play its files
-        val local = LocalCast.resolve(applicationContext, fresh, proxyServer)
+        val local = LocalCast.resolve(fresh, proxyServer)
         if (local != null) {
             remoteMediaClient?.load(request(local.source, listOf(local.source), local.contentUrl))
             return

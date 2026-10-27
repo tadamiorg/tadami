@@ -1,8 +1,5 @@
 package com.sf.tadami.ui.animeinfos.episode.cast.proxy
 
-import android.content.Context
-import android.net.Uri
-import android.os.ParcelFileDescriptor
 import com.sf.tadami.data.download.EpisodePreviews
 import com.sf.tadami.data.download.SegmentMetadata
 import fi.iki.elonen.NanoHTTPD
@@ -50,14 +47,6 @@ sealed interface LocalPlaylist {
 /** Opens a downloaded file for reading, null when it can't be. */
 fun interface LocalFileOpener {
     fun open(uri: String): FileInputStream?
-}
-
-/** Through the content resolver: a file descriptor, seekable, as the storage folder gives one. */
-class ContentFileOpener(private val context: Context) : LocalFileOpener {
-    override fun open(uri: String): FileInputStream? {
-        val descriptor = context.contentResolver.openFileDescriptor(Uri.parse(uri), "r") ?: return null
-        return ParcelFileDescriptor.AutoCloseInputStream(descriptor)
-    }
 }
 
 /** HLS playlists over the joined files of a download, URIs relative to the playlist's own URL. */
