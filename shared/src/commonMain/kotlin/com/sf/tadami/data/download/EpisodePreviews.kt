@@ -1,6 +1,5 @@
 package com.sf.tadami.data.download
 
-import android.content.Context
 import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.data.download.stream.DownloadOutput
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewSidecar
@@ -48,7 +47,7 @@ class EpisodePreviews(val dir: StorageFile, val episodeDirName: String, val vide
      * One reader or writer of an episode's frames at a time in the whole app: the writers share the temporary name,
      * and a reader never finds the frames missing between the old ones deleted and the new ones renamed.
      */
-    fun write(context: Context, sidecar: PreviewSidecar, keeps: (PreviewSidecar) -> Boolean = { true }): Boolean =
+    fun write(sidecar: PreviewSidecar, keeps: (PreviewSidecar) -> Boolean = { true }): Boolean =
         write(sidecar, keeps) { DownloadOutput.openAt(it, 0) }
 
     /** [write], the file written opened by [open]. */

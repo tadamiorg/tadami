@@ -1,6 +1,5 @@
 package com.sf.tadami.data.download
 
-import android.content.Context
 import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.data.download.stream.DownloadOutput
 import com.sf.tadami.data.download.stream.DownloadedFile
@@ -61,7 +60,7 @@ data class EpisodeMetadata(
         }
 
         /** Writes [metadata] as the sidecar of [episodeDirName] in [dir], replacing any. */
-        fun write(context: Context, dir: StorageFile, episodeDirName: String, metadata: EpisodeMetadata) {
+        fun write(dir: StorageFile, episodeDirName: String, metadata: EpisodeMetadata) {
             val name = DownloadNames.metadataFileName(episodeDirName)
             DownloadOutput.storage { dir.findFile(name)?.delete() }
             val file = DownloadOutput.getOrCreateFile(dir, name)

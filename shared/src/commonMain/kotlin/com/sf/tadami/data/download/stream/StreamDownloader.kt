@@ -1,6 +1,5 @@
 package com.sf.tadami.data.download.stream
 
-import android.content.Context
 import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.data.download.DownloadNames
 import com.sf.tadami.data.download.FileProgress
@@ -17,11 +16,11 @@ import okhttp3.OkHttpClient
  * (the HLS rendition and the stream's audio tracks), and its subtitles. HLS or progressive is told
  * by the URL, else by the response.
  */
-class StreamDownloader(private val context: Context, client: OkHttpClient) {
+class StreamDownloader(client: OkHttpClient) {
 
     private val http = MediaHttp(client)
-    private val progressive = ProgressiveDownload(context, http)
-    private val hls = HlsDownload(context, http)
+    private val progressive = ProgressiveDownload(http)
+    private val hls = HlsDownload(http)
 
     /**
      * @param resume the progress of each file of this stream, by role.

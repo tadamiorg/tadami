@@ -386,7 +386,7 @@ class CastSeekPreview(
                 frameHeight = first.height,
                 entries = entries,
             )
-            target.write(context, sidecar)
+            target.write(sidecar)
         }
     }
 

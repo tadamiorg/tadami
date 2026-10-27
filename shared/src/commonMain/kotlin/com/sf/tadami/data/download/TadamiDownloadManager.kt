@@ -1,8 +1,6 @@
 package com.sf.tadami.data.download
 
 import com.sf.tadami.storage.StorageFiles
-import android.app.Application
-import android.net.Uri
 import com.sf.tadami.utils.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -12,8 +10,6 @@ import com.sf.tadami.data.download.model.Download
 import com.sf.tadami.data.download.model.EpisodeDownloadState
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
-import com.sf.tadami.notifications.download.DownloadNotifier
-import com.sf.tadami.notifications.download.DownloadWorker
 import com.sf.tadami.preferences.download.DownloadPreferences
 import com.sf.tadami.source.Source
 import com.sf.tadami.ui.tabs.browse.SourceManager
@@ -39,11 +35,11 @@ import java.io.File
 
 /**
  * Entry point of the episode downloads: the queue and its controls, the deletions, and the files
- * of the downloaded episodes. See [Downloader] for the engine and [DownloadWorker] for how it runs
+ * of the downloaded episodes. See [Downloader] for the engine and DownloadPlatform for how it runs
  * in the background.
  */
 class TadamiDownloadManager(
-    private val context: Application = Injekt.get(),
+    private val platform: DownloadPlatform = Injekt.get(),
     private val provider: DownloadProvider = Injekt.get(),
 ) {
     private val sourceManager: SourceManager by injectLazy()
@@ -52,28 +48,24 @@ class TadamiDownloadManager(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    private val notifier by lazy { DownloadNotifier(context) }
-
     private val cache = DownloadCache(provider, Injekt.get(), scope)
 
     // The seekbar preview frames of each episode, made once it is downloaded
-    private val previewGenerator = PreviewGenerator.create(
-        context = context,
+    private val previewMaker = platform.previewMaker(
         provider = provider,
-        store = File(File(context.filesDir, DOWNLOADS_DATA_DIR), "previews.json"),
+        store = File(File(platform.filesDir, DOWNLOADS_DATA_DIR), "previews.json"),
         dataStore = Injekt.get(),
         scope = scope,
     )
 
-    private val downloader = File(context.filesDir, DOWNLOADS_DATA_DIR).let { dir ->
+    private val downloader = File(platform.filesDir, DOWNLOADS_DATA_DIR).let { dir ->
         Downloader(
-            context = context,
             provider = provider,
             cache = cache,
             store = DownloadStore(File(dir, "queue.json")),
             resumeStore = ResumeStore(File(dir, "resume")),
             scope = scope,
-            onDownloaded = previewGenerator::onDownloaded,
+            onDownloaded = { source, anime, episode -> previewMaker?.onDownloaded(source, anime, episode) },
         )
     }
 
@@ -90,7 +82,7 @@ class TadamiDownloadManager(
                 val shown = notifiedError
                 if (queue.isEmpty() || (shown != null && (shown.status != Download.State.ERROR || shown !in queue))) {
                     notifiedError = null
-                    notifier.dismissError()
+                    platform.dismissError()
                 }
             }
         }
@@ -105,7 +97,7 @@ class TadamiDownloadManager(
         get() = downloader.isRunning
 
     /** Whether the queue runs or waits for its network: false once paused. */
-    fun isScheduledFlow(): Flow<Boolean> = DownloadWorker.isScheduledFlow(context)
+    fun isScheduledFlow(): Flow<Boolean> = platform.downloadScheduledFlow()
 
     /** Changes each time the set of downloaded episodes does */
     val cacheChanges: StateFlow<Long>
@@ -141,38 +133,38 @@ class TadamiDownloadManager(
 
     /** Starts or resumes the queue. */
     fun startDownloads() {
-        notifier.dismissPaused()
+        platform.dismissPaused()
         scope.launch {
             downloader.awaitRestored()
             if (queueState.value.none { it.status == Download.State.QUEUED }) return@launch
             if (downloader.signalIfRunning()) return@launch
-            DownloadWorker.start(context, dataStore.getPreferencesGroup(DownloadPreferences).onlyOverWifi)
+            platform.startDownloads(dataStore.getPreferencesGroup(DownloadPreferences).onlyOverWifi)
         }
     }
 
     /** Stops the downloads where they are: they stay queued and resume from there. */
     fun pauseDownloads() {
-        DownloadWorker.stop(context)
-        notifier.dismissProgress()
+        platform.stopDownloads()
+        platform.dismissProgress()
         val queued = queueState.value.count { it.status == Download.State.QUEUED || it.status == Download.State.DOWNLOADING }
-        if (queued > 0) notifier.showPaused(queued)
+        if (queued > 0) platform.showPaused(queued)
     }
 
     /** Applies changed settings (the Wi-Fi only constraint) to a queue running or waiting for its network. */
     fun restartIfRunning() {
         scope.launch {
-            if (!DownloadWorker.isScheduled(context)) return@launch
-            DownloadWorker.start(context, dataStore.getPreferencesGroup(DownloadPreferences).onlyOverWifi)
+            if (!platform.isDownloadScheduled()) return@launch
+            platform.startDownloads(dataStore.getPreferencesGroup(DownloadPreferences).onlyOverWifi)
         }
     }
 
     /** Empties the queue, deleting what was partly downloaded. */
     fun clearQueue() {
-        DownloadWorker.stop(context)
+        platform.stopDownloads()
         downloader.remove(queueState.value)
-        notifier.dismissProgress()
-        notifier.dismissPaused()
-        notifier.dismissError()
+        platform.dismissProgress()
+        platform.dismissPaused()
+        platform.dismissError()
     }
 
     fun cancelQueuedDownloads(downloads: List<Download>) {
@@ -274,19 +266,19 @@ class TadamiDownloadManager(
     }
 
     /** Whether the downloaded file [uri] (one of a [LocalEpisode.toStreamSource]) is still there, read from the storage. */
-    fun localFileExists(uri: String): Boolean = Injekt.get<StorageFiles>().fromUri(Uri.parse(uri).toString())?.exists() == true
+    fun localFileExists(uri: String): Boolean = Injekt.get<StorageFiles>().fromUri(uri)?.exists() == true
 
-    /** Tells [download] failed, for [DownloadWorker]: one notification, the last error. */
+    /** Tells [download] failed, for DownloadPlatform: one notification, the last error. */
     public fun showError(download: Download) {
         notifiedError = download
-        notifier.showError(download)
+        platform.showError(download)
     }
 
-    /** Runs the queue, for [DownloadWorker]. */
+    /** Runs the queue, for DownloadPlatform. */
     public suspend fun runQueue() = downloader.runQueue()
 
     /** Makes the seekbar preview frames of the episodes downloaded, for [PreviewWorker]. */
-    public suspend fun makePreviews() = previewGenerator.makeAll()
+    public suspend fun makePreviews() = previewMaker?.makeAll()
 
     private fun downloadedDirs(anime: Anime): Set<String> {
         val source = sourceManager.getOrStub(anime.source)

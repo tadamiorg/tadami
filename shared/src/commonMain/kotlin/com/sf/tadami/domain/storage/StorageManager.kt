@@ -3,8 +3,6 @@ package com.sf.tadami.domain.storage
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.Injekt
 import com.sf.tadami.storage.StorageFiles
-import android.content.Context
-import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.storage.StorageFile
@@ -25,7 +23,6 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.runBlocking
 
 class StorageManager(
-    private val context: Context,
     private val dataStore: DataStore<Preferences>
 ) {
 
@@ -49,7 +46,7 @@ class StorageManager(
                     parent.createDirectory(AUTOMATIC_BACKUPS_PATH)
                     parent.createDirectory(LOCAL_SOURCE_PATH)
                     parent.createDirectory(DOWNLOADS_PATH).also {
-                        DiskUtil.createNoMediaFile(it, context)
+                        DiskUtil.createNoMediaFile(it)
                     }
                 }
                 _changes.send(Unit)
@@ -58,7 +55,7 @@ class StorageManager(
     }
 
     private fun getBaseDir(uri: String): StorageFile? {
-        return Injekt.get<StorageFiles>().fromUri(uri.toUri().toString())
+        return Injekt.get<StorageFiles>().fromUri(uri)
             .takeIf { it?.exists() == true }
     }
 

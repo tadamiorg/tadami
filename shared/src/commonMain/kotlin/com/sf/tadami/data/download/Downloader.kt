@@ -1,9 +1,6 @@
 package com.sf.tadami.data.download
 
-import androidx.core.net.toUri
 import com.sf.tadami.utils.stringRes
-import android.content.Context
-import android.media.MediaMetadataRetriever
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.storage.StorageFile
@@ -68,7 +65,6 @@ import java.util.concurrent.TimeUnit
  * how it is scheduled: [runQueue] runs until nothing is left to start.
  */
 class Downloader(
-    private val context: Context,
     private val provider: DownloadProvider,
     private val cache: DownloadCache,
     private val store: DownloadStore,
@@ -89,7 +85,7 @@ class Downloader(
             // One call can last as long as a whole progressive video
             .callTimeout(0, TimeUnit.MILLISECONDS)
             .build()
-        StreamDownloader(context, client)
+        StreamDownloader(client)
     }
 
     private val _queueState = MutableStateFlow<List<Download>>(emptyList())
@@ -286,7 +282,7 @@ class Downloader(
                 } catch (e: NetworkLostException) {
                     // Resumes on the same stream once the network is back
                     download.status = Download.State.QUEUED
-                    while (!context.isOnline()) delay(NETWORK_CHECK_DELAY_MS)
+                    while (!isOnline()) delay(NETWORK_CHECK_DELAY_MS)
                     download.status = Download.State.DOWNLOADING
                 }
             }
@@ -322,7 +318,7 @@ class Downloader(
         } catch (e: CancellationException) {
             throw e
         } catch (e: IOException) {
-            if (!context.isOnline()) throw NetworkLostException(e)
+            if (!isOnline()) throw NetworkLostException(e)
             throw e
         }
         if (streams.isEmpty()) throw DownloadFatalException(stringRes(Res.string.download_error_no_stream))
@@ -358,7 +354,6 @@ class Downloader(
                 checkDuration(downloaded.video.file)
                 // In the tmp dir: the episode dir appears with its sidecar or not at all
                 EpisodeMetadata.write(
-                    context,
                     tmpDir,
                     download.dirName,
                     EpisodeMetadata.of(stream, downloaded.video, downloaded.audios),
@@ -370,7 +365,7 @@ class Downloader(
             } catch (e: Exception) {
                 // Failed because it was stopped: keep the stream and its progress
                 currentCoroutineContext().ensureActive()
-                when (StreamFallback.classify(e, context.isOnline())) {
+                when (StreamFallback.classify(e, isOnline())) {
                     FailureAction.WAIT_FOR_NETWORK -> throw e as? NetworkLostException ?: NetworkLostException(e)
                     FailureAction.STOP -> throw e
                     FailureAction.NEXT_STREAM -> {
@@ -400,20 +395,14 @@ class Downloader(
             is SocketTimeoutException -> stringRes(Res.string.download_error_timeout)
             is UnknownHostException -> stringRes(Res.string.download_error_unknown_host)
             is HttpException -> stringRes(Res.string.download_error_http, cause.code)
-            else -> with(context) { error.formattedMessage }
+            else -> error.formattedMessage
         }
     }
 
     /** A placeholder clip passes the size check sometimes, not the duration one. TS often has none. */
     private fun checkDuration(video: StorageFile) {
         val durationMs = try {
-            val retriever = MediaMetadataRetriever()
-            try {
-                retriever.setDataSource(context, video.uri.toUri())
-                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
-            } finally {
-                retriever.release()
-            }
+            Injekt.get<DownloadPlatform>().videoDurationMs(video)
         } catch (e: Exception) {
             null
         }

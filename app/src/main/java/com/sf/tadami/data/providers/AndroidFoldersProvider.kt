@@ -10,15 +10,15 @@ import java.io.File
 
 class AndroidFoldersProvider(
     private val context: Context,
-)  {
+) : FoldersProvider {
 
-    fun directory(): File {
+    override fun directory(): File {
         return File(
             Environment.getExternalStorageDirectory().absolutePath + File.separator + stringRes(Res.string.app_name),
         )
     }
 
-    fun path(): String {
+    override fun path(): String {
         return directory().toUri().toString()
     }
 }

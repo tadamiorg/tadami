@@ -28,7 +28,7 @@ class EpisodePreviewsTest {
         entries = (0 until frames).map { PreviewSidecar.Entry(it, it * 14_300L, byteArrayOf(it.toByte())) },
     )
 
-    private fun write(sidecar: PreviewSidecar) = previews.write(sidecar) { it.openOutputStream() }
+    private fun write(sidecar: PreviewSidecar) = previews.write(sidecar, open = { it.openOutputStream() })
 
     @Test
     fun `written under a temporary name, then renamed`() {
@@ -56,7 +56,7 @@ class EpisodePreviewsTest {
 
     @Test
     fun `nothing for a video gone or changed`() {
-        assertFalse(previews.write(sidecar().let { PreviewSidecar(5, it.durationMs, it.stepMs, 256, 144, it.entries) }) { it.openOutputStream() })
+        assertFalse(previews.write(sidecar().let { PreviewSidecar(5, it.durationMs, it.stepMs, 256, 144, it.entries) }, open = { it.openOutputStream() }))
         video.delete()
         assertFalse(write(sidecar()))
         assertEquals(emptySet<String>(), dir.names)

@@ -67,4 +67,13 @@ interface StorageFiles {
     fun fromUri(uri: String): StorageFile?
 
     fun fromFile(file: File): StorageFile
+
+    /** The available space of the volume of [dir], in bytes, -1 when unknown. */
+    fun availableSpace(dir: StorageFile): Long = dir.filePath?.let { File(it).usableSpace } ?: -1L
+
+    /** Has the gallery apps see what changed in [dir]. */
+    fun scanMedia(dir: StorageFile) = Unit
+
+    /** The root folders of the storages the downloads can go to. */
+    fun storageRoots(): List<File> = File.listRoots().toList()
 }

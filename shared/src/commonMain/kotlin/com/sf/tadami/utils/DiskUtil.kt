@@ -1,35 +1,15 @@
 package com.sf.tadami.utils
 
-import androidx.core.net.toUri
-import android.content.ContentResolver
-import android.content.Context
-import android.media.MediaScannerConnection
-import android.net.Uri
-import android.os.Environment
-import android.os.StatFs
-import android.provider.DocumentsContract
-import androidx.core.content.ContextCompat
 import com.sf.tadami.storage.StorageFile
+import com.sf.tadami.storage.StorageFiles
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import java.io.File
 
 object DiskUtil {
 
-    /**
-     * Returns the root folders of all the available external storages.
-     */
-    fun getExternalStorages(context: Context): List<File> {
-        return ContextCompat.getExternalFilesDirs(context, null)
-            .filterNotNull()
-            .mapNotNull {
-                val file = File(it.absolutePath.substringBefore("/Android/"))
-                val state = Environment.getExternalStorageState(file)
-                if (state == Environment.MEDIA_MOUNTED || state == Environment.MEDIA_MOUNTED_READ_ONLY) {
-                    file
-                } else {
-                    null
-                }
-            }
-    }
+    /** The root folders of the available storages, see [StorageFiles.storageRoots]. */
+    fun getExternalStorages(): List<File> = Injekt.get<StorageFiles>().storageRoots()
 
     fun getDirectorySize(f: File): Long {
         var size: Long = 0
@@ -48,8 +28,7 @@ object DiskUtil {
      */
     fun getTotalStorageSpace(file: File): Long {
         return try {
-            val stat = StatFs(file.absolutePath)
-            stat.blockCountLong * stat.blockSizeLong
+            file.totalSpace
         } catch (_: Exception) {
             -1L
         }
@@ -60,8 +39,7 @@ object DiskUtil {
      */
     fun getAvailableStorageSpace(file: File): Long {
         return try {
-            val stat = StatFs(file.absolutePath)
-            stat.availableBlocksLong * stat.blockSizeLong
+            file.usableSpace
         } catch (_: Exception) {
             -1L
         }
@@ -71,49 +49,19 @@ object DiskUtil {
      * Gets the available space for the disk that a file path points to, in bytes. A folder picked
      * with the storage access framework is measured on its volume. -1 when unknown.
      */
-    fun getAvailableStorageSpace(f: StorageFile): Long {
-        return try {
-            val stat = StatFs(volumePath(f.uri.toUri()) ?: return -1L)
-            stat.availableBlocksLong * stat.blockSizeLong
-        } catch (_: Exception) {
-            -1L
-        }
-    }
-
-    /** A path on the volume of [uri]: its own for a file, the volume's for an external storage document. */
-    private fun volumePath(uri: Uri): String? {
-        if (uri.scheme == ContentResolver.SCHEME_FILE) return uri.path
-        if (uri.authority != EXTERNAL_STORAGE_DOCUMENTS) return null
-        val documentId = runCatching { DocumentsContract.getDocumentId(uri) }
-            .recoverCatching { DocumentsContract.getTreeDocumentId(uri) }
-            .getOrNull() ?: return null
-        // "primary:TadamiDbg/downloads", "1A2B-3C4D:Anime"
-        return when (val volume = documentId.substringBefore(':')) {
-            "primary", "home" -> Environment.getExternalStorageDirectory().path
-            else -> "/storage/$volume"
-        }
-    }
-
-    private const val EXTERNAL_STORAGE_DOCUMENTS = "com.android.externalstorage.documents"
+    fun getAvailableStorageSpace(f: StorageFile): Long = Injekt.get<StorageFiles>().availableSpace(f)
 
     /**
      * Don't display downloaded episodes in gallery apps creating `.nomedia`.
      */
-    fun createNoMediaFile(dir: StorageFile?, context: Context?) {
+    fun createNoMediaFile(dir: StorageFile?) {
         if (dir != null && dir.exists()) {
             val nomedia = dir.findFile(NOMEDIA_FILE)
             if (nomedia == null) {
                 dir.createFile(NOMEDIA_FILE)
-                context?.let { scanMedia(it, dir.uri.toUri()) }
+                Injekt.get<StorageFiles>().scanMedia(dir)
             }
         }
-    }
-
-    /**
-     * Scans the given file so that it can be shown in gallery apps, for example.
-     */
-    fun scanMedia(context: Context, uri: Uri) {
-        MediaScannerConnection.scanFile(context, arrayOf(uri.path), null, null)
     }
 
     /**

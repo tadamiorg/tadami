@@ -27,7 +27,7 @@ fun StorageInfo(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val storages = remember { DiskUtil.getExternalStorages(context) }
+    val storages = remember { DiskUtil.getExternalStorages() }
 
     Column(
         modifier = modifier,

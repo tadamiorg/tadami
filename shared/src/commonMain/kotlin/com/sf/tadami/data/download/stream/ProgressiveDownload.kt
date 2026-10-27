@@ -1,6 +1,5 @@
 package com.sf.tadami.data.download.stream
 
-import android.content.Context
 import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.data.download.FileProgress
 import com.sf.tadami.network.HttpException
@@ -13,7 +12,7 @@ import okhttp3.Response
 import java.io.IOException
 
 /** One progressive file (mp4, mkv...), resumed with Range requests where it stopped. */
-class ProgressiveDownload(private val context: Context, private val http: MediaHttp) {
+class ProgressiveDownload(private val http: MediaHttp) {
 
     /**
      * Downloads [url] into [dir] as `<fileBase>.<ext>`, the extension sniffed from the content.
@@ -68,7 +67,7 @@ class ProgressiveDownload(private val context: Context, private val http: MediaH
                 expectedTotal = -1
             } catch (e: IOException) {
                 if (e is NetworkLostException) throw e
-                if (!context.isOnline()) throw NetworkLostException(e)
+                if (!isOnline()) throw NetworkLostException(e)
                 if (++failures > MAX_RESUMES) throw e
             }
         }

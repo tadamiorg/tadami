@@ -1,6 +1,5 @@
 package com.sf.tadami.data.download
 
-import android.content.Context
 import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
@@ -11,7 +10,6 @@ import uy.kohesive.injekt.api.get
 
 /** Where the downloads are: `<storage>/downloads/<source>/<anime>/<episode>/`, see [DownloadNames]. */
 class DownloadProvider(
-    val context: Context,
     private val storageManager: StorageManager = Injekt.get(),
 ) {
 

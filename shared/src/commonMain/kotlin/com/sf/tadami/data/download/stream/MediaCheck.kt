@@ -1,11 +1,7 @@
 package com.sf.tadami.data.download.stream
 
-import androidx.annotation.OptIn
-import androidx.media3.common.MimeTypes
-import androidx.media3.common.util.UnstableApi
 
 /** Tells video from error pages and placeholders, and the container of what is downloaded. */
-@OptIn(UnstableApi::class)
 object MediaCheck {
 
     /** A real episode is bigger. A host served a 36 kB placeholder clip instead of the episode. */
@@ -92,10 +88,10 @@ object MediaCheck {
 
     fun subtitleExtension(mimeType: String?, url: String, head: ByteArray): String {
         when (mimeType) {
-            MimeTypes.TEXT_VTT -> return "vtt"
-            MimeTypes.APPLICATION_SUBRIP -> return "srt"
-            MimeTypes.TEXT_SSA -> return "ass"
-            MimeTypes.APPLICATION_TTML -> return "ttml"
+            "text/vtt" -> return "vtt"
+            "application/x-subrip" -> return "srt"
+            "text/x-ssa" -> return "ass"
+            "application/ttml+xml" -> return "ttml"
         }
         when (val extension = url.substringBefore('?').substringAfterLast('.', "").lowercase()) {
             "vtt", "srt", "ass", "ssa", "ttml", "dfxp" -> return extension
@@ -113,11 +109,11 @@ object MediaCheck {
 
     fun subtitleMimeType(extension: String): String {
         return when (extension.lowercase()) {
-            "vtt" -> MimeTypes.TEXT_VTT
-            "srt" -> MimeTypes.APPLICATION_SUBRIP
-            "ass", "ssa" -> MimeTypes.TEXT_SSA
-            "ttml", "dfxp" -> MimeTypes.APPLICATION_TTML
-            else -> MimeTypes.TEXT_UNKNOWN
+            "vtt" -> "text/vtt"
+            "srt" -> "application/x-subrip"
+            "ass", "ssa" -> "text/x-ssa"
+            "ttml", "dfxp" -> "application/ttml+xml"
+            else -> "text/x-unknown"
         }
     }
 

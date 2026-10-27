@@ -14,7 +14,7 @@ import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.download.TadamiDownloadManager
-import com.sf.tadami.data.providers.AndroidFoldersProvider
+import com.sf.tadami.data.providers.FoldersProvider
 import com.sf.tadami.preferences.download.DownloadPreferences
 import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
@@ -105,7 +105,7 @@ class DownloadPreferencesScreen(
     @Composable
     private fun getLocationPref(
         prefs: StoragePreferences,
-        foldersProviders: AndroidFoldersProvider = Injekt.get()
+        foldersProviders: FoldersProvider = Injekt.get()
     ): Preference.PreferenceItem.TextPreference {
         val context = LocalContext.current
         val location = remember(prefs) {

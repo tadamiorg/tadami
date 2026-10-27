@@ -204,7 +204,7 @@ class PreviewGeneratorTest {
         settingsOn = { settingsOn },
         previewsOf = { episodes[it.episodeDir]?.takeIf { previews -> previews.dir.exists() } },
         newDecoder = { FakeDecoder(onFrame = onFrame).also { decoders += it } },
-        write = { previews, sidecar -> previews.write(sidecar) { it.openOutputStream() } },
+        write = { previews, sidecar -> previews.write(sidecar, open = { it.openOutputStream() }) },
         schedule = { schedules++ },
         paused = paused,
         scope = scope,
@@ -244,7 +244,7 @@ class PreviewGeneratorTest {
         generator.downloaded(made)
         episodes.getValue("Ep 2").dir.delete()
         val existing = PreviewSidecar(4, duration, previewBucketSizeMs(duration), 256, 144, listOf(PreviewSidecar.Entry(0, 0, byteArrayOf(1))))
-        assertTrue(episodes.getValue("Ep 3").write(existing) { it.openOutputStream() })
+        assertTrue(episodes.getValue("Ep 3").write(existing, open = { it.openOutputStream() }))
         runBlocking { generator.makeAll() }
         assertEquals("never decoded", 0, decoders.size)
         assertEquals(1, episodes.getValue("Ep 3").read()!!.frameCount)
@@ -277,7 +277,7 @@ class PreviewGeneratorTest {
         // Its playback made the first episode's frames
         onFrame = {}
         val played = PreviewSidecar(4, duration, previewBucketSizeMs(duration), 256, 144, listOf(PreviewSidecar.Entry(0, 0, byteArrayOf(1))))
-        assertTrue(episodes.getValue("Ep 1").write(played) { it.openOutputStream() })
+        assertTrue(episodes.getValue("Ep 1").write(played, open = { it.openOutputStream() }))
         // Gone: a run again, the first episode not decoded again
         paused.value = false
         assertEquals(2, schedules)

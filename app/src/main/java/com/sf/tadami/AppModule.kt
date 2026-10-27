@@ -1,5 +1,7 @@
 package com.sf.tadami
 
+import com.sf.tadami.data.download.DownloadPlatform
+import com.sf.tadami.data.download.AndroidDownloadPlatform
 import com.sf.tadami.storage.StorageFiles
 import com.sf.tadami.storage.AndroidStorageFiles
 import com.sf.tadami.ui.PlatformUi
@@ -137,6 +139,8 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
 
         addSingletonFactory<StorageFiles> { AndroidStorageFiles(app) }
 
+        addSingletonFactory<DownloadPlatform> { AndroidDownloadPlatform(app) }
+
         addSingletonFactory { ExtensionManager() }
 
         // Sources
@@ -147,13 +151,13 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
         // Storage
 
         addSingletonFactory {
-            StorageManager(app,get())
+            StorageManager(get())
         }
 
         // Downloads
 
         addSingletonFactory {
-            DownloadProvider(app)
+            DownloadProvider()
         }
 
         addSingletonFactory {

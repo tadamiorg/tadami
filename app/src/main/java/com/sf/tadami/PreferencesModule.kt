@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.sf.tadami.data.providers.AndroidFoldersProvider
+import com.sf.tadami.data.providers.FoldersProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,7 +31,7 @@ class PreferencesModule(private val app: Application) : InjektModule {
         }
 
         // Data storage
-        addSingletonFactory {
+        addSingletonFactory<FoldersProvider> {
             AndroidFoldersProvider(app)
         }
     }

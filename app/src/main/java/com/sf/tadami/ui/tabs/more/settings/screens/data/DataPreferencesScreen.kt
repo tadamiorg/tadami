@@ -38,7 +38,7 @@ import coil3.SingletonImageLoader
 import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
-import com.sf.tadami.data.providers.AndroidFoldersProvider
+import com.sf.tadami.data.providers.FoldersProvider
 import com.sf.tadami.navigation.graphs.settings.DataSettingsRoutes
 import com.sf.tadami.network.player.PlayerNetworkHelper
 import com.sf.tadami.notifications.backup.BackupCreateWorker
@@ -331,7 +331,7 @@ class DataPreferencesScreen(
         @Composable
         fun storageLocationText(
             storageDirPref: StoragePreferences,
-            foldersProviders: AndroidFoldersProvider = Injekt.get()
+            foldersProviders: FoldersProvider = Injekt.get()
         ): String {
             val context = LocalContext.current
 

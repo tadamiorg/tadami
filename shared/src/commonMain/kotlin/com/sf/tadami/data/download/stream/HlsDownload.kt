@@ -1,15 +1,5 @@
 package com.sf.tadami.data.download.stream
 
-import android.content.Context
-import android.net.Uri
-import androidx.annotation.OptIn
-import androidx.media3.common.C
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.common.util.UriUtil
-import androidx.media3.exoplayer.hls.playlist.HlsMediaPlaylist
-import androidx.media3.exoplayer.hls.playlist.HlsMultivariantPlaylist
-import androidx.media3.exoplayer.hls.playlist.HlsPlaylist
-import androidx.media3.exoplayer.hls.playlist.HlsPlaylistParser
 import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.data.download.FileProgress
 import com.sf.tadami.data.download.SegmentMetadata
@@ -31,8 +21,7 @@ import java.security.GeneralSecurityException
  * segment ended up is recorded too, for the sidecar: the cast proxy serves the file as a playlist
  * again.
  */
-@OptIn(UnstableApi::class)
-class HlsDownload(private val context: Context, private val http: MediaHttp) {
+class HlsDownload(private val http: MediaHttp) {
 
     /** The separate audio of the chosen variant, to download next to the video. */
     class AudioRendition(val url: String, val lang: String)
@@ -71,13 +60,13 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
     ): DownloadedFile {
         val (baseUrl, text) = if (playlist != null) url to playlist else fetchPlaylist(url, headers)
         var parsed = parse(baseUrl, text)
-        if (parsed is HlsMultivariantPlaylist) {
+        if (parsed is M3u8Multivariant) {
             val variant = chooseVariant(parsed, quality) ?: throw StreamFailedException(StreamFailure.PLAYLIST, "No variant in the playlist")
             audioRenditionOf(parsed, variant)?.let(onAudioRendition)
-            val (mediaUrl, mediaText) = fetchPlaylist(variant.url.toString(), headers)
+            val (mediaUrl, mediaText) = fetchPlaylist(variant.url, headers)
             parsed = parse(mediaUrl, mediaText)
         }
-        val media = parsed as? HlsMediaPlaylist ?: throw StreamFailedException(StreamFailure.PLAYLIST, "No media playlist")
+        val media = parsed as? M3u8Media ?: throw StreamFailedException(StreamFailure.PLAYLIST, "No media playlist")
         checkSupported(media)
         if (!audio && MediaCheck.isTooShort(media.durationUs / 1000)) {
             throw StreamFailedException(StreamFailure.TOO_SHORT, "The video lasts ${media.durationUs / 1_000_000} s only")
@@ -87,9 +76,8 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
             .withIndex()
             // A gap has no data
             .filterNot { (_, segment) -> segment.hasGapTag }
-            .map { (index, segment) -> segmentOf(media.baseUri, segment, media.mediaSequence + index) }
-        val init = media.segments.firstNotNullOfOrNull { it.initializationSegment }
-            ?.let { segmentOf(media.baseUri, it, media.mediaSequence) }
+            .map { (index, segment) -> segmentOf(segment, media.mediaSequence + index) }
+        val init = media.segments.firstNotNullOfOrNull { it.initialization }?.let { initSegmentOf(it) }
         return writeSegments(segments, init, headers, dir, fileBase, audio, resume, onFileProgress, onProgress)
     }
 
@@ -101,25 +89,25 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
         }
     }
 
-    private fun parse(url: String, text: String): HlsPlaylist {
+    private fun parse(url: String, text: String): M3u8Playlist {
         if (!MediaCheck.isPlaylist(text.take(MediaCheck.SNIFF_BYTES).encodeToByteArray())) {
             throw StreamFailedException(StreamFailure.PLAYLIST, "Not an HLS playlist")
         }
         // Kwik's segments keep their encoder number as IV after a gap
         val fixed = HlsSegmentIvs.fix(text) ?: text
         return try {
-            HlsPlaylistParser().parse(Uri.parse(url), fixed.byteInputStream())
+            M3u8.parse(url, fixed)
         } catch (e: IOException) {
             throw StreamFailedException(StreamFailure.PLAYLIST, "Unreadable playlist: ${e.message}", e)
         }
     }
 
-    private fun chooseVariant(playlist: HlsMultivariantPlaylist, quality: String): HlsMultivariantPlaylist.Variant? {
+    private fun chooseVariant(playlist: M3u8Multivariant, quality: String): M3u8Multivariant.Variant? {
         val variants = playlist.variants.mapIndexed { index, variant ->
             HlsVariants.Variant(
                 index = index,
-                height = variant.format.height.coerceAtLeast(0),
-                bandwidth = variant.format.bitrate.coerceAtLeast(0),
+                height = variant.height,
+                bandwidth = variant.bitrate,
                 demuxedAudio = audioRenditions(playlist, variant).isNotEmpty(),
             )
         }
@@ -128,53 +116,58 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
 
     // Renditions without a URI are the muxed audio, described
     private fun audioRenditions(
-        playlist: HlsMultivariantPlaylist,
-        variant: HlsMultivariantPlaylist.Variant,
-    ): List<IndexedValue<HlsMultivariantPlaylist.Rendition>> {
+        playlist: M3u8Multivariant,
+        variant: M3u8Multivariant.Variant,
+    ): List<IndexedValue<M3u8Multivariant.Rendition>> {
         val group = variant.audioGroupId ?: return emptyList()
         return playlist.audios.withIndex().filter { (_, rendition) -> rendition.groupId == group && rendition.url != null }
     }
 
     private fun audioRenditionOf(
-        playlist: HlsMultivariantPlaylist,
-        variant: HlsMultivariantPlaylist.Variant,
+        playlist: M3u8Multivariant,
+        variant: M3u8Multivariant.Variant,
     ): AudioRendition? {
         val renditions = audioRenditions(playlist, variant).map { (index, rendition) ->
-            HlsVariants.AudioRendition(index, rendition.format.selectionFlags and C.SELECTION_FLAG_DEFAULT != 0)
+            HlsVariants.AudioRendition(index, rendition.isDefault)
         }
         val chosen = playlist.audios[HlsVariants.chooseAudio(renditions)?.index ?: return null]
-        return AudioRendition(chosen.url.toString(), chosen.format.language ?: chosen.name)
+        return AudioRendition(chosen.url!!, chosen.language ?: chosen.name)
     }
 
-    private fun checkSupported(media: HlsMediaPlaylist) {
+    private fun checkSupported(media: M3u8Media) {
         if (!media.hasEndTag) throw StreamFailedException(StreamFailure.LIVE, "Live playlist")
         if (media.segments.isEmpty()) throw StreamFailedException(StreamFailure.PLAYLIST, "Empty playlist")
-        if (media.protectionSchemes != null || media.segments.any { it.drmInitData != null }) {
+        if (media.hasDrm) {
             throw StreamFailedException(StreamFailure.DRM, "DRM protected playlist")
         }
         val inits = media.segments.mapTo(mutableSetOf()) { segment ->
-            segment.initializationSegment?.let { "${it.url}|${it.byteRangeOffset}|${it.byteRangeLength}" }
+            segment.initialization?.let { "${it.url}|${it.byteRange}" }
         }
         // A second init segment would need a second file, players don't read joined ones
         if (inits.size > 1) throw StreamFailedException(StreamFailure.UNSUPPORTED, "Several init segments")
     }
 
-    private fun segmentOf(baseUri: String, segment: HlsMediaPlaylist.SegmentBase, mediaSequence: Long): Segment {
-        val range = if (segment.byteRangeLength != C.LENGTH_UNSET.toLong()) {
-            "bytes=${segment.byteRangeOffset}-${segment.byteRangeOffset + segment.byteRangeLength - 1}"
-        } else {
-            null
-        }
-        val keyUrl = segment.fullSegmentEncryptionKeyUri?.let { UriUtil.resolve(baseUri, it) }
+    private fun segmentOf(segment: M3u8Media.Segment, mediaSequence: Long): Segment {
         return Segment(
-            url = UriUtil.resolve(baseUri, segment.url),
-            range = range,
-            keyUrl = keyUrl,
-            iv = keyUrl?.let { HlsCrypto.iv(segment.encryptionIV, mediaSequence) },
+            url = segment.url,
+            range = segment.byteRange?.let(::rangeHeader),
+            keyUrl = segment.keyUri,
+            iv = segment.keyUri?.let { HlsCrypto.iv(segment.encryptionIv, mediaSequence) },
             durationUs = segment.durationUs,
-            discontinuitySequence = segment.relativeDiscontinuitySequence,
+            discontinuitySequence = segment.discontinuitySequence,
         )
     }
+
+    private fun initSegmentOf(init: M3u8Media.Initialization): Segment = Segment(
+        url = init.url,
+        range = init.byteRange?.let(::rangeHeader),
+        keyUrl = null,
+        iv = null,
+        durationUs = 0L,
+        discontinuitySequence = 0,
+    )
+
+    private fun rangeHeader(range: LongRange) = "bytes=${range.first}-${range.last}"
 
     private suspend fun writeSegments(
         segments: List<Segment>,

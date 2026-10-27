@@ -226,7 +226,7 @@ class PreviewGenerator(
     /** True while the player screen or a cast is active: no frame is made meanwhile. */
     private val paused: StateFlow<Boolean>,
     scope: CoroutineScope,
-) {
+) : DownloadPreviewMaker {
     private val queue = PreviewQueue(restore())
     private val lock = Any()
 
@@ -244,7 +244,7 @@ class PreviewGenerator(
         get() = synchronized(lock) { queue.entries }
 
     /** The episode in [episodeDir] (of [animeDir], [sourceDir]) was just downloaded: its frames are made in turn. */
-    fun onDownloaded(sourceDir: String, animeDir: String, episodeDir: String) {
+    override fun onDownloaded(sourceDir: String, animeDir: String, episodeDir: String) {
         val added = synchronized(lock) { queue.add(PendingPreviews(sourceDir, animeDir, episodeDir)) }
         if (!added) return
         save()
@@ -256,7 +256,7 @@ class PreviewGenerator(
      * active: the episode it was on then waits still. An episode downloaded again meanwhile is made again, from its
      * new file. For [PreviewWorker].
      */
-    suspend fun makeAll() = running.withLock {
+    override suspend fun makeAll(): Unit = running.withLock {
         try {
             while (true) {
                 val next = synchronized(lock) { if (paused.value) null else queue.start() } ?: break
@@ -407,7 +407,7 @@ class PreviewGenerator(
                     ?.let { LocalEpisode.from(it, entry.episodeDir) }?.previews
             },
             newDecoder = { previews -> GrabberDecoder(context, previews.video.uri.toString()) },
-            write = { previews, sidecar -> previews.write(context, sidecar) },
+            write = { previews, sidecar -> previews.write(sidecar) },
             schedule = { PreviewWorker.start(context) },
             paused = combine(playerActive, castActive) { player, cast -> player || cast }
                 .stateIn(scope, SharingStarted.Eagerly, playerActive.value || castActive.value),
