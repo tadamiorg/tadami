@@ -17,13 +17,16 @@ import com.sf.tadami.network.AndroidCookieJar
 import com.sf.tadami.network.CloudflareChallengeException
 import com.sf.tadami.network.SolvingHosts
 import com.sf.tadami.network.utils.CLOUDFLARE_CHALLENGE_PROBE
+import com.sf.tadami.network.utils.CLOUDFLARE_INTERACTIVE_LISTENER
+import com.sf.tadami.network.utils.CLOUDFLARE_INTERACTIVE_PROBE
 import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.ui.utils.UiToasts
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
-import org.jsoup.Jsoup
 import java.io.IOException
 import java.io.InterruptedIOException
 import java.util.concurrent.ConcurrentHashMap
@@ -147,6 +150,7 @@ class CloudflareInterceptor @JvmOverloads constructor(
         // Cloudflare already writes cf_clearance while its challenge runs: the cookie only counts
         // once the challenge let the page through
         fun checkPage(view: WebView) {
+            view.evaluateJavascript(CLOUDFLARE_INTERACTIVE_LISTENER, null)
             view.evaluateJavascript(CLOUDFLARE_CHALLENGE_PROBE) { isChallenge ->
                 when {
                     state.outcome != null || state.abandoned -> Unit
@@ -158,12 +162,21 @@ class CloudflareInterceptor @JvmOverloads constructor(
             }
         }
 
-        // In case the challenge lets the page through without a load the client hears about
+        // In case the challenge lets the page through without a load the client hears about, or
+        // waits for a click nobody will make here
         val pollClearance = object : Runnable {
             override fun run() {
                 if (state.outcome != null || state.abandoned) return
                 val view = webView
-                if (view != null && isSolved()) checkPage(view)
+                if (view != null) {
+                    view.evaluateJavascript(CLOUDFLARE_INTERACTIVE_PROBE) { interactive ->
+                        if (interactive == "true" && state.outcome == null && !state.abandoned) {
+                            Log.i(TAG, "The Cloudflare challenge of $url wants a click: not waiting for the timeout")
+                            finish(Outcome.FAILED)
+                        }
+                    }
+                    if (isSolved()) checkPage(view)
+                }
                 mainHandler.postDelayed(this, POLL_MILLIS)
             }
         }
@@ -174,6 +187,10 @@ class CloudflareInterceptor @JvmOverloads constructor(
             try {
                 val view = createWebView(request)
                 webView = view
+                // Hears the widget even when it asks for a click before the page finished loading
+                if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+                    WebViewCompat.addDocumentStartJavaScript(view, CLOUDFLARE_INTERACTIVE_LISTENER, setOf("*"))
+                }
                 view.webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView, finishedUrl: String?) {
                         checkPage(view)
@@ -288,32 +305,10 @@ class CloudflareInterceptor @JvmOverloads constructor(
     }
 }
 
-/**
- * Cloudflare marks challenge responses with `cf-mitigated: challenge`, body-less ones (HEAD)
- * included. Older setups are recognised from the challenge page itself; block pages (geo block,
- * banned IP) are left alone since a WebView can't do anything about them.
- */
-public fun isCloudflareChallenge(response: Response): Boolean {
-    if (response.header("cf-mitigated").equals("challenge", ignoreCase = true)) return true
-    if (response.code !in ERROR_CODES) return false
-    if (response.header("Server")?.startsWith("cloudflare", ignoreCase = true) != true) return false
-
-    val body = try {
-        response.peekBody(MAX_PEEK_BYTES).string()
-    } catch (e: IOException) {
-        return false
-    }
-    if ("window._cf_chl_opt" in body) return true
-    val document = Jsoup.parse(body, response.request.url.toString())
-    return document.getElementById("challenge-error-title") != null ||
-        document.getElementById("challenge-error-text") != null
-}
-
 private const val TAG = "CloudflareInterceptor"
 private val ERROR_CODES = listOf(403, 503)
 private const val CF_CLEARANCE = "cf_clearance"
 private val COOKIE_NAMES = listOf(CF_CLEARANCE)
-private const val MAX_PEEK_BYTES = 256L * 1024
 private const val POLL_MILLIS = 500L
 private const val LOCK_SLICE_MILLIS = 250L
 private const val FAILURE_BACKOFF_MILLIS = 60_000L

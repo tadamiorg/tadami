@@ -112,17 +112,6 @@ fun WebView.setDefaultSettings() {
  * doesn't announce one Chrome version in the UA and another one in `Sec-CH-UA`. Anti-bot
  * challenges reject that mismatch, and `cf_clearance` is bound to the UA that solved it.
  */
-/**
- * JavaScript evaluating to true while Cloudflare is still at work on the page: its challenge (or
- * error) page, or the site's page still running the precursor script that follows a challenge.
- * Both define `_cf_chl_opt`. The clearance the precursor step writes is rejected by HTTP clients
- * until that script is done, so it doesn't count as solved yet.
- */
-public const val CLOUDFLARE_CHALLENGE_PROBE =
-    "(function () { return typeof window._cf_chl_opt !== 'undefined' || " +
-        "document.getElementById('challenge-error-title') !== null || " +
-        "document.getElementById('challenge-error-text') !== null; })()"
-
 private const val CHROMIUM_BRAND = "Chromium"
 private const val CHROME_BRAND = "Google Chrome"
 private const val WEBVIEW_BRAND = "Android WebView"
