@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.FullscreenExit
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -37,7 +39,10 @@ fun BottomControls(
     videoSettingsEnabled: Boolean = false,
     tracksSettingsEnabled: Boolean = false,
     audioSettingsEnabled: Boolean = false,
-    onPipClicked: (() -> Unit)? = null
+    onPipClicked: (() -> Unit)? = null,
+    // Shown where the window can leave and enter full screen (the desktop)
+    isFullscreen: Boolean = false,
+    onFullscreenClicked: (() -> Unit)? = null,
 ) {
     Box(
         modifier = modifier.fillMaxWidth(),
@@ -135,6 +140,19 @@ fun BottomControls(
                             painter = painterResource(Res.drawable.ic_pip),
                             tint = MaterialTheme.colorScheme.onBackground,
                             contentDescription = "Picture in picture"
+                        )
+                    }
+                }
+                onFullscreenClicked?.let {
+                    IconButton(
+                        onClick = onFullscreenClicked,
+                        enabled = true,
+                        size = 36.dp,
+                    ) {
+                        Icon(
+                            imageVector = if (isFullscreen) Icons.Filled.FullscreenExit else Icons.Filled.Fullscreen,
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            contentDescription = "Full screen"
                         )
                     }
                 }

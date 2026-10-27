@@ -54,6 +54,8 @@ fun PlayerControls(
     onTapYoutube : () -> Unit,
     playerSeekValue : Long,
     onPipClicked : (() -> Unit)? = null,
+    isFullscreen: Boolean = false,
+    onFullscreenClicked: (() -> Unit)? = null,
     videoSettingsEnabled: Boolean = false,
     tracksSettingsEnabled: Boolean = false,
     audioSettingsEnabled: Boolean = false,
@@ -138,6 +140,8 @@ fun PlayerControls(
                         onPlayerSettings = onPlayerSettings,
                         onEpisodesClicked = onEpisodesClicked,
                         onPipClicked = onPipClicked,
+                        isFullscreen = isFullscreen,
+                        onFullscreenClicked = onFullscreenClicked,
                         onTracksSettings = onTracksSettings,
                         onAudioSettings = onAudioSettings,
                     )

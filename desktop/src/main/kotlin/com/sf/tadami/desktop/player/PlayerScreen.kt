@@ -1,5 +1,6 @@
 package com.sf.tadami.desktop.player
 
+import com.sf.tadami.desktop.DesktopWindow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -191,7 +192,10 @@ fun EpisodePlayerScreen(
 
     // The time is saved when the window closes too
     DisposableEffect(Unit) {
-        onDispose { updateTime() }
+        onDispose {
+            updateTime()
+            DesktopWindow.setFullscreen(false)
+        }
     }
 
     val focusRequester = remember { FocusRequester() }
@@ -209,6 +213,8 @@ fun EpisodePlayerScreen(
                         Key.Spacebar -> player.togglePause(playerViewModel)
                         Key.DirectionLeft -> player.seekTo(currentTime - playerPreferences.doubleTapLength)
                         Key.DirectionRight -> player.seekTo(currentTime + playerPreferences.doubleTapLength)
+                        Key.F, Key.F11 -> DesktopWindow.setFullscreen(!DesktopWindow.isFullscreen)
+                        Key.Escape -> if (DesktopWindow.isFullscreen) DesktopWindow.setFullscreen(false) else return@onPreviewKeyEvent false
                         else -> return@onPreviewKeyEvent false
                     }
                     true
@@ -371,6 +377,8 @@ fun EpisodePlayerScreen(
                     player.pause()
                     openEpisodeTooltipDialog = !openEpisodeTooltipDialog
                 },
+                isFullscreen = DesktopWindow.isFullscreen,
+                onFullscreenClicked = { DesktopWindow.setFullscreen(!DesktopWindow.isFullscreen) },
             )
         }
     }

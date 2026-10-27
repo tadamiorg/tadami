@@ -57,13 +57,17 @@ fun main() {
 
     application {
         platformUi.closeApp = ::exitApplication
+        DesktopWindow.state = rememberWindowState(width = 1280.dp, height = 820.dp)
         Window(
             onCloseRequest = ::exitApplication,
             title = "Tadami",
             icon = painterResource(Res.drawable.ic_launcher),
-            state = rememberWindowState(width = 1280.dp, height = 820.dp),
+            state = DesktopWindow.state,
         ) {
-            LaunchedEffect(Unit) { DevAutomation.start { window } }
+            LaunchedEffect(Unit) {
+                DesktopWindow.window = window
+                DevAutomation.start { window }
+            }
             setSingletonImageLoaderFactory { context ->
                 ImageLoader.Builder(context)
                     .tadamiDefaults(

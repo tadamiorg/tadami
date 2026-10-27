@@ -61,6 +61,9 @@ dependencies {
     implementation("org.openani.mediamp:mediamp-all:0.5.3")
     runtimeOnly("org.openani.mediamp:mediamp-mpv-runtime-$mpvRuntime:0.5.3")
 
+    // The borderless full screen of Windows
+    implementation("net.java.dev.jna:jna-platform:5.13.0")
+
     implementation("me.friwi:jcefmaven:$jcefVersion")
     runtimeOnly("me.friwi:jcef-natives-$jcefPlatform:$jcefNatives")
 }
