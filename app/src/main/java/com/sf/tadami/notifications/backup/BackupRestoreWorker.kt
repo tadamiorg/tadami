@@ -1,5 +1,6 @@
 package com.sf.tadami.notifications.backup
 
+import com.sf.tadami.data.backup.BackupRestoreListener
 import com.sf.tadami.utils.stringRes
 import android.content.Context
 import android.content.pm.ServiceInfo
@@ -43,7 +44,15 @@ class BackupRestoreWorker(private val context: Context, workerParams: WorkerPara
         }
 
         return try {
-            BackupRestorer(context, notifier).restore(uri, options)
+            val listener = object : BackupRestoreListener {
+                override fun onRestoreProgress(content: String, contentTitle: String, progress: Int, maxAmount: Int) {
+                    notifier.showRestoreProgress(content, contentTitle, progress, maxAmount)
+                }
+
+                override fun onRestoreComplete(time: Long, errorCount: Int, path: String?, file: String?) =
+                    notifier.showRestoreComplete(time, errorCount, path, file)
+            }
+            BackupRestorer(context.externalCacheDir ?: context.cacheDir, listener).restore(uri.toString(), options)
             Result.success()
         } catch (e: Exception) {
             if (e is CancellationException) {

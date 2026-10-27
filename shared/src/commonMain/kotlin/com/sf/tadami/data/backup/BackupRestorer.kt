@@ -1,8 +1,7 @@
 package com.sf.tadami.data.backup
 
+import com.sf.tadami.BackgroundJobs
 import com.sf.tadami.utils.stringRes
-import android.content.Context
-import android.net.Uri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -35,12 +34,8 @@ import com.sf.tadami.data.interactors.category.SetAnimeCategories
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.history.HistoryUpdate
-import com.sf.tadami.notifications.backup.BackupCreateWorker
-import com.sf.tadami.notifications.backup.BackupNotifier
-import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.preferences.storage.StoragePreferences
-import com.sf.tadami.utils.createFileInCacheDir
 import com.sf.tadami.utils.editPreference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
@@ -57,9 +52,19 @@ import java.util.Locale
 import kotlin.math.max
 import data.Anime as AnimeDb
 
+/** What a restore reports as it goes: the notifications on Android. */
+interface BackupRestoreListener {
+
+    fun onRestoreProgress(content: String, contentTitle: String, progress: Int, maxAmount: Int)
+
+    /** The restore took [time] ms, with [errorCount] errors listed in the file [file] of the folder [path]. */
+    fun onRestoreComplete(time: Long, errorCount: Int, path: String?, file: String?)
+}
+
+/** Restores a backup, the log of its errors written to [cacheDir]. */
 class BackupRestorer(
-    private val context: Context,
-    private val notifier: BackupNotifier,
+    private val cacheDir: File,
+    private val listener: BackupRestoreListener,
 ) {
 
     private val handler: DataBaseHandler = Injekt.get()
@@ -85,7 +90,7 @@ class BackupRestorer(
      */
     private var sourceMapping: Map<Long, String> = emptyMap()
 
-    suspend fun restore(uri: Uri, options: RestoreOptions) {
+    suspend fun restore(uri: String, options: RestoreOptions) {
         val startTime = System.currentTimeMillis()
 
         restoreFromFile(uri,options)
@@ -94,13 +99,17 @@ class BackupRestorer(
 
         val logFile = writeErrorLog()
 
-        notifier.showRestoreComplete(time, errors.size, logFile.parent, logFile.name)
+        listener.onRestoreComplete(time, errors.size, logFile.parent, logFile.name)
     }
 
     private fun writeErrorLog(): File {
         try {
             if (errors.isNotEmpty()) {
-                val file = context.createFileInCacheDir("tadami_restore.txt")
+                val file = File(cacheDir, "tadami_restore.txt")
+                if (file.exists()) {
+                    file.delete()
+                }
+                file.createNewFile()
                 val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
                 file.bufferedWriter().use { out ->
@@ -117,8 +126,8 @@ class BackupRestorer(
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    private suspend fun restoreFromFile(uri: Uri, options: RestoreOptions) {
-        val backup = BackupDecoder().decode(uri.toString())
+    private suspend fun restoreFromFile(uri: String, options: RestoreOptions) {
+        val backup = BackupDecoder().decode(uri)
 
         val backupMaps = backup.backupSources
         sourceMapping = backupMaps.associate { it.sourceId to it.name }
@@ -163,8 +172,9 @@ class BackupRestorer(
         }
 
         restoreProgress += 1
-        notifier.showRestoreProgress(
+        listener.onRestoreProgress(
             content = stringRes(Res.string.sources_settings),
+            contentTitle = stringRes(Res.string.restoring_backup),
             progress = restoreProgress,
             maxAmount = restoreAmount,
         )
@@ -420,8 +430,8 @@ class BackupRestorer(
             .mapNotNull { it.withLocalCategoryIds(categoryIds) }
         restorePreferences(toRestore, dataStore)
 
-        LibraryUpdateWorker.setupTask(context)
-        BackupCreateWorker.setupTask(context)
+        Injekt.get<BackgroundJobs>().scheduleLibraryUpdates()
+        Injekt.get<BackgroundJobs>().scheduleAutoBackups()
 
         restoreProgress += 1
         showRestoreProgress(
@@ -516,6 +526,6 @@ class BackupRestorer(
         title: String,
         contentTitle: String
     ) {
-        notifier.showRestoreProgress(title, contentTitle, progress, amount)
+        listener.onRestoreProgress(title, contentTitle, progress, amount)
     }
 }

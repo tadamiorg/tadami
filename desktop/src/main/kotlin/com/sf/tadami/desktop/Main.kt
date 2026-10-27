@@ -19,6 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import com.sf.tadami.AppBuildInfo
+import com.sf.tadami.BackgroundJobs
 import com.sf.tadami.extension.api.ExtensionsApi
 import com.sf.tadami.navigation.HomeScreen
 import com.sf.tadami.navigation.graphs.onboarding.OnboardingRoutes
@@ -50,6 +51,9 @@ fun main() {
 
     val platformUi = DesktopPlatformUi()
     DesktopModule.install(platformUi)
+    // No scheduler outside of the app: the updates run while it's open
+    Injekt.get<BackgroundJobs>().scheduleLibraryUpdates()
+    Injekt.get<BackgroundJobs>().scheduleAutoBackups()
 
     application {
         platformUi.closeApp = ::exitApplication

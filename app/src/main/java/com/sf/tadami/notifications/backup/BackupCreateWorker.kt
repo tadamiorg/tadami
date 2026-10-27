@@ -69,7 +69,7 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
             Log.d("BackupCreateWorker","Not allowed to run on foreground service")
         }
         return try {
-            val location = BackupCreator(context,isAutoBackup).createBackup(uri, options)
+            val location = BackupCreator(isAutoBackup).createBackup(uri.toString(), options)
             if (!isAutoBackup) {
                 notifier.showBackupComplete(Injekt.get<StorageFiles>().fromUri(location.toUri().toString())!!)
             } else {

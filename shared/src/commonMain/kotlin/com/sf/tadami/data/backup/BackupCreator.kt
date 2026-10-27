@@ -2,8 +2,6 @@ package com.sf.tadami.data.backup
 
 import com.sf.tadami.storage.StorageFiles
 import com.sf.tadami.utils.stringRes
-import android.content.Context
-import android.net.Uri
 import com.sf.tadami.utils.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -52,7 +50,6 @@ import java.io.FileOutputStream
 import java.time.Instant
 
 class BackupCreator(
-    private val context: Context,
     private val isAutoBackup: Boolean,
 ) {
 
@@ -68,12 +65,12 @@ class BackupCreator(
     public val parser = ProtoBuf
 
     @OptIn(ExperimentalSerializationApi::class)
-    suspend fun createBackup(uri: Uri, options: BackupOptions): String {
+    suspend fun createBackup(uri: String, options: BackupOptions): String {
         var file: StorageFile? = null
         try {
             file = if (isAutoBackup) {
                 // Get dir of file and create
-                val dir = Injekt.get<StorageFiles>().fromUri(uri.toString())
+                val dir = Injekt.get<StorageFiles>().fromUri(uri)
 
                 // Delete older backups
                 dir?.listFiles()
@@ -86,7 +83,7 @@ class BackupCreator(
                 // Create new file to place backup
                 dir?.createFile(BackupUtils.getFilename())
             } else {
-                Injekt.get<StorageFiles>().fromUri(uri.toString())
+                Injekt.get<StorageFiles>().fromUri(uri)
             }
 
             if (file == null || !file.isFile) {
@@ -114,13 +111,13 @@ class BackupCreator(
             val fileUri = file.uri
 
             // Make sure it's a valid backup file
-            BackupFileValidator().validate(fileUri.toString())
+            BackupFileValidator().validate(fileUri)
 
             if (isAutoBackup) {
                 dataStore.editPreference(Instant.now().toEpochMilli(),BackupPreferences.AUTO_BACKUP_LAST_TIMESTAMP)
             }
 
-            return fileUri.toString()
+            return fileUri
         } catch (e: Exception) {
             Log.d("BackupCreator", e.stackTraceToString())
             file?.delete()
