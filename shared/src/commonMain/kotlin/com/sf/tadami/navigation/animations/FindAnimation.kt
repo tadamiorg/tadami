@@ -9,6 +9,7 @@ import com.sf.tadami.navigation.graphs.onboarding.OnboardingRoutes
 
 fun AnimatedContentTransitionScope<NavBackStackEntry>.findExitAnimation(forward : Boolean) : ExitTransition {
     return when {
+        !animatesScreenTransitions -> ExitTransition.None
         !HomeNavItems.includes(initialState.destination.route) || !HomeNavItems.includes(targetState.destination.route) -> slideOutHorizontallyAndFadeOut(forward)
         else -> fadeOut()
     }
@@ -16,6 +17,7 @@ fun AnimatedContentTransitionScope<NavBackStackEntry>.findExitAnimation(forward 
 
 fun AnimatedContentTransitionScope<NavBackStackEntry>.findEnterAnimation(forward : Boolean) : EnterTransition {
     return when {
+        !animatesScreenTransitions -> EnterTransition.None
         targetState.destination.route === OnboardingRoutes.ONBOARDING -> fadeIn()
         !HomeNavItems.includes(initialState.destination.route) || !HomeNavItems.includes(targetState.destination.route) -> slideInHorizontallyAndFadeIn(forward)
         else -> fadeIn()
