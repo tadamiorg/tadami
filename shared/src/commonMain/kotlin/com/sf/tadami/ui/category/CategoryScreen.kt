@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.category
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import org.jetbrains.compose.resources.StringResource
 
 import androidx.compose.foundation.layout.Arrangement
@@ -50,7 +51,7 @@ import com.sf.tadami.ui.utils.padding
 @Composable
 fun CategoryScreen(
     navController: NavHostController,
-    viewModel: CategoryViewModel = viewModel(),
+    viewModel: CategoryViewModel = viewModel(factory = AppViewModelFactory),
 ) {
     val categories by viewModel.categories.collectAsState()
     val dialog by viewModel.dialog.collectAsState()

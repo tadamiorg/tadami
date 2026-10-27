@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions.details
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -44,7 +45,7 @@ import java.nio.charset.StandardCharsets
 @Composable
 fun ExtensionDetailsScreen(
     navController: NavHostController,
-    extensionDetailsViewModel: ExtensionDetailsViewModel = viewModel()
+    extensionDetailsViewModel: ExtensionDetailsViewModel = viewModel(factory = AppViewModelFactory)
 ) {
     val uiState by extensionDetailsViewModel.uiState.collectAsState()
     var showUninstallDialog by remember { mutableStateOf(false) }

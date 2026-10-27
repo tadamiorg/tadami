@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.updates
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -39,7 +40,7 @@ fun UpdatesScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     setNavDisplay: (display: Boolean) -> Unit,
-    updatesViewModel: UpdatesViewModel = viewModel()
+    updatesViewModel: UpdatesViewModel = viewModel(factory = AppViewModelFactory)
 ) {
     val uiState by updatesViewModel.uiState.collectAsState()
     val isRefreshing by updatesViewModel.isRefreshing.collectAsState()

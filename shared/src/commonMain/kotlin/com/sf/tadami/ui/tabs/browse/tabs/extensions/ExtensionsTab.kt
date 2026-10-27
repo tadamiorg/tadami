@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import com.sf.tadami.ui.utils.LocalAppViewModelStoreOwner
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterList
@@ -44,7 +45,7 @@ import java.nio.charset.StandardCharsets
 @Composable
 fun extensionsTab(
     navController: NavHostController,
-    extensionsViewModel: ExtensionsViewModel = viewModel(LocalAppViewModelStoreOwner.current)
+    extensionsViewModel: ExtensionsViewModel = viewModel(LocalAppViewModelStoreOwner.current, factory = AppViewModelFactory)
 ): ScreenTabContent {
     val uiState by extensionsViewModel.uiState.collectAsState()
     val sPrefs by rememberDataStoreState(customPrefs = SourcesPreferences).value.collectAsState()

@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.downloads
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
@@ -37,7 +38,7 @@ import com.sf.tadami.ui.utils.padding
 @Composable
 fun DownloadQueueScreen(
     navController: NavHostController,
-    viewModel: DownloadQueueViewModel = viewModel(),
+    viewModel: DownloadQueueViewModel = viewModel(factory = AppViewModelFactory),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

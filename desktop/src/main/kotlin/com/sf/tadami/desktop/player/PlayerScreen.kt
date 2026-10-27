@@ -1,7 +1,6 @@
-package com.sf.tadami.desktop.ui
+package com.sf.tadami.desktop.player
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,34 +31,87 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sf.tadami.data.anime.AnimeRepository
+import com.sf.tadami.data.episode.EpisodeRepository
+import com.sf.tadami.domain.anime.Anime
+import com.sf.tadami.domain.episode.Episode
+import com.sf.tadami.domain.episode.toSEpisode
+import com.sf.tadami.extension.util.callGuarded
 import com.sf.tadami.source.AnimeCatalogueSource
-import com.sf.tadami.source.model.SAnime
-import com.sf.tadami.source.model.SEpisode
 import com.sf.tadami.source.model.StreamSource
+import com.sf.tadami.ui.tabs.browse.SourceManager
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import org.openani.mediamp.MediaStatus
+import org.openani.mediamp.MediampPlayer
 import org.openani.mediamp.compose.MediampPlayerSurface
 import org.openani.mediamp.compose.rememberMediampPlayer
 import org.openani.mediamp.isLoadingOrBuffering
 import org.openani.mediamp.source.UriMediaData
 import org.openani.mediamp.togglePlayWhenReady
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
+/** The episode and the streams of its source, see [EpisodePlayerScreen]. */
+class DesktopPlayerViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
+
+    private val sourceId: Long = checkNotNull(savedStateHandle["sourceId"])
+    private val episodeId: Long = checkNotNull(savedStateHandle["episode"])
+
+    private val _anime = MutableStateFlow<Anime?>(null)
+    val anime = _anime.asStateFlow()
+    private val _episode = MutableStateFlow<Episode?>(null)
+    val episode = _episode.asStateFlow()
+    private val _streams = MutableStateFlow<List<StreamSource>?>(null)
+    val streams = _streams.asStateFlow()
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            try {
+                val episode = Injekt.get<EpisodeRepository>().getEpisodeById(episodeId)
+                _episode.value = episode
+                _anime.value = Injekt.get<AnimeRepository>().getAnimeById(episode.animeId)
+                val source = Injekt.get<SourceManager>().get(sourceId) as? AnimeCatalogueSource
+                    ?: throw IllegalStateException("Source $sourceId isn't installed")
+                val streams = source.callGuarded { getEpisodeSources(episode.toSEpisode()) }
+                _streams.value = streams
+                if (streams.isEmpty()) _error.value = "No stream"
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _error.value = e.message ?: e.toString()
+            }
+        }
+    }
+}
+
+/** The player of the episode of the current screen, mpv drawn in the window. */
 @Composable
-fun PlayerScreen(source: AnimeCatalogueSource, anime: SAnime, episode: SEpisode, onBack: () -> Unit) {
+fun EpisodePlayerScreen(
+    onBack: () -> Unit,
+    viewModel: DesktopPlayerViewModel = viewModel(factory = AppViewModelFactory),
+) {
     val player = rememberMediampPlayer()
-    var streams by remember { mutableStateOf<List<StreamSource>?>(null) }
-    var selected by remember { mutableStateOf<StreamSource?>(null) }
-    var error by remember { mutableStateOf<String?>(null) }
+    val anime by viewModel.anime.collectAsState()
+    val episode by viewModel.episode.collectAsState()
+    val streams by viewModel.streams.collectAsState()
+    val loadError by viewModel.error.collectAsState()
+    var selected by remember(streams) { mutableStateOf(streams?.firstOrNull()) }
+    var playError by remember { mutableStateOf<String?>(null) }
     var menu by remember { mutableStateOf(false) }
 
-    LaunchedEffect(episode) {
-        runCatching { source.getEpisodeSources(episode) }
-            .onSuccess { streams = it; selected = it.firstOrNull(); if (it.isEmpty()) error = "No stream" }
-            .onFailure { error = it.toString() }
-    }
     LaunchedEffect(selected) {
         val stream = selected ?: return@LaunchedEffect
-        error = null
+        playError = null
         // mpv splits its header list on commas: a value with one would become bogus headers
         val headers = stream.headers?.toMultimap()?.mapValues { it.value.last() }?.filterValues { ',' !in it }.orEmpty()
         try {
@@ -67,16 +119,10 @@ fun PlayerScreen(source: AnimeCatalogueSource, anime: SAnime, episode: SEpisode,
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            error = "${stream.fullName}: $e"
+            playError = "${stream.fullName}: $e"
         }
     }
 
-    LaunchedEffect(player) {
-        while (true) {
-            kotlinx.coroutines.delay(2000)
-            println("Player: ${player.state.value} at ${player.currentPositionMillis.value} ms of ${player.mediaProperties.value?.durationMillis}, ${selected?.fullName}")
-        }
-    }
     val state by player.state.collectAsState()
     val position by player.currentPositionMillis.collectAsState()
     val properties by player.mediaProperties.collectAsState()
@@ -84,10 +130,21 @@ fun PlayerScreen(source: AnimeCatalogueSource, anime: SAnime, episode: SEpisode,
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         MediampPlayerSurface(player, Modifier.fillMaxSize())
-        if (state.isLoadingOrBuffering) CircularProgressIndicator(Modifier.align(Alignment.Center))
-        Row(Modifier.fillMaxWidth().background(Color.Black.copy(alpha = 0.5f)).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { player.stopPlayback(); onBack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White) }
-            Text("${anime.title} — ${episode.name}", color = Color.White, modifier = Modifier.weight(1f))
+        if (state.isLoadingOrBuffering || streams == null && loadError == null) {
+            CircularProgressIndicator(Modifier.align(Alignment.Center))
+        }
+        Row(
+            Modifier.fillMaxWidth().background(Color.Black.copy(alpha = 0.5f)).padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = { player.stopPlayback(); onBack() }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
+            }
+            Text(
+                listOfNotNull(anime?.title, episode?.name).joinToString(" — "),
+                color = Color.White,
+                modifier = Modifier.weight(1f),
+            )
             Box {
                 TextButton(onClick = { menu = true }) { Text(selected?.fullName ?: "Streams", color = Color.White) }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
@@ -97,8 +154,10 @@ fun PlayerScreen(source: AnimeCatalogueSource, anime: SAnime, episode: SEpisode,
                 }
             }
         }
-        Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().background(Color.Black.copy(alpha = 0.5f)).padding(8.dp)) {
-            (error ?: (state.mediaStatus as? MediaStatus.Error)?.error?.toString())?.let {
+        Column(
+            Modifier.align(Alignment.BottomCenter).fillMaxWidth().background(Color.Black.copy(alpha = 0.5f)).padding(8.dp),
+        ) {
+            (loadError ?: playError ?: player.errorText())?.let {
                 Text(it, color = MaterialTheme.colorScheme.error)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -111,10 +170,16 @@ fun PlayerScreen(source: AnimeCatalogueSource, anime: SAnime, episode: SEpisode,
                     onValueChange = { if (duration > 0) player.seekTo((it * duration).toLong()) },
                     modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
                 )
-                Text(formatTime(duration), color = Color.White, modifier = Modifier.clickable { })
+                Text(formatTime(duration), color = Color.White)
             }
         }
     }
+}
+
+@Composable
+private fun MediampPlayer.errorText(): String? {
+    val state by state.collectAsState()
+    return (state.mediaStatus as? MediaStatus.Error)?.error?.toString()
 }
 
 private fun formatTime(ms: Long): String {

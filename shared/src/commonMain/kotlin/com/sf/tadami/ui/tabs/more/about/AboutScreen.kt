@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.about
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -49,7 +50,7 @@ import java.util.TimeZone
 @Composable
 fun AboutScreen(
     navHostController: NavHostController,
-    aboutViewModel: AboutViewModel = viewModel()
+    aboutViewModel: AboutViewModel = viewModel(factory = AppViewModelFactory)
 ) {
     val uriHandler = LocalUriHandler.current
     var isCheckingUpdates by remember { mutableStateOf(false) }

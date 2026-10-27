@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.data.backup
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import org.jetbrains.compose.resources.StringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -55,7 +56,7 @@ class RestoreBackupScreen(
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun getContent(
-        restoreBackupViewModel: RestoreBackupViewModel = viewModel()
+        restoreBackupViewModel: RestoreBackupViewModel = viewModel(factory = AppViewModelFactory)
     ) {
         val uiState by restoreBackupViewModel.uiState.collectAsState()
         Scaffold(

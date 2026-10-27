@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.advanced.data
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import org.jetbrains.compose.resources.StringResource
 
 import androidx.compose.foundation.Image
@@ -106,7 +107,7 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun getContent(
-        clearDatabaseViewModel: ClearDatabaseViewModel = viewModel()
+        clearDatabaseViewModel: ClearDatabaseViewModel = viewModel(factory = AppViewModelFactory)
     ) {
         val coroutineScope = rememberCoroutineScope()
         val uiState by clearDatabaseViewModel.uiState.collectAsState()

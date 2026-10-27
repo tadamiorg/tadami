@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions.filters
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,7 +23,7 @@ import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 @Composable
 fun ExtensionsFilterScreen(
     navController: NavHostController,
-    extensionsFilterViewModel: ExtensionsFilterViewModel = viewModel()
+    extensionsFilterViewModel: ExtensionsFilterViewModel = viewModel(factory = AppViewModelFactory)
 ) {
 
     val uiState by extensionsFilterViewModel.uiState.collectAsState()

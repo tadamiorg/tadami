@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.history
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import com.sf.tadami.utils.stringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -32,7 +33,7 @@ import com.sf.tadami.ui.tabs.history.dialogs.DeleteHistoryDialog
 fun HistoryScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    historyViewModel: HistoryViewModel = viewModel()
+    historyViewModel: HistoryViewModel = viewModel(factory = AppViewModelFactory)
 ) {
     val uiState by historyViewModel.uiState.collectAsState()
     var searchValue by rememberSaveable { mutableStateOf("") }

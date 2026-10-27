@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.browse.tabs.sources
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.TravelExplore
@@ -28,7 +29,7 @@ import com.sf.tadami.utils.Lang
 @Composable
 fun sourcesTab(
     navController: NavHostController,
-    sourcesTabViewModel: SourcesTabViewModel = viewModel()
+    sourcesTabViewModel: SourcesTabViewModel = viewModel(factory = AppViewModelFactory)
 ): ScreenTabContent {
     val uiState by sourcesTabViewModel.uiState.collectAsState()
 

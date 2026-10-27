@@ -28,7 +28,7 @@ fun NavGraphBuilder.sourcesNavGraph(
     }
 
     with(Injekt.get<PlatformUi>()) {
-        webViewDestination("${SourcesRoutes.EXTENSIONS_WEBVIEW}/{sourceId}/{title_key}/{url_key}")
+        webViewDestination("${SourcesRoutes.EXTENSIONS_WEBVIEW}/{sourceId}/{title_key}/{url_key}", navController)
     }
 
     composable(

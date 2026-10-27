@@ -14,11 +14,14 @@ import com.sf.tadami.ui.main.onboarding.steps.OnboardingStep
  */
 interface PlatformUi {
 
-    /** The player of an episode, at [route] with its `sourceId` and `episode` (its ID) arguments. */
-    fun NavGraphBuilder.episodeDestination(route: String)
+    /**
+     * The player of an episode, at [route] with its `sourceId` and `episode` (its ID) arguments, left
+     * with [navController].
+     */
+    fun NavGraphBuilder.episodeDestination(route: String, navController: NavHostController)
 
     /** The in-app browser, at [route] with its `sourceId`, `title_key` and `url_key` arguments. */
-    fun NavGraphBuilder.webViewDestination(route: String)
+    fun NavGraphBuilder.webViewDestination(route: String, navController: NavHostController)
 
     /** Whether there's a cast button to show, see [CastButton]. */
     val hasCastButton: Boolean get() = false

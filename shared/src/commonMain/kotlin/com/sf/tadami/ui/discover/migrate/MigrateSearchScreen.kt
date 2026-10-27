@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.discover.migrate
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import com.sf.tadami.utils.encodeUriComponent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -27,7 +28,7 @@ import com.sf.tadami.ui.utils.UiToasts
 @Composable
 fun MigrateSearchScreen(
     navController: NavHostController,
-    migrateViewModel: MigrateViewModel = viewModel()
+    migrateViewModel: MigrateViewModel = viewModel(factory = AppViewModelFactory)
 ) {
 
     val uiState by migrateViewModel.uiState.collectAsState()

@@ -50,7 +50,7 @@ import kotlinx.coroutines.withContext
 /** The player and the browser are activities, the cast button the Google Cast one. */
 class AndroidPlatformUi(private val app: Application) : PlatformUi {
 
-    override fun NavGraphBuilder.episodeDestination(route: String) {
+    override fun NavGraphBuilder.episodeDestination(route: String, navController: NavHostController) {
         activity(route) {
             this.activityClass = EpisodeActivity::class
             argument("sourceId") {
@@ -64,7 +64,7 @@ class AndroidPlatformUi(private val app: Application) : PlatformUi {
         }
     }
 
-    override fun NavGraphBuilder.webViewDestination(route: String) {
+    override fun NavGraphBuilder.webViewDestination(route: String, navController: NavHostController) {
         activity(route) {
             this.activityClass = WebViewActivity::class
             argument("sourceId") {

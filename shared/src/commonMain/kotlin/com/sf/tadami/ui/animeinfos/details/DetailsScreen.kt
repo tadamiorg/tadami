@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.animeinfos.details
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import com.sf.tadami.utils.encodeUriComponent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -67,7 +68,7 @@ import java.nio.charset.StandardCharsets
 @Composable
 fun DetailsScreen(
     navHostController: NavHostController,
-    detailsViewModel: DetailsViewModel = viewModel()
+    detailsViewModel: DetailsViewModel = viewModel(factory = AppViewModelFactory)
 ) {
     val uiState by detailsViewModel.uiState.collectAsState()
     val isRefreshing by detailsViewModel.isRefreshing.collectAsState()

@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.discover.recent
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,7 +42,7 @@ import java.nio.charset.StandardCharsets
 @Composable
 fun RecentScreen(
     navController: NavHostController,
-    recentViewModel: RecentViewModel = viewModel()
+    recentViewModel: RecentViewModel = viewModel(factory = AppViewModelFactory)
 ) {
 
     val animeList = recentViewModel.animeList.collectAsLazyPagingItems()

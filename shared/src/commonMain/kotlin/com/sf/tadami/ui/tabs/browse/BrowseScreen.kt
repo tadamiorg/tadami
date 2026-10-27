@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.browse
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import com.sf.tadami.ui.utils.LocalAppViewModelStoreOwner
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -24,7 +25,7 @@ fun BrowseScreen(
     modifier : Modifier = Modifier,
     navController : NavHostController,
     savedStateHandle: SavedStateHandle,
-    extensionsViewModel : ExtensionsViewModel = viewModel(LocalAppViewModelStoreOwner.current)
+    extensionsViewModel : ExtensionsViewModel = viewModel(LocalAppViewModelStoreOwner.current, factory = AppViewModelFactory)
 ) {
     // Hoisted for extensions tab's search bar
     val extensionsState by extensionsViewModel.uiState.collectAsState()

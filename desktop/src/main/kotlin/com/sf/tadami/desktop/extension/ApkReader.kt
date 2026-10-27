@@ -17,6 +17,9 @@ class ApkManifest(
     val metaData: Map<String, String>,
 )
 
+/** See [ApkReader.signature]. */
+class ApkSignature(val hashes: List<String>, val multipleSigners: Boolean)
+
 /** Reads an extension APK without running any of its code, as Android's PackageManager does. */
 object ApkReader {
 
@@ -24,16 +27,19 @@ object ApkReader {
      * SHA-256 fingerprints of the certificates [apk] is verified to be signed with, the current one
      * last (Android's signingCertificateHistory), empty when its signature doesn't verify.
      */
-    fun signatureHashes(apk: File): List<String> {
+    fun signatureHashes(apk: File): List<String> = signature(apk).hashes
+
+    /** The certificates of [apk], see [signatureHashes], and whether it has several signers. */
+    fun signature(apk: File): ApkSignature {
         val result = ApkVerifier.Builder(apk).setMinCheckedPlatformVersion(28).build().verify()
-        if (!result.isVerified) return emptyList()
+        if (!result.isVerified) return ApkSignature(emptyList(), multipleSigners = false)
         val signers = result.signerCertificates
         val history = if (signers.size > 1) {
             signers
         } else {
             result.signingCertificateLineage?.certificatesInLineage ?: signers
         }
-        return history.map { sha256(it.encoded) }
+        return ApkSignature(history.map { sha256(it.encoded) }, multipleSigners = signers.size > 1)
     }
 
     fun manifest(apk: File): ApkManifest = ApkFile(apk).use { file ->

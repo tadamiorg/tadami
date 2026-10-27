@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.discover.globalSearch
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import com.sf.tadami.utils.encodeUriComponent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -17,7 +18,7 @@ import com.sf.tadami.ui.components.data.Action
 @Composable
 fun GlobalSearchScreen(
     navController: NavHostController,
-    globalSearchViewModel: GlobalSearchViewModel = viewModel()
+    globalSearchViewModel: GlobalSearchViewModel = viewModel(factory = AppViewModelFactory)
 ) {
     val uiState by globalSearchViewModel.uiState.collectAsState()
 

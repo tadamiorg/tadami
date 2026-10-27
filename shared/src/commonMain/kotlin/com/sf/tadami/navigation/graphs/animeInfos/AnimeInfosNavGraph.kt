@@ -26,11 +26,11 @@ fun NavGraphBuilder.animeInfosNavGraph(navController: NavHostController) {
     }
 
     with(Injekt.get<PlatformUi>()) {
-        webViewDestination("${AnimeInfosRoutes.WEBVIEW}/{sourceId}/{title_key}/{url_key}")
+        webViewDestination("${AnimeInfosRoutes.WEBVIEW}/{sourceId}/{title_key}/{url_key}", navController)
     }
 
     with(Injekt.get<PlatformUi>()) {
-        episodeDestination("${AnimeInfosRoutes.EPISODE}/{sourceId}/{episode}")
+        episodeDestination("${AnimeInfosRoutes.EPISODE}/{sourceId}/{episode}", navController)
     }
 
 }

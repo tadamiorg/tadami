@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.library
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import com.sf.tadami.utils.stringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -75,7 +76,7 @@ fun LibraryScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     setNavDisplay: (display: Boolean) -> Unit,
-    libraryViewModel: LibraryViewModel = viewModel()
+    libraryViewModel: LibraryViewModel = viewModel(factory = AppViewModelFactory)
 ) {
 
     val initLoaded by libraryViewModel.initLoaded.collectAsState()

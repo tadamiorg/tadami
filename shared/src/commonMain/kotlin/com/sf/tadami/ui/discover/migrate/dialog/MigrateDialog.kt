@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.discover.migrate.dialog
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import com.sf.tadami.utils.Log
 import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.foundation.layout.padding
@@ -37,7 +38,7 @@ fun MigrateDialog(
     onClickTitle: () -> Unit = {},
     onMigrate : (MigrationState) -> Unit,
     enableShowTitle : Boolean = true,
-    migrateDialogViewModel: MigrateDialogViewModel = viewModel()
+    migrateDialogViewModel: MigrateDialogViewModel = viewModel(factory = AppViewModelFactory)
 ) {
     val flags = remember(oldAnime) { MigrationFlags.getFlags(oldAnime?.let(migrateDialogViewModel::hasDownloads) == true) }
     val selectedFlags = remember(flags) { flags.map { it.isDefaultSelected }.toMutableStateList() }

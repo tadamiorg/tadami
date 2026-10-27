@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions.repos
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.Injekt
 import com.sf.tadami.ui.PlatformUi
@@ -70,7 +71,7 @@ import com.sf.tadami.ui.utils.secondaryItemAlpha
 @Composable
 fun ExtensionReposScreen(
     navController: NavHostController,
-    viewModel: ExtensionReposViewModel = viewModel(),
+    viewModel: ExtensionReposViewModel = viewModel(factory = AppViewModelFactory),
 ) {
     val repos by viewModel.repos.collectAsState()
     val repoMetas by viewModel.repoMetas.collectAsState()

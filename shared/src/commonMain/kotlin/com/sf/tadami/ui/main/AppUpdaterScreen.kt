@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.main
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -12,7 +13,7 @@ import com.sf.tadami.navigation.graphs.about.navigateToNewUpdate
 @Composable
 fun AppUpdaterScreen(
     navController: NavController,
-    appUpdaterViewModel: AppUpdaterViewModel = viewModel()
+    appUpdaterViewModel: AppUpdaterViewModel = viewModel(factory = AppViewModelFactory)
 ) {
 
     val newRelease by appUpdaterViewModel.newRelease.collectAsState()

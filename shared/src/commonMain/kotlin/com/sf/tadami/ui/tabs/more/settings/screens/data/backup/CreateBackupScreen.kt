@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.data.backup
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import com.sf.tadami.ui.PlatformUi
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.Injekt
@@ -52,7 +53,7 @@ class CreateBackupScreen(
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun getContent(
-        createBackupViewModel: CreateBackupViewModel = viewModel()
+        createBackupViewModel: CreateBackupViewModel = viewModel(factory = AppViewModelFactory)
     ) {
         val uiState by createBackupViewModel.uiState.collectAsState()
 

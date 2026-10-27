@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.browse.tabs.sources.preferences
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -27,7 +28,7 @@ import com.sf.tadami.preferences.model.rememberUnknownDataStoreState
 @Composable
 fun SourcePreferencesScreen(
     navController: NavHostController,
-    sourcePreferencesViewModel: SourcePreferencesViewModel = viewModel()
+    sourcePreferencesViewModel: SourcePreferencesViewModel = viewModel(factory = AppViewModelFactory)
 ){
     val uiState by sourcePreferencesViewModel.uiState.collectAsState()
     val dataStore = sourcePreferencesViewModel.dataStore ?: run {

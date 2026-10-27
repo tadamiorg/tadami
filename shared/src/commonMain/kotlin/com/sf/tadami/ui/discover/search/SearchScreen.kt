@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.discover.search
 
+import com.sf.tadami.ui.utils.AppViewModelFactory
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,7 +54,7 @@ import java.nio.charset.StandardCharsets
 @Composable
 fun SearchScreen(
     navController: NavHostController,
-    searchViewModel: SearchViewModel = viewModel()
+    searchViewModel: SearchViewModel = viewModel(factory = AppViewModelFactory)
 ) {
     val animeListState by searchViewModel.animeList.collectAsState()
     val animeList = animeListState.collectAsLazyPagingItems()
