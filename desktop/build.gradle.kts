@@ -61,6 +61,9 @@ dependencies {
     implementation("org.openani.mediamp:mediamp-all:0.5.3")
     runtimeOnly("org.openani.mediamp:mediamp-mpv-runtime-$mpvRuntime:0.5.3")
 
+    // Finds the Cast devices of the LAN
+    implementation("org.jmdns:jmdns:3.6.4")
+
     // The borderless full screen of Windows
     implementation("net.java.dev.jna:jna-platform:5.13.0")
 

@@ -575,4 +575,9 @@
         <item quantity="other">%1$d categories</item>
     </plurals>
     <string name="ok">OK</string>
+    <string name="cast_devices_title">Cast to</string>
+    <string name="cast_devices_searching">Looking for the devices of the network…</string>
+    <string name="cast_devices_connecting">Connecting to %1$s…</string>
+    <string name="cast_devices_casting">Casting to %1$s</string>
+    <string name="cast_devices_stop">Stop casting</string>
 </resources>

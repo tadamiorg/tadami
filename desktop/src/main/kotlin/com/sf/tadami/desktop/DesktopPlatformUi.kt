@@ -2,12 +2,15 @@ package com.sf.tadami.desktop
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.sf.tadami.desktop.browser.WebViewScreen
+import com.sf.tadami.desktop.cast.CastButton as DesktopCastButton
 import com.sf.tadami.desktop.player.EpisodePlayerScreen
 import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.ui.PlatformUi
@@ -19,7 +22,7 @@ import java.io.File
 import javax.swing.JFileChooser
 import javax.swing.filechooser.FileNameExtensionFilter
 
-/** The desktop UI: the player and the WebView are screens of the window, the pickers Swing's. */
+/** The desktop UI: the player and the WebView are screens of the window, the pickers Swing's, the cast our own. */
 class DesktopPlatformUi : PlatformUi {
 
     /** Closes the window, set once the app is running. */
@@ -61,6 +64,11 @@ class DesktopPlatformUi : PlatformUi {
             )
         }
     }
+
+    override val hasCastButton: Boolean get() = true
+
+    @Composable
+    override fun CastButton(tint: Color, modifier: Modifier) = DesktopCastButton(tint, modifier)
 
     @Composable
     override fun rememberFolderPicker(onPicked: (uri: String) -> Unit): () -> Unit = {

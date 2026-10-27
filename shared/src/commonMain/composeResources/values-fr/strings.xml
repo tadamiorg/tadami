@@ -576,4 +576,9 @@
         <item quantity="other">%1$d catégories</item>
     </plurals>
     <string name="ok">OK</string>
+    <string name="cast_devices_title">Caster sur</string>
+    <string name="cast_devices_searching">Recherche des appareils du réseau…</string>
+    <string name="cast_devices_connecting">Connexion à %1$s…</string>
+    <string name="cast_devices_casting">Diffusion sur %1$s</string>
+    <string name="cast_devices_stop">Arrêter la diffusion</string>
 </resources>
