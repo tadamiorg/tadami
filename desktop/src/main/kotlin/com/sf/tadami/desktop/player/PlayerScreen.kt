@@ -44,6 +44,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sf.tadami.desktop.DesktopWindow
+import com.sf.tadami.desktop.DnsProxy
 import com.sf.tadami.desktop.cast.DesktopCast
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
@@ -74,6 +75,7 @@ import java.awt.Toolkit
 import java.awt.image.BufferedImage
 import java.io.File
 import java.net.URI
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flowOf
@@ -82,10 +84,10 @@ import org.jetbrains.compose.resources.stringResource
 import org.openani.mediamp.MediaStatus
 import org.openani.mediamp.MediampPlayer
 import org.openani.mediamp.compose.MediampPlayerSurface
-import org.openani.mediamp.compose.rememberMediampPlayer
 import org.openani.mediamp.features.Buffering
 import org.openani.mediamp.features.MediaMetadata
 import org.openani.mediamp.isLoadingOrBuffering
+import org.openani.mediamp.mpv.MpvMediampPlayer
 import org.openani.mediamp.source.MediaExtraFiles
 import org.openani.mediamp.source.Subtitle
 import org.openani.mediamp.source.UriMediaData
@@ -99,7 +101,7 @@ fun EpisodePlayerScreen(
     onBack: () -> Unit,
     playerViewModel: PlayerViewModel = viewModel(factory = PlayerViewModelFactory()),
 ) {
-    val player = rememberMediampPlayer()
+    val player = rememberMpvPlayer()
     val scope = rememberCoroutineScope()
 
     val playerPreferences by rememberDataStoreState(customPrefs = PlayerPreferences).value.collectAsState()
@@ -531,12 +533,42 @@ private fun MediampPlayer.togglePause(viewModel: PlayerViewModel) {
 private fun mediaData(source: StreamSource, viewModel: PlayerViewModel, userAgent: String): UriMediaData {
     val url = source.url
     if (url.startsWith("file:")) return UriMediaData(File(URI(url)).path, emptyMap(), MediaExtraFiles.EMPTY)
-    val headers = if (source.headers == null) mapOf("User-Agent" to userAgent) else viewModel.getSourceHeaders()
+    // The app's user agent unless the source has its own, as OkHttp sends it on Android: hosts refuse mpv's
+    val sourceHeaders = if (source.headers == null) emptyMap() else viewModel.getSourceHeaders()
+    val headers = if (sourceHeaders.keys.any { it.equals("User-Agent", ignoreCase = true) }) {
+        sourceHeaders
+    } else {
+        mapOf("User-Agent" to userAgent) + sourceHeaders
+    }
     val subtitles = source.subtitleTracks
         .filter { it.mimeType != "text/x-unknown" }
         .map { Subtitle(it.url, it.mimeType, it.lang.convertToIetfLanguageTag(), it.lang) }
-    // mpv splits its header list on commas: a value with one would become bogus headers
-    return UriMediaData(url, headers.filterValues { ',' !in it }, MediaExtraFiles(subtitles))
+    // Mediamp gives mpv these two as options of their own, the others in a list mpv splits on commas:
+    // a value with one there would become bogus headers (every Chrome user agent has one)
+    val named = headers.mapKeys { (name, _) ->
+        when {
+            name.equals("User-Agent", ignoreCase = true) -> "User-Agent"
+            name.equals("Referer", ignoreCase = true) -> "Referer"
+            else -> name
+        }
+    }
+    return UriMediaData(
+        url,
+        named.filter { (name, value) -> name == "User-Agent" || name == "Referer" || ',' !in value },
+        MediaExtraFiles(subtitles),
+    )
+}
+
+/** mpv, as `rememberMediampPlayer` gives it, its streams resolved with the app's DNS: the system's may block the hosts. */
+@Composable
+private fun rememberMpvPlayer(): MediampPlayer {
+    val player = remember {
+        MpvMediampPlayer(Unit, EmptyCoroutineContext, configureOptions = { it.option("http-proxy", DnsProxy.url) })
+    }
+    DisposableEffect(player) {
+        onDispose { player.close() }
+    }
+    return player
 }
 
 /** What the window shows while the TV plays the episode, under the controls that drive it. */

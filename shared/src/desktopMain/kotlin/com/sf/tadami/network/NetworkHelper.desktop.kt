@@ -64,6 +64,7 @@ actual class NetworkHelper(cacheDir: File, browser: DesktopBrowser? = null) {
 
     private val clientBuilder: OkHttpClient.Builder = OkHttpClient.Builder()
         .cookieJar(cookieManager)
+        .dns(DesktopDns)
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .callTimeout(2, TimeUnit.MINUTES)

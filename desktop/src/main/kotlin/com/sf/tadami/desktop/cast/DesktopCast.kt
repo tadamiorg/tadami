@@ -11,6 +11,7 @@ import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.isEpisodeWatched
 import com.sf.tadami.domain.episode.toSEpisode
 import com.sf.tadami.extension.util.callGuarded
+import com.sf.tadami.network.DesktopDns
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.source.model.StreamSource
@@ -115,7 +116,7 @@ object DesktopCast {
     private val proxy by lazy {
         CastProxyServer(
             localAddress = ::lanAddress,
-            client = OkHttpClient.Builder().build(),
+            client = OkHttpClient.Builder().dns(DesktopDns).build(),
             // The downloads are plain files on the desktop
             localFiles = LocalFileOpener { uri ->
                 runCatching { File(URI(uri)) }.getOrNull()?.takeIf { it.isFile }?.let(::FileInputStream)

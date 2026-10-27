@@ -1,6 +1,7 @@
 package com.sf.tadami.desktop.browser
 
 import com.sf.tadami.desktop.AppDirs
+import com.sf.tadami.desktop.DnsProxy
 import com.sf.tadami.network.AppCookieJar
 import com.sf.tadami.network.DesktopBrowser
 import com.sf.tadami.network.DesktopCookieJar
@@ -57,6 +58,8 @@ object EmbeddedBrowser : DesktopBrowser {
         app ?: CefAppBuilder().run {
             setInstallDir(File(AppDirs.data, "jcef"))
             setProgressHandler { state, percent -> Log.i(TAG, "$state ${percent.toInt()}%") }
+            // The hosts resolved with the app's DNS, not the system's one which may block them
+            addJcefArgs("--proxy-server=${DnsProxy.url}")
             val profile = File(AppDirs.data, "browser").absolutePath
             cefSettings.root_cache_path = profile
             cefSettings.cache_path = profile
