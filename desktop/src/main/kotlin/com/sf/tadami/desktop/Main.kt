@@ -63,6 +63,7 @@ fun main() {
             title = "Tadami",
             icon = painterResource(Res.drawable.ic_launcher),
             state = DesktopWindow.state,
+            onPreviewKeyEvent = { DesktopWindow.keyHandler?.invoke(it) ?: false },
         ) {
             LaunchedEffect(Unit) {
                 DesktopWindow.window = window

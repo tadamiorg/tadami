@@ -2,7 +2,6 @@ package com.sf.tadami.desktop.player
 
 import com.sf.tadami.desktop.DesktopWindow
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +14,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -22,14 +22,17 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -56,6 +59,7 @@ import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.convertToIetfLanguageTag
 import com.sf.tadami.ui.utils.padding
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -69,6 +73,9 @@ import org.openani.mediamp.isLoadingOrBuffering
 import org.openani.mediamp.source.MediaExtraFiles
 import org.openani.mediamp.source.Subtitle
 import org.openani.mediamp.source.UriMediaData
+import java.awt.Point
+import java.awt.Toolkit
+import java.awt.image.BufferedImage
 import java.io.File
 import java.net.URI
 
@@ -198,30 +205,62 @@ fun EpisodePlayerScreen(
         }
     }
 
-    val focusRequester = remember { FocusRequester() }
+    // The controls come with the mouse or a key, and go once neither moved for a while during playback
+    var activity by remember { mutableIntStateOf(0) }
+    fun showControls() {
+        shouldShowControls = true
+        activity++
+    }
+    val dialogOpen = openVideoSelectionDialog || openTracksSelectionDialog || openAudioSelectionDialog ||
+        openSettingsDialog || openEpisodesDialog || openEpisodeTooltipDialog
+    LaunchedEffect(activity, shouldShowControls, isPlaying, dialogOpen) {
+        if (shouldShowControls && isPlaying && !dialogOpen) {
+            delay(CONTROLS_HIDE_DELAY)
+            shouldShowControls = false
+        }
+    }
+
+    // The window's keys, whatever has the focus, as in a video player
+    val onKey by rememberUpdatedState { event: KeyEvent ->
+        if (event.type != KeyEventType.KeyDown || dialogOpen) return@rememberUpdatedState false
+        when {
+            event.key == Key.Spacebar || event.key == Key.K -> player.togglePause(playerViewModel)
+            event.key == Key.DirectionLeft || event.key == Key.J -> player.seekTo(currentTime - playerPreferences.doubleTapLength)
+            event.key == Key.DirectionRight || event.key == Key.L -> player.seekTo(currentTime + playerPreferences.doubleTapLength)
+            event.isShiftPressed && event.key == Key.N -> if (hasNextIterator.hasPrevious()) selectEpisode(hasNextIterator.previous())
+            event.isShiftPressed && event.key == Key.P -> if (hasPreviousIterator.hasNext()) selectEpisode(hasPreviousIterator.next())
+            event.key == Key.F || event.key == Key.F11 -> DesktopWindow.setFullscreen(!DesktopWindow.isFullscreen)
+            event.key == Key.Escape && DesktopWindow.isFullscreen -> DesktopWindow.setFullscreen(false)
+            else -> return@rememberUpdatedState false
+        }
+        showControls()
+        true
+    }
+    DisposableEffect(Unit) {
+        val handler: (KeyEvent) -> Boolean = { onKey(it) }
+        DesktopWindow.keyHandler = handler
+        onDispose { if (DesktopWindow.keyHandler === handler) DesktopWindow.keyHandler = null }
+    }
 
     ContentLoader(isLoading = playerScreenLoading, delay = 500) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .focusRequester(focusRequester)
-                .focusable()
-                .onPreviewKeyEvent { event ->
-                    if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                    when (event.key) {
-                        Key.Spacebar -> player.togglePause(playerViewModel)
-                        Key.DirectionLeft -> player.seekTo(currentTime - playerPreferences.doubleTapLength)
-                        Key.DirectionRight -> player.seekTo(currentTime + playerPreferences.doubleTapLength)
-                        Key.F, Key.F11 -> DesktopWindow.setFullscreen(!DesktopWindow.isFullscreen)
-                        Key.Escape -> if (DesktopWindow.isFullscreen) DesktopWindow.setFullscreen(false) else return@onPreviewKeyEvent false
-                        else -> return@onPreviewKeyEvent false
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent(PointerEventPass.Initial)
+                            when (event.type) {
+                                PointerEventType.Move, PointerEventType.Enter, PointerEventType.Scroll -> showControls()
+                                PointerEventType.Exit -> if (isPlaying) shouldShowControls = false
+                            }
+                        }
                     }
-                    true
-                },
+                }
+                // No cursor over the picture while the controls are away
+                .pointerHoverIcon(if (shouldShowControls) PointerIcon.Default else HiddenCursor),
         ) {
-            // The keys reach the player once it's there, not while the screen loads
-            LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
             if (episodeUiState.availableSources.isNotEmpty()) {
                 VideoSelectionDialog(
@@ -302,7 +341,7 @@ fun EpisodePlayerScreen(
                 Modifier
                     .fillMaxSize()
                     .pointerInput(Unit) {
-                        detectTapGestures(onTap = { shouldShowControls = !shouldShowControls })
+                        detectTapGestures(onTap = { showControls() })
                     },
             )
 
@@ -331,7 +370,7 @@ fun EpisodePlayerScreen(
                 onSkipOp = { player.seekTo(currentTime + 85000) },
                 onForward = { player.seekTo(currentTime + playerPreferences.doubleTapLength) },
                 isIdle = ended,
-                onTapYoutube = { shouldShowControls = !shouldShowControls },
+                onTapYoutube = { showControls() },
                 playerSeekValue = playerPreferences.doubleTapLength,
                 onPauseToggle = { player.togglePause(playerViewModel) },
                 onStreamSettings = {
@@ -414,3 +453,9 @@ private fun mediaData(source: StreamSource, viewModel: PlayerViewModel, userAgen
     // mpv splits its header list on commas: a value with one would become bogus headers
     return UriMediaData(url, headers.filterValues { ',' !in it }, MediaExtraFiles(subtitles))
 }
+
+private const val CONTROLS_HIDE_DELAY = 3000L
+
+private val HiddenCursor = PointerIcon(
+    Toolkit.getDefaultToolkit().createCustomCursor(BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), Point(0, 0), "hidden"),
+)

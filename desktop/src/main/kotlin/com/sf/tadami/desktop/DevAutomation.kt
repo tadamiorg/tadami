@@ -17,7 +17,7 @@ import kotlin.concurrent.thread
  * Development only, when TADAMI_AUTOMATION_PORT is set: drives the window from a local socket with
  * synthetic AWT events, without the mouse of the user. One command per line, coordinates in the window
  * (title bar included, as a screenshot of it):
- * `click x y`, `wheel x y notches`, `type text`, `key enter|esc|back|tab`, and in an open file chooser
+ * `click x y`, `wheel x y notches`, `type text`, `key enter|esc|back|tab|left|right|space|<letter>`, and in an open file chooser
  * `choose path` or `cancel`.
  */
 object DevAutomation {
@@ -80,7 +80,11 @@ object DevAutomation {
                     "esc" -> KeyEvent.VK_ESCAPE
                     "back" -> KeyEvent.VK_BACK_SPACE
                     "tab" -> KeyEvent.VK_TAB
-                    else -> error("Unknown key $args")
+                    "left" -> KeyEvent.VK_LEFT
+                    "right" -> KeyEvent.VK_RIGHT
+                    "space" -> KeyEvent.VK_SPACE
+                    else -> args.singleOrNull()?.let { KeyEvent.getExtendedKeyCodeForChar(it.code) }
+                        ?: error("Unknown key $args")
                 }
                 val target = focused(window)
                 val now = System.currentTimeMillis()

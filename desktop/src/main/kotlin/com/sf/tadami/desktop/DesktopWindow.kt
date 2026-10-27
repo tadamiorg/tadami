@@ -3,6 +3,7 @@ package com.sf.tadami.desktop
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import com.sun.jna.Native
@@ -19,6 +20,9 @@ object DesktopWindow {
 
     /** Set once the window is open. */
     var window: Window? = null
+
+    /** Gets the window's keys first while set, whatever has the focus: the player's shortcuts. */
+    var keyHandler: ((KeyEvent) -> Boolean)? = null
 
     private var inFullscreen by mutableStateOf(false)
 
