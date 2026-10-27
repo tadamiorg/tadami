@@ -118,7 +118,7 @@ class BackupRestorer(
 
     @OptIn(ExperimentalSerializationApi::class)
     private suspend fun restoreFromFile(uri: Uri, options: RestoreOptions) {
-        val backup = BackupDecoder(context).decode(uri)
+        val backup = BackupDecoder().decode(uri.toString())
 
         val backupMaps = backup.backupSources
         sourceMapping = backupMaps.associate { it.sourceId to it.name }

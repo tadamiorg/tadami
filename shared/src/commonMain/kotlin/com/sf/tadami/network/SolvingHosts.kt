@@ -43,6 +43,9 @@ class SolvingHosts {
     }
 
     companion object {
+        /** The hosts whose challenge a WebView is solving right now, app-wide. */
+        val app = SolvingHosts()
+
         /**
          * Whether the source at [baseUrl] waits on one of [hosts]: its host, or another host of its
          * site, like a mirror on a subdomain.

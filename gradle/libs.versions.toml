@@ -58,7 +58,6 @@ sqldelight-gradle = { module = "app.cash.sqldelight:gradle-plugin", version.ref 
 sqldelight-android-paging = { module = "app.cash.sqldelight:androidx-paging3-extensions", version.ref = "sqldelight-version" }
 
 # Wheel Picker
-wheel-picker = "com.github.commandiron:WheelPickerCompose:1.1.11"
 
 # Markdown parser
 richtext-commonmark = { module = "com.halilibo.compose-richtext:richtext-commonmark", version.ref = "richtext" }

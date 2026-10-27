@@ -1,0 +1,180 @@
+package com.sf.tadami.ui.tabs.more.downloads
+
+import com.sf.tadami.utils.formatShortFileSize
+import org.jetbrains.compose.resources.StringResource
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
+import com.sf.tadami.data.download.model.Download
+import com.sf.tadami.ui.components.material.LanguageBadge
+import com.sf.tadami.ui.utils.padding
+
+/** One queued episode: its anime, its state and progress, and its actions. */
+@Composable
+fun DownloadQueueItem(
+    download: Download,
+    isFirst: Boolean,
+    isLast: Boolean,
+    onMoveToTop: () -> Unit,
+    onMoveToBottom: () -> Unit,
+    onRetry: () -> Unit,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val status by download.statusFlow.collectAsState()
+    val progress by download.progressFlow.collectAsState()
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = MaterialTheme.padding.medium, top = MaterialTheme.padding.extraSmall, bottom = MaterialTheme.padding.extraSmall),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            // The language and the source tell apart the entries of one anime (VF, VOSTFR...)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                download.anime.language?.takeIf { it.isNotBlank() }?.let {
+                    LanguageBadge(it, Modifier.padding(end = 4.dp))
+                }
+                Text(
+                    text = download.anime.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Text(
+                text = "${download.episode.name} · ${download.source.name}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = statusText(download, status, progress),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (status == Download.State.ERROR) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (status == Download.State.DOWNLOADING) {
+                LinearProgressIndicator(
+                    progress = { progress / 100f },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = MaterialTheme.padding.tiny),
+                )
+            }
+        }
+        DownloadQueueItemMenu(
+            status = status,
+            isFirst = isFirst,
+            isLast = isLast,
+            onMoveToTop = onMoveToTop,
+            onMoveToBottom = onMoveToBottom,
+            onRetry = onRetry,
+            onCancel = onCancel,
+        )
+    }
+}
+
+@Composable
+private fun statusText(download: Download, status: Download.State, progress: Int): String {
+    return when (status) {
+        Download.State.ERROR -> download.error?.takeIf { it.isNotBlank() }
+            ?: stringResource(Res.string.episode_download_error)
+        Download.State.DOWNLOADING -> {
+            val video = download.videoProgress
+            when {
+                video == null -> stringResource(Res.string.download_queue_progress, progress)
+                video.hls && video.total > 0 -> stringResource(
+                    Res.string.download_queue_progress_segments,
+                    progress,
+                    video.segments,
+                    video.total,
+                )
+                !video.hls && video.total > 0 -> stringResource(
+                    Res.string.download_queue_progress_size,
+                    progress,
+                    formatShortFileSize(video.bytes),
+                    formatShortFileSize(video.total),
+                )
+                else -> stringResource(Res.string.download_queue_progress, progress)
+            }
+        }
+        else -> stringResource(Res.string.download_queue_waiting)
+    }
+}
+
+@Composable
+private fun DownloadQueueItemMenu(
+    status: Download.State,
+    isFirst: Boolean,
+    isLast: Boolean,
+    onMoveToTop: () -> Unit,
+    onMoveToBottom: () -> Unit,
+    onRetry: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    var menuOpened by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { menuOpened = true }) {
+            Icon(
+                imageVector = Icons.Outlined.MoreVert,
+                contentDescription = null,
+            )
+        }
+        DropdownMenu(
+            expanded = menuOpened,
+            onDismissRequest = { menuOpened = false },
+        ) {
+            val select = { action: () -> Unit ->
+                menuOpened = false
+                action()
+            }
+            MenuItem(Res.string.download_queue_move_to_top, enabled = !isFirst) { select(onMoveToTop) }
+            MenuItem(Res.string.download_queue_move_to_bottom, enabled = !isLast) { select(onMoveToBottom) }
+            if (status == Download.State.ERROR) {
+                MenuItem(Res.string.episode_download_retry) { select(onRetry) }
+            }
+            MenuItem(Res.string.episode_download_cancel) { select(onCancel) }
+        }
+    }
+}
+
+@Composable
+private fun MenuItem(text: StringResource, enabled: Boolean = true, onClick: () -> Unit) {
+    DropdownMenuItem(
+        text = { Text(text = stringResource(text)) },
+        onClick = onClick,
+        enabled = enabled,
+    )
+}

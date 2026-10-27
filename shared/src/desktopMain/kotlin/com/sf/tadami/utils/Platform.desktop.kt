@@ -25,3 +25,25 @@ actual fun relativeTimeSpan(epochMillis: Long, now: Long): String {
         else -> java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date(epochMillis))
     }
 }
+
+actual fun formatFileSize(bytes: Long): String = fileSize(bytes, short = false)
+
+actual fun formatShortFileSize(bytes: Long): String = fileSize(bytes, short = true)
+
+/** As Android's formatter: units of 1000, more decimals for the small values. */
+private fun fileSize(bytes: Long, short: Boolean): String {
+    val units = listOf("B", "kB", "MB", "GB", "TB", "PB")
+    var value = bytes.toDouble()
+    var unit = 0
+    while (value > 900 && unit < units.lastIndex) {
+        value /= 1000
+        unit++
+    }
+    val decimals = when {
+        unit == 0 || value >= 100 -> 0
+        short && value >= 10 -> 0
+        short -> 1
+        else -> 2
+    }
+    return "%.${decimals}f %s".format(value, units[unit])
+}

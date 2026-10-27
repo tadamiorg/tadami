@@ -60,6 +60,7 @@ import com.sf.tadami.domain.storage.StorageManager
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.player.PlayerNetworkHelper
+import com.sf.tadami.network.player.VideoCache
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import com.sf.tadami.ui.tabs.browse.SourceManagerImplementation
 import data.Anime
@@ -316,6 +317,7 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
         // Player Network Client
 
         addSingletonFactory { PlayerNetworkHelper(app) }
+        addSingletonFactory<VideoCache> { get<PlayerNetworkHelper>() }
 
 
         // Init expensive components off the main thread for a faster cold start. A caller asking

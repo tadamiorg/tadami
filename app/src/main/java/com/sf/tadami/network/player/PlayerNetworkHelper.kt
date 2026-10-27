@@ -14,7 +14,7 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 @OptIn(UnstableApi::class)
-class PlayerNetworkHelper(context : Context) {
+class PlayerNetworkHelper(context : Context) : VideoCache {
     @UnstableApi
     private val databaseProvider = StandaloneDatabaseProvider(context)
     private val cacheSize = 400L * 1024 * 1024 // 400 MiB
@@ -35,7 +35,9 @@ class PlayerNetworkHelper(context : Context) {
             .build()
     }
 
-    fun clearCache(){
+    override val cacheSpace: Long get() = cache.cacheSpace
+
+    override fun clearCache(){
         cache.release()
         SimpleCache.delete(cacheDir,databaseProvider)
         cache = SimpleCache(cacheDir, LeastRecentlyUsedCacheEvictor(cacheSize), databaseProvider)

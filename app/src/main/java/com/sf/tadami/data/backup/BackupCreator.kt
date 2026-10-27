@@ -1,6 +1,5 @@
 package com.sf.tadami.data.backup
 
-import androidx.core.net.toUri
 import com.sf.tadami.storage.StorageFiles
 import com.sf.tadami.utils.stringRes
 import android.content.Context
@@ -115,7 +114,7 @@ class BackupCreator(
             val fileUri = file.uri
 
             // Make sure it's a valid backup file
-            BackupFileValidator().validate(context, fileUri.toUri())
+            BackupFileValidator().validate(fileUri.toString())
 
             if (isAutoBackup) {
                 dataStore.editPreference(Instant.now().toEpochMilli(),BackupPreferences.AUTO_BACKUP_LAST_TIMESTAMP)

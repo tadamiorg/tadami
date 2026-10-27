@@ -80,6 +80,8 @@ class AndroidStorageFiles(private val app: Application) : StorageFiles {
 
     override fun fromFile(file: File): StorageFile = AndroidStorageFile(UniFile.fromFile(file)!!, app)
 
+    override fun openInputStream(uri: String): InputStream? = app.contentResolver.openInputStream(uri.toUri())
+
     override fun availableSpace(dir: StorageFile): Long {
         return try {
             val stat = StatFs(volumePath(dir.uri.toUri()) ?: return -1L)

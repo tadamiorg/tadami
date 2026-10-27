@@ -68,6 +68,9 @@ interface StorageFiles {
 
     fun fromFile(file: File): StorageFile
 
+    /** Reads the file at [uri], of any app on Android: [fromUri] only reaches the documents and media. */
+    fun openInputStream(uri: String): InputStream? = fromUri(uri)?.openInputStream()
+
     /** The available space of the volume of [dir], in bytes, -1 when unknown. */
     fun availableSpace(dir: StorageFile): Long = dir.filePath?.let { File(it).usableSpace } ?: -1L
 

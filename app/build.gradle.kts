@@ -367,7 +367,6 @@ dependencies {
     implementation(androidx.datastore)
 
     // Wheel Picker
-    implementation(libs.wheel.picker)
 
     // Worker
     implementation(androidx.worker)

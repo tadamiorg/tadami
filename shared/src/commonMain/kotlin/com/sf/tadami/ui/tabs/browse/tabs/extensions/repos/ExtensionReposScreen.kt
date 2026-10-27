@@ -1,0 +1,327 @@
+package com.sf.tadami.ui.tabs.browse.tabs.extensions.repos
+
+import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.Injekt
+import com.sf.tadami.ui.PlatformUi
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.Verified
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
+import com.sf.tadami.extension.api.ExtensionRepos
+import com.sf.tadami.extension.api.FetchedRepo
+import com.sf.tadami.ui.components.material.ExtendedFloatingActionButton
+import com.sf.tadami.ui.components.modal.ModalAction
+import com.sf.tadami.ui.components.modal.ModalCheckboxRow
+import com.sf.tadami.ui.components.modal.TadaDestructiveDialog
+import com.sf.tadami.ui.components.modal.TadaDialog
+import com.sf.tadami.ui.components.modal.TadaInputDialog
+import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
+import com.sf.tadami.ui.components.widgets.ScrollbarLazyColumn
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.Fingerprint
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.groupedFingerprint
+import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.repoDisplayName
+import com.sf.tadami.ui.utils.UiToasts
+import com.sf.tadami.ui.utils.padding
+import com.sf.tadami.ui.utils.secondaryItemAlpha
+
+/** The repos the extensions are found in: add and remove them, but the official one. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ExtensionReposScreen(
+    navController: NavHostController,
+    viewModel: ExtensionReposViewModel = viewModel(),
+) {
+    val repos by viewModel.repos.collectAsState()
+    val repoMetas by viewModel.repoMetas.collectAsState()
+    val dialog by viewModel.dialog.collectAsState()
+    val uriHandler = LocalUriHandler.current
+    val clipboardManager = LocalClipboardManager.current
+
+    Scaffold(
+        topBar = {
+            TadaTopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.ext_repos_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = null,
+                        )
+                    }
+                },
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                text = { Text(text = stringResource(Res.string.action_add)) },
+                icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
+                onClick = viewModel::showAddDialog,
+            )
+        },
+    ) { contentPadding ->
+        ScrollbarLazyColumn(
+            contentPadding = PaddingValues(
+                start = MaterialTheme.padding.medium,
+                end = MaterialTheme.padding.medium,
+                top = contentPadding.calculateTopPadding() + MaterialTheme.padding.small,
+                // Room for the button over the last item
+                bottom = contentPadding.calculateBottomPadding() + 88.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
+        ) {
+            if (repos.none(ExtensionRepos::isOfficial)) {
+                item(key = "add-official") {
+                    OutlinedButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateItem(),
+                        onClick = viewModel::addOfficialRepo,
+                    ) {
+                        Icon(imageVector = Icons.Outlined.Verified, contentDescription = null)
+                        Text(
+                            modifier = Modifier.padding(start = MaterialTheme.padding.small),
+                            text = stringResource(Res.string.ext_repo_add_official),
+                        )
+                    }
+                }
+            }
+            items(repos, key = { it }) { repoUrl ->
+                RepoListItem(
+                    modifier = Modifier.animateItem(),
+                    name = repoDisplayName(repoUrl, repoMetas[repoUrl]),
+                    repoUrl = repoUrl,
+                    isOfficial = ExtensionRepos.isOfficial(repoUrl),
+                    onOpen = {
+                        val url = ExtensionRepos.browserUrl(repoUrl, repoMetas[repoUrl])
+                        try {
+                            uriHandler.openUri(url)
+                        } catch (e: Exception) {
+                            UiToasts.showToast(Res.string.ext_repo_no_browser)
+                        }
+                    },
+                    onCopy = {
+                        clipboardManager.setText(AnnotatedString(repoUrl))
+                        if (!Injekt.get<PlatformUi>().confirmsCopies) {
+                            UiToasts.showToast(Res.string.clipboard_copied)
+                        }
+                    },
+                    onRemove = { viewModel.showRemoveDialog(repoUrl) },
+                )
+            }
+        }
+    }
+
+    when (val current = dialog) {
+        is RepoDialog.Add -> AddRepoDialog(
+            state = current,
+            onDismissRequest = viewModel::dismissDialog,
+            onSubmit = viewModel::submit,
+        )
+        is RepoDialog.ConfirmAdd -> ConfirmAddRepoDialog(
+            repo = current.repo,
+            onDismissRequest = viewModel::dismissDialog,
+            onConfirm = { trustKey -> viewModel.addRepo(current.repo, trustKey) },
+        )
+        is RepoDialog.Remove -> RemoveRepoDialog(
+            name = repoDisplayName(current.repoUrl, repoMetas[current.repoUrl]),
+            isOfficial = ExtensionRepos.isOfficial(current.repoUrl),
+            onDismissRequest = viewModel::dismissDialog,
+            onConfirm = { viewModel.removeRepo(current.repoUrl) },
+        )
+        null -> {}
+    }
+}
+
+/** A repo, the official one marked as such. */
+@Composable
+private fun RepoListItem(
+    name: String,
+    repoUrl: String,
+    isOfficial: Boolean,
+    onOpen: () -> Unit,
+    onCopy: () -> Unit,
+    onRemove: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    ElevatedCard(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.padding(start = MaterialTheme.padding.medium),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = MaterialTheme.padding.medium),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(1f, fill = false),
+                        text = name,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (isOfficial) {
+                        Icon(
+                            modifier = Modifier
+                                .padding(start = MaterialTheme.padding.extraSmall)
+                                .size(18.dp),
+                            imageVector = Icons.Outlined.Verified,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+                Text(
+                    modifier = Modifier.secondaryItemAlpha(),
+                    text = repoUrl,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            IconButton(onClick = onOpen) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
+                    contentDescription = stringResource(Res.string.action_open_in_browser),
+                )
+            }
+            IconButton(onClick = onCopy) {
+                Icon(imageVector = Icons.Outlined.ContentCopy, contentDescription = stringResource(Res.string.ext_repo_copy_url))
+            }
+            IconButton(onClick = onRemove) {
+                Icon(imageVector = Icons.Outlined.Delete, contentDescription = stringResource(Res.string.ext_repo_remove))
+            }
+        }
+    }
+}
+
+/** The URL of a repo to add, checked by [onSubmit]: [state] says why it was refused. */
+@Composable
+private fun AddRepoDialog(
+    state: RepoDialog.Add,
+    onDismissRequest: () -> Unit,
+    onSubmit: (String) -> Unit,
+) {
+    TadaInputDialog(
+        title = stringResource(Res.string.ext_repo_add_title),
+        // What it opened with: the text typed since is kept, whatever the check says of it
+        initialValue = "",
+        confirmLabel = stringResource(Res.string.action_add),
+        onConfirm = onSubmit,
+        onDismissRequest = onDismissRequest,
+        icon = Icons.Outlined.Link,
+        label = stringResource(Res.string.ext_repo_url),
+        placeholder = "https://github.com/owner/repo",
+        error = state.error?.let { stringResource(it, state.errorDetail.orEmpty()) },
+        // Not disabled while it's checked: it would lose the focus
+        busy = state.checking,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+    )
+}
+
+/**
+ * Before adding [repo], read: what it is and what it lists, and the key its extensions are signed
+ * with, if it gives it, to trust them.
+ */
+@Composable
+private fun ConfirmAddRepoDialog(
+    repo: FetchedRepo,
+    onDismissRequest: () -> Unit,
+    onConfirm: (trustKey: Boolean) -> Unit,
+) {
+    val fingerprint = repo.meta?.signingKeyFingerprint
+    // On by default, as Mihon trusts the key of a repo it adds
+    var trustKey by rememberSaveable { mutableStateOf(true) }
+    TadaDialog(
+        onDismissRequest = onDismissRequest,
+        title = stringResource(Res.string.ext_repo_confirm_title),
+        confirm = ModalAction(stringResource(Res.string.action_add)) {
+            onConfirm(fingerprint != null && trustKey)
+        },
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small)) {
+            Column {
+                Text(text = repoDisplayName(repo.url, repo.meta), style = MaterialTheme.typography.titleSmall)
+                Text(text = repo.url, style = MaterialTheme.typography.bodySmall)
+            }
+            Text(text = pluralStringResource(Res.plurals.ext_repo_extensions_count, repo.extensionsCount, repo.extensionsCount))
+            if (fingerprint != null) {
+                Column {
+                    Text(text = stringResource(Res.string.ext_trust_fingerprint), style = MaterialTheme.typography.labelMedium)
+                    Fingerprint(groupedFingerprint(fingerprint))
+                }
+                ModalCheckboxRow(
+                    label = stringResource(Res.string.ext_repo_trust_key),
+                    checked = trustKey,
+                    onCheckedChange = { trustKey = it },
+                )
+            }
+            Text(text = stringResource(Res.string.ext_repo_confirm_warning))
+        }
+    }
+}
+
+/** Before removing a repo, [isOfficial] for the official one, whose extensions are no longer updated then. */
+@Composable
+private fun RemoveRepoDialog(
+    name: String,
+    isOfficial: Boolean,
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    TadaDestructiveDialog(
+        onDismissRequest = onDismissRequest,
+        title = stringResource(Res.string.ext_repo_remove_title),
+        subtitle = name,
+        message = stringResource(Res.string.ext_repo_remove_message),
+        consequence = if (isOfficial) stringResource(Res.string.ext_repo_remove_official_warning) else null,
+        confirmLabel = stringResource(Res.string.ext_repo_remove),
+        onConfirm = onConfirm,
+    )
+}

@@ -30,3 +30,9 @@ actual fun openInBrowser(url: String) {
 
 actual fun relativeTimeSpan(epochMillis: Long, now: Long): String =
     android.text.format.DateUtils.getRelativeTimeSpanString(epochMillis, now, android.text.format.DateUtils.MINUTE_IN_MILLIS).toString()
+
+actual fun formatFileSize(bytes: Long): String =
+    android.text.format.Formatter.formatFileSize(Injekt.get<Application>(), bytes)
+
+actual fun formatShortFileSize(bytes: Long): String =
+    android.text.format.Formatter.formatShortFileSize(Injekt.get<Application>(), bytes)

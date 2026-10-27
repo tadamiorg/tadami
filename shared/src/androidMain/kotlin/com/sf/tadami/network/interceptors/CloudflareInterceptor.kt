@@ -284,7 +284,7 @@ class CloudflareInterceptor @JvmOverloads constructor(
         const val DEFAULT_TIMEOUT_SECONDS = 30L
 
         /** The hosts whose challenge a WebView is solving right now, app-wide. */
-        val solvingHosts = SolvingHosts()
+        val solvingHosts get() = SolvingHosts.app
     }
 }
 
