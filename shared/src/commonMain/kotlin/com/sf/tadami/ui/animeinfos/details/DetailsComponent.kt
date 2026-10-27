@@ -141,6 +141,8 @@ fun DetailsComponent(
                     start = contentPadding.calculateStartPadding(layoutDirection),
                     end = contentPadding.calculateEndPadding(layoutDirection),
                 ),
+                // The description has the room, the episodes are short lines
+                startFraction = 0.3f,
                 startContent = {
                     Column(
                         modifier = Modifier
