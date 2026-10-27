@@ -1,20 +1,18 @@
 package com.sf.tadami
 
-import android.app.Application
+import java.io.File
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
-import androidx.datastore.preferences.preferencesDataStoreFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
-class DataStoresHandler {
+/** The data stores of the sources, each in the file [fileOf] gives for its name. */
+class DataStoresHandler(private val fileOf: (fileName: String) -> File) {
     private val dataStores: MutableMap<Long, DataStore<Preferences>> = mutableMapOf()
     private val dataStoresJobs : MutableMap<Long,CoroutineScope> = mutableMapOf()
 
@@ -37,7 +35,7 @@ class DataStoresHandler {
                 ),
                 scope = job,
                 produceFile = {
-                    Injekt.get<Application>().preferencesDataStoreFile(fileName)
+                    fileOf(fileName)
                 }
             )
         }

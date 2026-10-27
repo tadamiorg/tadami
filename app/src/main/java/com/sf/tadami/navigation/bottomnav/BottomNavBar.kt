@@ -1,5 +1,6 @@
 package com.sf.tadami.navigation.bottomnav
 
+import com.sf.tadami.ui.components.material.AnimatedIconImage
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -22,7 +23,6 @@ import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.sources.SourcesPreferences
-import com.sf.tadami.ui.components.material.AnimatedVectorDrawable
 
 @Composable
 fun BottomNavBar(
@@ -80,11 +80,7 @@ fun RowScope.AddItem(
                     }
                 }
             ) {
-                AnimatedVectorDrawable(
-                    animIcon = item.icon,
-                    contentDescription = item.route,
-                    selected = selected
-                )
+                AnimatedIconImage(icon = item.icon, atEnd = selected, contentDescription = item.route)
             }
         },
         label = {

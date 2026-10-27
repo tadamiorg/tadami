@@ -1,6 +1,8 @@
 package com.sf.tadami.ui.components.topappbar
 
-import android.app.Activity
+import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.Injekt
+import com.sf.tadami.ui.PlatformUi
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -12,15 +14,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.mediarouter.app.MediaRouteButton
-import com.google.android.gms.cast.framework.CastButtonFactory
-import com.sf.tadami.ui.animeinfos.episode.cast.castContextOrNull
 import com.sf.tadami.ui.animeinfos.episode.cast.setCastIconTint
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.material.DropdownMenu
@@ -32,7 +28,7 @@ fun ActionItem(
     enabled: Boolean = action.enabled,
     itemClick: (() -> Unit)? = null,
 ) {
-    val context = LocalContext.current
+    val platformUi = remember { Injekt.get<PlatformUi>() }
 
     when (action) {
         is Action.Drawable -> {
@@ -70,8 +66,7 @@ fun ActionItem(
             }
         }
 
-        // No cast button without working Google Play services
-        is Action.CastButton -> if (remember { castContextOrNull(context) != null }) {
+        is Action.CastButton -> if (platformUi.hasCastButton) {
             IconButton(
                 enabled = enabled,
                 onClick = {
@@ -79,19 +74,7 @@ fun ActionItem(
                     action.onClick()
                 },
             ) {
-                val tint = LocalContentColor.current.toArgb()
-                AndroidView(
-                    factory = {
-                        MediaRouteButton(context)
-                    },
-                    update = { mediaButton ->
-                        CastButtonFactory.setUpMediaRouteButton(
-                            (context as Activity).applicationContext,
-                            mediaButton
-                        )
-                        mediaButton.setCastIconTint(tint)
-                    }
-                )
+                platformUi.CastButton(tint = LocalContentColor.current)
             }
         }
 

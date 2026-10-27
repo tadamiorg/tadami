@@ -47,10 +47,6 @@ sealed interface LocalPlaylist {
     data class Master(val video: String, val audios: List<Pair<String, String>>, val bandwidth: Long) : LocalPlaylist
 }
 
-/** Whether [url] is one of the local route's: downloaded files the proxy serves during a cast only. */
-fun isLocalMediaUrl(url: String): Boolean =
-    url.toHttpUrlOrNull()?.encodedPath?.startsWith(LocalMediaRoute.PATH_PREFIX) == true
-
 /** Opens a downloaded file for reading, null when it can't be. */
 fun interface LocalFileOpener {
     fun open(uri: String): FileInputStream?
@@ -303,7 +299,7 @@ public class LocalMediaRoute(private val opener: LocalFileOpener) {
     }
 
     companion object {
-        const val PATH_PREFIX = "/local-"
+        const val PATH_PREFIX = LocalMediaPaths.PATH_PREFIX
         private const val TOKEN_BYTES = 16
         private const val PREVIEWS_MIME_TYPE = "application/octet-stream"
     }

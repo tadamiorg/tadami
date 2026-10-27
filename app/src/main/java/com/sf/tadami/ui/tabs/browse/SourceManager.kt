@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.tabs.browse
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -43,7 +42,6 @@ interface SourceManager {
     fun getStubSources(): List<StubSource>
 }
 class SourceManagerImplementation(
-    private val context: Context,
     private val extensionManager: ExtensionManager,
     private val sourceRepository: StubSourceRepository,
 ) : SourceManager {

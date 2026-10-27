@@ -27,3 +27,6 @@ actual fun openInBrowser(url: String) {
         UiToasts.showToast(e.message ?: "")
     }
 }
+
+actual fun relativeTimeSpan(epochMillis: Long, now: Long): String =
+    android.text.format.DateUtils.getRelativeTimeSpanString(epochMillis, now, android.text.format.DateUtils.MINUTE_IN_MILLIS).toString()

@@ -20,7 +20,7 @@ fun DateHeader(
     val context = LocalContext.current
     Text(
         text = remember {
-            date.toRelativeString(context = context)
+            date.toRelativeString()
         },
         modifier = modifier
             .padding(

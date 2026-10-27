@@ -1,5 +1,8 @@
 package com.sf.tadami
 
+import com.sf.tadami.ui.PlatformUi
+import com.sf.tadami.ui.AndroidPlatformUi
+import androidx.datastore.preferences.preferencesDataStoreFile
 import com.sf.tadami.extension.util.AndroidExtensionPlatform
 import com.sf.tadami.extension.util.ExtensionPlatform
 import android.app.Application
@@ -77,7 +80,7 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
 
         // Scopes Handler
 
-        addSingleton(DataStoresHandler())
+        addSingleton(DataStoresHandler { app.preferencesDataStoreFile(it) })
 
         // Database
 
@@ -128,6 +131,8 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
 
         addSingletonFactory<ExtensionPlatform> { AndroidExtensionPlatform(app) }
 
+        addSingletonFactory<PlatformUi> { AndroidPlatformUi(app) }
+
         addSingletonFactory { ExtensionManager() }
 
         // Sources
@@ -152,7 +157,7 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
         }
 
         addSingletonFactory<SourceManager>{
-            SourceManagerImplementation(app,get(),get())
+            SourceManagerImplementation(get(),get())
         }
 
         // DataSources

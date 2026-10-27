@@ -15,8 +15,6 @@ fun relativeDateText(
     val context = LocalContext.current
 
     return date
-        ?.toRelativeString(
-            context = context,
-        )
+        ?.toRelativeString()
         ?: stringResource(Res.string.stub_text)
 }

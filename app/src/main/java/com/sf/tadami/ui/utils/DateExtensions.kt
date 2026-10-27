@@ -1,9 +1,8 @@
 package com.sf.tadami.ui.utils
 
+import com.sf.tadami.utils.relativeTimeSpan
 import com.sf.tadami.utils.pluralRes
 import com.sf.tadami.utils.stringRes
-import android.content.Context
-import android.text.format.DateUtils
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import org.jetbrains.compose.resources.stringResource
@@ -19,7 +18,6 @@ import kotlin.time.Duration.Companion.minutes
 private const val MILLISECONDS_IN_DAY = 86_400_000L
 
 fun Date.toRelativeString(
-    context: Context,
     range: Int = 7,
     dateFormat: DateFormat = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault()),
 ): String {
@@ -85,6 +83,6 @@ fun relativeTimeSpanString(epochMillis: Long): String {
         now - epochMillis < 1.minutes.inWholeMilliseconds -> stringResource(
             Res.string.updates_last_update_info_just_now,
         )
-        else -> DateUtils.getRelativeTimeSpanString(epochMillis, now, DateUtils.MINUTE_IN_MILLIS).toString()
+        else -> relativeTimeSpan(epochMillis, now)
     }
 }

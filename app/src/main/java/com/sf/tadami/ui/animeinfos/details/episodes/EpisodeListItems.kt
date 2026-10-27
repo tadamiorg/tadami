@@ -61,10 +61,10 @@ fun LazyListScope.episodeItems(
                 },
             date = when {
                 episodeItem.episode.dateUpload > 0L -> {
-                    Date(episodeItem.episode.dateUpload).toRelativeString(LocalContext.current)
+                    Date(episodeItem.episode.dateUpload).toRelativeString()
                 }
                 episodeItem.episode.dateFetch > 0L -> {
-                    Date(episodeItem.episode.dateFetch).toRelativeString(LocalContext.current)
+                    Date(episodeItem.episode.dateFetch).toRelativeString()
                 }
                 else -> null
             },

@@ -1,10 +1,9 @@
 package com.sf.tadami.ui.animeinfos.details.infos.description
 
+import com.sf.tadami.ui.components.material.AnimatedIconImage
+import com.sf.tadami.ui.components.material.AnimatedIcon
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
-import androidx.compose.animation.graphics.res.animatedVectorResource
-import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
-import androidx.compose.animation.graphics.vector.AnimatedImageVector
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -72,9 +71,9 @@ fun AnimeDescription(
                     modifier = Modifier.background(Brush.verticalGradient(colors = colors)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    val image = AnimatedImageVector.animatedVectorResource(R.drawable.anim_caret_down)
-                    Icon(
-                        painter = rememberAnimatedVectorPainter(image, !expanded),
+                    AnimatedIconImage(
+                        icon = AnimatedIcon.CARET_DOWN,
+                        atEnd = !expanded,
                         contentDescription = stringResource(
                             Res.string.stub_text,
                         ),

@@ -47,10 +47,10 @@ fun EpisodesDialog(
                     },
                     supporting = when {
                         episode.dateUpload > 0L -> {
-                            Date(episode.dateUpload).toRelativeString(LocalContext.current)
+                            Date(episode.dateUpload).toRelativeString()
                         }
                         episode.dateFetch > 0L -> {
-                            Date(episode.dateFetch).toRelativeString(LocalContext.current)
+                            Date(episode.dateFetch).toRelativeString()
                         }
                         else -> null
                     },

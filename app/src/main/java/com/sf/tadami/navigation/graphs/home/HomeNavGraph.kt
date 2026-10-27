@@ -1,7 +1,7 @@
 package com.sf.tadami.navigation.graphs.home
 
+import com.sf.tadami.ui.components.material.AnimatedIcon
 import org.jetbrains.compose.resources.StringResource
-import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -91,21 +91,21 @@ object GRAPH {
     const val HOME = "home_graph"
 }
 
-sealed class HomeNavItems(val route: String, val name: StringResource, @DrawableRes val icon: Int) {
+sealed class HomeNavItems(val route: String, val name: StringResource, val icon: AnimatedIcon) {
     data object Library :
-        HomeNavItems("library", Res.string.library_tab_title, R.drawable.anim_video_library_enter)
+        HomeNavItems("library", Res.string.library_tab_title, AnimatedIcon.VIDEO_LIBRARY)
 
     data object Updates :
-        HomeNavItems("updates", Res.string.label_recent_updates, R.drawable.anim_updates_enter)
+        HomeNavItems("updates", Res.string.label_recent_updates, AnimatedIcon.UPDATES)
 
     data object History :
-        HomeNavItems("history", Res.string.label_history, R.drawable.anim_history_enter)
+        HomeNavItems("history", Res.string.label_history, AnimatedIcon.HISTORY)
 
     data object Browse :
-        HomeNavItems("anime_sources", Res.string.browse_tab_title, R.drawable.anim_sources_enter)
+        HomeNavItems("anime_sources", Res.string.browse_tab_title, AnimatedIcon.SOURCES)
 
     data object More :
-        HomeNavItems("more", Res.string.label_more, R.drawable.anim_settings_enter)
+        HomeNavItems("more", Res.string.label_more, AnimatedIcon.SETTINGS)
 
     companion object {
         fun includes(route: String?): Boolean {

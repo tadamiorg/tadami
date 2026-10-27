@@ -24,7 +24,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.systemGestureExclusion
+import com.sf.tadami.ui.utils.excludeSystemGestures
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -214,7 +214,7 @@ fun VerticalFastScroller(
                     .then(
                         // Exclude thumb from gesture area only when needed
                         if (isThumbVisible && !isThumbDragged && !listState.isScrollInProgress) {
-                            Modifier.systemGestureExclusion()
+                            Modifier.excludeSystemGestures()
                         } else {
                             Modifier
                         },
@@ -411,7 +411,7 @@ fun VerticalGridFastScroller(
                     .then(
                         // Exclude thumb from gesture area only when needed
                         if (isThumbVisible && !isThumbDragged && !state.isScrollInProgress) {
-                            Modifier.systemGestureExclusion()
+                            Modifier.excludeSystemGestures()
                         } else {
                             Modifier
                         },

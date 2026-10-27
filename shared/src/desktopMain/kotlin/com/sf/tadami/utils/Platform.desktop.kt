@@ -16,3 +16,12 @@ actual fun openInBrowser(url: String) {
         UiToasts.showToast(e.message ?: "")
     }
 }
+
+actual fun relativeTimeSpan(epochMillis: Long, now: Long): String {
+    val elapsed = java.time.Duration.ofMillis(now - epochMillis)
+    return when {
+        elapsed.toHours() < 1 -> java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(epochMillis))
+        elapsed.toDays() < 1 -> java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(epochMillis))
+        else -> java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date(epochMillis))
+    }
+}

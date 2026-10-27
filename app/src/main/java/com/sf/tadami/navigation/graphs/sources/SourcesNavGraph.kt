@@ -1,16 +1,17 @@
 package com.sf.tadami.navigation.graphs.sources
 
+import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.Injekt
+import com.sf.tadami.ui.PlatformUi
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.activity
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.ui.tabs.browse.BrowseScreen
 import com.sf.tadami.ui.tabs.browse.tabs.sources.preferences.SourcePreferencesScreen
-import com.sf.tadami.ui.webview.WebViewActivity
 
 fun NavGraphBuilder.sourcesNavGraph(
     modifier: Modifier = Modifier,
@@ -26,20 +27,8 @@ fun NavGraphBuilder.sourcesNavGraph(
         )
     }
 
-    activity("${SourcesRoutes.EXTENSIONS_WEBVIEW}/{sourceId}/{title_key}/{url_key}") {
-        this.activityClass = WebViewActivity::class
-        argument("sourceId") {
-            this.nullable = false
-            this.type = NavType.LongType
-        }
-        argument("title_key") {
-            this.nullable = false
-            this.type = NavType.StringType
-        }
-        argument("url_key") {
-            this.nullable = false
-            this.type = NavType.StringType
-        }
+    with(Injekt.get<PlatformUi>()) {
+        webViewDestination("${SourcesRoutes.EXTENSIONS_WEBVIEW}/{sourceId}/{title_key}/{url_key}")
     }
 
     composable(
