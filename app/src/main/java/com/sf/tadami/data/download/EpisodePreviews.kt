@@ -1,7 +1,7 @@
 package com.sf.tadami.data.download
 
 import android.content.Context
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.data.download.stream.DownloadOutput
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PreviewSidecar
 import com.sf.tadami.utils.logcat
@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap
  * [dir] next to its [video] (see [DownloadNames.previewsFileName]): read and written through the storage folder,
  * as the downloads' other files. Deleted with the episode's folder. Storage access: off the main thread.
  */
-class EpisodePreviews(val dir: UniFile, val episodeDirName: String, val video: UniFile) {
+class EpisodePreviews(val dir: StorageFile, val episodeDirName: String, val video: StorageFile) {
 
     /** The frames, null when there are none yet or they don't describe [video] (another version, a cut file). */
     fun read(): PreviewSidecar? = synchronized(lock()) { readFile()?.second }
@@ -49,15 +49,15 @@ class EpisodePreviews(val dir: UniFile, val episodeDirName: String, val video: U
      * and a reader never finds the frames missing between the old ones deleted and the new ones renamed.
      */
     fun write(context: Context, sidecar: PreviewSidecar, keeps: (PreviewSidecar) -> Boolean = { true }): Boolean =
-        write(sidecar, keeps) { DownloadOutput.openAt(context, it, 0) }
+        write(sidecar, keeps) { DownloadOutput.openAt(it, 0) }
 
     /** [write], the file written opened by [open]. */
-    public fun write(sidecar: PreviewSidecar, keeps: (PreviewSidecar) -> Boolean = { true }, open: (UniFile) -> OutputStream): Boolean =
+    public fun write(sidecar: PreviewSidecar, keeps: (PreviewSidecar) -> Boolean = { true }, open: (StorageFile) -> OutputStream): Boolean =
         synchronized(lock()) { writeFile(sidecar, keeps, open) }
 
-    private fun writeFile(sidecar: PreviewSidecar, keeps: (PreviewSidecar) -> Boolean, open: (UniFile) -> OutputStream): Boolean {
+    private fun writeFile(sidecar: PreviewSidecar, keeps: (PreviewSidecar) -> Boolean, open: (StorageFile) -> OutputStream): Boolean {
         val name = DownloadNames.previewsFileName(episodeDirName)
-        var tmp: UniFile? = null
+        var tmp: StorageFile? = null
         return try {
             if (!video.exists() || video.length() != sidecar.videoLength) {
                 logcat(tag = TAG) { "Not writing the preview frames of $episodeDirName: its video is gone or changed" }

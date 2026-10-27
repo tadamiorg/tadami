@@ -1,12 +1,14 @@
 package com.sf.tadami.data.backup
 
+import androidx.core.net.toUri
+import com.sf.tadami.storage.StorageFiles
 import com.sf.tadami.utils.stringRes
 import android.content.Context
 import android.net.Uri
 import com.sf.tadami.utils.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.DataBaseHandler
@@ -68,15 +70,16 @@ class BackupCreator(
 
     @OptIn(ExperimentalSerializationApi::class)
     suspend fun createBackup(uri: Uri, options: BackupOptions): String {
-        var file: UniFile? = null
+        var file: StorageFile? = null
         try {
             file = if (isAutoBackup) {
                 // Get dir of file and create
-                val dir = UniFile.fromUri(context, uri)
+                val dir = Injekt.get<StorageFiles>().fromUri(uri.toString())
 
                 // Delete older backups
-                dir?.listFiles { _, filename -> BackupUtils.filenameRegex.matches(filename) }
+                dir?.listFiles()
                     .orEmpty()
+                    .filter { BackupUtils.filenameRegex.matches(it.name.orEmpty()) }
                     .sortedByDescending { it.name }
                     .drop(MAX_AUTO_BACKUPS - 1)
                     .forEach { it.delete() }
@@ -84,7 +87,7 @@ class BackupCreator(
                 // Create new file to place backup
                 dir?.createFile(BackupUtils.getFilename())
             } else {
-                UniFile.fromUri(context, uri)
+                Injekt.get<StorageFiles>().fromUri(uri.toString())
             }
 
             if (file == null || !file.isFile) {
@@ -112,7 +115,7 @@ class BackupCreator(
             val fileUri = file.uri
 
             // Make sure it's a valid backup file
-            BackupFileValidator().validate(context, fileUri)
+            BackupFileValidator().validate(context, fileUri.toUri())
 
             if (isAutoBackup) {
                 dataStore.editPreference(Instant.now().toEpochMilli(),BackupPreferences.AUTO_BACKUP_LAST_TIMESTAMP)

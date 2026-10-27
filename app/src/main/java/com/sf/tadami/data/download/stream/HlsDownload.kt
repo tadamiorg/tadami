@@ -10,7 +10,7 @@ import androidx.media3.exoplayer.hls.playlist.HlsMediaPlaylist
 import androidx.media3.exoplayer.hls.playlist.HlsMultivariantPlaylist
 import androidx.media3.exoplayer.hls.playlist.HlsPlaylist
 import androidx.media3.exoplayer.hls.playlist.HlsPlaylistParser
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.data.download.FileProgress
 import com.sf.tadami.data.download.SegmentMetadata
 import com.sf.tadami.network.player.HlsSegmentIvs
@@ -60,7 +60,7 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
         url: String,
         playlist: String?,
         headers: Headers?,
-        dir: UniFile,
+        dir: StorageFile,
         fileBase: String,
         quality: String,
         audio: Boolean,
@@ -180,7 +180,7 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
         segments: List<Segment>,
         init: Segment?,
         headers: Headers?,
-        dir: UniFile,
+        dir: StorageFile,
         fileBase: String,
         audio: Boolean,
         resume: FileProgress?,
@@ -195,7 +195,7 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
             file?.delete()
             file = null
         }
-        var output: OutputStream? = file?.let { DownloadOutput.openAt(context, it, point!!.bytes) }
+        var output: OutputStream? = file?.let { DownloadOutput.openAt(it, point!!.bytes) }
         var written = point?.bytes ?: 0L
         var done = point?.segments ?: 0
         // Unknown for good when resumed from a download that didn't record them
@@ -217,7 +217,7 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
                     val extension = MediaCheck.hlsExtension(init != null, audio, data)
                     target = DownloadOutput.getOrCreateFile(dir, "$fileBase.$extension")
                     file = target
-                    output = DownloadOutput.openAt(context, target, 0)
+                    output = DownloadOutput.openAt(target, 0)
                     onFileProgress(FileProgress(name = target.name.orEmpty(), hls = true, total = count.toLong(), sizes = sizes?.toList()))
                     if (init != null) {
                         val initData = fetch(init, headers, keys)

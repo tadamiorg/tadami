@@ -1,5 +1,7 @@
 package com.sf.tadami
 
+import com.sf.tadami.storage.StorageFiles
+import com.sf.tadami.storage.AndroidStorageFiles
 import com.sf.tadami.ui.PlatformUi
 import com.sf.tadami.ui.AndroidPlatformUi
 import androidx.datastore.preferences.preferencesDataStoreFile
@@ -132,6 +134,8 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
         addSingletonFactory<ExtensionPlatform> { AndroidExtensionPlatform(app) }
 
         addSingletonFactory<PlatformUi> { AndroidPlatformUi(app) }
+
+        addSingletonFactory<StorageFiles> { AndroidStorageFiles(app) }
 
         addSingletonFactory { ExtensionManager() }
 

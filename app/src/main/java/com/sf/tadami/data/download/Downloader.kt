@@ -1,11 +1,12 @@
 package com.sf.tadami.data.download
 
+import androidx.core.net.toUri
 import com.sf.tadami.utils.stringRes
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.anime.AnimeRepository
@@ -404,11 +405,11 @@ class Downloader(
     }
 
     /** A placeholder clip passes the size check sometimes, not the duration one. TS often has none. */
-    private fun checkDuration(video: UniFile) {
+    private fun checkDuration(video: StorageFile) {
         val durationMs = try {
             val retriever = MediaMetadataRetriever()
             try {
-                retriever.setDataSource(context, video.uri)
+                retriever.setDataSource(context, video.uri.toUri())
                 retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
             } finally {
                 retriever.release()
@@ -425,7 +426,7 @@ class Downloader(
      * The tmp dir becomes the episode dir: only now is the episode seen as downloaded. It leaves the
      * saved queue at once, so a process dying now doesn't download it again (see [restore] too).
      */
-    private suspend fun finish(download: Download, animeDir: UniFile, tmpDir: UniFile) {
+    private suspend fun finish(download: Download, animeDir: StorageFile, tmpDir: StorageFile) {
         DownloadOutput.storage {
             animeDir.findFile(download.dirName)?.deleteRecursively()
             if (!tmpDir.renameTo(download.dirName)) throw IOException("Can't rename ${tmpDir.name}")
@@ -459,7 +460,7 @@ class Downloader(
         }
     }
 
-    private fun clearDir(dir: UniFile) {
+    private fun clearDir(dir: StorageFile) {
         DownloadOutput.storage { dir.listFiles()?.forEach { it.deleteRecursively() } }
     }
 
@@ -480,8 +481,8 @@ class Downloader(
     }
 }
 
-/** Deletes a file, or a directory with its content: not every [UniFile] does it for a directory. */
-fun UniFile.deleteRecursively(): Boolean {
+/** Deletes a file, or a directory with its content: not every [StorageFile] does it for a directory. */
+fun StorageFile.deleteRecursively(): Boolean {
     if (isDirectory) listFiles()?.forEach { it.deleteRecursively() }
     return delete()
 }

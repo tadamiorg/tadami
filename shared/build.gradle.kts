@@ -89,6 +89,7 @@ kotlin {
         androidMain.dependencies {
             api(androidx.datastore)
             api(androidx.webkit)
+            api(libs.unifile)
             api(androidx.core.ktx)
             api(libs.sqldelight.android.driver)
             api(kotlinx.coroutines.android)

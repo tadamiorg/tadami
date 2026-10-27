@@ -3,7 +3,7 @@ package com.sf.tadami.ui.animeinfos.episode.cast
 import com.sf.tadami.utils.stringRes
 import android.content.Context
 import com.sf.tadami.utils.Log
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.download.EpisodeMetadata
@@ -201,5 +201,5 @@ object LocalCast {
         return segments.takeIf { last.offset + last.length == file.length }
     }
 
-    private fun UniFile.toEpisodeFile() = EpisodeFile(name.orEmpty(), uri.toString(), length())
+    private fun StorageFile.toEpisodeFile() = EpisodeFile(name.orEmpty(), uri.toString(), length())
 }

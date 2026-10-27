@@ -1,10 +1,13 @@
 package com.sf.tadami.domain.storage
 
+import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.Injekt
+import com.sf.tadami.storage.StorageFiles
 import android.content.Context
 import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.preferences.storage.StoragePreferences
 import com.sf.tadami.utils.DiskUtil
 import com.sf.tadami.utils.getPreferencesGroup
@@ -28,7 +31,7 @@ class StorageManager(
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    private var baseDir: UniFile? = getBaseDir(runBlocking {
+    private var baseDir: StorageFile? = getBaseDir(runBlocking {
         dataStore.getPreferencesGroup(StoragePreferences).storageDir
     })
 
@@ -54,20 +57,20 @@ class StorageManager(
             .launchIn(scope)
     }
 
-    private fun getBaseDir(uri: String): UniFile? {
-        return UniFile.fromUri(context, uri.toUri())
+    private fun getBaseDir(uri: String): StorageFile? {
+        return Injekt.get<StorageFiles>().fromUri(uri.toUri().toString())
             .takeIf { it?.exists() == true }
     }
 
-    fun getAutomaticBackupsDirectory(): UniFile? {
+    fun getAutomaticBackupsDirectory(): StorageFile? {
         return baseDir?.createDirectory(AUTOMATIC_BACKUPS_PATH)
     }
 
-    fun getDownloadsDirectory(): UniFile? {
+    fun getDownloadsDirectory(): StorageFile? {
         return baseDir?.createDirectory(DOWNLOADS_PATH)
     }
 
-    fun getLocalSourceDirectory(): UniFile? {
+    fun getLocalSourceDirectory(): StorageFile? {
         return baseDir?.createDirectory(LOCAL_SOURCE_PATH)
     }
 }

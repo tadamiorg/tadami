@@ -1,7 +1,7 @@
 package com.sf.tadami.data.download.stream
 
 import android.content.Context
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.data.download.FileProgress
 import com.sf.tadami.network.HttpException
 import com.sf.tadami.utils.isOnline
@@ -23,13 +23,13 @@ class ProgressiveDownload(private val context: Context, private val http: MediaH
     suspend fun download(
         url: String,
         headers: Headers?,
-        dir: UniFile,
+        dir: StorageFile,
         fileBase: String,
         resume: FileProgress?,
         opened: Response?,
         onFileProgress: (FileProgress) -> Unit,
         onProgress: (Float) -> Unit,
-    ): UniFile {
+    ): StorageFile {
         var file = resume?.takeIf { !it.hls }?.let { dir.findFile(it.name) }
         var expectedTotal = resume?.total ?: -1L
         var pending = opened
@@ -76,15 +76,15 @@ class ProgressiveDownload(private val context: Context, private val http: MediaH
 
     private class StartOverException : IOException()
 
-    private class WriteResult(val file: UniFile, val total: Long, val startedOver: Boolean)
+    private class WriteResult(val file: StorageFile, val total: Long, val startedOver: Boolean)
 
     private fun write(
         response: Response,
         url: String,
         start: Long,
         expectedTotal: Long,
-        existing: UniFile?,
-        dir: UniFile,
+        existing: StorageFile?,
+        dir: StorageFile,
         fileBase: String,
         onFileProgress: (FileProgress) -> Unit,
         onProgress: (Float) -> Unit,
@@ -124,7 +124,7 @@ class ProgressiveDownload(private val context: Context, private val http: MediaH
         }
         if (position > 0) fileProgress(position)
 
-        DownloadOutput.openAt(context, target, position).use { output ->
+        DownloadOutput.openAt(target, position).use { output ->
             val source = response.body.source()
             val buffer = ByteArray(BUFFER_SIZE)
             var written = position

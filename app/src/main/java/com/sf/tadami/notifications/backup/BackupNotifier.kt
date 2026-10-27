@@ -1,5 +1,6 @@
 package com.sf.tadami.notifications.backup
 
+import androidx.core.net.toUri
 import com.sf.tadami.utils.pluralRes
 import com.sf.tadami.utils.stringRes
 import android.app.PendingIntent
@@ -8,7 +9,7 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.R
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
@@ -87,7 +88,7 @@ class BackupNotifier(private val context: Context) {
         )
     }
 
-    fun showBackupComplete(unifile: UniFile) {
+    fun showBackupComplete(unifile: StorageFile) {
         context.cancelNotification(Notifications.BACKUP_PROGRESS_ID)
 
         with(completeNotificationBuilder) {
@@ -98,7 +99,7 @@ class BackupNotifier(private val context: Context) {
             addAction(
                 R.drawable.ic_share,
                 stringRes(Res.string.action_share),
-                BackupReceiver.shareBackupPendingActivity(context, unifile.uri),
+                BackupReceiver.shareBackupPendingActivity(context, unifile.uri.toUri()),
             )
         }.show(Notifications.BACKUP_COMPLETE_ID)
     }

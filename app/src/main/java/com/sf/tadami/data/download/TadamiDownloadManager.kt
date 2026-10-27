@@ -1,11 +1,12 @@
 package com.sf.tadami.data.download
 
+import com.sf.tadami.storage.StorageFiles
 import android.app.Application
 import android.net.Uri
 import com.sf.tadami.utils.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.data.download.model.Download
 import com.sf.tadami.data.download.model.EpisodeDownloadState
@@ -273,7 +274,7 @@ class TadamiDownloadManager(
     }
 
     /** Whether the downloaded file [uri] (one of a [LocalEpisode.toStreamSource]) is still there, read from the storage. */
-    fun localFileExists(uri: String): Boolean = UniFile.fromUri(provider.context, Uri.parse(uri))?.exists() == true
+    fun localFileExists(uri: String): Boolean = Injekt.get<StorageFiles>().fromUri(Uri.parse(uri).toString())?.exists() == true
 
     /** Tells [download] failed, for [DownloadWorker]: one notification, the last error. */
     public fun showError(download: Download) {

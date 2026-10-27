@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.download
 
+import com.sf.tadami.storage.StorageFiles
 import org.jetbrains.compose.resources.StringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -9,7 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import org.jetbrains.compose.resources.stringResource
 import androidx.core.net.toUri
 import androidx.navigation.NavHostController
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.download.TadamiDownloadManager
@@ -109,7 +110,7 @@ class DownloadPreferencesScreen(
         val context = LocalContext.current
         val location = remember(prefs) {
             if (prefs.storageDir == foldersProviders.path()) return@remember null
-            UniFile.fromUri(context, prefs.storageDir.toUri())?.displayablePath?.let { "$it/$DOWNLOADS_DIR" }
+            Injekt.get<StorageFiles>().fromUri(prefs.storageDir.toUri().toString())?.displayablePath?.let { "$it/$DOWNLOADS_DIR" }
         }
         return Preference.PreferenceItem.TextPreference(
             title = stringResource(Res.string.preferences_download_location),

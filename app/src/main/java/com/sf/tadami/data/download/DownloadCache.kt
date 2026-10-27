@@ -1,6 +1,6 @@
 package com.sf.tadami.data.download
 
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.domain.storage.StorageManager
 import com.sf.tadami.utils.logcat
 import kotlinx.coroutines.CoroutineScope
@@ -98,7 +98,7 @@ class DownloadCache(
         _changes.update { it + 1 }
     }
 
-    private fun scan(root: UniFile?): Tree {
+    private fun scan(root: StorageFile?): Tree {
         return root?.listFiles().orEmpty()
             .filter { it.isDirectory }
             .associate { sourceDir ->

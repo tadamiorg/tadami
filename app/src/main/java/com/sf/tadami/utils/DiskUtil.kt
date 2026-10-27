@@ -1,5 +1,6 @@
 package com.sf.tadami.utils
 
+import androidx.core.net.toUri
 import android.content.ContentResolver
 import android.content.Context
 import android.media.MediaScannerConnection
@@ -8,7 +9,7 @@ import android.os.Environment
 import android.os.StatFs
 import android.provider.DocumentsContract
 import androidx.core.content.ContextCompat
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import java.io.File
 
 object DiskUtil {
@@ -70,9 +71,9 @@ object DiskUtil {
      * Gets the available space for the disk that a file path points to, in bytes. A folder picked
      * with the storage access framework is measured on its volume. -1 when unknown.
      */
-    fun getAvailableStorageSpace(f: UniFile): Long {
+    fun getAvailableStorageSpace(f: StorageFile): Long {
         return try {
-            val stat = StatFs(volumePath(f.uri) ?: return -1L)
+            val stat = StatFs(volumePath(f.uri.toUri()) ?: return -1L)
             stat.availableBlocksLong * stat.blockSizeLong
         } catch (_: Exception) {
             -1L
@@ -98,12 +99,12 @@ object DiskUtil {
     /**
      * Don't display downloaded episodes in gallery apps creating `.nomedia`.
      */
-    fun createNoMediaFile(dir: UniFile?, context: Context?) {
+    fun createNoMediaFile(dir: StorageFile?, context: Context?) {
         if (dir != null && dir.exists()) {
             val nomedia = dir.findFile(NOMEDIA_FILE)
             if (nomedia == null) {
                 dir.createFile(NOMEDIA_FILE)
-                context?.let { scanMedia(it, dir.uri) }
+                context?.let { scanMedia(it, dir.uri.toUri()) }
             }
         }
     }

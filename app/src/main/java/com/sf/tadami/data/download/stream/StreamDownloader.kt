@@ -1,7 +1,7 @@
 package com.sf.tadami.data.download.stream
 
 import android.content.Context
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.data.download.DownloadNames
 import com.sf.tadami.data.download.FileProgress
 import com.sf.tadami.data.download.SegmentMetadata
@@ -31,7 +31,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
      */
     suspend fun download(
         stream: StreamSource,
-        dir: UniFile,
+        dir: StorageFile,
         episodeDirName: String,
         resume: Map<String, FileProgress>,
         onFileProgress: (String, FileProgress) -> Unit,
@@ -89,7 +89,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
         role: String,
         url: String,
         headers: Headers?,
-        dir: UniFile,
+        dir: StorageFile,
         fileBase: String,
         quality: String,
         audio: Boolean,
@@ -132,7 +132,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
     }
 
     /** Best effort: an episode without its subtitles is still worth having. */
-    private suspend fun downloadSubtitles(stream: StreamSource, headers: Headers?, dir: UniFile, episodeDirName: String) {
+    private suspend fun downloadSubtitles(stream: StreamSource, headers: Headers?, dir: StorageFile, episodeDirName: String) {
         val tracks = stream.subtitleTracks
         val names = DownloadNames.trackNames(tracks.map { it.lang })
         tracks.forEachIndexed { index, track ->
@@ -148,7 +148,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
                 val name = DownloadNames.subtitleFileName(episodeDirName, names[index], extension)
                 DownloadOutput.storage { dir.findFile(name)?.delete() }
                 val file = DownloadOutput.getOrCreateFile(dir, name)
-                DownloadOutput.openAt(context, file, 0).use { DownloadOutput.write(it, data) }
+                DownloadOutput.openAt(file, 0).use { DownloadOutput.write(it, data) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: StorageException) {
@@ -192,4 +192,4 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
 }
 
 /** One downloaded file, with its segments when joined from HLS (see [HlsDownload]). */
-class DownloadedFile(val file: UniFile, val segments: List<SegmentMetadata>? = null)
+class DownloadedFile(val file: StorageFile, val segments: List<SegmentMetadata>? = null)

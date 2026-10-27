@@ -1,7 +1,7 @@
 package com.sf.tadami.data.download
 
 import android.content.Context
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.storage.StorageManager
@@ -15,7 +15,7 @@ class DownloadProvider(
     private val storageManager: StorageManager = Injekt.get(),
 ) {
 
-    val downloadsDir: UniFile?
+    val downloadsDir: StorageFile?
         get() = storageManager.getDownloadsDirectory()
 
     /**
@@ -23,12 +23,12 @@ class DownloadProvider(
      *
      * @param source the source to query.
      */
-    fun findSourceDir(source: Source): UniFile? {
+    fun findSourceDir(source: Source): StorageFile? {
         return downloadsDir?.findFile(getSourceDirName(source))
     }
 
     /** The anime directory if it exists, found by its key when it is named after an older title. */
-    fun findAnimeDir(source: Source, anime: Anime): UniFile? {
+    fun findAnimeDir(source: Source, anime: Anime): StorageFile? {
         val dirs = findSourceDir(source)?.listFiles() ?: return null
         val name = DownloadNames.findAnimeDirName(dirs.mapNotNull { it.name }, getAnimeDirName(anime))
             ?: return null
@@ -36,14 +36,14 @@ class DownloadProvider(
     }
 
     /** The episode directory if it exists, found by its key when it is named after an older name. */
-    fun findEpisodeDir(source: Source, anime: Anime, episode: Episode): UniFile? {
+    fun findEpisodeDir(source: Source, anime: Anime, episode: Episode): StorageFile? {
         val dirs = findAnimeDir(source, anime)?.listFiles()?.filter { it.isDirectory } ?: return null
         val name = DownloadNames.EpisodeDirs(dirs.mapNotNull { it.name }).find(episode) ?: return null
         return dirs.find { it.name == name }
     }
 
     /** The anime directory, created when missing. Null when the storage can't be reached. */
-    fun getOrCreateAnimeDir(source: Source, anime: Anime): UniFile? {
+    fun getOrCreateAnimeDir(source: Source, anime: Anime): StorageFile? {
         return findAnimeDir(source, anime)
             ?: downloadsDir
                 ?.createDirectory(getSourceDirName(source))

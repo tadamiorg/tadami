@@ -1,15 +1,15 @@
 package com.sf.tadami.data.download
 
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.data.download.stream.MediaCheck
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.source.model.Track
 
 /** The files of a downloaded episode, as the player plays them. */
 class LocalEpisode(
-    val video: UniFile,
-    val audios: List<Pair<UniFile, String>>,
-    val subtitles: List<Pair<UniFile, DownloadNames.TrackFile>>,
+    val video: StorageFile,
+    val audios: List<Pair<StorageFile, String>>,
+    val subtitles: List<Pair<StorageFile, DownloadNames.TrackFile>>,
     /** The sidecar, null for the downloads made before it */
     val metadata: EpisodeMetadata? = null,
     /** Where its seekbar preview frames are kept, made or not yet */
@@ -39,7 +39,7 @@ class LocalEpisode(
 
     companion object {
         /** The files of the episode directory [dir], null without a video. */
-        fun from(dir: UniFile, episodeDirName: String): LocalEpisode? {
+        fun from(dir: StorageFile, episodeDirName: String): LocalEpisode? {
             val files = dir.listFiles().orEmpty().filter { it.isFile }.associateBy { it.name.orEmpty() }
             val parsed = DownloadNames.parseFiles(episodeDirName, files.keys.toList())
             val video = parsed.video?.let(files::get) ?: return null

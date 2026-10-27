@@ -1,12 +1,12 @@
 package com.sf.tadami.ui.utils
 
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 
-val UniFile.extension: String?
+val StorageFile.extension: String?
     get() = name?.substringAfterLast('.')
 
-val UniFile.nameWithoutExtension: String?
+val StorageFile.nameWithoutExtension: String?
     get() = name?.substringBeforeLast('.')
 
-val UniFile.displayablePath: String
+val StorageFile.displayablePath: String
     get() = filePath ?: uri.toString()

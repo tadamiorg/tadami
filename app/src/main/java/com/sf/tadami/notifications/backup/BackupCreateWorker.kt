@@ -1,5 +1,6 @@
 package com.sf.tadami.notifications.backup
 
+import com.sf.tadami.storage.StorageFiles
 import com.sf.tadami.utils.stringRes
 import android.content.Context
 import android.content.pm.ServiceInfo
@@ -20,7 +21,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.backup.BackupCreator
@@ -54,7 +55,7 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
 
         // Auto backups have their own folder, so their rotation never deletes the manual backups
         val uri = inputData.getString(LOCATION_URI_KEY)?.toUri()
-            ?: Injekt.get<StorageManager>().getAutomaticBackupsDirectory()?.uri
+            ?: Injekt.get<StorageManager>().getAutomaticBackupsDirectory()?.uri?.toUri()
             ?: run {
                 notifyAutoBackupError(stringRes(Res.string.no_location_set))
                 return Result.failure()
@@ -70,7 +71,7 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
         return try {
             val location = BackupCreator(context,isAutoBackup).createBackup(uri, options)
             if (!isAutoBackup) {
-                notifier.showBackupComplete(UniFile.fromUri(context,location.toUri())!!)
+                notifier.showBackupComplete(Injekt.get<StorageFiles>().fromUri(location.toUri().toString())!!)
             } else {
                 // The next failure is worth notifying again
                 Injekt.get<DataStore<Preferences>>().edit { it.remove(BackupPreferences.AUTO_BACKUP_LAST_ERROR) }

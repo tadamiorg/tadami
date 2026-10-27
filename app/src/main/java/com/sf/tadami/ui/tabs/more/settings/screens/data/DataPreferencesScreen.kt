@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.data
 
+import com.sf.tadami.storage.StorageFiles
 import org.jetbrains.compose.resources.StringResource
 import com.sf.tadami.utils.stringRes
 import android.content.ActivityNotFoundException
@@ -34,7 +35,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavHostController
 import coil3.SingletonImageLoader
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.providers.AndroidFoldersProvider
@@ -320,7 +321,7 @@ class DataPreferencesScreen(
                         return@rememberLauncherForActivityResult
                     }
 
-                    UniFile.fromUri(context, uri)?.let {
+                    Injekt.get<StorageFiles>().fromUri(uri.toString())?.let {
                         storagePrefsState.setValue(storagePrefs.copy(storageDir = it.uri.toString()))
                     }
                 }
@@ -339,7 +340,7 @@ class DataPreferencesScreen(
             }
 
             return remember(storageDirPref) {
-                val file = UniFile.fromUri(context, storageDirPref.storageDir.toUri())
+                val file = Injekt.get<StorageFiles>().fromUri(storageDirPref.storageDir.toUri().toString())
                 file?.displayablePath
             } ?: stringResource(Res.string.invalid_location, storageDirPref.storageDir)
         }

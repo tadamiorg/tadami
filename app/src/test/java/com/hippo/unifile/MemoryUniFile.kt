@@ -1,6 +1,6 @@
 package com.hippo.unifile
 
-import android.net.Uri
+import com.sf.tadami.storage.StorageFile
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -8,16 +8,15 @@ import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * An in-memory [UniFile] for the JVM tests (UniFile's constructor is package-private: hence this package). A
- * folder holds its children by name; a file its bytes. [renameSuffix] is added to a rename's name, as a storage
- * folder does with a name already taken ("<name> (1)"); [failWrites] makes every write throw. A folder's two
- * settings go to the files created in it.
+ * An in-memory [StorageFile] for the JVM tests. A folder holds its children by name; a file its bytes.
+ * [renameSuffix] is added to a rename's name, as a storage folder does with a name already taken
+ * ("<name> (1)"); [failWrites] makes every write throw. A folder's two settings go to the files created in it.
  */
 class MemoryUniFile private constructor(
     private val parent: MemoryUniFile?,
     private var fileName: String,
     private val directory: Boolean,
-) : UniFile(parent) {
+) : StorageFile() {
     private val children = linkedMapOf<String, MemoryUniFile>()
     var bytes = ByteArray(0)
     var renameSuffix = ""
@@ -32,7 +31,7 @@ class MemoryUniFile private constructor(
 
     fun folder(name: String): MemoryUniFile = MemoryUniFile(this, name, true).also { children[name] = it }
 
-    override fun createFile(displayName: String): UniFile? {
+    override fun createFile(displayName: String): StorageFile? {
         if (!directory || displayName in children) return null
         return file(displayName, ByteArray(0)).also {
             it.failWrites = failWrites
@@ -40,18 +39,16 @@ class MemoryUniFile private constructor(
         }
     }
 
-    override fun createDirectory(displayName: String): UniFile? = if (directory) children[displayName] ?: folder(displayName) else null
-    // No android.net.Uri on the JVM
-    override fun getUri(): Uri = throw UnsupportedOperationException()
-    override fun getName(): String = fileName
-    override fun getType(): String? = null
-    override fun getFilePath(): String = (parent?.filePath?.let { "$it/" } ?: "/") + fileName
-    override fun isDirectory(): Boolean = directory
-    override fun isFile(): Boolean = !directory
+    override fun createDirectory(displayName: String): StorageFile? = if (directory) children[displayName] ?: folder(displayName) else null
+    override val uri: String get() = "memory://$filePath"
+    override val name: String get() = fileName
+    override val type: String? get() = null
+    override val filePath: String get() = (parent?.filePath?.let { "$it/" } ?: "/") + fileName
+    override val parentFile: StorageFile? get() = parent
+    override val isDirectory: Boolean get() = directory
+    override val isFile: Boolean get() = !directory
     override fun lastModified(): Long = 0L
     override fun length(): Long = bytes.size.toLong()
-    override fun canRead(): Boolean = true
-    override fun canWrite(): Boolean = true
 
     override fun delete(): Boolean {
         val from = parent ?: return false
@@ -62,11 +59,9 @@ class MemoryUniFile private constructor(
 
     // A root is there; anything else while its folder holds it, the folder being there too
     override fun exists(): Boolean = parent?.let { it.children[fileName] === this && it.exists() } ?: true
-    override fun listFiles(): Array<UniFile> = children.values.toTypedArray()
-    override fun listFiles(filter: FilenameFilter?): Array<UniFile> =
-        children.values.filter { filter == null || it.fileName.let { name -> filter.accept(this, name) } }.toTypedArray()
+    override fun listFiles(): Array<StorageFile> = children.values.toTypedArray()
 
-    override fun findFile(displayName: String): UniFile? = children[displayName]
+    override fun findFile(displayName: String): StorageFile? = children[displayName]
 
     override fun renameTo(displayName: String): Boolean {
         val from = parent ?: return false
@@ -78,8 +73,6 @@ class MemoryUniFile private constructor(
         return true
     }
 
-    override fun openOutputStream(): OutputStream = openOutputStream(false)
-
     override fun openOutputStream(append: Boolean): OutputStream {
         if (failWrites) throw IOException("Write refused")
         return object : ByteArrayOutputStream() {
@@ -89,9 +82,22 @@ class MemoryUniFile private constructor(
         }
     }
 
+    override fun openOutputAt(position: Long): OutputStream {
+        if (failWrites) throw IOException("Write refused")
+        val kept = bytes.copyOf(position.toInt().coerceAtMost(bytes.size))
+        return object : ByteArrayOutputStream() {
+            override fun close() {
+                bytes = kept + toByteArray()
+            }
+        }
+    }
+
     override fun openInputStream(): InputStream = ByteArrayInputStream(bytes)
 
-    override fun createRandomAccessFile(mode: String?): UniRandomAccessFile = throw IOException("Not supported")
+    // Each instance is its own file
+    override fun equals(other: Any?): Boolean = this === other
+
+    override fun hashCode(): Int = System.identityHashCode(this)
 
     companion object {
         /** A storage folder, the root of its files. */

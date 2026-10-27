@@ -1,7 +1,7 @@
 package com.sf.tadami.data.download
 
 import android.content.Context
-import com.hippo.unifile.UniFile
+import com.sf.tadami.storage.StorageFile
 import com.sf.tadami.data.download.stream.DownloadOutput
 import com.sf.tadami.data.download.stream.DownloadedFile
 import com.sf.tadami.source.model.StreamSource
@@ -51,7 +51,7 @@ data class EpisodeMetadata(
         }
 
         /** The sidecar [file] of a downloaded episode, null when it can't be read. */
-        fun read(file: UniFile): EpisodeMetadata? {
+        fun read(file: StorageFile): EpisodeMetadata? {
             return try {
                 file.openInputStream().use { decode(it.readBytes().decodeToString()) }
             } catch (e: Exception) {
@@ -61,11 +61,11 @@ data class EpisodeMetadata(
         }
 
         /** Writes [metadata] as the sidecar of [episodeDirName] in [dir], replacing any. */
-        fun write(context: Context, dir: UniFile, episodeDirName: String, metadata: EpisodeMetadata) {
+        fun write(context: Context, dir: StorageFile, episodeDirName: String, metadata: EpisodeMetadata) {
             val name = DownloadNames.metadataFileName(episodeDirName)
             DownloadOutput.storage { dir.findFile(name)?.delete() }
             val file = DownloadOutput.getOrCreateFile(dir, name)
-            DownloadOutput.openAt(context, file, 0).use { DownloadOutput.write(it, encode(metadata).encodeToByteArray()) }
+            DownloadOutput.openAt(file, 0).use { DownloadOutput.write(it, encode(metadata).encodeToByteArray()) }
         }
     }
 }
