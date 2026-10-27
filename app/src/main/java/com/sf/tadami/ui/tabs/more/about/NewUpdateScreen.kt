@@ -1,5 +1,8 @@
 package com.sf.tadami.ui.tabs.more.about
 
+import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.Injekt
+import com.sf.tadami.BackgroundJobs
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,7 +17,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -28,7 +30,6 @@ import com.halilibo.richtext.ui.string.RichTextStringStyle
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.update.GithubUpdate
-import com.sf.tadami.notifications.appupdate.AppUpdateWorker
 import com.sf.tadami.ui.main.onboarding.InfoScreen
 import com.sf.tadami.ui.utils.padding
 
@@ -41,7 +42,6 @@ fun NewUpdateScreen(
     release: GithubUpdate,
     onDismiss: () -> Unit,
 ) {
-    val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     InfoScreen(
         icon = Icons.Outlined.NewReleases,
@@ -52,7 +52,7 @@ fun NewUpdateScreen(
             val downloadLink = release.getDownloadLink()
             // No APK attached to the release: let the user get it from the release page instead
             if (downloadLink != null) {
-                AppUpdateWorker.startNow(context, downloadLink)
+                Injekt.get<BackgroundJobs>().startAppUpdate(downloadLink)
             } else {
                 uriHandler.openUri(release.releaseLink)
             }

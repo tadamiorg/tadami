@@ -141,6 +141,8 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
 
         addSingletonFactory<DownloadPlatform> { AndroidDownloadPlatform(app) }
 
+        addSingletonFactory<BackgroundJobs> { AndroidBackgroundJobs(app) }
+
         addSingletonFactory { ExtensionManager() }
 
         // Sources

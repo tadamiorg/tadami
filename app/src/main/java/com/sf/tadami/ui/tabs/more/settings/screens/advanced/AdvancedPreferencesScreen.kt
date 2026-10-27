@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.advanced
 
+import com.sf.tadami.BackgroundJobs
 import org.jetbrains.compose.resources.StringResource
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -29,7 +30,6 @@ import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.network.utils.setDefaultSettings
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateTarget
-import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.advanced.AdBlockPreferences
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
 import com.sf.tadami.preferences.model.DataStoreState
@@ -38,7 +38,6 @@ import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.more.settings.components.PreferenceScreen
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.webview.WebViewAdBlocker
-import com.sf.tadami.ui.webview.adblock.AdBlockUpdateWorker
 import com.sf.tadami.ui.webview.adblock.FilterList
 import com.sf.tadami.utils.powerManager
 import kotlinx.coroutines.Dispatchers
@@ -103,7 +102,7 @@ class AdvancedPreferencesScreen(
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(Res.string.action_refresh_library_details),
                     onClick = {
-                        val started = LibraryUpdateWorker.startNow(context, target = LibraryUpdateTarget.DETAILS)
+                        val started = Injekt.get<BackgroundJobs>().startLibraryUpdate(target = LibraryUpdateTarget.DETAILS)
                         UiToasts.showToast(if (started) Res.string.refresh_details_starting else Res.string.update_running)
                     },
                 ),
@@ -253,7 +252,7 @@ class AdvancedPreferencesScreen(
                     subtitle = stringResource(Res.string.pref_webview_adblock_summary),
                     onValueChanged = { enabled ->
                         adBlockState.setValue(adBlock.copy(enabled = enabled))
-                        AdBlockUpdateWorker.setupTask(context, enabled)
+                        Injekt.get<BackgroundJobs>().scheduleAdBlockUpdates(enabled)
                         true
                     },
                 ),
@@ -272,7 +271,7 @@ class AdvancedPreferencesScreen(
                         val disabled = if (on) adBlock.disabledLists - list.id else adBlock.disabledLists + list.id
                         adBlockState.setValue(adBlock.copy(disabledLists = disabled))
                         // Compiled again, from the lists already downloaded when they're unchanged
-                        AdBlockUpdateWorker.startNow(context, manual = false)
+                        Injekt.get<BackgroundJobs>().startAdBlockUpdate(manual = false)
                         true
                     },
                 )
@@ -281,7 +280,7 @@ class AdvancedPreferencesScreen(
                 subtitle = updateSummary,
                 enabled = !updating,
                 onClick = {
-                    AdBlockUpdateWorker.startNow(context, manual = true)
+                    Injekt.get<BackgroundJobs>().startAdBlockUpdate(manual = true)
                     UiToasts.showToast(Res.string.pref_webview_adblock_update_started)
                 },
             ),

@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -58,7 +57,6 @@ class RestoreBackupScreen(
     fun getContent(
         restoreBackupViewModel: RestoreBackupViewModel = viewModel()
     ) {
-        val context = LocalContext.current
         val uiState by restoreBackupViewModel.uiState.collectAsState()
         Scaffold(
             topBar = {

@@ -4,7 +4,6 @@ import com.sf.tadami.utils.stringRes
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.util.fastAny
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
@@ -28,7 +27,6 @@ fun LazyListScope.episodeItems(
         items = episodes,
         key = { it.episode.id },
         contentType = { DetailsScreenItem.EPISODE }) { episodeItem ->
-        val context = LocalContext.current
         EpisodeListItem(
             title = remember(displayMode) {
                 when(displayMode){

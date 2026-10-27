@@ -12,7 +12,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import com.sf.tadami.shared.resources.Res
@@ -49,7 +48,6 @@ fun UpdatesComponent(
             }
             else{
                 val scope = rememberCoroutineScope()
-                val context = LocalContext.current
 
                 PullRefresh(
                     refreshing = isRefreshing,

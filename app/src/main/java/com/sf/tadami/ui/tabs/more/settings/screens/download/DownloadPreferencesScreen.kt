@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import org.jetbrains.compose.resources.stringResource
 import androidx.core.net.toUri
 import androidx.navigation.NavHostController
@@ -107,7 +106,6 @@ class DownloadPreferencesScreen(
         prefs: StoragePreferences,
         foldersProviders: FoldersProvider = Injekt.get()
     ): Preference.PreferenceItem.TextPreference {
-        val context = LocalContext.current
         val location = remember(prefs) {
             if (prefs.storageDir == foldersProviders.path()) return@remember null
             Injekt.get<StorageFiles>().fromUri(prefs.storageDir.toUri().toString())?.displayablePath?.let { "$it/$DOWNLOADS_DIR" }

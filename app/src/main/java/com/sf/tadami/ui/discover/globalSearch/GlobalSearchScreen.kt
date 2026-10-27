@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.discover.globalSearch
 
-import android.net.Uri
+import com.sf.tadami.utils.encodeUriComponent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -56,7 +56,7 @@ fun GlobalSearchScreen(
                 navController.navigate("${AnimeInfosRoutes.DETAILS}/${it.source}/${it.id}")
             },
             onSourceClicked = {
-                navController.navigate("${DiscoverRoutes.SEARCH}/${it.id}?initialQuery=${Uri.encode(uiState.searchQuery)}")
+                navController.navigate("${DiscoverRoutes.SEARCH}/${it.id}?initialQuery=${uiState.searchQuery.encodeUriComponent()}")
             }
         )
     }

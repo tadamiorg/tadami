@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.library
 
+import com.sf.tadami.BackgroundJobs
 import org.jetbrains.compose.resources.StringResource
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -19,7 +20,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -33,7 +33,6 @@ import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.interactors.category.GetCategories
 import com.sf.tadami.domain.category.Category
 import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
-import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
@@ -128,7 +127,6 @@ class LibraryPreferencesScreen(
         prefs: LibraryPreferences,
         categories: List<Category>
     ): Preference.PreferenceCategory {
-        val context = LocalContext.current
         // The Default category too, for the anime in no category
         val categoryItems = buildMap {
             put(Category.UNCATEGORIZED_ID.toString(), stringResource(Res.string.category_default))
@@ -154,7 +152,7 @@ class LibraryPreferencesScreen(
                                 autoUpdateInterval = it
                             )
                         )
-                        LibraryUpdateWorker.setupTask(context, it)
+                        Injekt.get<BackgroundJobs>().scheduleLibraryUpdates(it)
                         true
                     }
 
@@ -175,7 +173,7 @@ class LibraryPreferencesScreen(
                                 autoUpdateRestrictions = it
                             )
                         )
-                        LibraryUpdateWorker.setupTask(context)
+                        Injekt.get<BackgroundJobs>().scheduleLibraryUpdates()
                         true
                     }
 

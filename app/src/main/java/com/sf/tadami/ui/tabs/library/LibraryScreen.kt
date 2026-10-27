@@ -133,7 +133,7 @@ fun LibraryScreen(
     // The category shown, as the pull to refresh. Without any category, the library
     val refreshDetails: () -> Unit = {
         val category = activeTab?.category?.takeIf { categories.isNotEmpty() }
-        val started = libraryViewModel.refreshLibraryDetails(context, category?.id)
+        val started = libraryViewModel.refreshLibraryDetails(category?.id)
         val msg = when {
             !started -> stringRes(Res.string.update_running)
             category != null -> stringRes(Res.string.refresh_details_starting_category,
@@ -331,7 +331,7 @@ fun LibraryScreen(
                 onRefresh = {
                     // The category shown, as Mihon. Without any category, the library
                     val category = activeTab?.category?.takeIf { categories.isNotEmpty() }
-                    val started = libraryViewModel.refreshLibrary(context, category?.id)
+                    val started = libraryViewModel.refreshLibrary(category?.id)
                     val msgRes = when {
                         !started -> stringRes(Res.string.update_running)
                         category != null -> stringRes(Res.string.update_starting_category,

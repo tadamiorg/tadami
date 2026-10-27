@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.tabs.updates
 
-import android.app.Application
+import com.sf.tadami.BackgroundJobs
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
@@ -12,7 +12,6 @@ import com.sf.tadami.data.episode.EpisodeRepository
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
 import com.sf.tadami.data.interactors.updates.GetUpdatesInteractor
 import com.sf.tadami.domain.updates.UpdatesWithRelations
-import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.app.BasePreferences
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.ui.utils.addOrRemove
@@ -88,7 +87,7 @@ class UpdatesViewModel : ViewModel() {
 
     fun updateLibrary(): Boolean {
         toggleRefreshIndicator()
-        return LibraryUpdateWorker.startNow(Injekt.get<Application>())
+        return Injekt.get<BackgroundJobs>().startLibraryUpdate()
     }
 
     fun setUpdatesSeenStatus() {

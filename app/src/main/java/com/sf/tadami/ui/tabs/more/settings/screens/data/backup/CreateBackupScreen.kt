@@ -1,5 +1,8 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.data.backup
 
+import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.Injekt
+import com.sf.tadami.BackgroundJobs
 import org.jetbrains.compose.resources.StringResource
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -26,7 +29,6 @@ import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.backup.BackupOptions
 import com.sf.tadami.data.backup.models.BackupUtils
-import com.sf.tadami.notifications.backup.BackupCreateWorker
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.components.banners.WarningBanner
 import com.sf.tadami.ui.components.grid.LazyColumnWithAction
@@ -106,7 +108,7 @@ class CreateBackupScreen(
                 actionLabel = stringResource(Res.string.preferences_backup_create_title),
                 actionEnabled = uiState.options.canCreate(),
                 onClickAction = {
-                    if (!BackupCreateWorker.isManualJobRunning(context)) {
+                    if (!Injekt.get<BackgroundJobs>().isManualBackupRunning()) {
                         try {
                             chooseBackupDir.launch(BackupUtils.getFilename())
                         } catch (e: ActivityNotFoundException) {

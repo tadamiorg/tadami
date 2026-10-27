@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.tabs.library
 
-import android.content.Context
+import com.sf.tadami.BackgroundJobs
 import androidx.lifecycle.ViewModel
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -16,7 +16,6 @@ import com.sf.tadami.domain.anime.LibraryAnime
 import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.domain.category.Category
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateTarget
-import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
 import com.sf.tadami.preferences.app.BasePreferences
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.ui.category.CategoryCheckbox
@@ -130,14 +129,14 @@ class LibraryViewModel : ViewModel() {
         }
     }
     // The anime of [categoryId] only, null for the whole library
-    fun refreshLibrary(context: Context, categoryId: Long?): Boolean {
+    fun refreshLibrary(categoryId: Long?): Boolean {
         toggleRefreshIndicator()
-        return LibraryUpdateWorker.startNow(context, categoryId)
+        return Injekt.get<BackgroundJobs>().startLibraryUpdate(categoryId)
     }
 
     // The details and covers of the anime of [categoryId] only, null for the whole library
-    fun refreshLibraryDetails(context: Context, categoryId: Long?): Boolean {
-        return LibraryUpdateWorker.startNow(context, categoryId, LibraryUpdateTarget.DETAILS)
+    fun refreshLibraryDetails(categoryId: Long?): Boolean {
+        return Injekt.get<BackgroundJobs>().startLibraryUpdate(categoryId, LibraryUpdateTarget.DETAILS)
     }
 
     fun toggleSelected(libraryItem: LibraryItem, selected: Boolean) {

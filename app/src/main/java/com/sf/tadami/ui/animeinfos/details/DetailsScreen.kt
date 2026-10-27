@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.animeinfos.details
 
-import android.net.Uri
+import com.sf.tadami.utils.encodeUriComponent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -283,7 +283,7 @@ fun DetailsScreen(
                 },
                 onTitleSearch = { query ->
                     // Encoded so a '&', '#' or '%' in the title can't break the route, navigation decodes it
-                    navHostController.navigate("${DiscoverRoutes.GLOBAL_SEARCH}?initialQuery=${Uri.encode(query)}")
+                    navHostController.navigate("${DiscoverRoutes.GLOBAL_SEARCH}?initialQuery=${query.encodeUriComponent()}")
                 }
             )
         }

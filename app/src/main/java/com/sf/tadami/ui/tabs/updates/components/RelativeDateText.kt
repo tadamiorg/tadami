@@ -1,7 +1,6 @@
 package com.sf.tadami.ui.tabs.updates.components
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import org.jetbrains.compose.resources.stringResource
 import com.sf.tadami.shared.resources.Res
 import com.sf.tadami.shared.resources.*
@@ -12,7 +11,6 @@ import java.util.Date
 fun relativeDateText(
     date: Date?,
 ): String {
-    val context = LocalContext.current
 
     return date
         ?.toRelativeString()

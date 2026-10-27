@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.data
 
+import com.sf.tadami.BackgroundJobs
 import com.sf.tadami.storage.StorageFiles
 import org.jetbrains.compose.resources.StringResource
 import com.sf.tadami.utils.stringRes
@@ -41,8 +42,6 @@ import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.providers.FoldersProvider
 import com.sf.tadami.navigation.graphs.settings.DataSettingsRoutes
 import com.sf.tadami.network.player.PlayerNetworkHelper
-import com.sf.tadami.notifications.backup.BackupCreateWorker
-import com.sf.tadami.notifications.backup.BackupRestoreWorker
 import com.sf.tadami.preferences.backup.BackupPreferences
 import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
@@ -165,7 +164,7 @@ class DataPreferencesScreen(
                                     modifier = Modifier.fillMaxHeight(),
                                     checked = false,
                                     onCheckedChange = {
-                                        if (!BackupRestoreWorker.isRunning(context)) {
+                                        if (!Injekt.get<BackgroundJobs>().isRestoreRunning()) {
                                             if (DeviceUtil.isMiui && DeviceUtil.isMiuiOptimizationDisabled()) {
                                                 UiToasts.showToast(Res.string.restore_miui_warning)
                                             }
@@ -202,7 +201,7 @@ class DataPreferencesScreen(
                                 autoBackupInterval = it
                             )
                         )
-                        BackupCreateWorker.setupTask(context, it)
+                        Injekt.get<BackgroundJobs>().scheduleAutoBackups(it)
                         true
                     }
                 ),
