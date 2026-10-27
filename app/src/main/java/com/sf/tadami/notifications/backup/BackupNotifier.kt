@@ -1,5 +1,7 @@
 package com.sf.tadami.notifications.backup
 
+import com.sf.tadami.utils.pluralRes
+import com.sf.tadami.utils.stringRes
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -8,6 +10,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
 import com.hippo.unifile.UniFile
 import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.ui.utils.getUriCompat
@@ -38,7 +42,7 @@ class BackupNotifier(private val context: Context) {
 
     fun showBackupProgress(): NotificationCompat.Builder {
         val builder = with(progressNotificationBuilder) {
-            setContentTitle(context.getString(R.string.creating_backup))
+            setContentTitle(stringRes(Res.string.creating_backup))
             setProgress(0,0,true)
             setForegroundServiceBehavior(FOREGROUND_SERVICE_IMMEDIATE)
         }
@@ -49,7 +53,7 @@ class BackupNotifier(private val context: Context) {
         context.cancelNotification(Notifications.BACKUP_PROGRESS_ID)
 
         with(completeNotificationBuilder) {
-            setContentTitle(context.getString(R.string.creating_backup_error))
+            setContentTitle(stringRes(Res.string.creating_backup_error))
             setContentText(error)
         }.show(Notifications.BACKUP_COMPLETE_ID)
     }
@@ -61,7 +65,7 @@ class BackupNotifier(private val context: Context) {
         NotificationCompat.Builder(context, Notifications.BACKUP_RESTORE_COMPLETE_CHANNEL).apply {
             setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
             setSmallIcon(R.drawable.ic_tada)
-            setContentTitle(context.getString(R.string.creating_auto_backup_error))
+            setContentTitle(stringRes(Res.string.creating_auto_backup_error))
             setContentText(error)
             setStyle(NotificationCompat.BigTextStyle().bigText(error))
             setContentIntent(openBackupSettingsPendingActivity())
@@ -87,13 +91,13 @@ class BackupNotifier(private val context: Context) {
         context.cancelNotification(Notifications.BACKUP_PROGRESS_ID)
 
         with(completeNotificationBuilder) {
-            setContentTitle(context.getString(R.string.backup_created))
+            setContentTitle(stringRes(Res.string.backup_created))
             setContentText(unifile.filePath ?: unifile.name)
 
             clearActions()
             addAction(
                 R.drawable.ic_share,
-                context.getString(R.string.action_share),
+                stringRes(Res.string.action_share),
                 BackupReceiver.shareBackupPendingActivity(context, unifile.uri),
             )
         }.show(Notifications.BACKUP_COMPLETE_ID)
@@ -101,7 +105,7 @@ class BackupNotifier(private val context: Context) {
 
     fun showRestoreProgress(
         content: String = "",
-        contentTitle: String = context.getString(R.string.restoring_backup),
+        contentTitle: String = stringRes(Res.string.restoring_backup),
         progress: Int = 0,
         maxAmount: Int = 100,
     ): NotificationCompat.Builder {
@@ -116,7 +120,7 @@ class BackupNotifier(private val context: Context) {
             clearActions()
             addAction(
                 R.drawable.ic_close,
-                context.getString(R.string.action_cancel),
+                stringRes(Res.string.action_cancel),
                 BackupReceiver.cancelRestorePendingBroadcast(context, Notifications.RESTORE_PROGRESS_ID),
             )
         }
@@ -130,7 +134,7 @@ class BackupNotifier(private val context: Context) {
         context.cancelNotification(Notifications.RESTORE_PROGRESS_ID)
 
         with(completeNotificationBuilder) {
-            setContentTitle(context.getString(R.string.restoring_backup_error))
+            setContentTitle(stringRes(Res.string.restoring_backup_error))
             setContentText(error)
 
             show(Notifications.RESTORE_COMPLETE_ID)
@@ -142,12 +146,11 @@ class BackupNotifier(private val context: Context) {
         errorCount: Int,
         path: String?,
         file: String?,
-        contentTitle: String = context.getString(R.string.restore_completed),
+        contentTitle: String = stringRes(Res.string.restore_completed),
     ) {
         context.cancelNotification(Notifications.RESTORE_PROGRESS_ID)
 
-        val timeString = context.getString(
-            R.string.restore_duration,
+        val timeString = stringRes(Res.string.restore_duration,
             TimeUnit.MILLISECONDS.toMinutes(time),
             TimeUnit.MILLISECONDS.toSeconds(time) - TimeUnit.MINUTES.toSeconds(
                 TimeUnit.MILLISECONDS.toMinutes(time),
@@ -157,8 +160,7 @@ class BackupNotifier(private val context: Context) {
         with(completeNotificationBuilder) {
             setContentTitle(contentTitle)
             setContentText(
-                context.resources.getQuantityString(
-                    R.plurals.restore_completed_message,
+                pluralRes(Res.plurals.restore_completed_message,
                     errorCount,
                     timeString,
                     errorCount,
@@ -174,7 +176,7 @@ class BackupNotifier(private val context: Context) {
                 setContentIntent(errorLogIntent)
                 addAction(
                     R.drawable.ic_folder,
-                    context.getString(R.string.tap_see_details),
+                    stringRes(Res.string.tap_see_details),
                     errorLogIntent,
                 )
             }

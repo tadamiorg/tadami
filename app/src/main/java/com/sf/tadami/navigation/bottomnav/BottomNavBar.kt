@@ -12,7 +12,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -89,7 +89,7 @@ fun RowScope.AddItem(
         },
         label = {
             Text(
-                text = stringResource(id = item.name),
+                text = stringResource(item.name),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

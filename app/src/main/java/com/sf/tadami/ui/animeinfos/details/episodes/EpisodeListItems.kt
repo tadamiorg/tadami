@@ -1,11 +1,13 @@
 package com.sf.tadami.ui.animeinfos.details.episodes
 
+import com.sf.tadami.utils.stringRes
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.util.fastAny
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.ui.animeinfos.details.DetailsScreenItem
 import com.sf.tadami.ui.components.data.EpisodeItem
@@ -31,7 +33,7 @@ fun LazyListScope.episodeItems(
             title = remember(displayMode) {
                 when(displayMode){
                     is Anime.DisplayMode.NAME -> episodeItem.episode.name
-                    is Anime.DisplayMode.NUMBER -> "${context.getString(R.string.player_screen_episode_label)} ${episodeItem.episode.episodeNumber}"
+                    is Anime.DisplayMode.NUMBER -> "${stringRes(Res.string.player_screen_episode_label)} ${episodeItem.episode.episodeNumber}"
                     else -> episodeItem.episode.name
                 }
             },

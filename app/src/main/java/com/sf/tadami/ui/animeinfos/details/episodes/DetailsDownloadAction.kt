@@ -18,7 +18,7 @@ enum class DetailsDownloadAction(val count: Int? = null) {
  * The episodes [action] downloads, in watch order (the list shows the newest first), among those
  * the seen filter displays. The next N are the first unseen ones not downloaded nor queued yet.
  */
-internal fun List<EpisodeItem>.episodesToDownload(
+public fun List<EpisodeItem>.episodesToDownload(
     action: DetailsDownloadAction,
     unseenFilter: Long?,
 ): List<Episode> {

@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.animeinfos.details.infos
 
-import androidx.annotation.StringRes
+import org.jetbrains.compose.resources.StringResource
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -37,12 +37,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.anime.AnimeCoverData
 import com.sf.tadami.source.model.SAnimeStatus
 import com.sf.tadami.ui.components.modal.ModalAction
@@ -72,9 +73,9 @@ fun AnimeAndSourceTitles(
     revealed?.let { info ->
         TadaDialog(
             onDismissRequest = { revealed = null },
-            title = stringResource(id = info.titleRes),
+            title = stringResource(info.titleRes),
             dismiss = null,
-            confirm = ModalAction(stringResource(id = android.R.string.ok)) { revealed = null },
+            confirm = ModalAction(stringResource(Res.string.ok)) { revealed = null },
         ) {
             ModalBodyText(info.text)
         }
@@ -109,18 +110,18 @@ fun AnimeAndSourceTitles(
             )
             Spacer(modifier = Modifier.height(2.dp))
             // Studio (primary metadata line)
-            val studioText = studio?.takeIf { it.isNotBlank() } ?: stringResource(id = R.string.unknown_studio)
+            val studioText = studio?.takeIf { it.isNotBlank() } ?: stringResource(Res.string.unknown_studio)
             IconTextRow(
                 icon = Icons.Filled.Brush,
                 text = studioText,
-                onClick = { revealed = RevealedInfo(R.string.anime_info_studio, studioText) },
+                onClick = { revealed = RevealedInfo(Res.string.anime_info_studio, studioText) },
             )
             // Author (secondary metadata line)
             if (!author.isNullOrBlank() && author != studio) {
                 IconTextRow(
                     icon = Icons.Filled.PersonOutline,
                     text = author,
-                    onClick = { revealed = RevealedInfo(R.string.anime_info_author, author) },
+                    onClick = { revealed = RevealedInfo(Res.string.anime_info_author, author) },
                 )
             }
             // Release date (no reveal dialog — plain row)
@@ -151,7 +152,7 @@ fun AnimeAndSourceTitles(
                 )
                 ProvideTextStyle(MaterialTheme.typography.bodyMedium) {
                     Text(
-                        text = stringResource(id = status.stringResId()),
+                        text = stringResource(status.stringResId()),
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1,
                     )
@@ -178,7 +179,7 @@ fun AnimeAndSourceTitles(
 }
 
 /** Data backing the reveal dialog: a localized field title + the full value to display. */
-private data class RevealedInfo(@StringRes val titleRes: Int, val text: String)
+private data class RevealedInfo(val titleRes: StringResource, val text: String)
 
 /**
  * A metadata row (studio / author / release): a single ellipsized line. When [onClick] is provided
@@ -213,12 +214,12 @@ private fun IconTextRow(
     }
 }
 
-fun SAnimeStatus.stringResId(): Int = when (this) {
-    SAnimeStatus.ONGOING -> R.string.status_ongoing
-    SAnimeStatus.COMPLETED -> R.string.status_completed
-    SAnimeStatus.ON_HIATUS -> R.string.status_on_hiatus
-    SAnimeStatus.CANCELLED -> R.string.status_cancelled
-    SAnimeStatus.UNKNOWN -> R.string.status_unknown
+fun SAnimeStatus.stringResId(): StringResource = when (this) {
+    SAnimeStatus.ONGOING -> Res.string.status_ongoing
+    SAnimeStatus.COMPLETED -> Res.string.status_completed
+    SAnimeStatus.ON_HIATUS -> Res.string.status_on_hiatus
+    SAnimeStatus.CANCELLED -> Res.string.status_cancelled
+    SAnimeStatus.UNKNOWN -> Res.string.status_unknown
 }
 
 fun SAnimeStatus.icon(): ImageVector = when (this) {

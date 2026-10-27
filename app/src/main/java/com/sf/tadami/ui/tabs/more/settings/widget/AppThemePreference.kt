@@ -33,11 +33,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeCover
 import com.sf.tadami.ui.themes.AppTheme
 import com.sf.tadami.ui.themes.TadamiTheme
@@ -45,7 +46,7 @@ import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.secondaryItemAlpha
 
 @Composable
-internal fun AppThemePreference(
+public fun AppThemePreference(
     value: AppTheme,
     amoled: Boolean,
     customPrefsVerticalPadding : Dp? = null,
@@ -162,7 +163,7 @@ fun AppThemePreviewItem(
                 if (selected) {
                     Icon(
                         imageVector = Icons.Filled.CheckCircle,
-                        contentDescription = stringResource(R.string.stub_text),
+                        contentDescription = stringResource(Res.string.stub_text),
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }

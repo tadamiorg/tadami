@@ -14,8 +14,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.ui.components.banners.WarningBanner
@@ -49,7 +50,7 @@ fun ExtensionContent(
         if (state.safeMode) {
             item(key = "extension-safe-mode") {
                 Column {
-                    WarningBanner(textRes = R.string.ext_safe_mode_banner)
+                    WarningBanner(textRes = Res.string.ext_safe_mode_banner)
                     Button(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -60,7 +61,7 @@ fun ExtensionContent(
                         onClick = onLoadExtensionsAgain,
                     ) {
                         Text(
-                            text = stringResource(R.string.ext_safe_mode_load),
+                            text = stringResource(Res.string.ext_safe_mode_load),
                             color = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
@@ -71,7 +72,7 @@ fun ExtensionContent(
         if (state.legacyPackages.isNotEmpty()) {
             item(key = "extension-legacy-packages") {
                 WarningBanner(
-                    textRes = R.string.ext_legacy_packages_banner,
+                    textRes = Res.string.ext_legacy_packages_banner,
                     modifier = Modifier.clickable { onRemoveLegacyPackages() },
                 )
             }
@@ -85,11 +86,11 @@ fun ExtensionContent(
                 when (header) {
                     is ExtensionUiModel.Header.Resource -> {
                         val action: @Composable RowScope.() -> Unit =
-                            if (header.textRes == R.string.ext_updates_pending) {
+                            if (header.textRes == Res.string.ext_updates_pending) {
                                 {
                                     Button(onClick = { onClickUpdateAll() }) {
                                         Text(
-                                            text = stringResource(R.string.ext_update_all),
+                                            text = stringResource(Res.string.ext_update_all),
                                             style = LocalTextStyle.current.copy(
                                                 color = MaterialTheme.colorScheme.onPrimary,
                                             ),

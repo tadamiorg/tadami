@@ -1,16 +1,17 @@
 package com.sf.tadami.ui.discover.migrate.dialog
 
-import androidx.annotation.StringRes
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.StringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 
 
 data class MigrationFlag(
     val flag: Int,
     val isDefaultSelected: Boolean,
-    @StringRes val titleId: Int,
+    val titleId: StringResource,
 ) {
     companion object {
-        fun create(flag: Int, isDefaultSelected : Boolean = false, @StringRes titleId: Int): MigrationFlag {
+        fun create(flag: Int, isDefaultSelected : Boolean = false, titleId: StringResource): MigrationFlag {
             return MigrationFlag(
                 flag = flag,
                 isDefaultSelected = isDefaultSelected,
@@ -41,10 +42,10 @@ object MigrationFlags {
     /** [hasDownloads]: the old anime has downloaded episodes, deleted on a move when chosen. */
     fun getFlags(hasDownloads: Boolean) : List<MigrationFlag>{
         val flags = mutableListOf<MigrationFlag>()
-        flags += MigrationFlag.create(EPISODES, true, R.string.label_episodes)
-        flags += MigrationFlag.create(CATEGORIES, true, R.string.label_categories)
+        flags += MigrationFlag.create(EPISODES, true, Res.string.label_episodes)
+        flags += MigrationFlag.create(CATEGORIES, true, Res.string.label_categories)
         if (hasDownloads) {
-            flags += MigrationFlag.create(DELETE_DOWNLOADED, false, R.string.migration_delete_downloaded)
+            flags += MigrationFlag.create(DELETE_DOWNLOADED, false, Res.string.migration_delete_downloaded)
         }
         return flags
     }

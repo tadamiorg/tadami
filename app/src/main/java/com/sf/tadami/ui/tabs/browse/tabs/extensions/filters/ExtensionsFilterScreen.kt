@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions.filters
 
-import android.annotation.SuppressLint
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,13 +11,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExtensionsFilterScreen(
@@ -33,7 +32,7 @@ fun ExtensionsFilterScreen(
             TadaTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.label_extensions),
+                        text = stringResource(Res.string.label_extensions),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },

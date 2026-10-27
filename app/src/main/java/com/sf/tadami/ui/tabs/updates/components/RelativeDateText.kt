@@ -2,8 +2,9 @@ package com.sf.tadami.ui.tabs.updates.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.utils.toRelativeString
 import java.util.Date
 
@@ -17,5 +18,5 @@ fun relativeDateText(
         ?.toRelativeString(
             context = context,
         )
-        ?: stringResource(R.string.stub_text)
+        ?: stringResource(Res.string.stub_text)
 }

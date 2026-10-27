@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import com.sf.tadami.ui.components.widgets.ContentLoader
 import com.sf.tadami.ui.tabs.more.settings.widget.TogglePreference
 
@@ -26,7 +26,7 @@ fun ExtensionsFilterComponent(
             items(successState.languages) { language ->
                 TogglePreference(
                     modifier = Modifier.animateItem(),
-                    title = stringResource(id = language.getRes()) ,
+                    title = stringResource(language.res) ,
                     checked = language.name in successState.enabledLanguages,
                     onCheckedChanged = { onClickToggle(language.name) },
                 )

@@ -4,7 +4,7 @@ import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
 import android.os.Message
-import android.util.Log
+import com.sf.tadami.utils.Log
 import android.view.View
 import android.webkit.JsPromptResult
 import android.webkit.JsResult
@@ -13,8 +13,7 @@ import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
-import android.widget.Toast
-import androidx.activity.compose.BackHandler
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,7 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -68,8 +67,9 @@ import com.kevinnzou.web.WebContent
 import com.kevinnzou.web.WebView
 import com.kevinnzou.web.WebViewNavigator
 import com.kevinnzou.web.WebViewState
-import com.sf.tadami.BuildConfig
-import com.sf.tadami.R
+import com.sf.tadami.AppBuildInfo
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.network.utils.CLOUDFLARE_CHALLENGE_PROBE
 import com.sf.tadami.network.utils.applyUserAgent
 import com.sf.tadami.network.utils.setDefaultSettings
@@ -198,7 +198,7 @@ fun WebviewScreen(
     fun onRendererGone(window: WebViewWindow) {
         if (!rendererGoneReported) {
             rendererGoneReported = true
-            UiToasts.showToast(R.string.information_webview_crashed, Toast.LENGTH_LONG)
+            UiToasts.showToast(Res.string.information_webview_crashed, UiToasts.LENGTH_LONG)
         }
         // Its WebView is no use anymore: a popup closes, the page the screen opened closes the screen
         if (window === windows.firstOrNull()) onNavigateUp() else closeWindow(window)
@@ -510,14 +510,14 @@ fun WebviewScreen(
                             listOfNotNull(
                                 // Shown while a popup is open: back to the page below it
                                 Action.Vector(
-                                    title = R.string.action_webview_close_window,
+                                    title = Res.string.action_webview_close_window,
                                     icon = Icons.Outlined.CancelPresentation,
                                     onClick = {
                                         closeWindow(currentWindow)
                                     },
                                 ).takeIf { windows.size > 1 },
                                 Action.Vector(
-                                    title = R.string.stub_text,
+                                    title = Res.string.stub_text,
                                     icon = Icons.AutoMirrored.Outlined.ArrowBack,
                                     onClick = {
                                         if (navigator.canGoBack) {
@@ -527,7 +527,7 @@ fun WebviewScreen(
                                     enabled = navigator.canGoBack,
                                 ),
                                 Action.Vector(
-                                    title = R.string.stub_text,
+                                    title = Res.string.stub_text,
                                     icon = Icons.AutoMirrored.Outlined.ArrowForward,
                                     onClick = {
                                         if (navigator.canGoForward) {
@@ -537,30 +537,30 @@ fun WebviewScreen(
                                     enabled = navigator.canGoForward,
                                 ),
                                 Action.DropDownDrawable(
-                                    title = R.string.stub_text,
-                                    icon = R.drawable.ic_vertical_settings,
+                                    title = Res.string.stub_text,
+                                    icon = Res.drawable.ic_vertical_settings,
                                     items =
                                     listOf(
                                         DropDownAction(
-                                            title = stringResource(id = R.string.refresh),
+                                            title = stringResource(Res.string.refresh),
                                             onClick = {
                                                 currentWebView()?.reload()
                                             }
                                         ),
                                         DropDownAction(
-                                            title = stringResource(id = R.string.action_open_in_browser),
+                                            title = stringResource(Res.string.action_open_in_browser),
                                             onClick = {
                                                 onOpenInBrowser(currentUrl)
                                             }
                                         ),
                                         DropDownAction(
-                                            title = stringResource(id = R.string.pref_clear_cookies),
+                                            title = stringResource(Res.string.pref_clear_cookies),
                                             onClick = {
                                                 onClearCookies(currentUrl)
                                             }
                                         ),
                                         DropDownAction(
-                                            title = stringResource(id = R.string.action_webview_block_ads),
+                                            title = stringResource(Res.string.action_webview_block_ads),
                                             checked = adBlockOn,
                                             onClick = {
                                                 adBlockOn = !adBlockOn
@@ -626,7 +626,7 @@ fun WebviewScreen(
                             webView.settings.javaScriptCanOpenWindowsAutomatically = true
 
                             // Debug mode (chrome://inspect/#devices)
-                            if (BuildConfig.DEBUG &&
+                            if (AppBuildInfo.DEBUG &&
                                 0 != webView.context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE
                             ) {
                                 WebView.setWebContentsDebuggingEnabled(true)
@@ -681,13 +681,13 @@ private fun ChallengeBanner(solved: Boolean, onDone: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = stringResource(if (solved) R.string.webview_challenge_solved else R.string.webview_challenge_pending),
+                text = stringResource(if (solved) Res.string.webview_challenge_solved else Res.string.webview_challenge_pending),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f),
             )
             if (solved) {
                 TextButton(onClick = onDone) {
-                    Text(text = stringResource(R.string.webview_challenge_done))
+                    Text(text = stringResource(Res.string.webview_challenge_done))
                 }
             }
         }
@@ -706,12 +706,12 @@ private fun AdBlockerHint(onTurnOff: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = stringResource(R.string.webview_cloudflare_adblock_hint),
+                text = stringResource(Res.string.webview_cloudflare_adblock_hint),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f),
             )
             TextButton(onClick = onTurnOff) {
-                Text(text = stringResource(R.string.webview_cloudflare_adblock_turn_off))
+                Text(text = stringResource(Res.string.webview_cloudflare_adblock_turn_off))
             }
         }
     }

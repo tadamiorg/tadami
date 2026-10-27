@@ -19,10 +19,12 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.utils.secondaryItemAlpha
 import kotlin.math.roundToInt
 
@@ -74,7 +76,7 @@ fun AnimeDescription(
                     Icon(
                         painter = rememberAnimatedVectorPainter(image, !expanded),
                         contentDescription = stringResource(
-                            R.string.stub_text,
+                            Res.string.stub_text,
                         ),
                         tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.background(Brush.radialGradient(colors = colors.asReversed())),

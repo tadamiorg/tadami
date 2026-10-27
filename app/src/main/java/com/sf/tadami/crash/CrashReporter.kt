@@ -2,7 +2,7 @@ package com.sf.tadami.crash
 
 import android.content.Context
 import android.os.Build
-import com.sf.tadami.BuildConfig
+import com.sf.tadami.AppBuildInfo
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.ui.utils.getUriCompat
@@ -94,9 +94,9 @@ object CrashReporter {
             val log = CrashLog(
                 stacktrace = throwable.stackTraceToString().take(MAX_STACKTRACE_LENGTH),
                 logs = CrashLogBuffer.snapshot(),
-                versionName = BuildConfig.VERSION_NAME,
-                versionCode = BuildConfig.VERSION_CODE,
-                buildDate = BuildConfig.BUILD_DATE,
+                versionName = AppBuildInfo.VERSION_NAME,
+                versionCode = AppBuildInfo.VERSION_CODE,
+                buildDate = AppBuildInfo.BUILD_DATE,
                 androidVersion = "${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT}; build ${Build.DISPLAY})",
                 device = "${Build.MANUFACTURER} ${Build.BRAND} ${Build.MODEL} (${Build.DEVICE}, ${Build.PRODUCT})",
                 webView = runCatching { WebViewUtil.getVersion(context) }.getOrDefault("?"),
@@ -122,7 +122,7 @@ object CrashReporter {
     fun readPending(context: Context): CrashLog? = runCatching {
         val file = crashFile(context).takeIf { it.exists() } ?: return null
         val log = json.decodeFromString(CrashLog.serializer(), file.readText())
-        if (isExpired(log, System.currentTimeMillis(), BuildConfig.VERSION_CODE)) {
+        if (isExpired(log, System.currentTimeMillis(), AppBuildInfo.VERSION_CODE)) {
             file.delete()
             return null
         }
@@ -136,7 +136,7 @@ object CrashReporter {
     }
 
     /** Too old, or from another version of the app, whose code may have changed since. */
-    internal fun isExpired(log: CrashLog, now: Long, versionCode: Int): Boolean =
+    public fun isExpired(log: CrashLog, now: Long, versionCode: Int): Boolean =
         log.versionCode != versionCode || now - log.timestamp > MAX_REPORT_AGE_MS
 
     fun clearPending(context: Context) {

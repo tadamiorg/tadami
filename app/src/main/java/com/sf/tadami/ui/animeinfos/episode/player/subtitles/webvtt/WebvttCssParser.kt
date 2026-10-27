@@ -12,7 +12,7 @@ import com.google.common.base.Ascii
 import java.util.regex.Pattern
 
 @UnstableApi
-internal class WebvttCssParser {
+public class WebvttCssParser {
     // Temporary utility data structures.
     private val styleInput = ParsableByteArray()
     private val stringBuilder = StringBuilder()

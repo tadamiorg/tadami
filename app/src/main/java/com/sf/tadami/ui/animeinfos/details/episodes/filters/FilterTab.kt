@@ -2,9 +2,10 @@ package com.sf.tadami.ui.animeinfos.details.episodes.filters
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.state.ToggleableState
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.ui.components.filters.TriStateItem
 import com.sf.tadami.ui.tabs.library.bottomsheet.setFlags
@@ -15,13 +16,13 @@ fun FilterTab(anime: Anime, downloadedOnly: Boolean, setFilters: (filterFlags: L
         // Forced by the downloaded only mode, not a filter of the anime
         if (downloadedOnly) {
             TriStateItem(
-                label = stringResource(id = R.string.filter_downloaded),
+                label = stringResource(Res.string.filter_downloaded),
                 state = ToggleableState.On,
                 enabled = false,
             ) {}
         }
         TriStateItem(
-            label = stringResource(id = R.string.filter_unseen),
+            label = stringResource(Res.string.filter_unseen),
             state = anime.unseenFilter
         ) {
             val newFilters = when (anime.unseenFilter) {

@@ -1,10 +1,11 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.model.SourcePreference
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.tabs.ApplicationTab
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.tabs.SourceTab
@@ -19,13 +20,13 @@ fun SettingsDialog(
     onDismissRequest: () -> Unit
 ) {
     val tabs = buildList {
-        add(stringResource(R.string.notification_app_group))
-        if (sourceDatastore != null) add(stringResource(R.string.label_source))
+        add(stringResource(Res.string.notification_app_group))
+        if (sourceDatastore != null) add(stringResource(Res.string.label_source))
     }
     PlayerPanel(
         visible = opened,
         onDismissRequest = onDismissRequest,
-        title = stringResource(R.string.label_settings),
+        title = stringResource(Res.string.label_settings),
         tabs = tabs,
     ) { page ->
         if (page == 0 || sourceDatastore == null) {

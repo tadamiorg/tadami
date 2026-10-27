@@ -47,15 +47,15 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
-internal val EmphasizedDecelerate = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
+public val EmphasizedDecelerate = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
 
 /** Fade + scale from [initialScale], the centred dialogs. */
-internal fun dialogEnter(initialScale: Float): EnterTransition =
+public fun dialogEnter(initialScale: Float): EnterTransition =
     fadeIn(tween(220, easing = EmphasizedDecelerate)) +
         scaleIn(tween(220, easing = EmphasizedDecelerate), initialScale = initialScale)
 
 /** Slide in from the end, the player side panel. */
-internal fun slideFromEndEnter(): EnterTransition =
+public fun slideFromEndEnter(): EnterTransition =
     fadeIn(tween(250)) + slideInHorizontally(tween(250, easing = EmphasizedDecelerate)) { it / 2 }
 
 /**

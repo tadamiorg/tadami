@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.components.modal
 
-import androidx.activity.compose.BackHandler
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.MutableTransitionState
@@ -52,12 +52,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import kotlinx.coroutines.launch
 
 /**
@@ -148,7 +149,7 @@ fun PlayerPanel(
                             modifier = Modifier.padding(start = 4.dp, end = 12.dp, top = 8.dp, bottom = 4.dp),
                         ) {
                             IconButton(onClick = onDismissRequest) {
-                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close))
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(Res.string.action_close))
                             }
                             Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                         }

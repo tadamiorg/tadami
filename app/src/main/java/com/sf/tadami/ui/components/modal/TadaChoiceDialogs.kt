@@ -8,9 +8,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 
 data class ChoiceOption<T>(
     val value: T,
@@ -63,7 +64,7 @@ fun <T> TadaMultiChoiceDialog(
     onConfirm: (Set<T>) -> Unit,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
-    confirmLabel: String = stringResource(android.R.string.ok),
+    confirmLabel: String = stringResource(Res.string.ok),
     confirmEnabled: (Set<T>) -> Boolean = { true },
 ) {
     var selection by remember { mutableStateOf(selected) }
@@ -72,7 +73,7 @@ fun <T> TadaMultiChoiceDialog(
         title = title,
         modifier = modifier,
         padBody = false,
-        dismiss = ModalAction(stringResource(R.string.action_cancel), onClick = onDismissRequest),
+        dismiss = ModalAction(stringResource(Res.string.action_cancel), onClick = onDismissRequest),
         confirm = ModalAction(confirmLabel, enabled = confirmEnabled(selection)) { onConfirm(selection) },
     ) {
         options.forEach { option ->

@@ -47,7 +47,7 @@ class BackupReceiver : BroadcastReceiver() {
             )
         }
 
-        internal fun openErrorLogPendingActivity(context: Context, uri: Uri): PendingIntent {
+        public fun openErrorLogPendingActivity(context: Context, uri: Uri): PendingIntent {
             val intent = Intent().apply {
                 action = Intent.ACTION_VIEW
                 setDataAndType(uri, "text/plain")

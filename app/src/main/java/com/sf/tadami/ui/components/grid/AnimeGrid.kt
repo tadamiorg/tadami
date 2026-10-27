@@ -1,5 +1,7 @@
 package com.sf.tadami.ui.components.grid
 
+import com.sf.tadami.utils.stringRes
+
 import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -37,13 +39,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.anime.toAnime
 import com.sf.tadami.network.CloudflareChallengeException
@@ -105,8 +108,8 @@ fun AnimeGrid(
         if (animeList.itemCount > 0 && errorState != null && errorState is LoadState.Error) {
             val result = snackbarHostState.showSnackbar(
                 message = getErrorMessage(errorState),
-                actionLabel = context.getString(
-                    if (challengeUrl != null) R.string.action_open_in_webview else R.string.retry,
+                actionLabel = stringRes(
+                    if (challengeUrl != null) Res.string.action_open_in_webview else Res.string.retry,
                 ),
                 duration = SnackbarDuration.Indefinite,
             )
@@ -163,13 +166,13 @@ fun AnimeGrid(
                 actions = listOfNotNull(
                     challengeUrl?.let { url ->
                         EmptyScreenAction(
-                            stringResId = R.string.action_open_in_webview,
+                            stringResId = Res.string.action_open_in_webview,
                             icon = Icons.Outlined.Public,
                             onClick = { onOpenInWebView?.invoke(url) }
                         )
                     },
                     EmptyScreenAction(
-                        stringResId = R.string.refresh,
+                        stringResId = Res.string.refresh,
                         icon = Icons.Outlined.Refresh,
                         onClick = animeList::retry
                     )
@@ -272,16 +275,16 @@ fun LibraryAnimeGrid(
         }
         if (librarySize <= 0 && initLoaded) {
             EmptyScreen(
-                message = stringResource(id = R.string.empty_library_title), actions = listOf(
+                message = stringResource(Res.string.empty_library_title), actions = listOf(
                     EmptyScreenAction(
-                        stringResId = R.string.empty_library_action,
+                        stringResId = Res.string.empty_library_action,
                         icon = Icons.AutoMirrored.Outlined.ArrowForward,
                         onClick = onEmptyRefreshClicked
                     )
                 )
             )
         } else if (categoryEmpty && initLoaded) {
-            EmptyScreen(message = stringResource(id = R.string.library_category_empty))
+            EmptyScreen(message = stringResource(Res.string.library_category_empty))
         }
     }
 }

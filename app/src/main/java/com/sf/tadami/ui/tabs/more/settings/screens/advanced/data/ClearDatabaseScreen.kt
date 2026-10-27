@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.advanced.data
 
+import org.jetbrains.compose.resources.StringResource
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -35,8 +36,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastMap
@@ -44,7 +45,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.interactors.sources.GetSourcesWithNonLibraryAnime
 import com.sf.tadami.data.sources.SourceWithCount
 import com.sf.tadami.domain.source.Source
@@ -69,7 +71,7 @@ import uy.kohesive.injekt.api.get
 
 class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScreen {
 
-    override val title: Int = R.string.pref_clear_database
+    override val title: StringResource = Res.string.pref_clear_database
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 
     @Composable
@@ -85,12 +87,12 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
         val actions = remember {
             listOf(
                 Action.Vector(
-                    title = R.string.stub_text,
+                    title = Res.string.stub_text,
                     icon = Icons.Outlined.SelectAll,
                     onClick = onSelectAll,
                 ),
                 Action.Vector(
-                    title = R.string.stub_text,
+                    title = Res.string.stub_text,
                     icon = Icons.Outlined.FlipToBack,
                     onClick = onInvertSelect,
                 ),
@@ -112,14 +114,14 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
             TadaDestructiveDialog(
                 onDismissRequest = clearDatabaseViewModel::hideConfirmation,
                 title = null,
-                message = stringResource(R.string.clear_database_confirmation),
-                confirmLabel = stringResource(android.R.string.ok),
+                message = stringResource(Res.string.clear_database_confirmation),
+                confirmLabel = stringResource(Res.string.ok),
                 onConfirm = {
                     coroutineScope.launch {
                         clearDatabaseViewModel.removeAnimeBySourceIds()
                         clearDatabaseViewModel.clearSelection()
                         clearDatabaseViewModel.hideConfirmation()
-                        UiToasts.showToast(R.string.clear_database_completed)
+                        UiToasts.showToast(Res.string.clear_database_completed)
                     }
                 },
             )
@@ -138,7 +140,7 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
                         IconButton(onClick = backHandler) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                                contentDescription = stringResource(R.string.stub_text),
+                                contentDescription = stringResource(Res.string.stub_text),
                             )
                         }
                     },
@@ -153,7 +155,7 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
             content = { contentPadding ->
                 if (uiState.items.isEmpty()) {
                     EmptyScreen(
-                        message = stringResource(R.string.database_clean),
+                        message = stringResource(Res.string.database_clean),
                         modifier = Modifier.padding(contentPadding),
                     )
                 } else {
@@ -188,7 +190,7 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
                             enabled = uiState.selection.isNotEmpty(),
                         ) {
                             Text(
-                                text = stringResource(R.string.action_delete),
+                                text = stringResource(Res.string.action_delete),
                                 color = MaterialTheme.colorScheme.onPrimary,
                             )
                         }
@@ -224,7 +226,7 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
                 )
             } else {
                 Image(
-                    painter = source.icon?.let{BitmapPainter(image = it)} ?: painterResource(id = R.mipmap.ic_default_source),
+                    painter = source.icon?.let{BitmapPainter(image = it)} ?: painterResource(Res.drawable.ic_default_source),
                     contentDescription = null,
                     modifier = Modifier
                         .height(40.dp)
@@ -242,7 +244,7 @@ class ClearDatabaseScreen(val navController: NavHostController) : PreferenceScre
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
-                    text = stringResource(R.string.clear_database_source_item_count, count),
+                    text = stringResource(Res.string.clear_database_source_item_count, count),
                     style = MaterialTheme.typography.bodySmall
                 )
             }

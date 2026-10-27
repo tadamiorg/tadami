@@ -16,8 +16,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.source.AnimeCatalogueSource
 import com.sf.tadami.source.online.AnimeHttpSource
@@ -41,7 +42,7 @@ fun GlobalSearchComponent(
                 GlobalSearchResultItem(
                     onClick = { onSourceClicked(source) },
                     title = source.name,
-                    subtitle = stringResource(id = source.lang.getRes())
+                    subtitle = stringResource(source.lang.res)
                 ) {
                     when (result) {
                         GlobalSearchItemResult.Loading -> {
@@ -50,7 +51,7 @@ fun GlobalSearchComponent(
                         is GlobalSearchItemResult.Success -> {
                             if (result.isEmpty) {
                                 Text(
-                                    text = stringResource(R.string.pager_no_results),
+                                    text = stringResource(Res.string.pager_no_results),
                                     style = MaterialTheme.typography.labelMedium,
                                     modifier = Modifier
                                         .padding(

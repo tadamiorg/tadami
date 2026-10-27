@@ -15,9 +15,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.themes.colorschemes.active
 import com.sf.tadami.ui.utils.padding
 
@@ -49,15 +50,14 @@ fun EpisodesHeader(
         val filterTint = if(isFiltered == true) MaterialTheme.colorScheme.active else LocalContentColor.current
         Text(
             modifier = Modifier.weight(1f),
-            text = pluralStringResource(
-                id = R.plurals.details_screen_episodes_number,
-                count = if(!filterSameSize) filteredEpisodes ?: 0 else totalEpisodes ?: 0,
+            text = pluralStringResource(Res.plurals.details_screen_episodes_number,
+                if(!filterSameSize) filteredEpisodes ?: 0 else totalEpisodes ?: 0,
                 if(!filterSameSize) filteredEpisodes ?: 0 else totalEpisodes ?: 0
             ),
             style = MaterialTheme.typography.titleMedium,
         )
         Icon(
-            painter = painterResource(id = R.drawable.ic_filter),
+            painter = painterResource(Res.drawable.ic_filter),
             tint = filterTint,
             contentDescription = null
         )

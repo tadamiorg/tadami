@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.library
 
+import org.jetbrains.compose.resources.StringResource
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -19,15 +20,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.commandiron.wheel_picker_compose.core.WheelPickerDefaults
 import com.commandiron.wheel_picker_compose.core.WheelTextPicker
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.interactors.category.GetCategories
 import com.sf.tadami.domain.category.Category
 import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
@@ -48,7 +50,7 @@ class LibraryPreferencesScreen(
     private val navController: NavHostController,
 ) : PreferenceScreen {
 
-    override val title: Int = R.string.preferences_library_title
+    override val title: StringResource = Res.string.preferences_library_title
 
     override val backHandler: (() -> Unit) = {
         navController.navigateUp()
@@ -74,18 +76,17 @@ class LibraryPreferencesScreen(
         categories: List<Category>
     ): Preference.PreferenceCategory {
         val defaultCategoryItems = buildMap {
-            put(LibraryPreferences.DEFAULT_CATEGORY_ASK, stringResource(id = R.string.preferences_library_default_category_ask))
-            put(Category.UNCATEGORIZED_ID.toInt(), stringResource(id = R.string.category_default))
+            put(LibraryPreferences.DEFAULT_CATEGORY_ASK, stringResource(Res.string.preferences_library_default_category_ask))
+            put(Category.UNCATEGORIZED_ID.toInt(), stringResource(Res.string.category_default))
             categories.forEach { put(it.id.toInt(), it.name) }
         }
         return Preference.PreferenceCategory(
-            title = stringResource(id = R.string.preferences_library_category_categories),
+            title = stringResource(Res.string.preferences_library_category_categories),
             preferenceItems = listOf(
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(id = R.string.action_edit_categories),
-                    subtitle = pluralStringResource(
-                        id = R.plurals.preferences_library_categories_count,
-                        count = categories.size,
+                    title = stringResource(Res.string.action_edit_categories),
+                    subtitle = pluralStringResource(Res.plurals.preferences_library_categories_count,
+                        categories.size,
                         categories.size
                     ),
                     onClick = { navController.navigate(SettingsRoutes.CATEGORIES) }
@@ -93,7 +94,7 @@ class LibraryPreferencesScreen(
                 Preference.PreferenceItem.SelectPreference(
                     // A category deleted meanwhile is asked for
                     value = prefs.defaultCategory.takeIf { it in defaultCategoryItems } ?: LibraryPreferences.DEFAULT_CATEGORY_ASK,
-                    title = stringResource(id = R.string.preferences_library_default_category),
+                    title = stringResource(Res.string.preferences_library_default_category),
                     items = defaultCategoryItems,
                     onValueChanged = {
                         prefState.setValue(
@@ -106,8 +107,8 @@ class LibraryPreferencesScreen(
                 ),
                 Preference.PreferenceItem.TogglePreference(
                     value = prefs.categorizedSort,
-                    title = stringResource(id = R.string.preferences_library_categorized_sort),
-                    subtitle = stringResource(id = R.string.preferences_library_categorized_sort_subtitle),
+                    title = stringResource(Res.string.preferences_library_categorized_sort),
+                    subtitle = stringResource(Res.string.preferences_library_categorized_sort_subtitle),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(
@@ -130,22 +131,22 @@ class LibraryPreferencesScreen(
         val context = LocalContext.current
         // The Default category too, for the anime in no category
         val categoryItems = buildMap {
-            put(Category.UNCATEGORIZED_ID.toString(), stringResource(id = R.string.category_default))
+            put(Category.UNCATEGORIZED_ID.toString(), stringResource(Res.string.category_default))
             categories.forEach { put(it.id.toString(), it.name) }
         }
         return Preference.PreferenceCategory(
-            title = stringResource(id = R.string.preferences_library_category_updates),
+            title = stringResource(Res.string.preferences_library_category_updates),
             preferenceItems = listOf(
                 Preference.PreferenceItem.SelectPreference(
                     value = prefs.autoUpdateInterval,
-                    title = stringResource(id = R.string.preferences_library_auto_updates),
+                    title = stringResource(Res.string.preferences_library_auto_updates),
                     items = mapOf(
-                        LibraryPreferences.AutoUpdateIntervalItems.DISABLED to stringResource(id = R.string.preferences_library_auto_updates_disabled),
-                        LibraryPreferences.AutoUpdateIntervalItems.TWELVE to stringResource(id = R.string.preferences_library_auto_updates_half_day),
-                        LibraryPreferences.AutoUpdateIntervalItems.DAILY to stringResource(id = R.string.preferences_library_auto_updates_daily),
-                        LibraryPreferences.AutoUpdateIntervalItems.DAILY_2 to stringResource(id = R.string.preferences_library_auto_updates_daily2),
-                        LibraryPreferences.AutoUpdateIntervalItems.DAILY_3 to stringResource(id = R.string.preferences_library_auto_updates_daily3),
-                        LibraryPreferences.AutoUpdateIntervalItems.WEEKLY to stringResource(id = R.string.preferences_library_auto_updates_weekly),
+                        LibraryPreferences.AutoUpdateIntervalItems.DISABLED to stringResource(Res.string.preferences_library_auto_updates_disabled),
+                        LibraryPreferences.AutoUpdateIntervalItems.TWELVE to stringResource(Res.string.preferences_library_auto_updates_half_day),
+                        LibraryPreferences.AutoUpdateIntervalItems.DAILY to stringResource(Res.string.preferences_library_auto_updates_daily),
+                        LibraryPreferences.AutoUpdateIntervalItems.DAILY_2 to stringResource(Res.string.preferences_library_auto_updates_daily2),
+                        LibraryPreferences.AutoUpdateIntervalItems.DAILY_3 to stringResource(Res.string.preferences_library_auto_updates_daily3),
+                        LibraryPreferences.AutoUpdateIntervalItems.WEEKLY to stringResource(Res.string.preferences_library_auto_updates_weekly),
                     ),
                     onValueChanged = {
                         prefState.setValue(
@@ -161,12 +162,12 @@ class LibraryPreferencesScreen(
                 Preference.PreferenceItem.MultiSelectPreference(
                     enabled = prefs.autoUpdateInterval > 0,
                     value = prefs.autoUpdateRestrictions,
-                    title = stringResource(id = R.string.preferences_library_update_restrictions),
-                    subtitle = stringResource(id = R.string.preferences_library_update_restrictions_subtitle),
+                    title = stringResource(Res.string.preferences_library_update_restrictions),
+                    subtitle = stringResource(Res.string.preferences_library_update_restrictions_subtitle),
                     items = mapOf(
-                        LibraryPreferences.AutoUpdateRestrictionItems.WIFI to stringResource(id = R.string.preferences_library_update_restrictions_wifionly),
-                        LibraryPreferences.AutoUpdateRestrictionItems.CHARGE to stringResource(id = R.string.preferences_library_update_restrictions_charge),
-                        LibraryPreferences.AutoUpdateRestrictionItems.BATTERY to stringResource(id = R.string.preferences_library_update_restrictions_battery),
+                        LibraryPreferences.AutoUpdateRestrictionItems.WIFI to stringResource(Res.string.preferences_library_update_restrictions_wifionly),
+                        LibraryPreferences.AutoUpdateRestrictionItems.CHARGE to stringResource(Res.string.preferences_library_update_restrictions_charge),
+                        LibraryPreferences.AutoUpdateRestrictionItems.BATTERY to stringResource(Res.string.preferences_library_update_restrictions_battery),
                     ).toPrefMultiCheckbox(),
                     onValueChanged = {
                         prefState.setValue(
@@ -181,8 +182,8 @@ class LibraryPreferencesScreen(
                 ),
                 Preference.PreferenceItem.TogglePreference(
                     value = prefs.autoUpdateMetadata,
-                    title = stringResource(id = R.string.preferences_library_auto_update_metadata),
-                    subtitle = stringResource(id = R.string.preferences_library_auto_update_metadata_subtitle),
+                    title = stringResource(Res.string.preferences_library_auto_update_metadata),
+                    subtitle = stringResource(Res.string.preferences_library_auto_update_metadata_subtitle),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(
@@ -194,8 +195,8 @@ class LibraryPreferencesScreen(
                 ),
                 Preference.PreferenceItem.TogglePreference(
                     value = prefs.updateTitles,
-                    title = stringResource(id = R.string.preferences_library_update_titles),
-                    subtitle = stringResource(id = R.string.preferences_library_update_titles_subtitle),
+                    title = stringResource(Res.string.preferences_library_update_titles),
+                    subtitle = stringResource(Res.string.preferences_library_update_titles_subtitle),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(
@@ -207,11 +208,11 @@ class LibraryPreferencesScreen(
                 ),
                 Preference.PreferenceItem.MultiSelectPreference(
                     value = prefs.updateCategories.filterTo(HashSet()) { it in categoryItems },
-                    title = stringResource(id = R.string.preferences_library_update_categories_include),
+                    title = stringResource(Res.string.preferences_library_update_categories_include),
                     items = categoryItems.toPrefMultiCheckbox(),
                     subtitleProvider = {
                         prefs.updateCategories.mapNotNull { categoryItems[it] }.takeIf { it.isNotEmpty() }?.joinToString()
-                            ?: stringResource(id = R.string.preferences_library_update_categories_all)
+                            ?: stringResource(Res.string.preferences_library_update_categories_all)
                     },
                     onValueChanged = {
                         prefState.setValue(
@@ -224,11 +225,11 @@ class LibraryPreferencesScreen(
                 ),
                 Preference.PreferenceItem.MultiSelectPreference(
                     value = prefs.updateCategoriesExclude.filterTo(HashSet()) { it in categoryItems },
-                    title = stringResource(id = R.string.preferences_library_update_categories_exclude),
+                    title = stringResource(Res.string.preferences_library_update_categories_exclude),
                     items = categoryItems.toPrefMultiCheckbox(),
                     subtitleProvider = {
                         prefs.updateCategoriesExclude.mapNotNull { categoryItems[it] }.takeIf { it.isNotEmpty() }?.joinToString()
-                            ?: stringResource(id = R.string.none)
+                            ?: stringResource(Res.string.none)
                     },
                     onValueChanged = {
                         prefState.setValue(
@@ -268,12 +269,12 @@ class LibraryPreferencesScreen(
         }
 
         return Preference.PreferenceCategory(
-            title = stringResource(id = R.string.preferences_library_category_display),
+            title = stringResource(Res.string.preferences_library_category_display),
             preferenceItems = listOf(
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(id = R.string.preferences_library_columns),
-                    subtitle = "${stringResource(id = R.string.portrait)}: ${prefs.portraitColumns.defaultParser()}, " +
-                            "${stringResource(id = R.string.landscape)}: ${prefs.landscapeColumns.defaultParser()}",
+                    title = stringResource(Res.string.preferences_library_columns),
+                    subtitle = "${stringResource(Res.string.portrait)}: ${prefs.portraitColumns.defaultParser()}, " +
+                            "${stringResource(Res.string.landscape)}: ${prefs.landscapeColumns.defaultParser()}",
                     onClick = { showDialog = true },
                 ),
             )
@@ -292,9 +293,9 @@ class LibraryPreferencesScreen(
 
         TadaDialog(
             onDismissRequest = onDismissRequest,
-            title = stringResource(id = R.string.preferences_library_columns),
+            title = stringResource(Res.string.preferences_library_columns),
             confirm = ModalAction(
-                stringResource(android.R.string.ok),
+                stringResource(Res.string.ok),
                 enabled = portraitValue != initialPortrait || landscapeValue != initialLandscape,
             ) {
                 onValueChanged(portraitValue, landscapeValue)
@@ -304,14 +305,14 @@ class LibraryPreferencesScreen(
                 Row {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = stringResource(R.string.portrait),
+                        text = stringResource(Res.string.portrait),
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         style = MaterialTheme.typography.labelMedium,
                     )
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = stringResource(R.string.landscape),
+                        text = stringResource(Res.string.landscape),
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         style = MaterialTheme.typography.labelMedium,

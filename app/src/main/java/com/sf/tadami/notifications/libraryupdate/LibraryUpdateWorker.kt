@@ -1,9 +1,10 @@
 package com.sf.tadami.notifications.libraryupdate
 
+import com.sf.tadami.utils.stringRes
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.os.Build
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -20,7 +21,8 @@ import androidx.work.WorkInfo
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.interactors.anime.AnimeWithEpisodesInteractor
 import com.sf.tadami.data.interactors.anime.FetchIntervalInteractor
 import com.sf.tadami.data.interactors.anime.UpdateAnimeInteractor
@@ -80,8 +82,8 @@ class LibraryUpdateWorker(
     private val target = LibraryUpdateTarget.of(params.inputData.getString(KEY_TARGET))
     private val parts = target.parts(libraryPreferences.autoUpdateMetadata)
     private val progressTitle = when (target) {
-        LibraryUpdateTarget.EPISODES -> R.string.notification_updating_library
-        LibraryUpdateTarget.DETAILS -> R.string.notification_refreshing_library_details
+        LibraryUpdateTarget.EPISODES -> Res.string.notification_updating_library
+        LibraryUpdateTarget.DETAILS -> Res.string.notification_refreshing_library_details
     }
 
     override suspend fun doWork(): Result {
@@ -158,7 +160,7 @@ class LibraryUpdateWorker(
         val skippedUpdates = mutableListOf<Pair<Anime, String?>>()
         animesToUpdate = listToUpdate.filter {
             if (it.unseenEpisodes <= 5L) return@filter true
-            skippedUpdates.add(it.toAnime() to context.getString(R.string.notification_library_update_skipped_not_caught_up))
+            skippedUpdates.add(it.toAnime() to stringRes(Res.string.notification_library_update_skipped_not_caught_up))
             false
         }
 

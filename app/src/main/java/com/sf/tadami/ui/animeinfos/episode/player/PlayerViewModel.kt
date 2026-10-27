@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode.player
 
+import com.sf.tadami.utils.stringRes
 import android.app.Application
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -9,7 +10,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.download.isLocalFile
 import com.sf.tadami.data.episode.EpisodeRepository
@@ -360,7 +362,7 @@ class PlayerViewModel(
         // A downloaded episode plays from its files, without network
         localEpisodeJob = viewModelScope.launch(Dispatchers.IO) {
             val local = downloadManager.getLocalEpisode(episode)
-                ?.toStreamSource(Injekt.get<Application>().getString(R.string.episode_downloaded))
+                ?.toStreamSource(stringRes(Res.string.episode_downloaded))
             if (local == null) {
                 fetchOnlineSources(episode)
                 return@launch
@@ -420,7 +422,7 @@ class PlayerViewModel(
                 localEpisodeJob?.cancel()
                 localEpisodeJob = viewModelScope.launch(Dispatchers.IO) {
                     val local = downloadManager.getLocalEpisode(episode)
-                        ?.toStreamSource(Injekt.get<Application>().getString(R.string.episode_downloaded))
+                        ?.toStreamSource(stringRes(Res.string.episode_downloaded))
                     if (currentEpisode.value?.id != episode.id) return@launch
                     when {
                         local != null -> playLocal(local)
@@ -483,7 +485,7 @@ class PlayerViewModel(
                 }
             }
             if(_uiState.value.availableSources.isEmpty()){
-                UiToasts.showToast(R.string.player_screen_empty_sources)
+                UiToasts.showToast(Res.string.player_screen_empty_sources)
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.updates
 
+import com.sf.tadami.utils.stringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -12,9 +13,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontStyle
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.components.grid.EmptyScreen
@@ -42,7 +44,7 @@ fun UpdatesComponent(
         ContentLoader(isLoading = it == null){
             if(it!!.isEmpty()){
                 EmptyScreen(
-                    message =  stringResource(id = R.string.information_no_recent_episodes),
+                    message =  stringResource(Res.string.information_no_recent_episodes),
                 )
             }
             else{
@@ -53,7 +55,7 @@ fun UpdatesComponent(
                     refreshing = isRefreshing,
                     onRefresh = {
                         val started = onUpdateLibrary()
-                        val msgRes = if (started) context.getString(R.string.update_starting) else context.getString(R.string.update_running)
+                        val msgRes = if (started) stringRes(Res.string.update_starting) else stringRes(Res.string.update_running)
                         scope.launch {
                             snackBarHostState.currentSnackbarData?.dismiss()
                             snackBarHostState.showSnackbar(msgRes)
@@ -72,7 +74,7 @@ fun UpdatesComponent(
                                     ),
                             ) {
                                 Text(
-                                    text = stringResource(R.string.updates_last_update_info, relativeTimeSpanString(libraryPreferences.lastUpdatedTimestamp)),
+                                    text = stringResource(Res.string.updates_last_update_info, relativeTimeSpanString(libraryPreferences.lastUpdatedTimestamp)),
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontStyle = FontStyle.Italic,
                                 )

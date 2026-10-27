@@ -38,8 +38,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,7 +47,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.extension.api.ExtensionRepos
 import com.sf.tadami.extension.api.FetchedRepo
 import com.sf.tadami.ui.components.material.ExtendedFloatingActionButton
@@ -83,7 +84,7 @@ fun ExtensionReposScreen(
             TadaTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.ext_repos_title),
+                        text = stringResource(Res.string.ext_repos_title),
                         style = MaterialTheme.typography.headlineSmall,
                     )
                 },
@@ -99,7 +100,7 @@ fun ExtensionReposScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                text = { Text(text = stringResource(R.string.action_add)) },
+                text = { Text(text = stringResource(Res.string.action_add)) },
                 icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
                 onClick = viewModel::showAddDialog,
             )
@@ -126,7 +127,7 @@ fun ExtensionReposScreen(
                         Icon(imageVector = Icons.Outlined.Verified, contentDescription = null)
                         Text(
                             modifier = Modifier.padding(start = MaterialTheme.padding.small),
-                            text = stringResource(R.string.ext_repo_add_official),
+                            text = stringResource(Res.string.ext_repo_add_official),
                         )
                     }
                 }
@@ -142,14 +143,14 @@ fun ExtensionReposScreen(
                         try {
                             context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
                         } catch (e: ActivityNotFoundException) {
-                            UiToasts.showToast(R.string.ext_repo_no_browser)
+                            UiToasts.showToast(Res.string.ext_repo_no_browser)
                         }
                     },
                     onCopy = {
                         clipboardManager.setText(AnnotatedString(repoUrl))
                         // Android 13 and later confirm a copy themselves
                         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                            UiToasts.showToast(R.string.clipboard_copied)
+                            UiToasts.showToast(Res.string.clipboard_copied)
                         }
                     },
                     onRemove = { viewModel.showRemoveDialog(repoUrl) },
@@ -229,14 +230,14 @@ private fun RepoListItem(
             IconButton(onClick = onOpen) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
-                    contentDescription = stringResource(R.string.action_open_in_browser),
+                    contentDescription = stringResource(Res.string.action_open_in_browser),
                 )
             }
             IconButton(onClick = onCopy) {
-                Icon(imageVector = Icons.Outlined.ContentCopy, contentDescription = stringResource(R.string.ext_repo_copy_url))
+                Icon(imageVector = Icons.Outlined.ContentCopy, contentDescription = stringResource(Res.string.ext_repo_copy_url))
             }
             IconButton(onClick = onRemove) {
-                Icon(imageVector = Icons.Outlined.Delete, contentDescription = stringResource(R.string.ext_repo_remove))
+                Icon(imageVector = Icons.Outlined.Delete, contentDescription = stringResource(Res.string.ext_repo_remove))
             }
         }
     }
@@ -250,14 +251,14 @@ private fun AddRepoDialog(
     onSubmit: (String) -> Unit,
 ) {
     TadaInputDialog(
-        title = stringResource(R.string.ext_repo_add_title),
+        title = stringResource(Res.string.ext_repo_add_title),
         // What it opened with: the text typed since is kept, whatever the check says of it
         initialValue = "",
-        confirmLabel = stringResource(R.string.action_add),
+        confirmLabel = stringResource(Res.string.action_add),
         onConfirm = onSubmit,
         onDismissRequest = onDismissRequest,
         icon = Icons.Outlined.Link,
-        label = stringResource(R.string.ext_repo_url),
+        label = stringResource(Res.string.ext_repo_url),
         placeholder = "https://github.com/owner/repo",
         error = state.error?.let { stringResource(it, state.errorDetail.orEmpty()) },
         // Not disabled while it's checked: it would lose the focus
@@ -281,8 +282,8 @@ private fun ConfirmAddRepoDialog(
     var trustKey by rememberSaveable { mutableStateOf(true) }
     TadaDialog(
         onDismissRequest = onDismissRequest,
-        title = stringResource(R.string.ext_repo_confirm_title),
-        confirm = ModalAction(stringResource(R.string.action_add)) {
+        title = stringResource(Res.string.ext_repo_confirm_title),
+        confirm = ModalAction(stringResource(Res.string.action_add)) {
             onConfirm(fingerprint != null && trustKey)
         },
     ) {
@@ -291,19 +292,19 @@ private fun ConfirmAddRepoDialog(
                 Text(text = repoDisplayName(repo.url, repo.meta), style = MaterialTheme.typography.titleSmall)
                 Text(text = repo.url, style = MaterialTheme.typography.bodySmall)
             }
-            Text(text = pluralStringResource(R.plurals.ext_repo_extensions_count, repo.extensionsCount, repo.extensionsCount))
+            Text(text = pluralStringResource(Res.plurals.ext_repo_extensions_count, repo.extensionsCount, repo.extensionsCount))
             if (fingerprint != null) {
                 Column {
-                    Text(text = stringResource(R.string.ext_trust_fingerprint), style = MaterialTheme.typography.labelMedium)
+                    Text(text = stringResource(Res.string.ext_trust_fingerprint), style = MaterialTheme.typography.labelMedium)
                     Fingerprint(groupedFingerprint(fingerprint))
                 }
                 ModalCheckboxRow(
-                    label = stringResource(R.string.ext_repo_trust_key),
+                    label = stringResource(Res.string.ext_repo_trust_key),
                     checked = trustKey,
                     onCheckedChange = { trustKey = it },
                 )
             }
-            Text(text = stringResource(R.string.ext_repo_confirm_warning))
+            Text(text = stringResource(Res.string.ext_repo_confirm_warning))
         }
     }
 }
@@ -318,11 +319,11 @@ private fun RemoveRepoDialog(
 ) {
     TadaDestructiveDialog(
         onDismissRequest = onDismissRequest,
-        title = stringResource(R.string.ext_repo_remove_title),
+        title = stringResource(Res.string.ext_repo_remove_title),
         subtitle = name,
-        message = stringResource(R.string.ext_repo_remove_message),
-        consequence = if (isOfficial) stringResource(R.string.ext_repo_remove_official_warning) else null,
-        confirmLabel = stringResource(R.string.ext_repo_remove),
+        message = stringResource(Res.string.ext_repo_remove_message),
+        consequence = if (isOfficial) stringResource(Res.string.ext_repo_remove_official_warning) else null,
+        confirmLabel = stringResource(Res.string.ext_repo_remove),
         onConfirm = onConfirm,
     )
 }

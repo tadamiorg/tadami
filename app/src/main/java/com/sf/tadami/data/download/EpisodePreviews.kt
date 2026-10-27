@@ -52,7 +52,7 @@ class EpisodePreviews(val dir: UniFile, val episodeDirName: String, val video: U
         write(sidecar, keeps) { DownloadOutput.openAt(context, it, 0) }
 
     /** [write], the file written opened by [open]. */
-    internal fun write(sidecar: PreviewSidecar, keeps: (PreviewSidecar) -> Boolean = { true }, open: (UniFile) -> OutputStream): Boolean =
+    public fun write(sidecar: PreviewSidecar, keeps: (PreviewSidecar) -> Boolean = { true }, open: (UniFile) -> OutputStream): Boolean =
         synchronized(lock()) { writeFile(sidecar, keeps, open) }
 
     private fun writeFile(sidecar: PreviewSidecar, keeps: (PreviewSidecar) -> Boolean, open: (UniFile) -> OutputStream): Boolean {

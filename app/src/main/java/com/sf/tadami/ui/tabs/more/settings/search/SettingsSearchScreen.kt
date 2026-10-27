@@ -21,11 +21,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.components.grid.EmptyScreen
@@ -49,7 +50,7 @@ fun SettingsSearchScreen(navController: NavHostController) {
         topBar = {
             SearchBarExpanded(
                 value = query,
-                placeholder = stringResource(R.string.action_search_settings),
+                placeholder = stringResource(Res.string.action_search_settings),
                 onSearchChange = { query = it },
                 onSearch = {},
                 onSearchCancel = { navController.navigateUp() },
@@ -68,12 +69,12 @@ fun SettingsSearchScreen(navController: NavHostController) {
         when {
             shown == null -> EmptyScreen(
                 modifier = Modifier.padding(contentPadding),
-                message = stringResource(R.string.settings_search_hint)
+                message = stringResource(Res.string.settings_search_hint)
             )
 
             shown.isEmpty() -> EmptyScreen(
                 modifier = Modifier.padding(contentPadding),
-                message = stringResource(R.string.pager_no_results)
+                message = stringResource(Res.string.pager_no_results)
             )
 
             else -> LazyColumn(
@@ -138,9 +139,10 @@ private fun SearchResult(entry: SettingsSearchEntry, onClick: () -> Unit) {
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
-        if (entry.summary != null) {
+        val summary = entry.summary
+        if (summary != null) {
             Text(
-                text = entry.summary,
+                text = summary,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,

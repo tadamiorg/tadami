@@ -7,25 +7,28 @@ import android.webkit.WebView
 import androidx.core.content.getSystemService
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import coil.ImageLoader
-import coil.ImageLoaderFactory
-import coil.disk.DiskCache
-import coil.memory.MemoryCache
-import coil.request.CachePolicy
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
+import coil3.request.allowRgb565
+import okio.Path.Companion.toOkioPath
 import com.sf.tadami.crash.CrashActivity
 import com.sf.tadami.crash.CrashLogBuffer
 import com.sf.tadami.crash.GlobalExceptionHandler
 import com.sf.tadami.network.HttpException
 import com.sf.tadami.network.NetworkHelper
-import com.sf.tadami.network.interceptors.ImageLoaderInterceptor
 import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.preferences.appearance.setAppCompatDelegateThemeMode
 import com.sf.tadami.ui.webview.adblock.AdBlockUpdateWorker
 import com.sf.tadami.utils.animatorDurationScale
-import com.sf.tadami.utils.coil.AnimeCoverFetcherFactory
-import com.sf.tadami.utils.coil.AnimeCoverKeyer
+import com.sf.tadami.ui.utils.UiToasts
+import com.sf.tadami.utils.Lang
+import com.sf.tadami.utils.coil.tadamiDefaults
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.logcat
 import dev.mihon.injekt.patchInjekt
@@ -42,10 +45,11 @@ import uy.kohesive.injekt.api.get
 import java.io.IOException
 import kotlin.concurrent.thread
 
-open class App : Application(), ImageLoaderFactory {
+open class App : Application(), SingletonImageLoader.Factory {
 
     override fun onCreate() {
         super.onCreate()
+        setupSharedCode()
         installLogging()
         setupRxJavaErrorHandler()
 
@@ -95,7 +99,7 @@ open class App : Application(), ImageLoaderFactory {
         if (LogcatLogger.isInstalled) return
         LogcatLogger.install()
         LogcatLogger.loggers += AndroidLogcatLogger(
-            minPriority = if (BuildConfig.DEBUG) LogPriority.DEBUG else LogPriority.WARN,
+            minPriority = if (AppBuildInfo.DEBUG) LogPriority.DEBUG else LogPriority.WARN,
         )
         LogcatLogger.loggers += CrashLogBuffer
     }
@@ -121,41 +125,44 @@ open class App : Application(), ImageLoaderFactory {
         Notifications.setupNotificationsChannels(this)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override fun newImageLoader(): ImageLoader {
+    /** What the code shared with the desktop app needs from the Android one. */
+    private fun setupSharedCode() {
+        AppBuildInfo.APPLICATION_ID = BuildConfig.APPLICATION_ID
+        AppBuildInfo.VERSION_NAME = BuildConfig.VERSION_NAME
+        AppBuildInfo.VERSION_CODE = BuildConfig.VERSION_CODE
+        AppBuildInfo.RELEASE_VERSION_NAME = BuildConfig.RELEASE_VERSION_NAME
+        AppBuildInfo.BUILD_DATE = BuildConfig.BUILD_DATE
+        AppBuildInfo.DEBUG = BuildConfig.DEBUG
+        AppBuildInfo.UPDATER_ENABLED = BuildConfig.UPDATER_ENABLED
+
+        val mainHandler = Handler(Looper.getMainLooper())
+        var currentToast: Toast? = null
+        UiToasts.display = { msg, duration ->
+            mainHandler.post {
+                currentToast?.cancel()
+                currentToast = Toast.makeText(this, msg, if (duration == UiToasts.LENGTH_LONG) Toast.LENGTH_LONG else Toast.LENGTH_SHORT)
+                    .also { it.show() }
+            }
+        }
+        UiToasts.androidString = { id, args -> getString(id, *args) }
+        Lang.androidStringRes = { lang ->
+            when (lang) {
+                Lang.ENGLISH -> R.string.language_en
+                Lang.FRENCH -> R.string.language_fr
+                Lang.UNKNOWN -> R.string.language_unknown
+            }
+        }
+    }
+
+    override fun newImageLoader(context: PlatformContext): ImageLoader {
         return ImageLoader.Builder(this)
-            .okHttpClient {
-                // Shares the cookies (Cloudflare clearance) and user agent of the sources, without
-                // ever opening a WebView for an image
-                Injekt.get<NetworkHelper>().nonCloudflareClient.newBuilder()
-                    // Coil has its own disk cache
-                    .cache(null)
-                    // This header will be added to every image request.
-                    .addInterceptor(ImageLoaderInterceptor())
-                    .build()
-            }
-            .components {
-                // The covers of the database, keyed by when they were last refreshed
-                add(AnimeCoverKeyer())
-                add(AnimeCoverFetcherFactory())
-            }
-            .crossfade((300 * this@App.animatorDurationScale).toInt())
-            .memoryCache {
-                MemoryCache.Builder(this)
-                    .maxSizePercent(0.25)
-                    .build()
-            }
-            .diskCache {
-                DiskCache.Builder()
-                    .directory(this.cacheDir.resolve("image_cache"))
-                    .maxSizePercent(0.02)
-                    .build()
-            }
-            .networkCachePolicy(CachePolicy.ENABLED)
+            .tadamiDefaults(
+                context = this,
+                network = Injekt.get<NetworkHelper>(),
+                diskCacheDir = cacheDir.resolve("image_cache").toOkioPath(),
+                crossfadeMillis = (300 * this@App.animatorDurationScale).toInt(),
+            )
             .allowRgb565(getSystemService<ActivityManager>()!!.isLowRamDevice)
-            .fetcherDispatcher(Dispatchers.IO.limitedParallelism(8))
-            .decoderDispatcher(Dispatchers.IO.limitedParallelism(2))
-            .transformationDispatcher(Dispatchers.IO.limitedParallelism(2))
             .build()
     }
 

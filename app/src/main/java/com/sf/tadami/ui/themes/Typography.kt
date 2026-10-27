@@ -5,24 +5,31 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
+import org.jetbrains.compose.resources.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 
-val Fonts = FontFamily(
-    Font(R.font.roboto, weight = FontWeight.Normal),
-    Font(R.font.roboto_medium, weight = FontWeight.Medium),
-    Font(R.font.roboto_bold, weight = FontWeight.Bold),
-    Font(R.font.roboto_extrabold, weight = FontWeight.ExtraBold),
+/** Roboto, the app's font, read from the shared resources. */
+@Composable
+fun fonts() = FontFamily(
+    Font(Res.font.roboto, weight = FontWeight.Normal),
+    Font(Res.font.roboto_medium, weight = FontWeight.Medium),
+    Font(Res.font.roboto_bold, weight = FontWeight.Bold),
+    Font(Res.font.roboto_extrabold, weight = FontWeight.ExtraBold),
 )
 
-val Typography = Typography(
-    labelMedium = TextStyle(fontFamily = Fonts, fontWeight = FontWeight.Medium, fontSize = 13.sp, lineHeight = 12.5.sp),
-    labelSmall = TextStyle(fontFamily = Fonts, fontWeight = FontWeight.Normal, fontSize = 13.sp,),
-    headlineSmall = TextStyle(fontFamily = Fonts, fontWeight = FontWeight.Medium, fontSize = 18.sp)
+@Composable
+fun tadamiTypography(): Typography {
+    val fonts = fonts()
+    return Typography(
+    labelMedium = TextStyle(fontFamily = fonts, fontWeight = FontWeight.Medium, fontSize = 13.sp, lineHeight = 12.5.sp),
+    labelSmall = TextStyle(fontFamily = fonts, fontWeight = FontWeight.Normal, fontSize = 13.sp,),
+    headlineSmall = TextStyle(fontFamily = fonts, fontWeight = FontWeight.Medium, fontSize = 18.sp)
 )
+}
 
 val Typography.header: TextStyle
     @Composable

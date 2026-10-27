@@ -1,10 +1,9 @@
 package com.sf.tadami.ui.animeinfos.episode.cast
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.annotation.ColorInt
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.mediarouter.app.MediaRouteButton
@@ -41,7 +40,6 @@ fun castContextOrNull(context: Context): CastContext? {
  * Tints the cast button icon. Its own icon follows the theme the button was created with, and a theme
  * change doesn't recreate the screens: the icon takes the given colour instead, from the Compose theme.
  */
-@SuppressLint("PrivateResource")
 fun MediaRouteButton.setCastIconTint(@ColorInt color: Int) {
     if (tag == color) return
     tag = color
@@ -51,13 +49,11 @@ fun MediaRouteButton.setCastIconTint(@ColorInt color: Int) {
 }
 
 /** The media played to its end (not stopped, replaced or failed). */
-@SuppressLint("VisibleForTests")
 fun isCastMediaFinished(playerState : Int?): Boolean {
     return playerState == MediaStatus.IDLE_REASON_FINISHED
 }
 
 /** The media is over, finished or failed: it can be played again. */
-@SuppressLint("VisibleForTests")
 fun isCastMediaEnded(playerState : Int?): Boolean {
     return isCastMediaFinished(playerState) || playerState == MediaStatus.IDLE_REASON_ERROR
 }
@@ -103,7 +99,7 @@ fun getLocalIPAddress(context: Context): String? {
 }
 
 /** Not a VPN tunnel (tun, ppp, WireGuard, IPsec) nor a cellular interface: the TV can't reach those addresses. */
-internal fun isLanInterfaceCandidate(interfaceName: String): Boolean {
+public fun isLanInterfaceCandidate(interfaceName: String): Boolean {
     val name = interfaceName.lowercase()
     return listOf("tun", "ppp", "wg", "ipsec", "rmnet").none { name.startsWith(it) }
 }

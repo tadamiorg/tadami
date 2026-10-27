@@ -5,7 +5,7 @@ import android.app.ApplicationExitInfo
 import android.content.Context
 import android.os.Build
 import android.os.Process
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.core.content.getSystemService
 import java.io.File
 import java.lang.ref.WeakReference
@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
  *   turns the safe mode on.
  * - `safe_mode`: the startup loads no extension, until the user loads them again.
  */
-internal object ExtensionsGuard {
+public object ExtensionsGuard {
 
     private const val DIR_NAME = "extensions_guard"
     private const val IN_FLIGHT_DIR = "in_flight"
@@ -209,7 +209,7 @@ internal object ExtensionsGuard {
         resetStartupCrashes(dir(context))
     }
 
-    internal fun markInFlight(dir: File, pkgName: String, pid: Int) {
+    public fun markInFlight(dir: File, pkgName: String, pid: Int) {
         // Not a reason to keep it from loading: it just couldn't be quarantined
         runCatching {
             val file = file(dir, IN_FLIGHT_DIR, pkgName)
@@ -218,21 +218,21 @@ internal object ExtensionsGuard {
         }.onFailure { Log.d("ExtensionsGuard", it.stackTraceToString()) }
     }
 
-    internal fun clearInFlight(dir: File, pkgName: String) {
+    public fun clearInFlight(dir: File, pkgName: String) {
         file(dir, IN_FLIGHT_DIR, pkgName).delete()
     }
 
-    internal fun isQuarantined(dir: File, pkgName: String): Boolean = file(dir, QUARANTINE_DIR, pkgName).exists()
+    public fun isQuarantined(dir: File, pkgName: String): Boolean = file(dir, QUARANTINE_DIR, pkgName).exists()
 
-    internal fun isSuspect(dir: File, pkgName: String): Boolean = file(dir, SUSPECTS_DIR, pkgName).exists()
+    public fun isSuspect(dir: File, pkgName: String): Boolean = file(dir, SUSPECTS_DIR, pkgName).exists()
 
-    internal fun clearSuspect(dir: File, pkgName: String) {
+    public fun clearSuspect(dir: File, pkgName: String) {
         file(dir, SUSPECTS_DIR, pkgName).delete()
     }
 
-    internal fun isSafeMode(dir: File): Boolean = File(dir, SAFE_MODE_FILE).exists()
+    public fun isSafeMode(dir: File): Boolean = File(dir, SAFE_MODE_FILE).exists()
 
-    internal fun setSafeMode(dir: File, enabled: Boolean) {
+    public fun setSafeMode(dir: File, enabled: Boolean) {
         val file = File(dir, SAFE_MODE_FILE)
         if (enabled) {
             dir.mkdirs()
@@ -242,11 +242,11 @@ internal object ExtensionsGuard {
         }
     }
 
-    internal fun resetStartupCrashes(dir: File) {
+    public fun resetStartupCrashes(dir: File) {
         File(dir, STARTUP_CRASHES_FILE).delete()
     }
 
-    internal fun startupCrashes(dir: File): Int {
+    public fun startupCrashes(dir: File): Int {
         return runCatching { File(dir, STARTUP_CRASHES_FILE).readText().trim().toInt() }.getOrDefault(0)
     }
 
@@ -256,7 +256,7 @@ internal object ExtensionsGuard {
      * crash unless the [startupCompleted] or it quarantined an extension, its cause being dealt
      * with: the [SAFE_MODE_CRASHES]th one in a row turns the safe mode on.
      */
-    internal fun recordCrash(dir: File, culprits: Set<String>, inFlight: Set<String>, startupCompleted: Boolean) {
+    public fun recordCrash(dir: File, culprits: Set<String>, inFlight: Set<String>, startupCompleted: Boolean) {
         val quarantined = if (culprits.isNotEmpty()) {
             culprits.forEach { quarantine(dir, it) }
             true
@@ -280,7 +280,7 @@ internal object ExtensionsGuard {
      * @param exitReasonOf The exit reason of the process of a pid that died after a mark was left,
      * null when unknown.
      */
-    internal fun checkLeftoverMarks(dir: File, exitReasonOf: (pid: Int, markedAt: Long) -> Int?) {
+    public fun checkLeftoverMarks(dir: File, exitReasonOf: (pid: Int, markedAt: Long) -> Int?) {
         File(dir, IN_FLIGHT_DIR).listFiles().orEmpty().forEach { mark ->
             val pid = runCatching { mark.readText().trim().toInt() }.getOrNull()
             val reason = pid?.let { exitReasonOf(it, mark.lastModified()) }
@@ -296,7 +296,7 @@ internal object ExtensionsGuard {
      * Whether a process exit of [reason] is a crash of the extension it was loading. An uncaught
      * exception isn't one: [onUncaughtException] already dealt with it.
      */
-    internal fun isCrashExit(reason: Int?): Boolean {
+    public fun isCrashExit(reason: Int?): Boolean {
         return reason == ApplicationExitInfo.REASON_CRASH_NATIVE || reason == ApplicationExitInfo.REASON_ANR
     }
 
@@ -309,7 +309,7 @@ internal object ExtensionsGuard {
      * @param pkgNames The extensions whose code was loaded.
      * @param defines Whether the code of the extension pkgName defines the class className.
      */
-    internal fun attribute(
+    public fun attribute(
         throwable: Throwable,
         pkgNames: Set<String>,
         inFlight: Set<String>,
@@ -325,7 +325,7 @@ internal object ExtensionsGuard {
     }
 
     /** The classes of the stack frames of [throwable], of its causes and of its suppressed exceptions. */
-    internal fun stackClassNames(throwable: Throwable): Set<String> {
+    public fun stackClassNames(throwable: Throwable): Set<String> {
         val classNames = LinkedHashSet<String>()
         val seen = Collections.newSetFromMap(IdentityHashMap<Throwable, Boolean>())
         val pending = ArrayDeque(listOf(throwable))

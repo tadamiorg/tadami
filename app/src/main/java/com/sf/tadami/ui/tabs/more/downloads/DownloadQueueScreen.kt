@@ -18,11 +18,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.DropDownAction
 import com.sf.tadami.ui.components.grid.EmptyScreen
@@ -45,7 +46,7 @@ fun DownloadQueueScreen(
             TadaTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.label_download_queue),
+                        text = stringResource(Res.string.label_download_queue),
                         style = MaterialTheme.typography.headlineSmall,
                     )
                 },
@@ -59,16 +60,16 @@ fun DownloadQueueScreen(
                 },
                 actions = if (uiState.queue.isEmpty()) emptyList() else listOf(
                     Action.DropDownVector(
-                        title = R.string.stub_text,
+                        title = Res.string.stub_text,
                         icon = Icons.Outlined.MoreVert,
                         onClick = {},
                         items = listOf(
                             DropDownAction(
-                                title = stringResource(R.string.download_queue_cancel_all),
+                                title = stringResource(Res.string.download_queue_cancel_all),
                                 onClick = viewModel::cancelAll,
                             ),
                             DropDownAction(
-                                title = stringResource(R.string.download_queue_clear_errors),
+                                title = stringResource(Res.string.download_queue_clear_errors),
                                 onClick = viewModel::clearErrors,
                                 enabled = uiState.hasErrors,
                             ),
@@ -80,12 +81,12 @@ fun DownloadQueueScreen(
         floatingActionButton = {
             when {
                 uiState.isScheduled -> ExtendedFloatingActionButton(
-                    text = { Text(text = stringResource(R.string.action_pause)) },
+                    text = { Text(text = stringResource(Res.string.action_pause)) },
                     icon = { Icon(imageVector = Icons.Filled.Pause, contentDescription = null) },
                     onClick = viewModel::pause,
                 )
                 uiState.hasQueued -> ExtendedFloatingActionButton(
-                    text = { Text(text = stringResource(R.string.action_resume)) },
+                    text = { Text(text = stringResource(Res.string.action_resume)) },
                     icon = { Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null) },
                     onClick = viewModel::resume,
                 )
@@ -95,7 +96,7 @@ fun DownloadQueueScreen(
         if (uiState.queue.isEmpty()) {
             EmptyScreen(
                 modifier = Modifier.padding(contentPadding),
-                message = stringResource(R.string.download_queue_empty),
+                message = stringResource(Res.string.download_queue_empty),
             )
             return@Scaffold
         }
@@ -111,8 +112,8 @@ fun DownloadQueueScreen(
                 item(key = "waiting") {
                     Text(
                         text = stringResource(
-                            if (uiState.onlyOverWifi) R.string.download_queue_waiting_wifi
-                            else R.string.download_queue_waiting_network
+                            if (uiState.onlyOverWifi) Res.string.download_queue_waiting_wifi
+                            else Res.string.download_queue_waiting_network
                         ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

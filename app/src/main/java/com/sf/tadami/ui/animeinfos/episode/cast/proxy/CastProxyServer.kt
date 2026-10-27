@@ -1,7 +1,7 @@
 package com.sf.tadami.ui.animeinfos.episode.cast.proxy
 
 import android.content.Context
-import android.util.Log
+import com.sf.tadami.utils.Log
 import com.sf.tadami.data.download.EpisodePreviews
 import com.sf.tadami.network.player.HlsSegmentIvs
 import com.sf.tadami.ui.animeinfos.episode.cast.getLocalIPAddress
@@ -66,7 +66,7 @@ class CastProxyServer(
     private var server: Server? = null
 
     /** The bound port, or null when not running. */
-    internal val listeningPort: Int?
+    public val listeningPort: Int?
         get() = server?.takeIf { it.isAlive }?.listeningPort
 
     /** `http://<lanIp>:<port>`, or null when not running / no LAN address (recomputed per call — the IP can change). */

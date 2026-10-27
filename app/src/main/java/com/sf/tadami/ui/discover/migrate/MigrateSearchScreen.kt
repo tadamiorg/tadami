@@ -1,7 +1,6 @@
 package com.sf.tadami.ui.discover.migrate
 
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -14,7 +13,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
@@ -84,7 +84,7 @@ fun MigrateSearchScreen(
                     inclusive = false
                 )
                 if(it == MigrationState.ERRORED){
-                    UiToasts.showToast(R.string.migration_error, Toast.LENGTH_LONG)
+                    UiToasts.showToast(Res.string.migration_error, UiToasts.LENGTH_LONG)
                     navController.navigate("${AnimeInfosRoutes.DETAILS}/${helperState.oldAnime!!.source}/${helperState.oldAnime!!.id}")
                 }
                 else{

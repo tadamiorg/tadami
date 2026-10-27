@@ -160,7 +160,7 @@ private fun List<EpisodeItem>.addFilters(unseenFilter: Long?, downloadedOnly: Bo
     return this.filter { it.isDisplayed(unseenFilter, downloadedOnly) }
 }
 
-internal fun EpisodeItem.isDisplayed(unseenFilter: Long?, downloadedOnly: Boolean = false): Boolean {
+public fun EpisodeItem.isDisplayed(unseenFilter: Long?, downloadedOnly: Boolean = false): Boolean {
     // The downloaded only mode forces a downloaded filter, the seen filter still applies
     if (downloadedOnly && download.state != Download.State.DOWNLOADED) return false
     return when(unseenFilter){

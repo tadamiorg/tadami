@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.utils
 
-import android.view.ViewConfiguration
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -37,10 +36,10 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.util.fastFirstOrNull
 import androidx.compose.ui.util.fastSumBy
@@ -169,8 +168,9 @@ private fun Modifier.drawScrollbar(
     }
     val atEnd = if (orientation == Orientation.Vertical) isLtr else true
 
-    val context = LocalContext.current
-    val thickness = remember { ViewConfiguration.get(context).scaledScrollBarSize.toFloat() }
+    val density = LocalDensity.current
+    // Android's default scroll bar size
+    val thickness = remember(density) { with(density) { 4.dp.toPx() } }
     val color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.364f)
     Modifier
         .nestedScroll(nestedScrollConnection)
@@ -266,8 +266,8 @@ private fun ContentDrawScope.onDrawScrollbar(
 }
 
 private val FadeOutAnimationSpec = tween<Float>(
-    durationMillis = ViewConfiguration.getScrollBarFadeDuration(),
-    delayMillis = ViewConfiguration.getScrollDefaultDelay(),
+    durationMillis = SCROLL_BAR_FADE_DURATION_MS,
+    delayMillis = SCROLL_DEFAULT_DELAY_MS,
 )
 
 fun Modifier.equalEdgePadding(targetPadding: Dp) = composed {
@@ -306,3 +306,7 @@ fun Modifier.safeDrawing() = composed {
             insets
         )
 }
+
+/** Android's ViewConfiguration defaults, for the scroll bars. */
+const val SCROLL_BAR_FADE_DURATION_MS = 250
+const val SCROLL_DEFAULT_DELAY_MS = 300

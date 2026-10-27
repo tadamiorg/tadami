@@ -18,9 +18,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
 import com.sf.tadami.navigation.graphs.settings.DataSettingsRoutes
 import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
@@ -40,7 +41,7 @@ fun SettingsScreen(
             TadaTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.label_settings),
+                        text = stringResource(Res.string.label_settings),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
@@ -54,7 +55,7 @@ fun SettingsScreen(
                 },
                 actions = listOf(
                     Action.Vector(
-                        title = R.string.action_search_settings,
+                        title = Res.string.action_search_settings,
                         icon = Icons.Outlined.Search,
                         onClick = { navController.navigate(SettingsRoutes.SEARCH) }
                     )
@@ -66,48 +67,48 @@ fun SettingsScreen(
             modifier = Modifier.padding(it),
             preferences = listOf(
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(id = R.string.label_appearance),
-                    subtitle = stringResource(id = R.string.pref_appearance_summary),
+                    title = stringResource(Res.string.label_appearance),
+                    subtitle = stringResource(Res.string.pref_appearance_summary),
                     icon = Icons.Outlined.Palette,
                     onClick = {
                         navController.navigate(SettingsRoutes.APPEARANCE)
                     }
                 ),
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(id = R.string.settings_tab_library_preferences_title),
-                    subtitle = stringResource(id = R.string.settings_tab_library_preferences_subtitle),
+                    title = stringResource(Res.string.settings_tab_library_preferences_title),
+                    subtitle = stringResource(Res.string.settings_tab_library_preferences_subtitle),
                     icon = Icons.Outlined.VideoLibrary,
                     onClick = {
                         navController.navigate(SettingsRoutes.LIBRARY)
                     }
                 ),
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(id = R.string.settings_tab_library_player_preferences_title),
-                    subtitle = stringResource(id = R.string.settings_tab_library_player_preferences_subtitle),
+                    title = stringResource(Res.string.settings_tab_library_player_preferences_title),
+                    subtitle = stringResource(Res.string.settings_tab_library_player_preferences_subtitle),
                     icon = Icons.Outlined.OndemandVideo,
                     onClick = {
                         navController.navigate(SettingsRoutes.PLAYER)
                     }
                 ),
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(id = R.string.preferences_download_title),
-                    subtitle = stringResource(id = R.string.preferences_download_summary),
+                    title = stringResource(Res.string.preferences_download_title),
+                    subtitle = stringResource(Res.string.preferences_download_summary),
                     icon = Icons.Outlined.Download,
                     onClick = {
                         navController.navigate(SettingsRoutes.DOWNLOADS)
                     }
                 ),
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(id = R.string.settings_tab_library_data_preferences_title),
-                    subtitle = stringResource(id = R.string.settings_tab_library_backup_preferences_subtitle),
+                    title = stringResource(Res.string.settings_tab_library_data_preferences_title),
+                    subtitle = stringResource(Res.string.settings_tab_library_backup_preferences_subtitle),
                     icon = Icons.Outlined.Backup,
                     onClick = {
                         navController.navigate(DataSettingsRoutes.HOME)
                     }
                 ),
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(id = R.string.preferences_advanced),
-                    subtitle = stringResource(id = R.string.preferences_advanced_subtitle),
+                    title = stringResource(Res.string.preferences_advanced),
+                    subtitle = stringResource(Res.string.preferences_advanced_subtitle),
                     icon = Icons.Outlined.Code,
                     onClick = {
                         navController.navigate(AdvancedSettingsRoutes.HOME)

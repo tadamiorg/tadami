@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap
  * Android 14+ refuses to load code from a writable file, and where it was installed from next to it,
  * `<pkgName>.json`, see [ExtensionOrigin].
  */
-internal object ExtensionsStorage {
+public object ExtensionsStorage {
 
     private const val DIR_NAME = "extensions"
     private const val APK_SUFFIX = ".apk"
@@ -148,7 +148,7 @@ internal object ExtensionsStorage {
  * [manual], installed with adb in a debug build.
  */
 @Serializable
-internal data class ExtensionOrigin(
+public data class ExtensionOrigin(
     val repoUrl: String? = null,
     val manual: Boolean = false,
 )

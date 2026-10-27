@@ -1,6 +1,5 @@
 package com.sf.tadami.data.interactors.extension
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.extension.ExtensionManager
@@ -10,8 +9,7 @@ import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
-class GetExtensionLanguages(
-    private val context: Context,
+class GetExtensionLanguages(
     private val dataStore: DataStore<Preferences>,
     private val extensionManager: ExtensionManager,
 ) {
@@ -31,9 +29,7 @@ class GetExtensionLanguages(
                 }
                 .distinct()
                 .sortedWith(
-                    compareBy<Lang> { it.name !in enabledLanguages }.then { a, b ->
-                        context.getString(a.getRes()).compareTo(context.getString(b.getRes()))
-                    },
+                    compareBy<Lang> { it.name !in enabledLanguages }.thenBy { it.name },
                 )
         }
     }

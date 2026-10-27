@@ -5,8 +5,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.components.modal.ChoiceControl
 import com.sf.tadami.ui.components.modal.ModalAction
 import com.sf.tadami.ui.components.modal.ModalBodyText
@@ -32,10 +33,10 @@ fun SetCategoriesDialog(
     if (initialSelection.isEmpty()) {
         TadaDialog(
             onDismissRequest = onDismissRequest,
-            title = stringResource(R.string.action_set_categories),
-            confirm = ModalAction(stringResource(R.string.action_edit), onClick = editCategories),
+            title = stringResource(Res.string.action_set_categories),
+            confirm = ModalAction(stringResource(Res.string.action_edit), onClick = editCategories),
         ) {
-            ModalBodyText(stringResource(R.string.set_categories_none))
+            ModalBodyText(stringResource(Res.string.set_categories_none))
         }
         return
     }
@@ -44,10 +45,10 @@ fun SetCategoriesDialog(
 
     TadaDialog(
         onDismissRequest = onDismissRequest,
-        title = stringResource(R.string.action_set_categories),
+        title = stringResource(Res.string.action_set_categories),
         padBody = false,
-        neutral = ModalAction(stringResource(R.string.action_edit), onClick = editCategories),
-        confirm = ModalAction(stringResource(android.R.string.ok)) {
+        neutral = ModalAction(stringResource(Res.string.action_edit), onClick = editCategories),
+        confirm = ModalAction(stringResource(Res.string.ok)) {
             val (add, remove) = selection.toChanges()
             onConfirm(add, remove)
             onDismissRequest()

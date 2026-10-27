@@ -5,8 +5,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.domain.source.Source
 import com.sf.tadami.ui.components.grid.EmptyScreen
@@ -30,7 +31,7 @@ fun SourcesComponent(
 ) {
     ContentLoader(isLoading = uiState.isLoading) {
         when {
-            uiState.isEmpty -> EmptyScreen(message = stringResource(id = R.string.src_empty))
+            uiState.isEmpty -> EmptyScreen(message = stringResource(Res.string.src_empty))
             else -> {
                 ScrollbarLazyColumn(
                     contentPadding = contentPadding,

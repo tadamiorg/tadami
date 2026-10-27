@@ -24,12 +24,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.BuildConfig
-import com.sf.tadami.R
+import com.sf.tadami.AppBuildInfo
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.update.AppUpdater.Companion.RELEASE_URL
 import com.sf.tadami.navigation.graphs.about.navigateToNewUpdate
 import com.sf.tadami.ui.components.customIcons.GithubIcon
@@ -65,7 +66,7 @@ fun AboutScreen(
             TadaTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.label_about),
+                        text = stringResource(Res.string.label_about),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
@@ -89,17 +90,17 @@ fun AboutScreen(
 
             item {
                 TextPreference(
-                    title = stringResource(R.string.version),
+                    title = stringResource(Res.string.version),
                     subtitle = getVersionName(withBuildDate = true)
                 )
             }
 
 
             // The updater is disabled in debug builds (see AppUpdater)
-            if (BuildConfig.UPDATER_ENABLED) {
+            if (AppBuildInfo.UPDATER_ENABLED) {
                 item {
                     TextPreference(
-                        title = stringResource(R.string.check_for_updates),
+                        title = stringResource(Res.string.check_for_updates),
                         widget = {
                             AnimatedVisibility(visible = isCheckingUpdates) {
                                 CircularProgressIndicator(
@@ -126,7 +127,7 @@ fun AboutScreen(
 
             item {
                 TextPreference(
-                    title = stringResource(R.string.whats_new),
+                    title = stringResource(Res.string.whats_new),
                     onPreferenceClick = { uriHandler.openUri(RELEASE_URL) },
                 )
             }
@@ -156,7 +157,7 @@ fun AboutScreen(
 
 
 fun getVersionName(withBuildDate: Boolean): String {
-    return "Stable ${BuildConfig.VERSION_NAME}".let {
+    return "Stable ${AppBuildInfo.VERSION_NAME}".let {
         if (withBuildDate) {
             "$it (${getFormattedBuildTime()})"
         } else {
@@ -166,11 +167,11 @@ fun getVersionName(withBuildDate: Boolean): String {
 
 }
 
-internal fun getFormattedBuildTime(): String {
+public fun getFormattedBuildTime(): String {
     return try {
         val inputDf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
         inputDf.timeZone = TimeZone.getTimeZone("UTC")
-        val buildTime = inputDf.parse(BuildConfig.BUILD_DATE)
+        val buildTime = inputDf.parse(AppBuildInfo.BUILD_DATE)
 
         val outputDf = DateFormat.getDateTimeInstance(
             DateFormat.MEDIUM,
@@ -183,6 +184,6 @@ internal fun getFormattedBuildTime(): String {
             DateFormat.getDateInstance(DateFormat.SHORT)
         )
     } catch (e: Exception) {
-        BuildConfig.BUILD_DATE
+        AppBuildInfo.BUILD_DATE
     }
 }

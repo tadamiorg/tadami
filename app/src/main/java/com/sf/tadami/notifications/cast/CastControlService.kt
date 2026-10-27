@@ -6,7 +6,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.annotation.OptIn
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat

@@ -13,13 +13,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
 import com.sf.tadami.navigation.graphs.sources.SourcesRoutes
@@ -51,12 +52,12 @@ fun extensionsTab(
     val filterTint =  if (sPrefs.enabledLanguages.size != Lang.getAllLangs().size) MaterialTheme.colorScheme.active else LocalContentColor.current
 
     return ScreenTabContent(
-        titleRes = R.string.label_extensions,
+        titleRes = Res.string.label_extensions,
         badgeNumber = uiState.updates.takeIf { it > 0 },
         searchEnabled = true,
         actions = listOf(
             Action.Vector(
-                title = R.string.action_filter,
+                title = Res.string.action_filter,
                 icon = Icons.Outlined.FilterList,
                 tint = filterTint,
                 onClick = {
@@ -65,11 +66,11 @@ fun extensionsTab(
             ),
             Action.CastButton(),
             Action.DropDownDrawable(
-                title = R.string.stub_text,
-                icon = R.drawable.ic_vertical_settings,
+                title = Res.string.stub_text,
+                icon = Res.drawable.ic_vertical_settings,
                 items = listOf(
                     DropDownAction(
-                        title = stringResource(R.string.ext_repos_title),
+                        title = stringResource(Res.string.ext_repos_title),
                         onClick = { navController.navigate(DiscoverRoutes.EXTENSION_REPOS) },
                     ),
                 ),

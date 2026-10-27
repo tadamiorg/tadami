@@ -26,7 +26,7 @@ suspend fun <S : Source, T> S.callGuarded(block: suspend S.() -> T): T =
     callGuarded(Injekt.get<ExtensionManager>().crashedSourcesFlow, block)
 
 /** [callGuarded], the call failing once [crashedSources] has this source. */
-internal suspend fun <S : Source, T> S.callGuarded(crashedSources: Flow<List<Source>>, block: suspend S.() -> T): T {
+public suspend fun <S : Source, T> S.callGuarded(crashedSources: Flow<List<Source>>, block: suspend S.() -> T): T {
     val source = this
     return coroutineScope {
         // Fails the scope, so cancels the call, once the source is unloaded
@@ -47,9 +47,3 @@ internal suspend fun <S : Source, T> S.callGuarded(crashedSources: Flow<List<Sou
         }
     }
 }
-
-/** An error, not an exception, thrown by the code of an extension, see [callGuarded]. */
-class ExtensionCodeException(cause: Throwable) : Exception(cause.toString(), cause)
-
-/** The extension of the source [sourceName] crashed, and was unloaded, see [callGuarded]. */
-class ExtensionDisabledException(val sourceName: String) : Exception("Disabled after a crash: $sourceName")

@@ -1,9 +1,11 @@
 package com.sf.tadami.crash
 
+import com.sf.tadami.BuildConfig
+
 import android.content.Context
 import android.net.Uri
 import androidx.core.content.FileProvider
-import com.sf.tadami.BuildConfig
+import com.sf.tadami.AppBuildInfo
 import java.io.File
 
 /**

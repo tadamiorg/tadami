@@ -1,8 +1,10 @@
 package com.sf.tadami.notifications.backup
 
+import com.sf.tadami.utils.stringRes
 import android.content.Context
 import android.net.Uri
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.backup.BackupDecoder
 import com.sf.tadami.ui.tabs.browse.SourceManager
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -38,7 +40,7 @@ class BackupFileValidator(
 
         // A settings only backup, or one of an empty library, is valid too
         if (backup.backupAnime.isEmpty() && backup.backupPreferences.isEmpty() && backup.backupSourcePreferences.isEmpty()) {
-            throw IllegalStateException(context.getString(R.string.invalid_backup_file_empty))
+            throw IllegalStateException(stringRes(Res.string.invalid_backup_file_empty))
         }
         return Results(missingSources)
     }

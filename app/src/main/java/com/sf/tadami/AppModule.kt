@@ -250,7 +250,7 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
         }
 
         addSingletonFactory {
-            GetLanguagesWithSources(app,get(),get())
+            GetLanguagesWithSources(get(),get())
         }
 
         // History interactors
@@ -280,7 +280,7 @@ class AppModule(private val app: Application, private val warmUp: Boolean = true
         }
 
         addSingletonFactory {
-            GetExtensionLanguages(app,get(),get())
+            GetExtensionLanguages(get(),get())
         }
 
         // HttpClient

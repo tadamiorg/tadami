@@ -1,5 +1,6 @@
 package com.sf.tadami.notifications.appupdate
 
+import com.sf.tadami.utils.stringRes
 import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
@@ -8,6 +9,8 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.core.app.NotificationCompat
 import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.ui.themes.getNotificationsColor
 import com.sf.tadami.utils.notificationManager
@@ -20,7 +23,7 @@ class AppUpdateNotifier(private val context: Context) {
 
     private val progressNotificationBuilder =
         NotificationCompat.Builder(context, Notifications.APP_UPDATE_DOWNLOAD_PROGRESS_CHANNEL).apply {
-            setContentTitle(context.getString(R.string.app_name))
+            setContentTitle(stringRes(Res.string.app_name))
             setLargeIcon(notificationBitmap)
             color = getNotificationsColor(context)
         }
@@ -28,11 +31,11 @@ class AppUpdateNotifier(private val context: Context) {
 
     fun showProgressNotification(): Notification {
         return with(progressNotificationBuilder) {
-            setContentText(context.getString(R.string.notification_downloading_app_update))
+            setContentText(stringRes(Res.string.notification_downloading_app_update))
             setSmallIcon(android.R.drawable.stat_sys_download)
             setOngoing(true)
             clearActions()
-            addAction(R.drawable.ic_close, context.getString(R.string.action_cancel), AppUpdateReceiver.getPendingIntent(context))
+            addAction(R.drawable.ic_close, stringRes(Res.string.action_cancel), AppUpdateReceiver.getPendingIntent(context))
         }.build()
 
     }
@@ -55,8 +58,8 @@ class AppUpdateNotifier(private val context: Context) {
             Notifications.APP_UPDATE_DOWNLOAD_SUCCESS_ID,
             NotificationCompat.Builder(context, Notifications.APP_UPDATE_DOWNLOAD_SUCCESS_CHANNEL)
                 .apply {
-                    setContentTitle(context.getString(R.string.app_name))
-                    setContentText(context.getString(R.string.notification_app_update_tap_install))
+                    setContentTitle(stringRes(Res.string.app_name))
+                    setContentText(stringRes(Res.string.notification_app_update_tap_install))
                     setSmallIcon(R.drawable.ic_tada)
                     setLargeIcon(notificationBitmap)
                     priority = NotificationCompat.PRIORITY_HIGH
@@ -65,12 +68,12 @@ class AppUpdateNotifier(private val context: Context) {
                     setAutoCancel(true)
                     addAction(
                         R.drawable.ic_baseline_system_update,
-                        context.getString(R.string.install),
+                        stringRes(Res.string.install),
                         installIntent,
                     )
                     addAction(
                         R.drawable.ic_close,
-                        context.getString(R.string.action_cancel),
+                        stringRes(Res.string.action_cancel),
                         AppUpdateReceiver.dismissNotification(context,Notifications.APP_UPDATE_DOWNLOAD_SUCCESS_ID),
                     )
                 }.build()
@@ -78,12 +81,12 @@ class AppUpdateNotifier(private val context: Context) {
     }
 
     fun showUpdateError(error: String?) {
-        val message = error ?: context.getString(R.string.notification_unknown_error)
+        val message = error ?: stringRes(Res.string.notification_unknown_error)
         context.notificationManager.notify(
             Notifications.APP_UPDATE_DOWNLOAD_ERROR_ID,
             NotificationCompat.Builder(context, Notifications.APP_UPDATE_DOWNLOAD_ERROR_CHANNEL)
                 .apply {
-                    setContentTitle(context.getString(R.string.notification_app_update_error))
+                    setContentTitle(stringRes(Res.string.notification_app_update_error))
                     setContentText(message)
                     setStyle(NotificationCompat.BigTextStyle().bigText(message))
                     setSmallIcon(R.drawable.ic_tada)

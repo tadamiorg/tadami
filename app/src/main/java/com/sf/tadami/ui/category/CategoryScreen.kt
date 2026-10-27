@@ -1,5 +1,7 @@
 package com.sf.tadami.ui.category
 
+import org.jetbrains.compose.resources.StringResource
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -27,12 +29,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.category.Category
 import com.sf.tadami.ui.components.grid.EmptyScreen
 import com.sf.tadami.ui.components.material.ExtendedFloatingActionButton
@@ -57,7 +60,7 @@ fun CategoryScreen(
             TadaTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.label_categories),
+                        text = stringResource(Res.string.label_categories),
                         style = MaterialTheme.typography.headlineSmall,
                     )
                 },
@@ -73,7 +76,7 @@ fun CategoryScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                text = { Text(text = stringResource(R.string.action_add)) },
+                text = { Text(text = stringResource(Res.string.action_add)) },
                 icon = { Icon(imageVector = Icons.Outlined.Add, contentDescription = null) },
                 onClick = { viewModel.showDialog(CategoryDialog.Create()) },
             )
@@ -83,7 +86,7 @@ fun CategoryScreen(
         if (list.isEmpty()) {
             EmptyScreen(
                 modifier = Modifier.padding(contentPadding),
-                message = stringResource(R.string.categories_empty),
+                message = stringResource(Res.string.categories_empty),
             )
         } else {
             ScrollbarLazyColumn(
@@ -114,8 +117,8 @@ fun CategoryScreen(
 
     when (val current = dialog) {
         is CategoryDialog.Create -> CategoryNameDialog(
-            title = stringResource(R.string.action_add_category),
-            confirmText = R.string.action_add,
+            title = stringResource(Res.string.action_add_category),
+            confirmText = Res.string.action_add,
             initialName = "",
             error = current.error,
             onNameChanged = viewModel::clearDialogError,
@@ -123,7 +126,7 @@ fun CategoryScreen(
             onConfirm = viewModel::createCategory,
         )
         is CategoryDialog.Rename -> CategoryNameDialog(
-            title = stringResource(R.string.action_rename_category),
+            title = stringResource(Res.string.action_rename_category),
             confirmText = null,
             initialName = current.category.name,
             error = current.error,
@@ -133,10 +136,10 @@ fun CategoryScreen(
         )
         is CategoryDialog.Delete -> TadaDestructiveDialog(
             onDismissRequest = viewModel::dismissDialog,
-            title = stringResource(R.string.action_delete_category),
+            title = stringResource(Res.string.action_delete_category),
             message = current.error?.let { categoryErrorText(it) }
-                ?: stringResource(R.string.delete_category_confirmation, current.category.name),
-            confirmLabel = stringResource(R.string.action_delete),
+                ?: stringResource(Res.string.delete_category_confirmation, current.category.name),
+            confirmLabel = stringResource(Res.string.action_delete),
             onConfirm = { viewModel.deleteCategory(current.category) },
         )
         null -> {}
@@ -173,17 +176,17 @@ private fun CategoryListItem(
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onMoveUp, enabled = canMoveUp) {
-                Icon(imageVector = Icons.Outlined.ArrowDropUp, contentDescription = stringResource(R.string.action_move_up))
+                Icon(imageVector = Icons.Outlined.ArrowDropUp, contentDescription = stringResource(Res.string.action_move_up))
             }
             IconButton(onClick = onMoveDown, enabled = canMoveDown) {
-                Icon(imageVector = Icons.Outlined.ArrowDropDown, contentDescription = stringResource(R.string.action_move_down))
+                Icon(imageVector = Icons.Outlined.ArrowDropDown, contentDescription = stringResource(Res.string.action_move_down))
             }
             Spacer(modifier = Modifier.weight(1f))
             IconButton(onClick = onRename) {
-                Icon(imageVector = Icons.Outlined.Edit, contentDescription = stringResource(R.string.action_rename_category))
+                Icon(imageVector = Icons.Outlined.Edit, contentDescription = stringResource(Res.string.action_rename_category))
             }
             IconButton(onClick = onDelete) {
-                Icon(imageVector = Icons.Outlined.Delete, contentDescription = stringResource(R.string.action_delete_category))
+                Icon(imageVector = Icons.Outlined.Delete, contentDescription = stringResource(Res.string.action_delete_category))
             }
         }
     }
@@ -193,7 +196,7 @@ private fun CategoryListItem(
 @Composable
 private fun CategoryNameDialog(
     title: String,
-    confirmText: Int?,
+    confirmText: StringResource?,
     initialName: String,
     error: CategoryError?,
     onNameChanged: () -> Unit,
@@ -203,11 +206,11 @@ private fun CategoryNameDialog(
     TadaInputDialog(
         title = title,
         initialValue = initialName,
-        confirmLabel = stringResource(confirmText ?: android.R.string.ok),
+        confirmLabel = stringResource(confirmText ?: Res.string.ok),
         onConfirm = onConfirm,
         onDismissRequest = onDismissRequest,
         icon = Icons.AutoMirrored.Outlined.Label,
-        label = stringResource(R.string.category_name),
+        label = stringResource(Res.string.category_name),
         error = error?.let { categoryErrorText(it) },
         // The interactors check it
         canConfirm = { true },
@@ -219,9 +222,9 @@ private fun CategoryNameDialog(
 private fun categoryErrorText(error: CategoryError): String {
     return stringResource(
         when (error) {
-            CategoryError.EMPTY_NAME -> R.string.category_name_empty
-            CategoryError.NAME_EXISTS -> R.string.category_name_exists
-            CategoryError.INTERNAL -> R.string.category_error
+            CategoryError.EMPTY_NAME -> Res.string.category_name_empty
+            CategoryError.NAME_EXISTS -> Res.string.category_name_exists
+            CategoryError.INTERNAL -> Res.string.category_error
         }
     )
 }

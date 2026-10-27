@@ -1,6 +1,5 @@
 package com.sf.tadami.navigation
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -27,7 +26,6 @@ import com.sf.tadami.navigation.graphs.home.HomeNavGraph
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.ui.components.banners.DownloadedOnlyBanner
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(
     navController: NavHostController,

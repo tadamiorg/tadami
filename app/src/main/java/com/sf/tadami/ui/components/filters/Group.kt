@@ -27,9 +27,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.source.model.AnimeFilter
 import com.sf.tadami.ui.components.modal.ModalAction
 import com.sf.tadami.ui.components.modal.TadaDialog
@@ -72,8 +73,7 @@ fun Group(
                     modifier = Modifier.align(Alignment.CenterVertically).padding(end = MaterialTheme.padding.extraSmall),
                     text = checkBoxGroup.state.fold(0) { sum, checkbox -> sum + checkbox.state.toInt() }
                         .let {
-                            if (it == 0) stringResource(
-                                id = R.string.discover_search_screen_filters_group_selected_text
+                            if (it == 0) stringResource(Res.string.discover_search_screen_filters_group_selected_text
                             )
                             else "$it ${checkBoxGroup.name.lowFirstLetter()}"
                         },
@@ -94,7 +94,7 @@ fun Group(
             title = checkBoxGroup.name.capFirstLetter(),
             onDismissRequest = { dialogState = false },
             dismiss = null,
-            confirm = ModalAction(stringResource(android.R.string.ok)) { dialogState = false },
+            confirm = ModalAction(stringResource(Res.string.ok)) { dialogState = false },
             // A lazy grid, with its own scroll
             scrollable = false,
         ) {

@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.discover.search
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,8 +24,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -34,7 +33,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.navigation.graphs.sources.SourcesRoutes
@@ -109,7 +109,7 @@ fun SearchScreen(
                             horizontalAlignment = Alignment.Start
                         ) {
                             Text(
-                                text = stringResource(id = R.string.discover_search_screen_title),
+                                text = stringResource(Res.string.discover_search_screen_title),
                                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
@@ -155,7 +155,7 @@ fun SearchScreen(
                     },
                     actions = listOf(
                         Action.Vector(
-                            title = R.string.stub_text,
+                            title = Res.string.stub_text,
                             icon = Icons.Outlined.Public,
                             onClick = {
                                 val httpSource = searchViewModel.source as? AnimeHttpSource
@@ -182,7 +182,7 @@ fun SearchScreen(
                         }
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_filter),
+                            painter = painterResource(Res.drawable.ic_filter),
                             contentDescription = null
                         )
                     }
@@ -233,7 +233,7 @@ fun SearchScreen(
                     inclusive = false
                 )
                 if (it == MigrationState.ERRORED) {
-                    UiToasts.showToast(R.string.migration_error, Toast.LENGTH_LONG)
+                    UiToasts.showToast(Res.string.migration_error, UiToasts.LENGTH_LONG)
                     navController.navigate("${AnimeInfosRoutes.DETAILS}/${migrateHelperState.oldAnime!!.source}/${migrateHelperState.oldAnime!!.id}")
                 } else {
                     navController.navigate("${AnimeInfosRoutes.DETAILS}/${migrateHelperState.newAnime!!.source}/${migrateHelperState.newAnime!!.id}")

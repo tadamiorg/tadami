@@ -2,6 +2,7 @@
 
 package com.sf.tadami.ui.animeinfos.details.infos
 
+import org.jetbrains.compose.resources.painterResource
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.shape.CornerBasedShape
@@ -13,8 +14,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
-import coil.compose.AsyncImage
-import com.sf.tadami.R
+import coil3.compose.AsyncImage
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.utils.rememberResourceBitmapPainter
 
 enum class AnimeCover(val ratio: Float) {
@@ -33,7 +35,7 @@ enum class AnimeCover(val ratio: Float) {
             model = data,
             placeholder = ColorPainter(CoverPlaceholderColor),
             contentDescription = contentDescription,
-            error = rememberResourceBitmapPainter(R.drawable.cover_error),
+            error = painterResource(Res.drawable.cover_error),
             modifier = modifier
                 .aspectRatio(ratio)
                 .clip(shape)

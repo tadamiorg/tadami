@@ -18,7 +18,7 @@ import java.time.ZonedDateTime
  * The title fetched from the source to store, as Mihon's: always for an anime out of the library, only with
  * [updateLibraryTitles] for a library one. Null, keeping the stored title, otherwise or when it's blank.
  */
-internal fun detailsTitle(remoteTitle: String, favorite: Boolean, updateLibraryTitles: Boolean): String? {
+public fun detailsTitle(remoteTitle: String, favorite: Boolean, updateLibraryTitles: Boolean): String? {
     return remoteTitle.takeIf { it.isNotBlank() && (!favorite || updateLibraryTitles) }
 }
 
@@ -28,7 +28,7 @@ internal fun detailsTitle(remoteTitle: String, favorite: Boolean, updateLibraryT
  * episodes and the update dates are left alone. The cover is marked as modified [now] when its URL changes, or always
  * with [refreshCover], so it's loaded again under a new image cache key.
  */
-internal fun SAnime.toDetailsUpdate(
+public fun SAnime.toDetailsUpdate(
     local: Anime,
     updateLibraryTitles: Boolean = false,
     refreshCover: Boolean = false,

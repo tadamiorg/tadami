@@ -4,9 +4,9 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.os.Looper
-import android.widget.Toast
 import androidx.core.content.getSystemService
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.extension.util.ExtensionsGuard
 import com.sf.tadami.ui.utils.UiToasts
@@ -77,7 +77,7 @@ class GlobalExceptionHandler private constructor(
             // user is told now
             CrashReporter.writeCrash(applicationContext, exception, timestamp, offered = true, culprits = culpritsInfo(culprits))
             val names = culprits.joinToString { ExtensionsGuard.nameOf(it) }
-            UiToasts.showToast(R.string.ext_crashed_disabled, Toast.LENGTH_LONG, names)
+            UiToasts.showToast(Res.string.ext_crashed_disabled, UiToasts.LENGTH_LONG, names)
             true
         }.getOrDefault(false)
     }

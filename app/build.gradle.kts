@@ -308,8 +308,7 @@ dependencies {
     implementation(androidx.material)
 
     // Coil
-    implementation(platform(libs.coil.bom))
-    implementation(libs.bundles.coilGroup)
+    // Coil 3 comes from :shared
 
     // Exoplayer
     implementation(androidx.bundles.exoplayerGroup)
@@ -399,6 +398,8 @@ tasks {
             jvmDefault.set(org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode.ENABLE)
             freeCompilerArgs.addAll(
                 "-Xcontext-parameters",
+                // BackHandler of the shared code, androidx.compose.ui.backhandler
+                "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi",
                 "-XXLanguage:+PropertyParamAnnotationDefaultTargetMode"
             )
         }

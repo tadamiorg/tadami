@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.sf.tadami.domain.anime.AnimeCoverData
 import com.sf.tadami.source.model.SAnimeStatus
 

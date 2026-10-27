@@ -9,15 +9,16 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.Dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.appearance.ThemeMode
 
 private val options = mapOf(
-    ThemeMode.SYSTEM to R.string.theme_system,
-    ThemeMode.LIGHT to R.string.theme_light,
-    ThemeMode.DARK to R.string.theme_dark,
+    ThemeMode.SYSTEM to Res.string.theme_system,
+    ThemeMode.LIGHT to Res.string.theme_light,
+    ThemeMode.DARK to Res.string.theme_dark,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -4,7 +4,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.interactors.extension.GetExtensionsByType
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.ExtensionManager
@@ -96,14 +97,14 @@ class ExtensionsViewModel : ViewModel() {
                 val updates =
                     _updates.filter(queryFilter(query)).map(extensionMapper(downloads, reloading))
                 if (updates.isNotEmpty()) {
-                    itemsGroups[ExtensionUiModel.Header.Resource(R.string.ext_updates_pending)] =
+                    itemsGroups[ExtensionUiModel.Header.Resource(Res.string.ext_updates_pending)] =
                         updates
                 }
 
                 val installed =
                     _installed.filter(queryFilter(query)).map(extensionMapper(downloads, reloading))
                 if (installed.isNotEmpty()) {
-                    itemsGroups[ExtensionUiModel.Header.Resource(R.string.ext_installed)] =
+                    itemsGroups[ExtensionUiModel.Header.Resource(Res.string.ext_installed)] =
                         installed
                 }
 
@@ -112,7 +113,7 @@ class ExtensionsViewModel : ViewModel() {
                     .groupBy { it.lang }
                     .toSortedMap()
                     .map { (lang, exts) ->
-                        ExtensionUiModel.Header.Text(lang.getRes()) to exts.map(
+                        ExtensionUiModel.Header.Text(lang.res) to exts.map(
                             extensionMapper(
                                 downloads,
                                 reloading,

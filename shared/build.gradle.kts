@@ -30,6 +30,7 @@ kotlin {
             "androidx.compose.animation.ExperimentalAnimationApi",
             "kotlinx.coroutines.ExperimentalCoroutinesApi",
             "kotlinx.serialization.ExperimentalSerializationApi",
+            "androidx.compose.ui.ExperimentalComposeUiApi",
         )
     }
 
@@ -43,6 +44,7 @@ kotlin {
             api("org.jetbrains.compose.animation:animation-graphics:1.12.2")
             api("org.jetbrains.compose.ui:ui:1.12.2")
             api("org.jetbrains.compose.ui:ui-util:1.12.2")
+            api("org.jetbrains.compose.ui:ui-backhandler:1.12.2")
             api("org.jetbrains.compose.material:material:1.12.2")
             api("org.jetbrains.compose.material3:material3:1.9.0")
             api("org.jetbrains.compose.material:material-icons-extended:1.7.3")
@@ -86,6 +88,8 @@ kotlin {
         }
         androidMain.dependencies {
             api(androidx.datastore)
+            api(androidx.webkit)
+            api(androidx.core.ktx)
             api(libs.sqldelight.android.driver)
             api(kotlinx.coroutines.android)
         }

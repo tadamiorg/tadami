@@ -1,8 +1,9 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.audioselection
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.source.model.Track
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.audioselection.tabs.AudioTab
 import com.sf.tadami.ui.components.modal.ModalRules
@@ -20,7 +21,7 @@ fun AudioSelectionDialog(
     PlayerPanel(
         visible = opened,
         onDismissRequest = onDismissRequest,
-        title = stringResource(R.string.label_audio),
+        title = stringResource(Res.string.label_audio),
     ) {
         AudioTab(
             audioTracks = audioTracks,

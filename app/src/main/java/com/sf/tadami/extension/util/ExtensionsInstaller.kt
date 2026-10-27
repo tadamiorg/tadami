@@ -1,9 +1,10 @@
 package com.sf.tadami.extension.util
 
+import org.jetbrains.compose.resources.StringResource
 import android.content.Context
-import androidx.annotation.StringRes
 import androidx.core.content.pm.PackageInfoCompat
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.model.LibVersion
 import com.sf.tadami.network.GET
@@ -24,7 +25,7 @@ import java.util.zip.ZipFile
  *
  * @param context The application context.
  */
-internal class ExtensionsInstaller(private val context: Context) {
+public class ExtensionsInstaller(private val context: Context) {
 
     private val network: NetworkHelper by injectLazy()
 
@@ -105,7 +106,7 @@ internal class ExtensionsInstaller(private val context: Context) {
          *
          * @return The lowercase hex SHA-256 of what was copied.
          */
-        internal fun copyAtMost(input: InputStream, file: File, maxBytes: Long): String {
+        public fun copyAtMost(input: InputStream, file: File, maxBytes: Long): String {
             val digest = MessageDigest.getInstance("SHA-256")
             file.outputStream().use { output ->
                 val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
@@ -129,7 +130,7 @@ internal class ExtensionsInstaller(private val context: Context) {
          * @param length Its length in bytes, -1 when unknown.
          * @param sha256 Its hex SHA-256, null until it is downloaded.
          */
-        internal fun listedFileRejection(
+        public fun listedFileRejection(
             listedSize: Long?,
             listedSha256: String?,
             length: Long,
@@ -142,7 +143,7 @@ internal class ExtensionsInstaller(private val context: Context) {
         }
 
         /** Whether the APK [file] has native libraries: they can't be loaded, there is no library path. */
-        internal fun hasNativeLibs(file: File): Boolean {
+        public fun hasNativeLibs(file: File): Boolean {
             return ZipFile(file).use { zip -> zip.entries().asSequence().any { it.name.startsWith("lib/") } }
         }
 
@@ -153,7 +154,7 @@ internal class ExtensionsInstaller(private val context: Context) {
          * @param installed The APK it would replace, null when there is none.
          * @param allowSameVersion Whether the version of [installed] can be replaced by the same one.
          */
-        internal fun rejectionOf(
+        public fun rejectionOf(
             apk: ApkInfo,
             pkgName: String,
             listed: Extension.Available?,
@@ -180,7 +181,7 @@ internal class ExtensionsInstaller(private val context: Context) {
          * Whether an APK signed as [new] can replace one signed as [old], Android's own update rule:
          * the same signers, or a key rotated from the old one, in the history the platform verified.
          */
-        internal fun canReplaceSigners(old: ApkInfo, new: ApkInfo): Boolean = when {
+        public fun canReplaceSigners(old: ApkInfo, new: ApkInfo): Boolean = when {
             old.signatureHashes.isEmpty() || new.signatureHashes.isEmpty() -> false
             // No key rotation with several signers
             old.multipleSigners || new.multipleSigners ->
@@ -191,7 +192,7 @@ internal class ExtensionsInstaller(private val context: Context) {
 }
 
 /** What the verification of an extension APK reads of it. */
-internal data class ApkInfo(
+public data class ApkInfo(
     val pkgName: String,
     val versionCode: Long,
     val versionName: String?,
@@ -207,23 +208,23 @@ internal data class ApkInfo(
 }
 
 /** Why an extension APK is refused, the installed one being kept. */
-internal enum class ApkRejection(@StringRes val messageRes: Int) {
+public enum class ApkRejection(val messageRes: StringResource) {
     /** Not an APK that can be read. */
-    INVALID_APK(R.string.ext_install_error_invalid),
-    WRONG_PACKAGE(R.string.ext_install_error_invalid),
-    NOT_AN_EXTENSION(R.string.ext_install_error_invalid),
+    INVALID_APK(Res.string.ext_install_error_invalid),
+    WRONG_PACKAGE(Res.string.ext_install_error_invalid),
+    NOT_AN_EXTENSION(Res.string.ext_install_error_invalid),
 
     /** Its version isn't the listed one. */
-    WRONG_VERSION(R.string.ext_install_error_invalid),
-    UNSUPPORTED_LIB(R.string.ext_install_error_invalid),
-    NATIVE_LIBS(R.string.ext_install_error_invalid),
+    WRONG_VERSION(Res.string.ext_install_error_invalid),
+    UNSUPPORTED_LIB(Res.string.ext_install_error_invalid),
+    NATIVE_LIBS(Res.string.ext_install_error_invalid),
 
     /** Not the size or SHA-256 the repo lists for it. */
-    NOT_LISTED_FILE(R.string.ext_install_error_checksum),
+    NOT_LISTED_FILE(Res.string.ext_install_error_checksum),
 
     /** Not newer than the installed one. */
-    NOT_NEWER(R.string.ext_install_error_not_newer),
+    NOT_NEWER(Res.string.ext_install_error_not_newer),
 
     /** Not signed with the key of the installed one. */
-    SIGNER_CHANGED(R.string.ext_install_error_signer),
+    SIGNER_CHANGED(Res.string.ext_install_error_signer),
 }

@@ -15,10 +15,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.preferences.model.rememberDataStoreState
@@ -49,10 +50,10 @@ fun getSubtitlesGroup(
     prefs: PlayerPreferences
 ): Preference.PreferenceCategory {
     return Preference.PreferenceCategory(
-        title = stringResource(id = R.string.label_subtitles),
+        title = stringResource(Res.string.label_subtitles),
         preferenceItems = listOf(
             Preference.PreferenceItem.CustomPreference(
-                title = stringResource(id = R.string.pref_subtitles_appearance)
+                title = stringResource(Res.string.pref_subtitles_appearance)
             ) {
                 var textSize by remember { mutableStateOf(prefs.subtitleTextSize) }
                 var fontWeight by remember { mutableStateOf(prefs.subtitleFontWeight) }
@@ -70,7 +71,7 @@ fun getSubtitlesGroup(
                     ) {
 
                         OutlinedNumericChooser(
-                            label = stringResource(R.string.size),
+                            label = stringResource(Res.string.size),
                             placeholder = "20",
                             suffix = "",
                             value = textSize,
@@ -93,7 +94,7 @@ fun getSubtitlesGroup(
                     ) {
 
                         OutlinedNumericChooser(
-                            label = stringResource(R.string.pref_subtitle_weight),
+                            label = stringResource(Res.string.pref_subtitle_weight),
                             placeholder = "700",
                             suffix = "",
                             value = fontWeight,
@@ -116,7 +117,7 @@ fun getSubtitlesGroup(
                     ) {
 
                         OutlinedNumericChooser(
-                            label = stringResource(R.string.pref_subtitle_outline),
+                            label = stringResource(Res.string.pref_subtitle_outline),
                             placeholder = "22",
                             suffix = "%",
                             value = outlineWidth,
@@ -139,7 +140,7 @@ fun getSubtitlesGroup(
                     ) {
 
                         OutlinedNumericChooser(
-                            label = stringResource(R.string.pref_subtitle_letter_spacing),
+                            label = stringResource(Res.string.pref_subtitle_letter_spacing),
                             placeholder = "0",
                             suffix = "",
                             value = letterSpacing,

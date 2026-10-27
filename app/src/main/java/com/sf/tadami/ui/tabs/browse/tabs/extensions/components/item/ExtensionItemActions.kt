@@ -15,8 +15,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.extension.model.InstallStep
@@ -42,7 +43,7 @@ fun ExtensionItemActions(
                 IconButton(onClick = { onClickItemCancel(extension) }) {
                     Icon(
                         imageVector = Icons.Outlined.Close,
-                        contentDescription = stringResource(R.string.action_cancel),
+                        contentDescription = stringResource(Res.string.action_cancel),
                     )
                 }
             }
@@ -50,7 +51,7 @@ fun ExtensionItemActions(
                 IconButton(onClick = { onClickItemAction(extension) }) {
                     Icon(
                         imageVector = Icons.Outlined.Refresh,
-                        contentDescription = stringResource(R.string.retry),
+                        contentDescription = stringResource(Res.string.retry),
                     )
                 }
             }
@@ -60,24 +61,24 @@ fun ExtensionItemActions(
                         IconButton(onClick = { onClickItemSecondaryAction(extension) }) {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
-                                contentDescription = stringResource(R.string.stub_text),
+                                contentDescription = stringResource(Res.string.stub_text),
                             )
                         }
 
                         if (extension.loadIssue == ExtensionLoadIssue.UNTRUSTED) {
                             TextButton(onClick = { onClickItemAction(extension) }) {
-                                Text(text = stringResource(R.string.ext_trust))
+                                Text(text = stringResource(Res.string.ext_trust))
                             }
                         } else if (extension.hasUpdate) {
                             IconButton(onClick = { onClickItemAction(extension) }) {
                                 Icon(
                                     imageVector = Icons.Outlined.GetApp,
-                                    contentDescription = stringResource(R.string.stub_text),
+                                    contentDescription = stringResource(Res.string.stub_text),
                                 )
                             }
                         } else if (extension.loadIssue == ExtensionLoadIssue.QUARANTINED) {
                             TextButton(onClick = { onClickItemAction(extension) }) {
-                                Text(text = stringResource(R.string.retry))
+                                Text(text = stringResource(Res.string.retry))
                             }
                         }
                     }
@@ -88,7 +89,7 @@ fun ExtensionItemActions(
                             ) {
                                 Icon(
                                     imageVector = Icons.Outlined.Public,
-                                    contentDescription = stringResource(R.string.stub_text),
+                                    contentDescription = stringResource(Res.string.stub_text),
                                 )
                             }
                         }
@@ -96,7 +97,7 @@ fun ExtensionItemActions(
                         IconButton(onClick = { onClickItemAction(extension) }) {
                             Icon(
                                 imageVector = Icons.Outlined.GetApp,
-                                contentDescription = stringResource(R.string.ext_install),
+                                contentDescription = stringResource(Res.string.ext_install),
                             )
                         }
                     }

@@ -3,8 +3,9 @@ package com.sf.tadami.ui.tabs.library.bottomsheet
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.category.Category
 import com.sf.tadami.preferences.library.LibraryPreferences
 import com.sf.tadami.preferences.model.rememberDataStoreState
@@ -33,7 +34,7 @@ fun LibrarySheetContent(
     SheetTabs(
         tabs = listOf(
             SheetTab(
-                title = stringResource(R.string.action_filter)
+                title = stringResource(Res.string.action_filter)
             ) {
                 FilterTab(
                     filters = libraryPreferencesState.filterFlags,
@@ -49,7 +50,7 @@ fun LibrarySheetContent(
                 )
             },
             SheetTab(
-                title = stringResource(R.string.action_sort)
+                title = stringResource(Res.string.action_sort)
             ) {
                 val sort = categorySortCategory?.let {
                     categorySort(
@@ -73,7 +74,7 @@ fun LibrarySheetContent(
                 )
             },
             SheetTab(
-                title = stringResource(R.string.title_display)
+                title = stringResource(Res.string.title_display)
             ) {
                 DisplayTab(
                     showCategoryTabs = libraryPreferencesState.showCategoryTabs,

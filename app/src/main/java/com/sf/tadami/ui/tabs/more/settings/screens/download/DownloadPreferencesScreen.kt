@@ -1,15 +1,17 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.download
 
+import org.jetbrains.compose.resources.StringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.core.net.toUri
 import androidx.navigation.NavHostController
 import com.hippo.unifile.UniFile
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.providers.AndroidFoldersProvider
 import com.sf.tadami.preferences.download.DownloadPreferences
@@ -25,7 +27,7 @@ import uy.kohesive.injekt.api.get
 class DownloadPreferencesScreen(
     navController: NavHostController
 ) : PreferenceScreen {
-    override val title: Int = R.string.preferences_download_title
+    override val title: StringResource = Res.string.preferences_download_title
 
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 
@@ -50,10 +52,10 @@ class DownloadPreferencesScreen(
     ): Preference.PreferenceCategory {
         val downloadManager: TadamiDownloadManager = remember { Injekt.get() }
         return Preference.PreferenceCategory(
-            title = stringResource(id = R.string.preferences_download_title),
+            title = stringResource(Res.string.preferences_download_title),
             preferenceItems = listOf(
                 Preference.PreferenceItem.TogglePreference(
-                    title = stringResource(id = R.string.preferences_download_only_over_wifi),
+                    title = stringResource(Res.string.preferences_download_only_over_wifi),
                     value = prefs.onlyOverWifi,
                     onValueChanged = {
                         prefState.setValue(
@@ -70,8 +72,8 @@ class DownloadPreferencesScreen(
                     value = prefs.parallelDownloads,
                     items = (DownloadPreferences.ParallelDownloadsItems.MIN..DownloadPreferences.ParallelDownloadsItems.MAX)
                         .associateWith { "$it" },
-                    title = stringResource(id = R.string.preferences_download_parallel),
-                    subtitle = stringResource(id = R.string.preferences_download_parallel_subtitle),
+                    title = stringResource(Res.string.preferences_download_parallel),
+                    subtitle = stringResource(Res.string.preferences_download_parallel_subtitle),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(
@@ -82,9 +84,9 @@ class DownloadPreferencesScreen(
                     }
                 ),
                 Preference.PreferenceItem.TogglePreference(
-                    title = stringResource(id = R.string.preferences_download_delete_after_watched),
+                    title = stringResource(Res.string.preferences_download_delete_after_watched),
                     value = prefs.deleteAfterWatched,
-                    subtitle = stringResource(id = R.string.preferences_download_delete_after_watched_subtitle),
+                    subtitle = stringResource(Res.string.preferences_download_delete_after_watched_subtitle),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(
@@ -110,8 +112,8 @@ class DownloadPreferencesScreen(
             UniFile.fromUri(context, prefs.storageDir.toUri())?.displayablePath?.let { "$it/$DOWNLOADS_DIR" }
         }
         return Preference.PreferenceItem.TextPreference(
-            title = stringResource(R.string.preferences_download_location),
-            subtitle = location ?: stringResource(R.string.no_location_set),
+            title = stringResource(Res.string.preferences_download_location),
+            subtitle = location ?: stringResource(Res.string.no_location_set),
         )
     }
 

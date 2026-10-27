@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.datastore.core.DataStore
@@ -29,7 +29,8 @@ import com.halilibo.richtext.ui.BlockQuoteGutter
 import com.halilibo.richtext.ui.RichTextStyle
 import com.halilibo.richtext.ui.material3.RichText
 import com.halilibo.richtext.ui.string.RichTextStringStyle
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.CommonKeys
 import com.sf.tadami.preferences.model.rememberUnknownDataStoreState
 import com.sf.tadami.ui.components.filters.CheckBox
@@ -74,7 +75,7 @@ fun TooltipTab(
                        textModifier = Modifier.padding(end = MaterialTheme.padding.small),
                        interactionSource = interactionSource,
                        maxWidth = false,
-                       title = stringResource(R.string.player_epsiode_tooltip_show_again),
+                       title = stringResource(Res.string.player_epsiode_tooltip_show_again),
                        state = (sourcePreferences[CommonKeys.SHOULD_SHOW_EPISODE_TOOLTIP]
                            ?: true).not()
                    ) { checked ->

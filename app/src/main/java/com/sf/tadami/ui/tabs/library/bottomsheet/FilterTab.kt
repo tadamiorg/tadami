@@ -2,9 +2,10 @@ package com.sf.tadami.ui.tabs.library.bottomsheet
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.state.ToggleableState
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.library.LibraryFilter
 import com.sf.tadami.ui.components.filters.TriStateItem
 
@@ -12,7 +13,7 @@ import com.sf.tadami.ui.components.filters.TriStateItem
 fun FilterTab(filters: LibraryFilter, setFilters: (filterFlags: Long) -> Unit) {
     Column {
         TriStateItem(
-            label = stringResource(id = R.string.filter_unseen),
+            label = stringResource(Res.string.filter_unseen),
             state = filters.seenState
         ) {
             val newFilters = when (filters.seenState) {
@@ -27,7 +28,7 @@ fun FilterTab(filters: LibraryFilter, setFilters: (filterFlags: Long) -> Unit) {
             setFilters(newFilters)
         }
         TriStateItem(
-            label = stringResource(id = R.string.filter_started),
+            label = stringResource(Res.string.filter_started),
             state = filters.startedState
         ) {
             val newFilters = when (filters.startedState) {

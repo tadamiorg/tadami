@@ -1,5 +1,6 @@
 package com.sf.tadami.data.backup
 
+import com.sf.tadami.utils.stringRes
 import android.content.Context
 import android.net.Uri
 import androidx.datastore.core.DataStore
@@ -11,7 +12,8 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.sf.tadami.DataStoresHandler
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.data.backup.models.BackupAnime
 import com.sf.tadami.data.backup.models.BackupCategory
@@ -162,7 +164,7 @@ class BackupRestorer(
 
         restoreProgress += 1
         notifier.showRestoreProgress(
-            content = context.getString(R.string.sources_settings),
+            content = stringRes(Res.string.sources_settings),
             progress = restoreProgress,
             maxAmount = restoreAmount,
         )
@@ -175,7 +177,7 @@ class BackupRestorer(
             }
             backupCategoryIds(backupCategories, getCategories.await())
         } catch (e: Exception) {
-            errors.add(Date() to "${context.getString(R.string.label_categories)}: ${e.message}")
+            errors.add(Date() to "${stringRes(Res.string.label_categories)}: ${e.message}")
             emptyMap()
         }
 
@@ -183,8 +185,8 @@ class BackupRestorer(
         showRestoreProgress(
             restoreProgress,
             restoreAmount,
-            context.getString(R.string.label_categories),
-            context.getString(R.string.restoring_backup),
+            stringRes(Res.string.label_categories),
+            stringRes(Res.string.restoring_backup),
         )
         return categoryIds
     }
@@ -223,7 +225,7 @@ class BackupRestorer(
                 restoreProgress,
                 restoreAmount,
                 anime.title,
-                context.getString(R.string.restoring_backup),
+                stringRes(Res.string.restoring_backup),
             )
         }
     }
@@ -425,8 +427,8 @@ class BackupRestorer(
         showRestoreProgress(
             restoreProgress,
             restoreAmount,
-            context.getString(R.string.app_settings),
-            context.getString(R.string.restoring_backup),
+            stringRes(Res.string.app_settings),
+            stringRes(Res.string.restoring_backup),
         )
     }
 

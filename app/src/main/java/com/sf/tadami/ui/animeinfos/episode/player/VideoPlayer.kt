@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.animeinfos.episode.player
 
-import android.annotation.SuppressLint
 import android.content.ComponentCallbacks2
 import android.content.res.Configuration
 import android.net.Uri
@@ -36,7 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
@@ -61,7 +60,8 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.download.PreviewGenerator
 import com.sf.tadami.data.download.TadamiDownloadManager
 import com.sf.tadami.data.download.isLocalFile
@@ -109,7 +109,7 @@ fun VideoPlayer(
     modifier: Modifier = Modifier,
     playerNetworkHelper: PlayerNetworkHelper = Injekt.get(),
     dispatcher: OnBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current!!.onBackPressedDispatcher,
-    @SuppressLint("ContextCastToActivity") playerViewModel: PlayerViewModel = viewModel(LocalContext.current as EpisodeActivity),
+    playerViewModel: PlayerViewModel = viewModel(LocalContext.current as EpisodeActivity),
     setPlayer: (ExoPlayer) -> Unit,
     onWebViewOpen: () -> Unit,
     setPipMode: () -> Unit,
@@ -664,7 +664,7 @@ fun VideoPlayer(
                 },
                 sourceDatastore = playerViewModel.sourceDataStore,
                 tooltipContent = playerViewModel.sourceTooltipContent
-                    ?: stringResource(R.string.player_epsiode_tooltip_no_content)
+                    ?: stringResource(Res.string.player_epsiode_tooltip_no_content)
             )
 
             if (playerPreferences.seekPreview) {
@@ -745,7 +745,7 @@ fun VideoPlayer(
                             player.clearMediaItems()
                             player.prepare()
                             UiToasts.showToast(
-                                stringRes = R.string.player_screen_source_load_error,
+                                stringRes = Res.string.player_screen_source_load_error,
                                 args = arrayOf("${episodeUiState.selectedSource?.fullName}")
                             )
                         } else {
@@ -829,9 +829,9 @@ fun VideoPlayer(
                 title = { anime?.title ?: "" },
                 episode = when (anime?.displayMode) {
                     is Anime.DisplayMode.NAME -> currentEpisode?.name
-                        ?: "${stringResource(id = R.string.player_screen_episode_label)} $episodeNumber"
+                        ?: "${stringResource(Res.string.player_screen_episode_label)} $episodeNumber"
 
-                    else -> "${stringResource(id = R.string.player_screen_episode_label)} $episodeNumber"
+                    else -> "${stringResource(Res.string.player_screen_episode_label)} $episodeNumber"
                 },
                 onReplay = { exoPlayer.seekTo(currentTime - playerPreferences.doubleTapLength) },
                 onSkipOp = { exoPlayer.seekTo(currentTime + 85000) },

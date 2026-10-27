@@ -1,10 +1,12 @@
 package com.sf.tadami.ui.utils
 
+import com.sf.tadami.utils.stringRes
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 
 fun Uri.toShareIntent(context: Context, type: String = "image/*", message: String? = null): Intent {
     val uri = this
@@ -26,7 +28,7 @@ fun Uri.toShareIntent(context: Context, type: String = "image/*", message: Strin
 
     // Added, not set: createChooser gives the chooser the read grant of the share intent, for
     // its preview
-    return Intent.createChooser(shareIntent, context.getString(R.string.action_share)).apply {
+    return Intent.createChooser(shareIntent, stringRes(Res.string.action_share)).apply {
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 }

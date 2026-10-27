@@ -401,7 +401,7 @@ class DetailsViewModel(
 }
 
 // Select all and invert act on the displayed episodes only, the hidden ones end up unselected
-internal fun List<EpisodeItem>.selectDisplayed(
+public fun List<EpisodeItem>.selectDisplayed(
     unseenFilter: Long?,
     downloadedOnly: Boolean,
     selected: (EpisodeItem) -> Boolean

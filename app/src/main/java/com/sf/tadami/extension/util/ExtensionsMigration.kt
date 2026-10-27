@@ -5,14 +5,14 @@ import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import com.sf.tadami.BuildConfig
+import com.sf.tadami.AppBuildInfo
 import com.sf.tadami.preferences.model.CustomPreferences
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
@@ -22,7 +22,7 @@ import java.io.File
  * Copies the extensions installed as apps, as they were before [ExtensionsStorage], into it. Their
  * sources keep their settings, which are in the app's own data. The apps themselves are never loaded.
  */
-internal object ExtensionsMigration {
+public object ExtensionsMigration {
 
     // Private, so not restored: the backup of a device that was migrated doesn't migrate another one
     private val PACKAGES_MIGRATED = booleanPreferencesKey(CustomPreferences.privateKey("extension_packages_migrated"))
@@ -35,7 +35,7 @@ internal object ExtensionsMigration {
      * @return The extension apps that have a private copy, so aren't needed anymore.
      */
     suspend fun migrate(context: Context, dataStore: DataStore<Preferences>): List<String> {
-        if (!BuildConfig.DEBUG && dataStore.data.first()[PACKAGES_MIGRATED] == true) return emptyList()
+        if (!AppBuildInfo.DEBUG && dataStore.data.first()[PACKAGES_MIGRATED] == true) return emptyList()
 
         val packages = installedExtensionPackages(context)
         if (packages.isEmpty()) {
@@ -95,7 +95,7 @@ internal object ExtensionsMigration {
      * Whether an app of [installedVersionCode] is copied over a private copy of [privateVersionCode].
      * Debug builds copy the same version too when it isn't the same file: reinstalled with adb.
      */
-    internal fun shouldAdopt(
+    public fun shouldAdopt(
         installedVersionCode: Long,
         privateVersionCode: Long?,
         debug: Boolean,
@@ -117,7 +117,7 @@ internal object ExtensionsMigration {
             val adopt = shouldAdopt(
                 installedVersionCode = PackageInfoCompat.getLongVersionCode(pkgInfo),
                 privateVersionCode = installer.installedVersionCode(pkgName),
-                debug = BuildConfig.DEBUG,
+                debug = AppBuildInfo.DEBUG,
                 isSameFile = {
                     val privateApk = ExtensionsStorage.apkFile(ExtensionsStorage.dir(context), pkgName)
                     apk.readBytes().contentEquals(privateApk.readBytes())
@@ -128,11 +128,11 @@ internal object ExtensionsMigration {
             val tmp = installer.newTmpFile(pkgName)
             try {
                 apk.copyTo(tmp, overwrite = true)
-                val rejection = installer.verifyAndCommit(tmp, pkgName, listed = null, allowSameVersion = BuildConfig.DEBUG)
+                val rejection = installer.verifyAndCommit(tmp, pkgName, listed = null, allowSameVersion = AppBuildInfo.DEBUG)
                 rejection?.let { Log.d("ExtensionsMigration", "$pkgName refused: $it") }
                 if (rejection == null) {
                     // From no repo: installed with adb in a debug build, unknown for an app installed before
-                    val origin = ExtensionOrigin(manual = true).takeIf { BuildConfig.DEBUG }
+                    val origin = ExtensionOrigin(manual = true).takeIf { AppBuildInfo.DEBUG }
                     ExtensionsStorage.writeOrigin(ExtensionsStorage.dir(context), pkgName, origin)
                 }
                 rejection == null

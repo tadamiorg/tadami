@@ -1,11 +1,13 @@
 package com.sf.tadami.notifications
 
+import com.sf.tadami.utils.stringRes
 import android.app.NotificationManager
 import android.content.Context
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationChannelGroupCompat
 import androidx.core.app.NotificationManagerCompat
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 
 object Notifications {
 
@@ -64,22 +66,22 @@ object Notifications {
         notificationService.createNotificationChannelGroupsCompat(
             listOf(
                 NotificationChannelGroupCompat.Builder(APP_GROUP).apply {
-                    setName(context.getString(R.string.notification_app_group))
+                    setName(stringRes(Res.string.notification_app_group))
                 }.build(),
                 NotificationChannelGroupCompat.Builder(EXTENSIONS_GROUP).apply {
-                    setName(context.getString(R.string.notification_extensions_group))
+                    setName(stringRes(Res.string.notification_extensions_group))
                 }.build(),
                 NotificationChannelGroupCompat.Builder(LIBRARY_GROUP).apply {
-                    setName(context.getString(R.string.notification_library_group))
+                    setName(stringRes(Res.string.notification_library_group))
                 }.build(),
                 NotificationChannelGroupCompat.Builder(CAST_GROUP).apply {
-                    setName(context.getString(R.string.notification_cast_group))
+                    setName(stringRes(Res.string.notification_cast_group))
                 }.build(),
                 NotificationChannelGroupCompat.Builder(BACKUP_RESTORE_GROUP).apply {
-                    setName(context.getString(R.string.notification_backup_group))
+                    setName(stringRes(Res.string.notification_backup_group))
                 }.build(),
                 NotificationChannelGroupCompat.Builder(DOWNLOADER_GROUP).apply {
-                    setName(context.getString(R.string.notification_downloader_group))
+                    setName(stringRes(Res.string.notification_downloader_group))
                 }.build()
             )
         )
@@ -90,21 +92,21 @@ object Notifications {
                 NotificationManagerCompat.IMPORTANCE_DEFAULT
             ).apply {
                 setGroup(APP_GROUP)
-                setName(context.getString(R.string.notification_app_update_progress))
+                setName(stringRes(Res.string.notification_app_update_progress))
             }.build(),
             NotificationChannelCompat.Builder(
                 APP_UPDATE_DOWNLOAD_SUCCESS_CHANNEL,
                 NotificationManagerCompat.IMPORTANCE_DEFAULT
             ).apply {
                 setGroup(APP_GROUP)
-                setName(context.getString(R.string.notification_app_update_success))
+                setName(stringRes(Res.string.notification_app_update_success))
             }.build(),
             NotificationChannelCompat.Builder(
                 APP_UPDATE_DOWNLOAD_ERROR_CHANNEL,
                 NotificationManagerCompat.IMPORTANCE_DEFAULT
             ).apply {
                 setGroup(APP_GROUP)
-                setName(context.getString(R.string.notification_app_update_error))
+                setName(stringRes(Res.string.notification_app_update_error))
             }.build()
         )
 
@@ -114,7 +116,7 @@ object Notifications {
                 NotificationManagerCompat.IMPORTANCE_DEFAULT
             ).apply {
                 setGroup(EXTENSIONS_GROUP)
-                setName(context.getString(R.string.channel_ext_updates))
+                setName(stringRes(Res.string.channel_ext_updates))
             }.build()
         )
 
@@ -124,28 +126,28 @@ object Notifications {
                 NotificationManagerCompat.IMPORTANCE_LOW
             ).apply {
                 setGroup(LIBRARY_GROUP)
-                setName(context.getString(R.string.notification_library_updates_progress))
+                setName(stringRes(Res.string.notification_library_updates_progress))
             }.build(),
             NotificationChannelCompat.Builder(
                 LIBRARY_UPDATE_SUCCESS_CHANNEL,
                 NotificationManagerCompat.IMPORTANCE_DEFAULT
             ).apply {
                 setGroup(LIBRARY_GROUP)
-                setName(context.getString(R.string.notification_library_updates_sucess))
+                setName(stringRes(Res.string.notification_library_updates_sucess))
             }.build(),
             NotificationChannelCompat.Builder(
                 LIBRARY_UPDATE_FAILURE_CHANNEL,
                 NotificationManagerCompat.IMPORTANCE_LOW
             ).apply {
                 setGroup(LIBRARY_GROUP)
-                setName(context.getString(R.string.notification_library_updates_failure))
+                setName(stringRes(Res.string.notification_library_updates_failure))
             }.build(),
             NotificationChannelCompat.Builder(
                 LIBRARY_UPDATE_SKIP_CHANNEL,
                 NotificationManagerCompat.IMPORTANCE_LOW
             ).apply {
                 setGroup(LIBRARY_GROUP)
-                setName(context.getString(R.string.notification_library_updates_skipped))
+                setName(stringRes(Res.string.notification_library_updates_skipped))
             }.build()
         )
 
@@ -155,7 +157,7 @@ object Notifications {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 setGroup(CAST_GROUP)
-                setName(context.getString(R.string.notification_cast_proxy_status))
+                setName(stringRes(Res.string.notification_cast_proxy_status))
             }.build()
         )
 
@@ -165,14 +167,14 @@ object Notifications {
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
                 setGroup(BACKUP_RESTORE_GROUP)
-                setName(context.getString(R.string.notification_backup_progress))
+                setName(stringRes(Res.string.notification_backup_progress))
             }.build(),
             NotificationChannelCompat.Builder(
                 BACKUP_RESTORE_COMPLETE_CHANNEL,
                 NotificationManagerCompat.IMPORTANCE_HIGH
             ).apply {
                 setGroup(BACKUP_RESTORE_GROUP)
-                setName(context.getString(R.string.notification_backup_complete))
+                setName(stringRes(Res.string.notification_backup_complete))
             }.build()
         )
 
@@ -183,14 +185,14 @@ object Notifications {
                 NotificationManagerCompat.IMPORTANCE_LOW
             ).apply {
                 setGroup(DOWNLOADER_GROUP)
-                setName(context.getString(R.string.notification_downloader_progress))
+                setName(stringRes(Res.string.notification_downloader_progress))
             }.build(),
             NotificationChannelCompat.Builder(
                 DOWNLOADER_ERROR_CHANNEL,
                 NotificationManagerCompat.IMPORTANCE_DEFAULT
             ).apply {
                 setGroup(DOWNLOADER_GROUP)
-                setName(context.getString(R.string.notification_downloader_errors))
+                setName(stringRes(Res.string.notification_downloader_errors))
             }.build()
         )
 

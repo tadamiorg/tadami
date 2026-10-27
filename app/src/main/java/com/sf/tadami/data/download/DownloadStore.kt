@@ -43,7 +43,7 @@ class DownloadStore(private val file: File, private val json: Json = DEFAULT_JSO
     }
 
     companion object {
-        internal val DEFAULT_JSON = Json { ignoreUnknownKeys = true }
+        public val DEFAULT_JSON = Json { ignoreUnknownKeys = true }
 
         /**
          * [downloads] without those whose episode is downloaded already: a download completed just
@@ -124,7 +124,7 @@ data class FileProgress(
     val sizes: List<Long>? = null,
 )
 
-internal object StoreFiles {
+public object StoreFiles {
     // A failed write keeps the previous content: losing a resume point or a queue change isn't worth a crash
     fun writeAtomically(file: File, text: String) {
         val tmp = File(file.parentFile, "${file.name}.tmp")

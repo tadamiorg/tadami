@@ -1,5 +1,6 @@
 package com.sf.tadami.crash
 
+import com.sf.tadami.utils.stringRes
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.SystemBarStyle
@@ -9,7 +10,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.luminance
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.extension.util.ExtensionsGuard
 import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.ui.utils.setComposeContent
@@ -27,7 +29,7 @@ class CrashActivity : AppCompatActivity() {
         crashLog?.let { CrashReporter.markOffered(this, it) }
         val report = crashLog?.format()
             ?: GlobalExceptionHandler.getThrowableFromIntent(intent)?.message
-            ?: getString(R.string.crash_screen_no_details)
+            ?: stringRes(Res.string.crash_screen_no_details)
         // The culprits are shown above it
         val shownReport = crashLog?.format(withCulprits = false) ?: report
         val culprits = crashLog?.culprits ?: GlobalExceptionHandler.getCulpritsFromIntent(intent)

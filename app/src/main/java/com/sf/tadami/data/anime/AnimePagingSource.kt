@@ -58,5 +58,3 @@ class SearchPagingSource(source: AnimeCatalogueSource, private val query: String
         return source.callGuarded { getSearchAnime(currentPage, query, filters) }
     }
 }
-
-class NoResultException : Exception()

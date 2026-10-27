@@ -1,9 +1,11 @@
 package com.sf.tadami.data.providers
 
+import com.sf.tadami.utils.stringRes
 import android.content.Context
 import android.os.Environment
 import androidx.core.net.toUri
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import java.io.File
 
 class AndroidFoldersProvider(
@@ -12,7 +14,7 @@ class AndroidFoldersProvider(
 
     fun directory(): File {
         return File(
-            Environment.getExternalStorageDirectory().absolutePath + File.separator + context.getString(R.string.app_name),
+            Environment.getExternalStorageDirectory().absolutePath + File.separator + stringRes(Res.string.app_name),
         )
     }
 

@@ -8,7 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.components.screens.TabbedScreen
 import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.ExtensionsViewModel
@@ -32,7 +33,7 @@ fun BrowseScreen(
 
     TabbedScreen(
         modifier = modifier,
-        titleRes = R.string.browse_tab_title,
+        titleRes = Res.string.browse_tab_title,
         tabs = listOf(
             sourcesTab(navController),
             extensionsTab(navController)

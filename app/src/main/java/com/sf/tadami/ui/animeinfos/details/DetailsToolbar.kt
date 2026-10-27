@@ -18,11 +18,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.animeinfos.details.episodes.DetailsDownloadAction
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.data.DropDownAction
@@ -78,7 +79,7 @@ fun DetailsToolbar(
         actions = listOf(
             Action.CastButton(),
             Action.DropDownVector(
-                title = R.string.download,
+                title = Res.string.download,
                 icon = Icons.Outlined.Download,
                 onClick = {},
                 items = listOf(
@@ -87,40 +88,40 @@ fun DetailsToolbar(
                     DetailsDownloadAction.NEXT_10,
                 ).map { action ->
                     DropDownAction(
-                        title = pluralStringResource(R.plurals.download_next_unseen, action.count!!, action.count),
+                        title = pluralStringResource(Res.plurals.download_next_unseen, action.count!!, action.count),
                         onClick = { onDownloadClicked(action) },
                         enabled = !downloadedOnly,
                     )
                 } + listOf(
                     DropDownAction(
-                        title = stringResource(id = R.string.download_unseen),
+                        title = stringResource(Res.string.download_unseen),
                         onClick = { onDownloadClicked(DetailsDownloadAction.UNSEEN) },
                         enabled = !downloadedOnly,
                     ),
                     DropDownAction(
-                        title = stringResource(id = R.string.download_all),
+                        title = stringResource(Res.string.download_all),
                         onClick = { onDownloadClicked(DetailsDownloadAction.ALL) },
                         enabled = !downloadedOnly,
                     ),
                     DropDownAction(
-                        title = stringResource(id = R.string.download_delete_all),
+                        title = stringResource(Res.string.download_delete_all),
                         onClick = onDeleteDownloadsClicked,
                         enabled = hasDownloads,
                     ),
                 )
             ),
             Action.DropDownDrawable(
-                title = R.string.stub_text,
-                icon = R.drawable.ic_vertical_settings,
+                title = Res.string.stub_text,
+                icon = Res.drawable.ic_vertical_settings,
                 items = listOfNotNull(
                     onEditCategoriesClicked?.let {
                         DropDownAction(
-                            title = stringResource(id = R.string.action_edit_categories),
+                            title = stringResource(Res.string.action_edit_categories),
                             onClick = it
                         )
                     },
                     DropDownAction(
-                        title = stringResource(id = R.string.action_migrate),
+                        title = stringResource(Res.string.action_migrate),
                         onClick = onMigrateClicked,
                         enabled = migrationEnabled
                     )

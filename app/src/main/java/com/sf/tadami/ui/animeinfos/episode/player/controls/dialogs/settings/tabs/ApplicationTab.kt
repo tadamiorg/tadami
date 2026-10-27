@@ -1,5 +1,7 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.settings.tabs
 
+import com.sf.tadami.R
+
 import android.content.Context
 import android.graphics.Typeface
 import androidx.annotation.OptIn
@@ -8,12 +10,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.res.ResourcesCompat
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.CaptionStyleCompat
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.preferences.model.rememberDataStoreState
@@ -59,7 +62,7 @@ private fun getTimelineGroup(
     prefs: PlayerPreferences
 ): Preference.PreferenceCategory {
     return Preference.PreferenceCategory(
-        title = stringResource(id = R.string.preferences_player_timeline),
+        title = stringResource(Res.string.preferences_player_timeline),
         preferenceItems = listOf(
             Preference.PreferenceItem.SelectPreference(
                 value = prefs.seenThreshold,
@@ -73,7 +76,7 @@ private fun getTimelineGroup(
                     PlayerPreferences.SeenThresholdItems.HUNDRED,
                 ).associateWith { "$it%" },
 
-                title = stringResource(id = R.string.preferences_player_seenthreshold),
+                title = stringResource(Res.string.preferences_player_seenthreshold),
                 onValueChanged = {
                     prefState.setValue(
                         prefs.copy(
@@ -93,7 +96,7 @@ private fun getTimelineGroup(
                     PlayerPreferences.DoubleTapLengthItems.TWENTY_FIVE,
                     PlayerPreferences.DoubleTapLengthItems.THIRTY,
                 ).associateWith { "${it / 1000}s" },
-                title = stringResource(id = R.string.preferences_player_double_tap_length),
+                title = stringResource(Res.string.preferences_player_double_tap_length),
                 onValueChanged = {
                     prefState.setValue(
                         prefs.copy(
@@ -104,9 +107,9 @@ private fun getTimelineGroup(
                 }
             ),
             Preference.PreferenceItem.TogglePreference(
-                title = stringResource(id = R.string.player_pref_auto_play),
+                title = stringResource(Res.string.player_pref_auto_play),
                 value = prefs.autoPlay,
-                subtitle = stringResource(id = R.string.player_pref_auto_play_subtitle),
+                subtitle = stringResource(Res.string.player_pref_auto_play_subtitle),
                 onValueChanged = {
                     prefState.setValue(
                         prefs.copy(
@@ -128,12 +131,12 @@ private fun getSubtitlesGroup(
     prefs: PlayerPreferences
 ): Preference.PreferenceCategory {
     return Preference.PreferenceCategory(
-        title = stringResource(id = R.string.label_subtitles),
+        title = stringResource(Res.string.label_subtitles),
         preferenceItems = listOf(
             Preference.PreferenceItem.TogglePreference(
-                title = stringResource(id = R.string.enable_subtitles_label),
+                title = stringResource(Res.string.enable_subtitles_label),
                 value = prefs.subtitlesEnabled,
-                subtitle = stringResource(id = R.string.enable_subtitles_description),
+                subtitle = stringResource(Res.string.enable_subtitles_description),
                 onValueChanged = {
                     prefState.setValue(
                         prefs.copy(
@@ -149,8 +152,8 @@ private fun getSubtitlesGroup(
                 items = PlayerPreferences.DefaultSubtitlesPrefLanguages.mapValues { (key, value) ->
                     stringResource(value)
                 },
-                title = stringResource(id = R.string.subtitles_priority_label),
-                subtitle = stringResource(id = R.string.subtitles_priority_description),
+                title = stringResource(Res.string.subtitles_priority_label),
+                subtitle = stringResource(Res.string.subtitles_priority_description),
                 onValueChanged = {
                     prefState.setValue(
                         prefs.copy(
@@ -171,12 +174,12 @@ private fun getDisplayGroup(
     prefs: PlayerPreferences
 ): Preference.PreferenceCategory {
     return Preference.PreferenceCategory(
-        title = stringResource(id = R.string.title_display),
+        title = stringResource(Res.string.title_display),
         preferenceItems = listOf(
             Preference.PreferenceItem.TogglePreference(
-                title = stringResource(id = R.string.display_cutout_pref_title),
+                title = stringResource(Res.string.display_cutout_pref_title),
                 value = prefs.ignoreCutout,
-                subtitle = stringResource(id = R.string.display_cutout_pref_subtitle),
+                subtitle = stringResource(Res.string.display_cutout_pref_subtitle),
                 onValueChanged = {
                     prefState.setValue(
                         prefs.copy(

@@ -23,10 +23,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.ui.components.bottombar.ContextualBottomBar
 import com.sf.tadami.ui.components.data.Action
@@ -62,13 +63,13 @@ fun UpdatesScreen(
             ContextualTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.label_recent_updates_long)
+                        text = stringResource(Res.string.label_recent_updates_long)
                     )
                 },
                 actions = listOf(
                     Action.Drawable(
-                        title = R.string.stub_text,
-                        R.drawable.ic_refresh,
+                        title = Res.string.stub_text,
+                        Res.drawable.ic_refresh,
                         onClick = {
                             updatesViewModel.updateLibrary()
                         }
@@ -87,14 +88,14 @@ fun UpdatesScreen(
                 visible = uiState.selected.isNotEmpty(),
                 actions = listOf(
                     Action.Vector(
-                        title = R.string.stub_text,
+                        title = Res.string.stub_text,
                         icon = Icons.Outlined.Visibility,
                         onClick = {
                             updatesViewModel.setUpdatesSeenStatus()
                         },
                     ),
                     Action.Vector(
-                        title = R.string.stub_text,
+                        title = Res.string.stub_text,
                         icon = Icons.Outlined.VisibilityOff,
                         onClick = {
                             updatesViewModel.setUpdatesUnSeenStatus()

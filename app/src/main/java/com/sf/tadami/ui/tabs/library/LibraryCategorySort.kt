@@ -12,7 +12,7 @@ import com.sf.tadami.ui.tabs.library.bottomsheet.setFlags
  * for the Default category, which isn't stored. A category without one yet (flags 0), and every category
  * without the per category sort, use the library sort.
  */
-internal fun categorySort(
+public fun categorySort(
     category: Category,
     perCategory: Boolean,
     librarySort: LibrarySort,
@@ -24,7 +24,7 @@ internal fun categorySort(
 }
 
 /** The sort after a tap on the [type] row: the other direction for the current type, else that type */
-internal fun LibrarySort.select(type: Long): LibrarySort {
+public fun LibrarySort.select(type: Long): LibrarySort {
     val newFlags = if (type == sortType.flag) {
         flags.setFlags(if (isAscending) 0L else SORT_DIRECTION, SORT_DIRECTION_MASK)
     } else {

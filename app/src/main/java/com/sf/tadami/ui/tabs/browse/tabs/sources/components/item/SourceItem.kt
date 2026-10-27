@@ -10,9 +10,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.source.Source
 
 @Composable
@@ -33,7 +34,7 @@ fun SourceItem(
             if (source.supportsLatest) {
                 TextButton(onClick = { onRecentClicked(source) }) {
                     Text(
-                        text = stringResource(R.string.anime_sources_screen_recents_btn),
+                        text = stringResource(Res.string.anime_sources_screen_recents_btn),
                         style = LocalTextStyle.current.copy(
                             color = MaterialTheme.colorScheme.primary,
                         ),
@@ -45,14 +46,14 @@ fun SourceItem(
                     onOptionsClicked(source)
                 }, enabled = true) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_vertical_settings),
+                        painter = painterResource(Res.drawable.ic_vertical_settings),
                         contentDescription = null
                     )
                 }
             }else {
                 IconButton(onClick = {}, enabled = false, colors = IconButtonColors(Color.Transparent,Color.Transparent,Color.Transparent,Color.Transparent)) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_vertical_settings),
+                        painter = painterResource(Res.drawable.ic_vertical_settings),
                         contentDescription = null
                     )
                 }

@@ -1,20 +1,19 @@
 package com.sf.tadami.extension
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.drawable.Drawable
-import android.util.Log
-import android.widget.Toast
+import androidx.compose.ui.graphics.ImageBitmap
+import com.sf.tadami.utils.Log
 import androidx.core.content.ContextCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import com.sf.tadami.BuildConfig
-import com.sf.tadami.R
+import com.sf.tadami.AppBuildInfo
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.api.ExtensionRepos
 import com.sf.tadami.extension.api.ExtensionsApi
@@ -140,7 +139,7 @@ class ExtensionManager(
     val crashedSourcesFlow = _crashedSourcesFlow.asStateFlow()
 
     /** The icon loaded with the extension of the source [sourceId]. */
-    fun getAppIconForSource(sourceId: Long): Drawable? {
+    fun getAppIconForSource(sourceId: Long): ImageBitmap? {
         return _installedExtensionsFlow.value
             .find { ext -> ext.sources.any { it.id == sourceId } }
             ?.icon
@@ -169,7 +168,7 @@ class ExtensionManager(
         // Before the extensions are loaded: a crash of their code the app survives disables them
         instance = this
         initExtensions()
-        if (BuildConfig.DEBUG) registerDebugPackageReceiver()
+        if (AppBuildInfo.DEBUG) registerDebugPackageReceiver()
     }
 
     companion object {
@@ -178,7 +177,6 @@ class ExtensionManager(
          * from Injekt would build it, and load the extensions again.
          */
         // Built with the application context, it lives as long as the app anyway
-        @SuppressLint("StaticFieldLeak")
         @Volatile
         var instance: ExtensionManager? = null
             private set
@@ -276,7 +274,7 @@ class ExtensionManager(
         } catch (e: Exception) {
             Log.d("FindAvailableExtensions", e.stackTraceToString())
             withContext(Dispatchers.Main) {
-                UiToasts.showToast(R.string.extension_api_error)
+                UiToasts.showToast(Res.string.extension_api_error)
             }
             // Keep the previous available extensions, statuses and updates count
             return
@@ -502,7 +500,7 @@ class ExtensionManager(
             }
             if (rejection != null) {
                 Log.d("InstallExtension", "$pkgName refused: $rejection")
-                UiToasts.showToast(rejection.messageRes, Toast.LENGTH_LONG, listed.name)
+                UiToasts.showToast(rejection.messageRes, UiToasts.LENGTH_LONG, listed.name)
                 return InstallStep.Error
             }
             updatePendingUpdatesCount()
@@ -513,7 +511,7 @@ class ExtensionManager(
             // A download cancelled while reading fails with an interrupted read, not a cancellation
             currentCoroutineContext().ensureActive()
             Log.d("InstallExtension", "Couldn't install $pkgName: ${e.stackTraceToString()}")
-            UiToasts.showToast(R.string.ext_install_error_download, Toast.LENGTH_LONG, listed.name)
+            UiToasts.showToast(Res.string.ext_install_error_download, UiToasts.LENGTH_LONG, listed.name)
             return InstallStep.Error
         } finally {
             tmp?.delete()

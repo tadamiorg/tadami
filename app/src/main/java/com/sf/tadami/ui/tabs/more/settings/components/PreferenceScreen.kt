@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.components
 
+import org.jetbrains.compose.resources.StringResource
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -13,10 +14,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.ActionItem
@@ -24,7 +26,7 @@ import com.sf.tadami.ui.components.topappbar.ActionItem
 interface PreferenceScreen {
 
     @get:StringRes
-    val title: Int
+    val title: StringResource
 
     @Composable
     fun getTitle(): String {
@@ -56,7 +58,7 @@ interface PreferenceScreen {
                             IconButton(onClick = backHandler!!) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                                    contentDescription = stringResource(R.string.stub_text),
+                                    contentDescription = stringResource(Res.string.stub_text),
                                 )
                             }
                         }

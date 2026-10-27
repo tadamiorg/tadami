@@ -10,8 +10,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.components.modal.ModalAction
 import com.sf.tadami.ui.components.modal.ModalBodyText
 import com.sf.tadami.ui.components.modal.TadaDialog
@@ -48,9 +49,9 @@ fun PendingCrashDialog() {
 
     TadaDialog(
         onDismissRequest = onDismiss,
-        title = stringResource(R.string.crash_pending_title, stringResource(R.string.app_name)),
+        title = stringResource(Res.string.crash_pending_title, stringResource(Res.string.app_name)),
         icon = Icons.Outlined.BugReport,
-        confirm = ModalAction(stringResource(R.string.crash_pending_share)) {
+        confirm = ModalAction(stringResource(Res.string.crash_pending_share)) {
             dismissed = true
             scope.launch {
                 // The report as it was written, not this session's info
@@ -60,12 +61,12 @@ fun PendingCrashDialog() {
                 if (shared) {
                     withContext(Dispatchers.IO) { CrashReporter.clearPending(context) }
                 } else {
-                    UiToasts.showToast(R.string.crash_logs_dump_failed)
+                    UiToasts.showToast(Res.string.crash_logs_dump_failed)
                 }
             }
         },
-        dismiss = ModalAction(stringResource(R.string.crash_pending_dismiss), onClick = onDismiss),
+        dismiss = ModalAction(stringResource(Res.string.crash_pending_dismiss), onClick = onDismiss),
     ) {
-        ModalBodyText(stringResource(R.string.crash_pending_message))
+        ModalBodyText(stringResource(Res.string.crash_pending_message))
     }
 }

@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.library
 
+import com.sf.tadami.utils.stringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -39,12 +40,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.navigation.graphs.home.HomeNavItems
 import com.sf.tadami.navigation.graphs.settings.SettingsRoutes
@@ -133,24 +135,23 @@ fun LibraryScreen(
         val category = activeTab?.category?.takeIf { categories.isNotEmpty() }
         val started = libraryViewModel.refreshLibraryDetails(context, category?.id)
         val msg = when {
-            !started -> context.getString(R.string.update_running)
-            category != null -> context.getString(
-                R.string.refresh_details_starting_category,
-                if (category.isSystemCategory) context.getString(R.string.category_default) else category.name
+            !started -> stringRes(Res.string.update_running)
+            category != null -> stringRes(Res.string.refresh_details_starting_category,
+                if (category.isSystemCategory) stringRes(Res.string.category_default) else category.name
             )
-            else -> context.getString(R.string.refresh_details_starting)
+            else -> stringRes(Res.string.refresh_details_starting)
         }
         coroutineScope.launch {
             snackBarHostState.currentSnackbarData?.dismiss()
             snackBarHostState.showSnackbar(msg)
         }
     }
-    val refreshDetailsTitle = stringResource(R.string.action_refresh_library_details)
+    val refreshDetailsTitle = stringResource(Res.string.action_refresh_library_details)
     val actions = remember(libraryPreferences.filterFlags.isFiltered, activeTab, categories) {
         listOf(
             Action.Drawable(
-                title = R.string.stub_text,
-                icon = R.drawable.ic_filter,
+                title = Res.string.stub_text,
+                icon = Res.drawable.ic_filter,
                 tint = filterTint,
                 onClick = {
                     focusManager.clearFocus()
@@ -160,7 +161,7 @@ fun LibraryScreen(
             ),
             Action.CastButton(),
             Action.DropDownVector(
-                title = R.string.stub_text,
+                title = Res.string.stub_text,
                 icon = Icons.Outlined.MoreVert,
                 onClick = {},
                 items = listOf(
@@ -225,7 +226,7 @@ fun LibraryScreen(
                         TabText(text = titleTab.category.visualName(), badgeCount = badgeCount(titleTab))
                     } else {
                         Text(
-                            text = stringResource(id = R.string.library_tab_title)
+                            text = stringResource(Res.string.library_tab_title)
                         )
                     }
                 },
@@ -258,28 +259,28 @@ fun LibraryScreen(
                 visible = libraryList.fastAny { it.selected },
                 actions = listOf(
                     Action.Vector(
-                        title = R.string.action_set_categories,
+                        title = Res.string.action_set_categories,
                         icon = Icons.AutoMirrored.Outlined.Label,
                         onClick = {
                             setCategoriesSelection = libraryViewModel.selectedCategoryCheckboxes()
                         },
                     ),
                     Action.Vector(
-                        title = R.string.stub_text,
+                        title = Res.string.stub_text,
                         icon = Icons.Outlined.Visibility,
                         onClick = {
                             libraryViewModel.setSeenStatus(true)
                         },
                     ),
                     Action.Vector(
-                        title = R.string.stub_text,
+                        title = Res.string.stub_text,
                         icon = Icons.Outlined.VisibilityOff,
                         onClick = {
                             libraryViewModel.setSeenStatus(false)
                         },
                     ),
                     Action.Vector(
-                        title = R.string.stub_text,
+                        title = Res.string.stub_text,
                         icon = Icons.Outlined.DeleteOutline,
                         onClick = {
                             libraryViewModel.unFavorite()
@@ -332,12 +333,11 @@ fun LibraryScreen(
                     val category = activeTab?.category?.takeIf { categories.isNotEmpty() }
                     val started = libraryViewModel.refreshLibrary(context, category?.id)
                     val msgRes = when {
-                        !started -> context.getString(R.string.update_running)
-                        category != null -> context.getString(
-                            R.string.update_starting_category,
-                            if (category.isSystemCategory) context.getString(R.string.category_default) else category.name
+                        !started -> stringRes(Res.string.update_running)
+                        category != null -> stringRes(Res.string.update_starting_category,
+                            if (category.isSystemCategory) stringRes(Res.string.category_default) else category.name
                         )
-                        else -> context.getString(R.string.update_starting)
+                        else -> stringRes(Res.string.update_starting)
                     }
                     coroutineScope.launch {
                         snackBarHostState.currentSnackbarData?.dismiss()

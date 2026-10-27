@@ -15,10 +15,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.Dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.components.modal.TadaInputDialog
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.secondaryItemAlpha
@@ -50,13 +51,13 @@ fun EditTextPreferenceWidget(
         val clipboardManager = LocalClipboardManager.current
         TadaInputDialog(
             title = title,
-            subtitle = defaultValue?.let { stringResource(id = R.string.default_string_formatted, it) },
+            subtitle = defaultValue?.let { stringResource(Res.string.default_string_formatted, it) },
             headerAction = defaultValue?.let {
                 {
                     IconButton(
                         onClick = {
                             clipboardManager.setText(AnnotatedString(it))
-                            UiToasts.showToast(R.string.clipboard_copied)
+                            UiToasts.showToast(Res.string.clipboard_copied)
                         },
                         modifier = Modifier.secondaryItemAlpha(),
                     ) {
@@ -65,7 +66,7 @@ fun EditTextPreferenceWidget(
                 }
             },
             initialValue = value,
-            confirmLabel = stringResource(R.string.player_screen_qd_ok_btn),
+            confirmLabel = stringResource(Res.string.player_screen_qd_ok_btn),
             canConfirm = { it != value && it.isNotBlank() },
             isError = { it.isBlank() },
             trailingIcon = { text, setText ->

@@ -168,7 +168,7 @@ sealed interface ByteRange {
  * seekbar preview frames, whole, while they describe its video; not found otherwise (no frames,
  * another token, no episode served).
  */
-internal class LocalMediaRoute(private val opener: LocalFileOpener) {
+public class LocalMediaRoute(private val opener: LocalFileOpener) {
 
     private class Served(val token: String, val media: LocalMedia)
 
@@ -313,5 +313,5 @@ internal class LocalMediaRoute(private val opener: LocalFileOpener) {
  * A response of the local route, never gzipped by NanoHTTPD: its length is the file's or the
  * range's, and a gzipped HEAD would carry a body.
  */
-internal class LocalResponse(status: NanoHTTPD.Response.IStatus, mimeType: String, data: InputStream, length: Long) :
+public class LocalResponse(status: NanoHTTPD.Response.IStatus, mimeType: String, data: InputStream, length: Long) :
     NanoHTTPD.Response(status, mimeType, data, length)

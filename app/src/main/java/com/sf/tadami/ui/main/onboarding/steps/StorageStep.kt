@@ -15,11 +15,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.preferences.storage.StoragePreferences
 import com.sf.tadami.ui.tabs.more.settings.screens.data.DataPreferencesScreen
@@ -52,8 +53,8 @@ class StorageStep : OnboardingStep {
         ) {
             Text(
                 stringResource(
-                    R.string.onboarding_storage_info,
-                    stringResource(R.string.app_name),
+                    Res.string.onboarding_storage_info,
+                    stringResource(Res.string.app_name),
                     DataPreferencesScreen.storageLocationText(storagePreferences),
                 ),
             )
@@ -64,11 +65,11 @@ class StorageStep : OnboardingStep {
                     try {
                         pickStorageLocation.launch(null)
                     } catch (e: ActivityNotFoundException) {
-                        UiToasts.showToast(R.string.file_picker_error)
+                        UiToasts.showToast(Res.string.file_picker_error)
                     }
                 },
             ) {
-                Text(stringResource(R.string.onboarding_storage_action_select))
+                Text(stringResource(Res.string.onboarding_storage_action_select))
             }
         }
 

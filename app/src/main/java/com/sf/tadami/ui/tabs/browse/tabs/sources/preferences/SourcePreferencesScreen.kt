@@ -14,11 +14,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.model.rememberUnknownDataStoreState
 
 @Suppress("UNCHECKED_CAST")
@@ -46,7 +47,7 @@ fun SourcePreferencesScreen(
                     IconButton(onClick = {navController.navigateUp()}) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = stringResource(R.string.stub_text),
+                            contentDescription = stringResource(Res.string.stub_text),
                         )
                     }
 

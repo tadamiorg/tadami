@@ -1,7 +1,7 @@
 package com.sf.tadami.extension.api
 
 import android.content.Context
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.domain.extensions.Extension
@@ -30,7 +30,7 @@ import uy.kohesive.injekt.injectLazy
 import java.time.Instant
 import kotlin.time.Duration.Companion.days
 
-internal class ExtensionsApi {
+public class ExtensionsApi {
 
     private val networkService: NetworkHelper by injectLazy()
     private val dataStore: DataStore<Preferences> by injectLazy()
@@ -209,7 +209,7 @@ internal class ExtensionsApi {
  *
  * @param failedRepos The repos that couldn't be read, see [isObsolete].
  */
-internal class RepoExtensions(
+public class RepoExtensions(
     listed: List<Extension.Available>,
     private val failedRepos: Set<String> = emptySet(),
     /** The repos read or tried, null when unknown, see [isObsolete]. */

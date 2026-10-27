@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.components.topappbar
 
-import androidx.activity.compose.BackHandler
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
@@ -25,7 +25,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.search.SearchTopAppBar
 
@@ -116,12 +117,12 @@ fun ActionModeBar(
     val actions = remember {
         listOf(
             Action.Vector(
-                title = R.string.stub_text,
+                title = Res.string.stub_text,
                 icon = Icons.Outlined.SelectAll,
                 onClick = onToggleAll
             ),
             Action.Vector(
-                title = R.string.stub_text,
+                title = Res.string.stub_text,
                 icon = Icons.Outlined.FlipToBack,
                 onClick = onInverseAll
             )

@@ -10,7 +10,7 @@ import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.tabs.more.settings.widget.AppThemeModePreference
 import com.sf.tadami.ui.tabs.more.settings.widget.AppThemePreference
 
-internal class ThemeStep : OnboardingStep {
+public class ThemeStep : OnboardingStep {
 
     override val isComplete: Boolean = true
 

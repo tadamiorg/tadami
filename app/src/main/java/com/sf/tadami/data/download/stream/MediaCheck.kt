@@ -75,7 +75,7 @@ object MediaCheck {
         }
     }
 
-    internal fun sniffContainer(head: ByteArray): String? {
+    public fun sniffContainer(head: ByteArray): String? {
         fun at(index: Int) = head.getOrNull(index)?.toInt()?.and(0xFF)
         return when {
             // TS packets start with a sync byte, every 188 bytes

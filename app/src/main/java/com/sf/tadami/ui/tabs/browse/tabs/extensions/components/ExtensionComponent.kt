@@ -4,8 +4,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.ui.components.grid.EmptyScreen
 import com.sf.tadami.ui.components.widgets.ContentLoader
@@ -40,12 +41,12 @@ fun ExtensionComponent(
         ContentLoader(isLoading = state.isLoading) {
             if (state.isEmpty) {
                 val msg = if (!searchQuery.isNullOrEmpty()) {
-                    R.string.pager_no_results
+                    Res.string.pager_no_results
                 } else {
-                    R.string.ext_empty
+                    Res.string.ext_empty
                 }
                 EmptyScreen(
-                    message = stringResource(id = msg),
+                    message = stringResource(msg),
                     modifier = Modifier.padding(contentPadding)
                 )
             } else {

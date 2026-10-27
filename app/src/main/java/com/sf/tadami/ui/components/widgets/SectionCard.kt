@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.components.widgets
 
-import androidx.annotation.StringRes
+import org.jetbrains.compose.resources.StringResource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,12 +11,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import com.sf.tadami.ui.utils.padding
 
 @Composable
 fun LazyItemScope.SectionCard(
-    @StringRes titleRes: Int? = null,
+    titleRes: StringResource? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     if (titleRes != null) {

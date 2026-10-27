@@ -1,14 +1,18 @@
 package com.sf.tadami.notifications.libraryupdate
 
+import org.jetbrains.compose.resources.StringResource
+import com.sf.tadami.utils.pluralRes
+import com.sf.tadami.utils.stringRes
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
-import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.notifications.Notifications
@@ -26,20 +30,19 @@ class LibraryUpdateNotifier(private val context: Context) {
 
     val progressNotificationBuilder by lazy {
         NotificationCompat.Builder(context, Notifications.LIBRARY_UPDATE_PROGRESS_CHANNEL).apply {
-            setContentTitle(context.getString(R.string.app_name))
+            setContentTitle(stringRes(Res.string.app_name))
             setSmallIcon(R.drawable.ic_refresh)
             setLargeIcon(notificationBitmap)
             setOngoing(true)
             setOnlyAlertOnce(true)
             color = getNotificationsColor(context)
-            addAction(R.drawable.ic_close, context.getString(R.string.action_cancel), cancelIntent)
+            addAction(R.drawable.ic_close, stringRes(Res.string.action_cancel), cancelIntent)
         }
     }
 
-    fun showProgressNotification(current: Int, total: Int, @StringRes title: Int = R.string.notification_updating_library) {
+    fun showProgressNotification(current: Int, total: Int, title: StringResource = Res.string.notification_updating_library) {
         progressNotificationBuilder.setContentTitle(
-            context.getString(
-                title,
+            stringRes(title,
                 current,
                 total
             )
@@ -58,13 +61,12 @@ class LibraryUpdateNotifier(private val context: Context) {
             Notifications.LIBRARY_UPDATE_SUCCESS_ID,
             NotificationCompat.Builder(context, Notifications.LIBRARY_UPDATE_SUCCESS_CHANNEL)
                 .apply {
-                    setContentTitle(context.getString(R.string.notification_library_update_success_title))
+                    setContentTitle(stringRes(Res.string.notification_library_update_success_title))
                     if (updates.size == 1) {
                         setContentText(updates.first().first.title.chop(NOTIF_TITLE_MAX_LEN))
                     } else {
                         setContentText(
-                            context.resources.getQuantityString(
-                                R.plurals.notification_library_update_success_summary,
+                            pluralRes(Res.plurals.notification_library_update_success_summary,
                                 updates.size,
                                 updates.size
                             )
@@ -103,12 +105,11 @@ class LibraryUpdateNotifier(private val context: Context) {
             NotificationCompat.Builder(context, Notifications.LIBRARY_UPDATE_FAILURE_CHANNEL)
                 .apply {
                     setContentTitle(
-                        context.resources.getString(
-                            R.string.notification_library_update_failed_result,
+                        stringRes(Res.string.notification_library_update_failed_result,
                             animeNumber
                         )
                     )
-                    setContentText(context.getString(R.string.tap_see_details))
+                    setContentText(stringRes(Res.string.tap_see_details))
                     setSmallIcon(R.drawable.ic_tada)
                     color = getNotificationsColor(context)
                     setContentIntent(getLogIntent(context, uriCompat))
@@ -124,13 +125,12 @@ class LibraryUpdateNotifier(private val context: Context) {
         val skippedNotification =
             NotificationCompat.Builder(context, Notifications.LIBRARY_UPDATE_SKIP_CHANNEL).apply {
                 setContentTitle(
-                    context.resources.getString(
-                        R.string.notification_library_update_skipped_result,
+                    stringRes(Res.string.notification_library_update_skipped_result,
                         animeNumber
                     )
                 )
                 color = getNotificationsColor(context)
-                setContentText(context.getString(R.string.tap_see_details))
+                setContentText(stringRes(Res.string.tap_see_details))
                 setSmallIcon(R.drawable.ic_tada)
                 setContentIntent(getLogIntent(context, uriCompat))
             }.build()

@@ -1,10 +1,13 @@
 package com.sf.tadami.notifications.extensionsinstaller
 
+import com.sf.tadami.utils.pluralRes
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.utils.cancelNotification
@@ -18,8 +21,7 @@ class ExtensionInstallerNotifier(private val context: Context) {
             NotificationCompat.Builder(context, Notifications.EXTENSIONS_UPDATES_CHANNEL)
                 .apply {
                     setContentTitle(
-                        context.resources.getQuantityString(
-                            R.plurals.update_check_notification_ext_updates,
+                        pluralRes(Res.plurals.update_check_notification_ext_updates,
                             names.size,
                             names.size,
                         ),

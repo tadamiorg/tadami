@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.components.screens
 
-import androidx.annotation.StringRes
+import org.jetbrains.compose.resources.StringResource
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -29,7 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.zIndex
 import com.sf.tadami.ui.components.topappbar.search.SearchTopAppBar
@@ -39,7 +39,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun TabbedScreen(
     modifier: Modifier = Modifier,
-    @StringRes titleRes: Int,
+    titleRes: StringResource,
     tabs: List<ScreenTabContent>,
     searchValue: String = "",
     onSearchChange: (String) -> Unit = {},
@@ -66,7 +66,7 @@ fun TabbedScreen(
             val searchEnabled = tab.searchEnabled
             SearchTopAppBar(
                 title = {
-                        Text(text = stringResource(id = titleRes),overflow = TextOverflow.Ellipsis, maxLines = 1)
+                        Text(text = stringResource(titleRes),overflow = TextOverflow.Ellipsis, maxLines = 1)
                 },
                 actions = tab.actions,
                 searchOpened = searchOpened,

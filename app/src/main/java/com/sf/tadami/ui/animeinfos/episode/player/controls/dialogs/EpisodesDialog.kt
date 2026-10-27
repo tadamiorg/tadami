@@ -5,8 +5,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.ui.components.modal.PlayerChoiceRow
@@ -29,7 +30,7 @@ fun EpisodesDialog(
     PlayerPanel(
         visible = opened,
         onDismissRequest = onDismissRequest,
-        title = stringResource(id = R.string.label_episodes),
+        title = stringResource(Res.string.label_episodes),
     ) {
         val listState = rememberLazyListState()
         LaunchedEffect(Unit){
@@ -42,7 +43,7 @@ fun EpisodesDialog(
                     selected = initialEpisode?.id == episode.id,
                     label = when(displayMode){
                         is Anime.DisplayMode.NAME -> episode.name
-                        else -> "${stringResource(id = R.string.player_screen_episode_label)} ${episode.episodeNumber}"
+                        else -> "${stringResource(Res.string.player_screen_episode_label)} ${episode.episodeNumber}"
                     },
                     supporting = when {
                         episode.dateUpload > 0L -> {

@@ -3,7 +3,7 @@ package com.sf.tadami.notifications.appupdate
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.os.Build
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy

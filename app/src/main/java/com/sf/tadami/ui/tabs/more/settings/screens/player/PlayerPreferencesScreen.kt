@@ -1,13 +1,15 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.player
 
+import org.jetbrains.compose.resources.StringResource
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.model.DataStoreState
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.preferences.model.rememberDataStoreState
@@ -17,7 +19,7 @@ import com.sf.tadami.ui.tabs.more.settings.components.PreferenceScreen
 class PlayerPreferencesScreen(
     navController: NavHostController
 ) : PreferenceScreen {
-    override val title: Int = R.string.preferences_player_title
+    override val title: StringResource = Res.string.preferences_player_title
 
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 
@@ -40,7 +42,7 @@ class PlayerPreferencesScreen(
         prefs: PlayerPreferences
     ): Preference.PreferenceCategory {
         return Preference.PreferenceCategory(
-            title = stringResource(id = R.string.preferences_player_timeline),
+            title = stringResource(Res.string.preferences_player_timeline),
             preferenceItems = listOf(
                 Preference.PreferenceItem.SelectPreference(
                     value = prefs.seenThreshold,
@@ -54,7 +56,7 @@ class PlayerPreferencesScreen(
                         PlayerPreferences.SeenThresholdItems.HUNDRED,
                     ).associateWith { "$it%" },
 
-                    title = stringResource(id = R.string.preferences_player_seenthreshold),
+                    title = stringResource(Res.string.preferences_player_seenthreshold),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(
@@ -74,7 +76,7 @@ class PlayerPreferencesScreen(
                         PlayerPreferences.DoubleTapLengthItems.TWENTY_FIVE,
                         PlayerPreferences.DoubleTapLengthItems.THIRTY,
                     ).associateWith { "${it / 1000}s" },
-                    title = stringResource(id = R.string.preferences_player_double_tap_length),
+                    title = stringResource(Res.string.preferences_player_double_tap_length),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(
@@ -85,9 +87,9 @@ class PlayerPreferencesScreen(
                     }
                 ),
                 Preference.PreferenceItem.TogglePreference(
-                    title = stringResource(id = R.string.player_pref_auto_play),
+                    title = stringResource(Res.string.player_pref_auto_play),
                     value = prefs.autoPlay,
-                    subtitle = stringResource(id = R.string.player_pref_auto_play_subtitle),
+                    subtitle = stringResource(Res.string.player_pref_auto_play_subtitle),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(
@@ -98,9 +100,9 @@ class PlayerPreferencesScreen(
                     }
                 ),
                 Preference.PreferenceItem.TogglePreference(
-                    title = stringResource(id = R.string.player_pref_seek_preview),
+                    title = stringResource(Res.string.player_pref_seek_preview),
                     value = prefs.seekPreview,
-                    subtitle = stringResource(id = R.string.player_pref_seek_preview_subtitle),
+                    subtitle = stringResource(Res.string.player_pref_seek_preview_subtitle),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(
@@ -112,9 +114,9 @@ class PlayerPreferencesScreen(
                 ),
                 Preference.PreferenceItem.TogglePreference(
                     enabled = prefs.seekPreview,
-                    title = stringResource(id = R.string.player_pref_seek_preview_prefetch),
+                    title = stringResource(Res.string.player_pref_seek_preview_prefetch),
                     value = prefs.seekPreviewPrefetch,
-                    subtitle = stringResource(id = R.string.player_pref_seek_preview_prefetch_subtitle),
+                    subtitle = stringResource(Res.string.player_pref_seek_preview_prefetch_subtitle),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(
@@ -135,12 +137,12 @@ class PlayerPreferencesScreen(
         prefs: PlayerPreferences
     ): Preference.PreferenceCategory {
         return Preference.PreferenceCategory(
-            title = stringResource(id = R.string.label_subtitles),
+            title = stringResource(Res.string.label_subtitles),
             preferenceItems = listOf(
                 Preference.PreferenceItem.TogglePreference(
-                    title = stringResource(id = R.string.enable_subtitles_label),
+                    title = stringResource(Res.string.enable_subtitles_label),
                     value = prefs.subtitlesEnabled,
-                    subtitle = stringResource(id = R.string.enable_subtitles_description),
+                    subtitle = stringResource(Res.string.enable_subtitles_description),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(
@@ -156,8 +158,8 @@ class PlayerPreferencesScreen(
                     items = PlayerPreferences.DefaultSubtitlesPrefLanguages.mapValues { (key, value) ->
                         stringResource(value)
                     },
-                    title = stringResource(id = R.string.subtitles_priority_label),
-                    subtitle = stringResource(id = R.string.subtitles_priority_description),
+                    title = stringResource(Res.string.subtitles_priority_label),
+                    subtitle = stringResource(Res.string.subtitles_priority_description),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(
@@ -178,12 +180,12 @@ class PlayerPreferencesScreen(
         prefs: PlayerPreferences
     ): Preference.PreferenceCategory {
         return Preference.PreferenceCategory(
-            title = stringResource(id = R.string.title_display),
+            title = stringResource(Res.string.title_display),
             preferenceItems = listOf(
                 Preference.PreferenceItem.TogglePreference(
-                    title = stringResource(id = R.string.display_cutout_pref_title),
+                    title = stringResource(Res.string.display_cutout_pref_title),
                     value = prefs.ignoreCutout,
-                    subtitle = stringResource(id = R.string.display_cutout_pref_subtitle),
+                    subtitle = stringResource(Res.string.display_cutout_pref_subtitle),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(

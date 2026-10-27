@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.components.grid
 
-import androidx.annotation.StringRes
+import org.jetbrains.compose.resources.StringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,7 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.ui.utils.padding
@@ -53,7 +53,7 @@ fun EmptyScreen(
                 Action(
                     modifier = Modifier.weight(1f,false),
                     icon = action.icon,
-                    title = stringResource(id = action.stringResId),
+                    title = stringResource(action.stringResId),
                     onClick = action.onClick
                 )
             }
@@ -87,7 +87,7 @@ private fun Action(
 }
 
 data class EmptyScreenAction(
-    @StringRes val stringResId: Int,
+    val stringResId: StringResource,
     val icon: ImageVector,
     val onClick: () -> Unit,
 )

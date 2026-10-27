@@ -19,11 +19,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.navigation.graphs.sources.SourcesRoutes
 import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.ui.components.data.Action
@@ -65,7 +66,7 @@ fun ExtensionDetailsScreen(
                 TadaTopAppBar(
                     title = {
                         Text(
-                            text = stringResource(id = R.string.label_extension_info),
+                            text = stringResource(Res.string.label_extension_info),
                             style = MaterialTheme.typography.headlineSmall,
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 1
@@ -74,7 +75,7 @@ fun ExtensionDetailsScreen(
                     actions = listOf(
 
                         Action.Vector(
-                            title = R.string.stub_text,
+                            title = Res.string.stub_text,
                             icon = Icons.AutoMirrored.Outlined.Launch,
                             enabled = url != null,
                             onClick = {
@@ -84,11 +85,11 @@ fun ExtensionDetailsScreen(
                             }
                         ),
                         Action.DropDownDrawable(
-                            title = R.string.stub_text,
-                            icon = R.drawable.ic_vertical_settings,
+                            title = Res.string.stub_text,
+                            icon = Res.drawable.ic_vertical_settings,
                             items = listOf(
                                 DropDownAction(
-                                    title = stringResource(id = R.string.action_open_in_webview),
+                                    title = stringResource(Res.string.action_open_in_webview),
                                     onClick = {
                                         val httpSource = uiState.extension?.sources?.getOrNull(0) as AnimeHttpSource?
                                         httpSource?.let { source ->
@@ -102,7 +103,7 @@ fun ExtensionDetailsScreen(
                                     enabled = uiState.extension?.sources?.getOrNull(0) != null
                                 ),
                                 DropDownAction(
-                                    title = stringResource(id = R.string.pref_clear_cookies),
+                                    title = stringResource(Res.string.pref_clear_cookies),
                                     onClick = extensionDetailsViewModel::clearCookies,
                                 )
                             )
@@ -121,7 +122,7 @@ fun ExtensionDetailsScreen(
         ) {
             if (uiState.extension == null) {
                 EmptyScreen(
-                    message = stringResource(id = R.string.empty_screen),
+                    message = stringResource(Res.string.empty_screen),
                     modifier = Modifier.padding(it),
                 )
                 return@Scaffold

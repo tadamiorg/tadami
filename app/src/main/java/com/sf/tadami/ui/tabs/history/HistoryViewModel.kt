@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.tabs.history
 
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sf.tadami.data.interactors.history.GetHistoryInteractor

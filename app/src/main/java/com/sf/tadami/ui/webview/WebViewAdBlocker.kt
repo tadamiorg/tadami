@@ -2,7 +2,7 @@ package com.sf.tadami.ui.webview
 
 import android.content.Context
 import android.os.SystemClock
-import android.util.Log
+import com.sf.tadami.utils.Log
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.ui.webview.adblock.AdBlockRequest
 import com.sf.tadami.ui.webview.adblock.AdBlockRules

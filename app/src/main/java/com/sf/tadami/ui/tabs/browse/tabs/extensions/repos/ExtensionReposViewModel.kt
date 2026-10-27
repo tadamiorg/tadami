@@ -1,13 +1,14 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions.repos
 
-import androidx.annotation.StringRes
+import org.jetbrains.compose.resources.StringResource
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sf.tadami.BuildConfig
-import com.sf.tadami.R
+import com.sf.tadami.AppBuildInfo
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.extension.api.ExtensionRepos
 import com.sf.tadami.extension.api.FetchedRepo
@@ -61,28 +62,28 @@ class ExtensionReposViewModel(savedStateHandle: SavedStateHandle) : ViewModel() 
 
     /** Checks the repo [input] the user typed, then asks to confirm it, see [RepoDialog.ConfirmAdd]. */
     fun submit(input: String) {
-        val candidates = when (val parsed = ExtensionRepos.parse(input, allowHttp = BuildConfig.DEBUG)) {
-            ExtensionRepos.Input.Invalid -> return addError(input, R.string.ext_repo_error_invalid)
-            ExtensionRepos.Input.NotHttps -> return addError(input, R.string.ext_repo_error_https)
+        val candidates = when (val parsed = ExtensionRepos.parse(input, allowHttp = AppBuildInfo.DEBUG)) {
+            ExtensionRepos.Input.Invalid -> return addError(input, Res.string.ext_repo_error_invalid)
+            ExtensionRepos.Input.NotHttps -> return addError(input, Res.string.ext_repo_error_https)
             is ExtensionRepos.Input.Candidates -> parsed.urls
         }
         _dialog.value = RepoDialog.Add(input, checking = true)
         checkJob?.cancel()
         checkJob = viewModelScope.launchIO {
             val repos = dataStore.getPreferencesGroup(SourcesPreferences).extensionsRepos.map(ExtensionRepos::normalize)
-            if (candidates.any { it in repos }) return@launchIO addError(input, R.string.ext_repo_error_duplicate)
+            if (candidates.any { it in repos }) return@launchIO addError(input, Res.string.ext_repo_error_duplicate)
             val repo = try {
                 extensionManager.fetchRepo(candidates)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                return@launchIO addError(input, R.string.ext_repo_error_unreadable, e.message ?: e.javaClass.simpleName)
+                return@launchIO addError(input, Res.string.ext_repo_error_unreadable, e.message ?: e.javaClass.simpleName)
             }
             _dialog.value = RepoDialog.ConfirmAdd(repo)
         }
     }
 
-    private fun addError(input: String, @StringRes error: Int, detail: String? = null) {
+    private fun addError(input: String, error: StringResource, detail: String? = null) {
         _dialog.value = RepoDialog.Add(input, error = error, errorDetail = detail)
     }
 
@@ -111,7 +112,7 @@ sealed interface RepoDialog {
     data class Add(
         val input: String = "",
         val checking: Boolean = false,
-        @StringRes val error: Int? = null,
+        val error: StringResource? = null,
         val errorDetail: String? = null,
     ) : RepoDialog
 

@@ -2,7 +2,7 @@ package com.sf.tadami.crash
 
 import android.content.Context
 import android.os.Build
-import com.sf.tadami.BuildConfig
+import com.sf.tadami.AppBuildInfo
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.network.utils.WebViewUtil
 import com.sf.tadami.ui.utils.UiToasts
@@ -36,7 +36,7 @@ class CrashLogUtil(
 
     private fun getDebugInfo(): String {
         return """
-            App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}, ${BuildConfig.BUILD_DATE})
+            App version: ${AppBuildInfo.VERSION_NAME} (${AppBuildInfo.VERSION_CODE}, ${AppBuildInfo.BUILD_DATE})
             Android version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT}; build ${Build.DISPLAY})
             Device brand: ${Build.BRAND}
             Device manufacturer: ${Build.MANUFACTURER}

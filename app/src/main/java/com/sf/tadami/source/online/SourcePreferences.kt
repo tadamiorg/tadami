@@ -25,7 +25,7 @@ import uy.kohesive.injekt.api.get
  * The preferences of the source [sourceId], read from its data store and kept up to date, for
  * [ConfigurableParsedHttpAnimeSource] and [ConfigurableAnimeHttpSource].
  */
-internal class SourcePreferences<T : CustomPreferencesIdentifier>(
+public class SourcePreferences<T : CustomPreferencesIdentifier>(
     sourceId: Long,
     fileName: String,
     prefGroup: CustomPreferences<T>,

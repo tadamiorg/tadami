@@ -13,8 +13,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.components.modal.ModalAction
 import com.sf.tadami.ui.components.modal.ModalCheckboxRow
 import com.sf.tadami.ui.components.modal.TadaDialog
@@ -30,22 +31,22 @@ fun CastWebReceiverNoticeDialog(
     onDismissRequest: (dontShowAgain: Boolean) -> Unit,
 ) {
     val uriHandler = LocalUriHandler.current
-    val guideUrl = stringResource(R.string.cast_howto_guide_url)
+    val guideUrl = stringResource(Res.string.cast_howto_guide_url)
     var dontShowAgain by remember { mutableStateOf(false) }
     TadaDialog(
         onDismissRequest = { onDismissRequest(dontShowAgain) },
-        title = stringResource(R.string.cast_web_receiver_notice_title),
-        neutral = ModalAction(stringResource(R.string.cast_howto_open_guide)) { uriHandler.openUri(guideUrl) },
+        title = stringResource(Res.string.cast_web_receiver_notice_title),
+        neutral = ModalAction(stringResource(Res.string.cast_howto_open_guide)) { uriHandler.openUri(guideUrl) },
         dismiss = null,
-        confirm = ModalAction(stringResource(android.R.string.ok)) { onDismissRequest(dontShowAgain) },
+        confirm = ModalAction(stringResource(Res.string.ok)) { onDismissRequest(dontShowAgain) },
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small)) {
-            Text(text = stringResource(R.string.cast_web_receiver_notice_message))
-            Text(text = stringResource(R.string.cast_web_receiver_notice_recommend))
+            Text(text = stringResource(Res.string.cast_web_receiver_notice_message))
+            Text(text = stringResource(Res.string.cast_web_receiver_notice_recommend))
             Spacer(Modifier.height(MaterialTheme.padding.small))
             CastHowTo()
             ModalCheckboxRow(
-                label = stringResource(R.string.cast_web_receiver_notice_dont_show_again),
+                label = stringResource(Res.string.cast_web_receiver_notice_dont_show_again),
                 checked = dontShowAgain,
                 onCheckedChange = { dontShowAgain = it },
             )

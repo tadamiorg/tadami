@@ -2,7 +2,7 @@ package com.sf.tadami.ui.tabs.browse.tabs.sources.filters.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import com.sf.tadami.ui.tabs.more.settings.widget.TogglePreference
 import com.sf.tadami.utils.Lang
 
@@ -15,7 +15,7 @@ fun SourcesFilterHeader(
 ) {
     TogglePreference(
         modifier = modifier,
-        title = stringResource(id = language.getRes()),
+        title = stringResource(language.res),
         checked = enabled,
         onCheckedChanged = { onClickItem(language.name) },
     )

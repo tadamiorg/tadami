@@ -6,7 +6,8 @@ import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.ActionItem
 
@@ -24,8 +25,8 @@ fun SearchBarCollapsed(
         var tempActions = listOf<Action>()
         if(searchEnabled){
             tempActions = tempActions + Action.Drawable(
-                title = R.string.stub_text,
-                icon = R.drawable.ic_search,
+                title = Res.string.stub_text,
+                icon = Res.drawable.ic_search,
                 onClick = onSearchOpen
             )
         }

@@ -1,11 +1,13 @@
 package com.sf.tadami.extension.util
 
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.graphics.drawable.toBitmap
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -34,7 +36,7 @@ import java.io.File
 import java.security.MessageDigest
 import java.util.concurrent.Executors
 
-internal object ExtensionsLoader {
+public object ExtensionsLoader {
 
     private const val EXTENSION_FEATURE = "tadami.extension"
     private const val METADATA_SOURCE_CLASS = "tadami.extension.class"
@@ -238,7 +240,7 @@ internal object ExtensionsLoader {
      * waits [timeoutMillis] at most for each. A load still running then gives [timedOut], and goes
      * on: its result is given to [onLateResult] once done. [load] must not throw.
      */
-    internal fun <T, R : Any> loadAll(
+    public fun <T, R : Any> loadAll(
         items: List<T>,
         timeoutMillis: Long,
         load: (T) -> R,
@@ -427,7 +429,7 @@ internal object ExtensionsLoader {
             lang = langs.firstOrNull() ?: Lang.UNKNOWN,
             sources = sources,
             pkgFactory = null,
-            icon = appInfo.loadIcon(pkgManager),
+            icon = appInfo.loadIcon(pkgManager)?.toBitmap()?.asImageBitmap(),
             signatureHash = signatureHashes.lastOrNull(),
             declaredSourceIds = declaredSourceIds,
         )
@@ -507,7 +509,7 @@ internal object ExtensionsLoader {
                 lang = langFromPackageName(pkgName),
                 sources = emptyList(),
                 pkgFactory = null,
-                icon = appInfo.loadIcon(pkgManager),
+                icon = appInfo.loadIcon(pkgManager)?.toBitmap()?.asImageBitmap(),
                 loadIssue = issue,
                 signatureHash = signatureHashes(pkgInfo).lastOrNull(),
                 sourceIdConflict = sourceIdConflict,
@@ -526,7 +528,7 @@ internal object ExtensionsLoader {
      * SHA-256 fingerprints of the certificates [pkgInfo] is signed with, the current one last.
      * With a rotated key, the older ones the platform verified come first.
      */
-    internal fun signatureHashes(pkgInfo: PackageInfo): List<String> {
+    public fun signatureHashes(pkgInfo: PackageInfo): List<String> {
         // signingInfo is there from API 28, the minSdk: no need for the legacy signatures
         val signingInfo = pkgInfo.signingInfo ?: return emptyList()
         val signatures = if (signingInfo.hasMultipleSigners()) {
@@ -538,7 +540,7 @@ internal object ExtensionsLoader {
     }
 
     /** Lowercase hex SHA-256 of [bytes]. */
-    internal fun sha256(bytes: ByteArray): String {
+    public fun sha256(bytes: ByteArray): String {
         return MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
     }
 
@@ -546,12 +548,12 @@ internal object ExtensionsLoader {
      * Whether an extension signed with [signatureHashes] can be loaded: signed with the official
      * key, or with one of the [trustedSignatures] the user trusted.
      */
-    internal fun isTrusted(signatureHashes: List<String>, trustedSignatures: Set<String>): Boolean {
+    public fun isTrusted(signatureHashes: List<String>, trustedSignatures: Set<String>): Boolean {
         return signatureHashes.any { it == OFFICIAL_SIGNATURE_HASH || it in trustedSignatures }
     }
 
     /** Whether [extension] is signed with the official key, see [Extension.Installed.signatureHash]. */
-    internal fun isOfficial(extension: Extension.Installed): Boolean = extension.signatureHash == OFFICIAL_SIGNATURE_HASH
+    public fun isOfficial(extension: Extension.Installed): Boolean = extension.signatureHash == OFFICIAL_SIGNATURE_HASH
 
     /**
      * Why an extension built against [libVersion] can't be loaded, or null when it can.
@@ -559,7 +561,7 @@ internal object ExtensionsLoader {
      * @param max the newest lib version accepted, another one than [API_VERSION_MAX] to tell what an
      * older app does
      */
-    internal fun libVersionIssue(libVersion: LibVersion?, max: LibVersion = API_VERSION_MAX): ExtensionLoadIssue? = when {
+    public fun libVersionIssue(libVersion: LibVersion?, max: LibVersion = API_VERSION_MAX): ExtensionLoadIssue? = when {
         libVersion == null -> ExtensionLoadIssue.INVALID_VERSION
         libVersion < API_VERSION_MIN -> ExtensionLoadIssue.LIB_TOO_OLD
         libVersion > max -> ExtensionLoadIssue.LIB_TOO_NEW
@@ -567,7 +569,7 @@ internal object ExtensionsLoader {
     }
 
     /** The language part of an extension package name: `com.sf.tadami.extension.<lang>.<name>`. */
-    internal fun langFromPackageName(pkgName: String): Lang {
+    public fun langFromPackageName(pkgName: String): Lang {
         return Lang.fromCode(pkgName.substringAfter(EXTENSION_PACKAGE_PREFIX, "").substringBefore('.'))
     }
 
@@ -576,7 +578,7 @@ internal object ExtensionsLoader {
      *
      * @param pkgInfo The package info of the application.
      */
-    internal fun isPackageAnExtension(pkgInfo: PackageInfo): Boolean {
+    public fun isPackageAnExtension(pkgInfo: PackageInfo): Boolean {
         return pkgInfo.reqFeatures.orEmpty().any { it.name == EXTENSION_FEATURE }
     }
 

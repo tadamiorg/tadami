@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.tabs.browse.tabs.sources
 
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
@@ -76,7 +76,7 @@ class SourcesTabViewModel : ViewModel() {
                 isLoading = false,
                 items = map
                     .flatMap { (lang, items) ->
-                        listOf(SourcesUiModel.Header(lang.getRes())) +
+                        listOf(SourcesUiModel.Header(lang.res)) +
                             items.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name() })
                     }
                     .toImmutableList(),

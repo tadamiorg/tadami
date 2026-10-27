@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode.cast.channels
 
-import android.util.Log
+import com.sf.tadami.utils.Log
 import com.google.android.gms.cast.CastDevice
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

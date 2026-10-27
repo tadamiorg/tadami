@@ -1,10 +1,11 @@
 package com.sf.tadami.notifications.backup
 
+import com.sf.tadami.utils.stringRes
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -20,7 +21,8 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.hippo.unifile.UniFile
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.backup.BackupCreator
 import com.sf.tadami.data.backup.BackupOptions
 import com.sf.tadami.domain.storage.StorageManager
@@ -54,7 +56,7 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
         val uri = inputData.getString(LOCATION_URI_KEY)?.toUri()
             ?: Injekt.get<StorageManager>().getAutomaticBackupsDirectory()?.uri
             ?: run {
-                notifyAutoBackupError(context.getString(R.string.no_location_set))
+                notifyAutoBackupError(stringRes(Res.string.no_location_set))
                 return Result.failure()
             }
         val options = inputData.getBooleanArray(OPTIONS_KEY)?.let { BackupOptions.fromBooleanArray(it) }

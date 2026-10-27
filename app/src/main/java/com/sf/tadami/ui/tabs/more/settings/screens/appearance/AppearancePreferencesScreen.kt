@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.appearance
 
+import org.jetbrains.compose.resources.StringResource
 import android.view.MotionEvent
 import androidx.annotation.OptIn
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -31,13 +32,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInteropFilter
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.preferences.appearance.setAppCompatDelegateThemeMode
 import com.sf.tadami.preferences.model.DataStoreState
@@ -54,7 +56,7 @@ class AppearancePreferencesScreen(
     navController: NavHostController,
 ) : PreferenceScreen {
 
-    override val title: Int = R.string.label_appearance
+    override val title: StringResource = Res.string.label_appearance
 
     override val backHandler: (() -> Unit) = {
         navController.navigateUp()
@@ -82,10 +84,10 @@ class AppearancePreferencesScreen(
         prefs: AppearancePreferences
     ): Preference.PreferenceCategory {
         return Preference.PreferenceCategory(
-            title = stringResource(id = R.string.label_theme),
+            title = stringResource(Res.string.label_theme),
             preferenceItems = listOf(
                 Preference.PreferenceItem.CustomPreference(
-                    title = stringResource(id = R.string.label_theme)
+                    title = stringResource(Res.string.label_theme)
                 ){
                     Column {
                         AppThemeModePreference(
@@ -104,7 +106,7 @@ class AppearancePreferencesScreen(
                     }
                 },
                 Preference.PreferenceItem.TogglePreference(
-                    title = stringResource(id = R.string.dark_theme_pure_black),
+                    title = stringResource(Res.string.dark_theme_pure_black),
                     value = prefs.themeDarkAmoled,
                     enabled = isSystemInDarkTheme(),
                     onValueChanged = { themeDarkAmoled ->
@@ -123,10 +125,10 @@ class AppearancePreferencesScreen(
         prefs: PlayerPreferences
     ): Preference.PreferenceCategory {
         return Preference.PreferenceCategory(
-            title = stringResource(id = R.string.label_subtitles),
+            title = stringResource(Res.string.label_subtitles),
             preferenceItems = listOf(
                 Preference.PreferenceItem.CustomPreference(
-                    title = stringResource(id = R.string.pref_subtitles_appearance)
+                    title = stringResource(Res.string.pref_subtitles_appearance)
                 ) {
                     var textSize by remember {
                         mutableStateOf(prefs.subtitleTextSize)
@@ -143,7 +145,7 @@ class AppearancePreferencesScreen(
                         ) {
 
                             OutlinedNumericChooser(
-                                label = stringResource(R.string.size),
+                                label = stringResource(Res.string.size),
                                 placeholder = "20",
                                 suffix = "",
                                 value = textSize,

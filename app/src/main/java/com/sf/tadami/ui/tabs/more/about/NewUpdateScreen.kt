@@ -16,7 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
@@ -25,7 +25,8 @@ import com.halilibo.richtext.ui.BlockQuoteGutter
 import com.halilibo.richtext.ui.RichTextStyle
 import com.halilibo.richtext.ui.material3.RichText
 import com.halilibo.richtext.ui.string.RichTextStringStyle
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.update.GithubUpdate
 import com.sf.tadami.notifications.appupdate.AppUpdateWorker
 import com.sf.tadami.ui.main.onboarding.InfoScreen
@@ -44,9 +45,9 @@ fun NewUpdateScreen(
     val uriHandler = LocalUriHandler.current
     InfoScreen(
         icon = Icons.Outlined.NewReleases,
-        headingText = stringResource(id = R.string.update_check_new_version),
-        subtitleText = "${stringResource(id = R.string.app_name)} ${release.version}",
-        acceptText = stringResource(id = R.string.download),
+        headingText = stringResource(Res.string.update_check_new_version),
+        subtitleText = "${stringResource(Res.string.app_name)} ${release.version}",
+        acceptText = stringResource(Res.string.download),
         onAcceptClick = {
             val downloadLink = release.getDownloadLink()
             // No APK attached to the release: let the user get it from the release page instead
@@ -57,7 +58,7 @@ fun NewUpdateScreen(
             }
             onDismiss()
         },
-        rejectText = stringResource(id = R.string.action_not_now),
+        rejectText = stringResource(Res.string.action_not_now),
         onRejectClick = onDismiss,
     ) {
         val blockQuotesColor = MaterialTheme.colorScheme.primary
@@ -84,7 +85,7 @@ fun NewUpdateScreen(
             onClick = { uriHandler.openUri(release.releaseLink) },
             modifier = Modifier.padding(vertical = MaterialTheme.padding.small),
         ) {
-            Text(text = stringResource(id = R.string.update_check_open_on_github))
+            Text(text = stringResource(Res.string.update_check_open_on_github))
             Spacer(modifier = Modifier.width(MaterialTheme.padding.extraSmall))
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.OpenInNew,

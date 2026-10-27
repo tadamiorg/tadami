@@ -8,7 +8,7 @@ import android.graphics.SurfaceTexture
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.util.Log
+import com.sf.tadami.utils.Log
 import android.view.Surface
 import android.view.TextureView
 import androidx.compose.runtime.getValue

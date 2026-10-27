@@ -1,8 +1,6 @@
 package com.sf.tadami.domain.source
 
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.core.graphics.drawable.toBitmap
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.utils.Lang
 import uy.kohesive.injekt.Injekt
@@ -26,6 +24,4 @@ data class Source(
 val Source.icon: ImageBitmap?
     get() {
         return Injekt.get<ExtensionManager>().getAppIconForSource(id)
-            ?.toBitmap()
-            ?.asImageBitmap()
     }

@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.main.onboarding
 
-import androidx.activity.compose.BackHandler
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
@@ -18,8 +18,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.main.onboarding.steps.GuidesStep
 import com.sf.tadami.ui.main.onboarding.steps.PermissionStep
 import com.sf.tadami.ui.main.onboarding.steps.StorageStep
@@ -55,13 +56,13 @@ fun OnboardingScreen(
 
     InfoScreen(
         icon = Icons.Outlined.RocketLaunch,
-        headingText = stringResource(R.string.onboarding_heading),
-        subtitleText = stringResource(R.string.onboarding_description),
+        headingText = stringResource(Res.string.onboarding_heading),
+        subtitleText = stringResource(Res.string.onboarding_description),
         acceptText = stringResource(
             if (isLastStep) {
-                R.string.onboarding_action_finish
+                Res.string.onboarding_action_finish
             } else {
-                R.string.onboarding_action_next
+                Res.string.onboarding_action_next
             },
         ),
         canAccept = steps[currentStep].isComplete,

@@ -240,7 +240,7 @@ class PreviewGenerator(
     }
 
     /** The episodes waiting, in turn. */
-    internal val waiting: List<PendingPreviews>
+    public val waiting: List<PendingPreviews>
         get() = synchronized(lock) { queue.entries }
 
     /** The episode in [episodeDir] (of [animeDir], [sourceDir]) was just downloaded: its frames are made in turn. */

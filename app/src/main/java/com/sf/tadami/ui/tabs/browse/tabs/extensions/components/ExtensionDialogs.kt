@@ -14,10 +14,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.api.ExtensionRepos
 import com.sf.tadami.extension.model.SourceIdConflict
@@ -37,10 +38,10 @@ fun UninstallExtensionDialog(
 ) {
     TadaDestructiveDialog(
         onDismissRequest = onDismissRequest,
-        title = stringResource(R.string.ext_uninstall_title),
+        title = stringResource(Res.string.ext_uninstall_title),
         subject = extensionSubject(extension),
-        message = stringResource(R.string.ext_uninstall_message),
-        confirmLabel = stringResource(R.string.ext_uninstall),
+        message = stringResource(Res.string.ext_uninstall_message),
+        confirmLabel = stringResource(Res.string.ext_uninstall),
         onConfirm = {
             onConfirm()
             onDismissRequest()
@@ -63,9 +64,9 @@ fun InstallExtensionDialog(
 ) {
     TadaDialog(
         onDismissRequest = onDismissRequest,
-        title = stringResource(R.string.ext_install_title),
+        title = stringResource(Res.string.ext_install_title),
         subject = extensionSubject(extension),
-        confirm = ModalAction(stringResource(R.string.ext_install)) {
+        confirm = ModalAction(stringResource(Res.string.ext_install)) {
             onConfirm()
             onDismissRequest()
         },
@@ -76,17 +77,17 @@ fun InstallExtensionDialog(
                 ?: ExtensionRepos.name(extension.repoUrl)
             Text(
                 text = stringResource(
-                    if (ExtensionRepos.isOfficial(extension.repoUrl)) R.string.ext_install_repo_official else R.string.ext_install_repo,
+                    if (ExtensionRepos.isOfficial(extension.repoUrl)) Res.string.ext_install_repo_official else Res.string.ext_install_repo,
                     repoName,
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            ModalBodyText(stringResource(R.string.ext_install_message))
+            ModalBodyText(stringResource(Res.string.ext_install_message))
             val conflictMessage = when (sourceIdConflict) {
-                SourceIdConflict.Duplicate -> stringResource(R.string.ext_issue_source_id_duplicate_message)
-                SourceIdConflict.Reserved -> stringResource(R.string.ext_install_source_id_reserved)
-                is SourceIdConflict.TakenBy -> stringResource(R.string.ext_install_source_id_conflict, sourceIdConflict.ownerName)
+                SourceIdConflict.Duplicate -> stringResource(Res.string.ext_issue_source_id_duplicate_message)
+                SourceIdConflict.Reserved -> stringResource(Res.string.ext_install_source_id_reserved)
+                is SourceIdConflict.TakenBy -> stringResource(Res.string.ext_install_source_id_conflict, sourceIdConflict.ownerName)
                 null -> null
             }
             conflictMessage?.let { ModalConsequence(it) }
@@ -99,9 +100,9 @@ fun InstallExtensionDialog(
 private fun extensionSubject(extension: Extension) = ModalSubject(
     name = extension.name,
     meta = stringResource(
-        R.string.ext_install_version_lang,
+        Res.string.ext_install_version_lang,
         extension.versionName,
-        stringResource(extension.lang?.getRes() ?: R.string.language_unknown),
+        stringResource(extension.lang?.res ?: Res.string.language_unknown),
     ),
     icon = { ExtensionIcon(extension = extension, modifier = it) },
 )
@@ -115,9 +116,9 @@ fun TrustExtensionDialog(
 ) {
     TadaDialog(
         onDismissRequest = onDismissRequest,
-        title = stringResource(R.string.ext_trust_title),
+        title = stringResource(Res.string.ext_trust_title),
         icon = Icons.Outlined.Security,
-        confirm = ModalAction(stringResource(R.string.ext_trust), enabled = extension.signatureHash != null) {
+        confirm = ModalAction(stringResource(Res.string.ext_trust), enabled = extension.signatureHash != null) {
             onConfirm()
             onDismissRequest()
         },
@@ -128,17 +129,17 @@ fun TrustExtensionDialog(
                 Text(text = extension.pkgName, style = MaterialTheme.typography.bodySmall)
             }
             Column {
-                Text(text = stringResource(R.string.ext_trust_fingerprint), style = MaterialTheme.typography.labelMedium)
+                Text(text = stringResource(Res.string.ext_trust_fingerprint), style = MaterialTheme.typography.labelMedium)
                 Fingerprint(extension.signatureHash?.let(::groupedFingerprint) ?: "?")
             }
-            ModalBodyText(stringResource(R.string.ext_trust_warning))
+            ModalBodyText(stringResource(Res.string.ext_trust_warning))
         }
     }
 }
 
 /** A key fingerprint, selectable, in a monospace box. */
 @Composable
-internal fun Fingerprint(text: String) {
+public fun Fingerprint(text: String) {
     SelectionContainer {
         Text(
             text = text,
@@ -155,7 +156,7 @@ internal fun Fingerprint(text: String) {
 }
 
 /** [hex], a SHA-256 fingerprint, uppercase in groups of 4 characters. */
-internal fun groupedFingerprint(hex: String): String = hex.uppercase().chunked(4).joinToString(" ")
+public fun groupedFingerprint(hex: String): String = hex.uppercase().chunked(4).joinToString(" ")
 
 /** Before the uninstall dialogs of the system, one per extension app. */
 @Composable
@@ -165,9 +166,9 @@ fun RemoveLegacyPackagesDialog(
 ) {
     TadaDestructiveDialog(
         onDismissRequest = onDismissRequest,
-        title = stringResource(R.string.ext_legacy_packages_title),
-        message = stringResource(R.string.ext_legacy_packages_message),
-        confirmLabel = stringResource(R.string.ext_uninstall),
+        title = stringResource(Res.string.ext_legacy_packages_title),
+        message = stringResource(Res.string.ext_legacy_packages_message),
+        confirmLabel = stringResource(Res.string.ext_uninstall),
         onConfirm = {
             onConfirm()
             onDismissRequest()

@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions.filters
 
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel

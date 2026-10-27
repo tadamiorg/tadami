@@ -1,10 +1,11 @@
 package com.sf.tadami.notifications.backup
 
+import com.sf.tadami.utils.stringRes
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
@@ -12,7 +13,8 @@ import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.backup.BackupRestorer
 import com.sf.tadami.data.backup.RestoreOptions
 import com.sf.tadami.notifications.Notifications
@@ -45,7 +47,7 @@ class BackupRestoreWorker(private val context: Context, workerParams: WorkerPara
             Result.success()
         } catch (e: Exception) {
             if (e is CancellationException) {
-                notifier.showRestoreError(context.getString(R.string.restoring_backup_canceled))
+                notifier.showRestoreError(stringRes(Res.string.restoring_backup_canceled))
                 Result.success()
             } else {
                 Log.d("BackupRestorer",e.stackTraceToString())

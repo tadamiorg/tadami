@@ -10,9 +10,10 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.extensionOrigin
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.model.InstallStep
@@ -45,7 +46,7 @@ fun ExtensionItemContent(
             ProvideTextStyle(value = MaterialTheme.typography.bodySmall) {
                 if (extension is Extension.Installed && extension.lang != Lang.UNKNOWN) {
                     Text(
-                        text = stringResource(id = extension.lang.getRes()),
+                        text = stringResource(extension.lang.res),
                     )
                 }
 
@@ -58,7 +59,7 @@ fun ExtensionItemContent(
                 val warning = when {
                     // Why it can't be used comes first, it's what the user has to fix
                     extension is Extension.Installed && extension.loadIssue != null -> extension.loadIssue.labelRes
-                    extension is Extension.Installed && extension.isObsolete -> R.string.ext_obsolete
+                    extension is Extension.Installed && extension.isObsolete -> Res.string.ext_obsolete
                     else -> null
                 }
                 if (warning != null) {
@@ -74,10 +75,10 @@ fun ExtensionItemContent(
                     DotSeparatorNoSpaceText()
                     Text(
                         text = when (installStep) {
-                            InstallStep.Pending -> stringResource(R.string.ext_pending)
-                            InstallStep.Downloading -> stringResource(R.string.ext_downloading)
-                            InstallStep.Installing -> stringResource(R.string.ext_installing)
-                            InstallStep.Loading -> stringResource(R.string.ext_loading)
+                            InstallStep.Pending -> stringResource(Res.string.ext_pending)
+                            InstallStep.Downloading -> stringResource(Res.string.ext_downloading)
+                            InstallStep.Installing -> stringResource(Res.string.ext_installing)
+                            InstallStep.Loading -> stringResource(Res.string.ext_loading)
                             else -> error("Must not show non-install process text")
                         },
                     )

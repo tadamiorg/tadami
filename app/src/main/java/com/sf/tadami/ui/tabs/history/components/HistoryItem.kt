@@ -16,11 +16,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.anime.AnimeCoverData
 import com.sf.tadami.domain.history.HistoryWithRelations
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeCover
@@ -74,7 +75,7 @@ fun HistoryItem(
             Text(
                 text = if (history.episodeNumber > -1) {
                     stringResource(
-                        R.string.history_anime_time,
+                        Res.string.history_anime_time,
                         episodeFormatter.format(history.episodeNumber),
                         seenAt,
                     )
@@ -89,7 +90,7 @@ fun HistoryItem(
         IconButton(onClick = onClickDelete) {
             Icon(
                 imageVector = Icons.Outlined.Delete,
-                contentDescription = stringResource(R.string.action_delete),
+                contentDescription = stringResource(Res.string.action_delete),
                 tint = MaterialTheme.colorScheme.onSurface,
             )
         }

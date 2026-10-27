@@ -1,12 +1,14 @@
 package com.sf.tadami.data.backup
 
+import com.sf.tadami.utils.stringRes
 import android.content.Context
 import android.net.Uri
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.hippo.unifile.UniFile
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.DataBaseHandler
 import com.sf.tadami.data.backup.models.Backup
 import com.sf.tadami.data.backup.models.BackupAnime
@@ -62,7 +64,7 @@ class BackupCreator(
 
 
     @OptIn(ExperimentalSerializationApi::class)
-    internal val parser = ProtoBuf
+    public val parser = ProtoBuf
 
     @OptIn(ExperimentalSerializationApi::class)
     suspend fun createBackup(uri: Uri, options: BackupOptions): String {
@@ -86,7 +88,7 @@ class BackupCreator(
             }
 
             if (file == null || !file.isFile) {
-                throw IllegalStateException(context.getString(R.string.create_backup_file_error))
+                throw IllegalStateException(stringRes(Res.string.create_backup_file_error))
             }
 
             val databaseAnime = getLibary.await()
@@ -100,7 +102,7 @@ class BackupCreator(
 
             val byteArray = parser.encodeToByteArray(Backup.serializer(), backup)
             if (byteArray.isEmpty()) {
-                throw IllegalStateException(context.getString(R.string.empty_backup_error))
+                throw IllegalStateException(stringRes(Res.string.empty_backup_error))
             }
 
             file.openOutputStream().also {

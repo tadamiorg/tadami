@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.components.topappbar.search
 
-import androidx.activity.compose.BackHandler
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -31,10 +31,11 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.ActionItem
 import com.sf.tadami.ui.utils.AppKeyboardFocusManager
@@ -50,7 +51,7 @@ fun SearchBarExpanded(
     onSearchChange: (value: String) -> Unit,
     actions: List<Action> = emptyList(),
     backHandlerEnabled : Boolean = true,
-    placeholder : String = stringResource(id = R.string.discover_search_screen_search_placeholder),
+    placeholder : String = stringResource(Res.string.discover_search_screen_search_placeholder),
     value : String
 ) {
     var initialFocus by rememberSaveable { mutableStateOf(false) }

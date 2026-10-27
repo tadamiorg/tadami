@@ -1,7 +1,7 @@
 package com.sf.tadami.ui.tabs.more.downloads
 
+import org.jetbrains.compose.resources.StringResource
 import android.text.format.Formatter
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,10 +25,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.download.model.Download
 import com.sf.tadami.ui.components.material.LanguageBadge
 import com.sf.tadami.ui.utils.padding
@@ -110,27 +111,27 @@ fun DownloadQueueItem(
 private fun statusText(download: Download, status: Download.State, progress: Int): String {
     return when (status) {
         Download.State.ERROR -> download.error?.takeIf { it.isNotBlank() }
-            ?: stringResource(R.string.episode_download_error)
+            ?: stringResource(Res.string.episode_download_error)
         Download.State.DOWNLOADING -> {
             val video = download.videoProgress
             when {
-                video == null -> stringResource(R.string.download_queue_progress, progress)
+                video == null -> stringResource(Res.string.download_queue_progress, progress)
                 video.hls && video.total > 0 -> stringResource(
-                    R.string.download_queue_progress_segments,
+                    Res.string.download_queue_progress_segments,
                     progress,
                     video.segments,
                     video.total,
                 )
                 !video.hls && video.total > 0 -> stringResource(
-                    R.string.download_queue_progress_size,
+                    Res.string.download_queue_progress_size,
                     progress,
                     Formatter.formatShortFileSize(LocalContext.current, video.bytes),
                     Formatter.formatShortFileSize(LocalContext.current, video.total),
                 )
-                else -> stringResource(R.string.download_queue_progress, progress)
+                else -> stringResource(Res.string.download_queue_progress, progress)
             }
         }
-        else -> stringResource(R.string.download_queue_waiting)
+        else -> stringResource(Res.string.download_queue_waiting)
     }
 }
 
@@ -160,18 +161,18 @@ private fun DownloadQueueItemMenu(
                 menuOpened = false
                 action()
             }
-            MenuItem(R.string.download_queue_move_to_top, enabled = !isFirst) { select(onMoveToTop) }
-            MenuItem(R.string.download_queue_move_to_bottom, enabled = !isLast) { select(onMoveToBottom) }
+            MenuItem(Res.string.download_queue_move_to_top, enabled = !isFirst) { select(onMoveToTop) }
+            MenuItem(Res.string.download_queue_move_to_bottom, enabled = !isLast) { select(onMoveToBottom) }
             if (status == Download.State.ERROR) {
-                MenuItem(R.string.episode_download_retry) { select(onRetry) }
+                MenuItem(Res.string.episode_download_retry) { select(onRetry) }
             }
-            MenuItem(R.string.episode_download_cancel) { select(onCancel) }
+            MenuItem(Res.string.episode_download_cancel) { select(onCancel) }
         }
     }
 }
 
 @Composable
-private fun MenuItem(@StringRes text: Int, enabled: Boolean = true, onClick: () -> Unit) {
+private fun MenuItem(text: StringResource, enabled: Boolean = true, onClick: () -> Unit) {
     DropdownMenuItem(
         text = { Text(text = stringResource(text)) },
         onClick = onClick,

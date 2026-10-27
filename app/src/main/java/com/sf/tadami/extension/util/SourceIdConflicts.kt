@@ -11,7 +11,7 @@ import com.sf.tadami.source.Source
  * gogoanime 1, animesama 2, vostfree 3, voiranime 4, otakufr 5, anisama 6, animepahe 7, hianime 8,
  * jetanime 11, franime 15, kickassanime 101, ianimes 102.
  */
-internal val OFFICIAL_SOURCE_IDS = setOf(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 11L, 15L, 101L, 102L)
+public val OFFICIAL_SOURCE_IDS = setOf(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 11L, 15L, 101L, 102L)
 
 /**
  * The extensions whose sources can be registered, the others refused as
@@ -34,7 +34,7 @@ internal val OFFICIAL_SOURCE_IDS = setOf(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 11L, 15
  * @param installedAt when the extension of a package name was installed, to order them on first sight
  * @return [extensions] with the conflicts set or cleared, and the owners to keep
  */
-internal fun resolveSourceIdConflicts(
+public fun resolveSourceIdConflicts(
     extensions: List<Extension.Installed>,
     owners: Map<Long, String>,
     isOfficial: (Extension.Installed) -> Boolean,
@@ -77,7 +77,7 @@ internal fun resolveSourceIdConflicts(
  * @property toLoad the extensions refused before their code was loaded whose conflict is gone, to
  * load now: they're listed without sources until then
  */
-internal data class SourceIdResolution(
+public data class SourceIdResolution(
     val extensions: List<Extension.Installed>,
     val owners: Map<Long, String>,
     val toLoad: List<String>,
@@ -94,7 +94,7 @@ internal data class SourceIdResolution(
  * included: an owner among them, even one declaring no ID, keeps its IDs
  * @param installed the extensions registered
  */
-internal fun conflictsBeforeLoading(
+public fun conflictsBeforeLoading(
     claims: List<SourceIdClaim>,
     loading: Map<String, String>,
     installed: List<Extension.Installed>,
@@ -113,7 +113,7 @@ internal fun conflictsBeforeLoading(
  * The source IDs of the meta-data value [value], decimal IDs separated by `;` or `,`, see
  * [Extension.Installed.declaredSourceIds]: null when there's none, empty when one isn't an ID.
  */
-internal fun parseDeclaredSourceIds(value: String?): List<Long>? {
+public fun parseDeclaredSourceIds(value: String?): List<Long>? {
     if (value.isNullOrBlank()) return null
     val ids = value.split(';', ',').map { it.trim().toLongOrNull() }
     return if (ids.any { it == null }) emptyList() else ids.filterNotNull()
@@ -123,14 +123,14 @@ internal fun parseDeclaredSourceIds(value: String?): List<Long>? {
  * Whether the sources of IDs [loaded] aren't those the manifest declares, [declared]: a lying
  * manifest, which may have passed the check made before its code was loaded.
  */
-internal fun sourceIdsMismatch(declared: List<Long>?, loaded: List<Long>): Boolean =
+public fun sourceIdsMismatch(declared: List<Long>?, loaded: List<Long>): Boolean =
     declared != null && declared.sorted() != loaded.sorted()
 
 /**
  * Why the extension [pkgName] of the sources [sourceIds] would be refused once installed, in place
  * of the installed one of that package if any, see [resolveSourceIdConflicts]. Null when it wouldn't.
  */
-internal fun sourceIdConflictOf(
+public fun sourceIdConflictOf(
     pkgName: String,
     sourceIds: List<Long>,
     official: Boolean,
@@ -147,7 +147,7 @@ internal fun sourceIdConflictOf(
 }
 
 /** The source IDs [ids] the extension [pkgName] would register. */
-internal data class SourceIdClaim(
+public data class SourceIdClaim(
     val pkgName: String,
     val ids: List<Long>,
     val official: Boolean,
@@ -161,7 +161,7 @@ internal data class SourceIdClaim(
  * @param installed the name of each installed extension, by package name: an owner not installed
  * anymore owns nothing
  */
-internal fun resolveClaims(
+public fun resolveClaims(
     claims: List<SourceIdClaim>,
     installed: Map<String, String>,
     owners: Map<Long, String>,

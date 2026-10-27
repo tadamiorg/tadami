@@ -1,11 +1,13 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.data
 
+import org.jetbrains.compose.resources.StringResource
+import com.sf.tadami.utils.stringRes
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.text.format.Formatter
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,14 +29,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavHostController
-import coil.annotation.ExperimentalCoilApi
-import coil.imageLoader
+import coil3.SingletonImageLoader
 import com.hippo.unifile.UniFile
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.providers.AndroidFoldersProvider
 import com.sf.tadami.navigation.graphs.settings.DataSettingsRoutes
 import com.sf.tadami.network.player.PlayerNetworkHelper
@@ -61,7 +63,7 @@ import java.nio.charset.StandardCharsets
 class DataPreferencesScreen(
     private val navController: NavHostController
 ) : PreferenceScreen {
-    override val title: Int = R.string.settings_tab_library_data_preferences_title
+    override val title: StringResource = Res.string.settings_tab_library_data_preferences_title
 
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 
@@ -75,7 +77,7 @@ class DataPreferencesScreen(
 
         return listOf(
             getStorageLocationPref(prefState = storagePreferencesState, prefs = storagePreferences),
-            Preference.PreferenceItem.InfoPreference(stringResource(R.string.pref_storage_location_info)),
+            Preference.PreferenceItem.InfoPreference(stringResource(Res.string.pref_storage_location_info)),
             getBackupAndRestoreGroup(prefState = backupPreferencesState, prefs = backupPreferences),
             getDataGroup()
         )
@@ -89,13 +91,13 @@ class DataPreferencesScreen(
         val pickStorageLocation = storageLocationPicker(prefs, prefState)
 
         return Preference.PreferenceItem.TextPreference(
-            title = stringResource(R.string.pref_storage_location),
+            title = stringResource(Res.string.pref_storage_location),
             subtitle = storageLocationText(prefs),
             onClick = {
                 try {
                     pickStorageLocation.launch(null)
                 } catch (e: ActivityNotFoundException) {
-                    UiToasts.showToast(R.string.file_picker_error)
+                    UiToasts.showToast(Res.string.file_picker_error)
                 }
             },
         )
@@ -115,13 +117,13 @@ class DataPreferencesScreen(
                     val intent = super.createIntent(context, input)
                     return Intent.createChooser(
                         intent,
-                        context.getString(R.string.file_select_backup)
+                        stringRes(Res.string.file_select_backup)
                     )
                 }
             },
         ) {
             if (it == null) {
-                UiToasts.showToast(R.string.file_null_uri_error)
+                UiToasts.showToast(Res.string.file_null_uri_error)
                 return@rememberLauncherForActivityResult
             }
 
@@ -134,11 +136,11 @@ class DataPreferencesScreen(
         }
 
         return Preference.PreferenceCategory(
-            title = stringResource(R.string.preferences_backup_title),
+            title = stringResource(Res.string.preferences_backup_title),
             preferenceItems = persistentListOf(
                 // Manual actions
                 Preference.PreferenceItem.CustomPreference(
-                    title = stringResource(R.string.preferences_backup_title),
+                    title = stringResource(Res.string.preferences_backup_title),
                 ) {
                     BasePreference(
                         subcomponent = {
@@ -156,7 +158,7 @@ class DataPreferencesScreen(
                                     },
                                     shape = SegmentedButtonDefaults.itemShape(0, 2),
                                 ) {
-                                    Text(stringResource(R.string.preferences_backup_create_title))
+                                    Text(stringResource(Res.string.preferences_backup_create_title))
                                 }
                                 SegmentedButton(
                                     modifier = Modifier.fillMaxHeight(),
@@ -164,18 +166,18 @@ class DataPreferencesScreen(
                                     onCheckedChange = {
                                         if (!BackupRestoreWorker.isRunning(context)) {
                                             if (DeviceUtil.isMiui && DeviceUtil.isMiuiOptimizationDisabled()) {
-                                                UiToasts.showToast(R.string.restore_miui_warning)
+                                                UiToasts.showToast(Res.string.restore_miui_warning)
                                             }
 
                                             // no need to catch because it's wrapped with a chooser
                                             chooseBackup.launch("*/*")
                                         } else {
-                                            UiToasts.showToast(R.string.restore_in_progress)
+                                            UiToasts.showToast(Res.string.restore_in_progress)
                                         }
                                     },
                                     shape = SegmentedButtonDefaults.itemShape(1, 2),
                                 ) {
-                                    Text(stringResource(R.string.preferences_backup_restore_title))
+                                    Text(stringResource(Res.string.preferences_backup_restore_title))
                                 }
                             }
                         },
@@ -186,13 +188,13 @@ class DataPreferencesScreen(
                 Preference.PreferenceItem.SelectPreference(
                     value = prefs.autoBackupInterval,
                     items = mapOf(
-                        BackupPreferences.AutoBackupIntervalItems.DISABLED to stringResource(id = R.string.preferences_library_auto_updates_disabled),
-                        BackupPreferences.AutoBackupIntervalItems.DAILY to stringResource(id = R.string.preferences_library_auto_updates_daily),
-                        BackupPreferences.AutoBackupIntervalItems.DAILY_2 to stringResource(id = R.string.preferences_library_auto_updates_daily2),
-                        BackupPreferences.AutoBackupIntervalItems.DAILY_3 to stringResource(id = R.string.preferences_library_auto_updates_daily3),
-                        BackupPreferences.AutoBackupIntervalItems.WEEKLY to stringResource(id = R.string.preferences_library_auto_updates_weekly),
+                        BackupPreferences.AutoBackupIntervalItems.DISABLED to stringResource(Res.string.preferences_library_auto_updates_disabled),
+                        BackupPreferences.AutoBackupIntervalItems.DAILY to stringResource(Res.string.preferences_library_auto_updates_daily),
+                        BackupPreferences.AutoBackupIntervalItems.DAILY_2 to stringResource(Res.string.preferences_library_auto_updates_daily2),
+                        BackupPreferences.AutoBackupIntervalItems.DAILY_3 to stringResource(Res.string.preferences_library_auto_updates_daily3),
+                        BackupPreferences.AutoBackupIntervalItems.WEEKLY to stringResource(Res.string.preferences_library_auto_updates_weekly),
                     ),
-                    title = stringResource(id = R.string.preferences_backup_frequency),
+                    title = stringResource(Res.string.preferences_backup_frequency),
                     onValueChanged = {
                         prefState.setValue(
                             prefs.copy(
@@ -204,9 +206,9 @@ class DataPreferencesScreen(
                     }
                 ),
                 Preference.PreferenceItem.InfoPreference(
-                    stringResource(R.string.backup_info) + "\n\n" +
+                    stringResource(Res.string.backup_info) + "\n\n" +
                             stringResource(
-                                R.string.last_auto_backup_info,
+                                Res.string.last_auto_backup_info,
                                 relativeTimeSpanString(prefs.autoBackupLastTimestamp)
                             ),
                 ),
@@ -215,13 +217,12 @@ class DataPreferencesScreen(
     }
 
     @androidx.annotation.OptIn(UnstableApi::class)
-    @OptIn(ExperimentalCoilApi::class)
     @Composable
     private fun getDataGroup(
         playerNetworkHelper: PlayerNetworkHelper = Injekt.get()
     ): Preference.PreferenceCategory {
         val context = LocalContext.current
-        val imageLoader = remember { context.imageLoader }
+        val imageLoader = remember { SingletonImageLoader.get(context) }
         var readableImagesCacheSize by remember {
             mutableStateOf(
                 Formatter.formatFileSize(
@@ -240,10 +241,10 @@ class DataPreferencesScreen(
         }
 
         return Preference.PreferenceCategory(
-            title = stringResource(R.string.pref_storage_usage),
+            title = stringResource(Res.string.pref_storage_usage),
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.CustomPreference(
-                    title = stringResource(R.string.pref_storage_usage),
+                    title = stringResource(Res.string.pref_storage_usage),
                 ) {
                     BasePreference(
                         subcomponent = {
@@ -255,16 +256,16 @@ class DataPreferencesScreen(
                 },
 
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(R.string.pref_clear_images_cache),
-                    subtitle = stringResource(R.string.used_cache, readableImagesCacheSize),
+                    title = stringResource(Res.string.pref_clear_images_cache),
+                    subtitle = stringResource(Res.string.used_cache, readableImagesCacheSize),
                     onClick = {
                         try {
                             imageLoader.diskCache?.clear()
-                            UiToasts.showToast(R.string.cache_deleted)
+                            UiToasts.showToast(Res.string.cache_deleted)
 
                         } catch (e: Throwable) {
                             Log.d("CacheDeletion", e.stackTraceToString())
-                            UiToasts.showToast(R.string.cache_delete_error)
+                            UiToasts.showToast(Res.string.cache_delete_error)
                         } finally {
                             readableImagesCacheSize =
                                 Formatter.formatFileSize(context, imageLoader.diskCache?.size ?: 0)
@@ -272,16 +273,16 @@ class DataPreferencesScreen(
                     },
                 ),
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(R.string.pref_clear_videos_cache),
-                    subtitle = stringResource(R.string.used_cache, readableVideosCacheSize),
+                    title = stringResource(Res.string.pref_clear_videos_cache),
+                    subtitle = stringResource(Res.string.used_cache, readableVideosCacheSize),
                     onClick = {
                         try {
                             playerNetworkHelper.clearCache()
-                            UiToasts.showToast(R.string.cache_deleted)
+                            UiToasts.showToast(Res.string.cache_deleted)
 
                         } catch (e: Throwable) {
                             Log.d("CacheDeletion", e.stackTraceToString())
-                            UiToasts.showToast(R.string.cache_delete_error)
+                            UiToasts.showToast(Res.string.cache_delete_error)
                         } finally {
                             readableVideosCacheSize =
                                 Formatter.formatFileSize(
@@ -314,7 +315,7 @@ class DataPreferencesScreen(
                         context.contentResolver.takePersistableUriPermission(uri, flags)
                     } catch (e: SecurityException) {
                         Log.d("StorageLocationPicker", e.stackTraceToString())
-                        UiToasts.showToast(R.string.file_picker_uri_permission_unsupported)
+                        UiToasts.showToast(Res.string.file_picker_uri_permission_unsupported)
                         // The folder would be out of reach after a restart: keep the current one
                         return@rememberLauncherForActivityResult
                     }
@@ -334,13 +335,13 @@ class DataPreferencesScreen(
             val context = LocalContext.current
 
             if (storageDirPref.storageDir == foldersProviders.path()) {
-                return stringResource(R.string.no_location_set)
+                return stringResource(Res.string.no_location_set)
             }
 
             return remember(storageDirPref) {
                 val file = UniFile.fromUri(context, storageDirPref.storageDir.toUri())
                 file?.displayablePath
-            } ?: stringResource(R.string.invalid_location, storageDirPref.storageDir)
+            } ?: stringResource(Res.string.invalid_location, storageDirPref.storageDir)
         }
     }
 }

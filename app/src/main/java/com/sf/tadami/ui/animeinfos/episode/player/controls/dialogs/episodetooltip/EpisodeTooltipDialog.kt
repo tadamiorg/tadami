@@ -1,10 +1,11 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.episodetooltip
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.components.modal.PlayerPanel
 
 @Composable
@@ -17,7 +18,7 @@ fun EpisodeTooltipDialog(
     PlayerPanel(
         visible = opened,
         onDismissRequest = onDismissRequest,
-        title = stringResource(R.string.player_epsiode_tooltip_title),
+        title = stringResource(Res.string.player_epsiode_tooltip_title),
     ) {
         if (sourceDatastore != null) {
             TooltipTab(

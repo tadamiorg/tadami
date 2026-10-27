@@ -10,9 +10,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.download.isLocalFile
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.ui.components.modal.PlayerChoiceRow
@@ -43,7 +44,7 @@ fun VideoTab(
                     {
                         Icon(
                             imageVector = Icons.Outlined.DownloadDone,
-                            contentDescription = stringResource(R.string.episode_downloaded),
+                            contentDescription = stringResource(Res.string.episode_downloaded),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp),
                         )

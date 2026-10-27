@@ -15,9 +15,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.network.SolvingHosts
 import com.sf.tadami.network.interceptors.CloudflareInterceptor
 
@@ -39,7 +40,7 @@ fun CloudflareVerificationLine(baseUrl: String?, modifier: Modifier = Modifier) 
             modifier = Modifier.size(16.dp),
         )
         Text(
-            text = stringResource(R.string.cloudflare_verification),
+            text = stringResource(Res.string.cloudflare_verification),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

@@ -19,7 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -27,7 +27,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.navigation.graphs.sources.SourcesRoutes
 import com.sf.tadami.source.online.AnimeHttpSource
@@ -55,7 +56,7 @@ fun RecentScreen(
                         horizontalAlignment = Alignment.Start
                     ) {
                         Text(
-                            text = stringResource(id = R.string.discover_recents_screen_title),
+                            text = stringResource(Res.string.discover_recents_screen_title),
                             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
@@ -75,7 +76,7 @@ fun RecentScreen(
                 },
                 actions = listOf(
                     Action.Vector(
-                        title = R.string.stub_text,
+                        title = Res.string.stub_text,
                         icon = Icons.Outlined.Public,
                         onClick = {
                             val httpSource = recentViewModel.source as? AnimeHttpSource

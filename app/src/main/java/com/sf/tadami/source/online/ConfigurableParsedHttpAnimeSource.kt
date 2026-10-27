@@ -30,7 +30,7 @@ abstract class ConfigurableParsedHttpAnimeSource<T : CustomPreferencesIdentifier
      * Stops listening to the preferences changes, called once this instance has been replaced
      * or removed so it doesn't stay referenced by the data store.
      */
-    internal fun cancelPreferencesUpdates() {
+    public fun cancelPreferencesUpdates() {
         sourcePreferences.cancelUpdates()
     }
 

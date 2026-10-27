@@ -183,7 +183,7 @@ class UpdatesViewModel : ViewModel() {
 }
 
 /** The downloaded only mode: [downloadedIds] are the downloaded episodes, null when it is off. */
-internal fun List<UpdatesWithRelations>.downloadedOnly(downloadedIds: Set<Long>?): List<UpdatesWithRelations> {
+public fun List<UpdatesWithRelations>.downloadedOnly(downloadedIds: Set<Long>?): List<UpdatesWithRelations> {
     if (downloadedIds == null) return this
     return filter { it.episodeId in downloadedIds }
 }

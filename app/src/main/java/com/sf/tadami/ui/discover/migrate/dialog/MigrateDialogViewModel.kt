@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.discover.migrate.dialog
 
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.lifecycle.ViewModel
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.data.download.TadamiDownloadManager

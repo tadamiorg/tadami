@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.animeinfos.details.episodes
 
-import androidx.annotation.StringRes
+import org.jetbrains.compose.resources.StringResource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -22,11 +22,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.download.model.Download
 import com.sf.tadami.data.download.model.EpisodeDownloadState
 
@@ -60,11 +61,11 @@ fun EpisodeDownloadIndicator(
             when (download.state) {
                 Download.State.NOT_DOWNLOADED -> Icon(
                     imageVector = Icons.Outlined.ArrowCircleDown,
-                    contentDescription = stringResource(R.string.download),
+                    contentDescription = stringResource(Res.string.download),
                     tint = iconColor,
                 )
                 Download.State.QUEUED -> {
-                    val description = stringResource(R.string.episode_download_queued)
+                    val description = stringResource(Res.string.episode_download_queued)
                     CircularProgressIndicator(
                         modifier = Modifier
                             .size(IndicatorSize)
@@ -74,7 +75,7 @@ fun EpisodeDownloadIndicator(
                     )
                 }
                 Download.State.DOWNLOADING -> {
-                    val description = stringResource(R.string.episode_download_progress, download.progress)
+                    val description = stringResource(Res.string.episode_download_progress, download.progress)
                     Box(
                         modifier = Modifier.semantics { contentDescription = description },
                         contentAlignment = Alignment.Center,
@@ -96,12 +97,12 @@ fun EpisodeDownloadIndicator(
                 }
                 Download.State.DOWNLOADED -> Icon(
                     imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = stringResource(R.string.episode_downloaded),
+                    contentDescription = stringResource(Res.string.episode_downloaded),
                     tint = iconColor,
                 )
                 Download.State.ERROR -> Icon(
                     imageVector = Icons.Outlined.ErrorOutline,
-                    contentDescription = stringResource(R.string.episode_download_error),
+                    contentDescription = stringResource(Res.string.episode_download_error),
                     tint = MaterialTheme.colorScheme.error,
                 )
             }
@@ -117,12 +118,12 @@ fun EpisodeDownloadIndicator(
             }
             when (download.state) {
                 Download.State.QUEUED, Download.State.DOWNLOADING ->
-                    MenuItem(R.string.episode_download_cancel) { select(EpisodeDownloadAction.CANCEL) }
+                    MenuItem(Res.string.episode_download_cancel) { select(EpisodeDownloadAction.CANCEL) }
                 Download.State.DOWNLOADED ->
-                    MenuItem(R.string.episode_download_delete) { select(EpisodeDownloadAction.DELETE) }
+                    MenuItem(Res.string.episode_download_delete) { select(EpisodeDownloadAction.DELETE) }
                 Download.State.ERROR -> {
-                    MenuItem(R.string.episode_download_retry) { select(EpisodeDownloadAction.RETRY) }
-                    MenuItem(R.string.episode_download_cancel) { select(EpisodeDownloadAction.CANCEL) }
+                    MenuItem(Res.string.episode_download_retry) { select(EpisodeDownloadAction.RETRY) }
+                    MenuItem(Res.string.episode_download_cancel) { select(EpisodeDownloadAction.CANCEL) }
                 }
                 Download.State.NOT_DOWNLOADED -> Unit
             }
@@ -131,7 +132,7 @@ fun EpisodeDownloadIndicator(
 }
 
 @Composable
-private fun MenuItem(@StringRes text: Int, onClick: () -> Unit) {
+private fun MenuItem(text: StringResource, onClick: () -> Unit) {
     DropdownMenuItem(
         text = { Text(text = stringResource(text)) },
         onClick = onClick,

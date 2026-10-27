@@ -1,5 +1,8 @@
 package com.sf.tadami.ui.animeinfos.episode.cast
 
+import com.sf.tadami.R
+
+import com.sf.tadami.utils.stringRes
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -11,7 +14,8 @@ import com.google.android.gms.cast.framework.SessionProvider
 import com.google.android.gms.cast.framework.media.CastMediaOptions
 import com.google.android.gms.cast.framework.media.MediaIntentReceiver
 import com.google.android.gms.cast.framework.media.NotificationOptions
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.utils.getPreferencesGroup

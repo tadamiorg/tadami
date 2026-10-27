@@ -1,5 +1,6 @@
 package com.sf.tadami.notifications.cast
 
+import com.sf.tadami.utils.stringRes
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
@@ -7,6 +8,8 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.ui.main.MainActivity
 import com.sf.tadami.ui.themes.getNotificationsColor
@@ -21,17 +24,17 @@ class CastNotifier(private val context: Context) {
 
     val castStatusNotificationBuilder by lazy {
         NotificationCompat.Builder(context, Notifications.CAST_PROXY_STATUS_CHANNEL).apply {
-            setContentTitle("${context.getString(R.string.app_name)} Cast")
+            setContentTitle("${stringRes(Res.string.app_name)} Cast")
             setContentIntent(getMainActivityIntent())
             setSmallIcon(R.drawable.ic_tada)
             setLargeIcon(notificationBitmap)
             setOngoing(true)
-            setContentText(context.getString(R.string.notification_cast_status_title))
-            setStyle(NotificationCompat.BigTextStyle().bigText(context.getString(R.string.notification_cast_status_text)))
+            setContentText(stringRes(Res.string.notification_cast_status_title))
+            setStyle(NotificationCompat.BigTextStyle().bigText(stringRes(Res.string.notification_cast_status_text)))
             setOnlyAlertOnce(true)
             color = getNotificationsColor(context)
             priority = NotificationManager.IMPORTANCE_HIGH
-            addAction(R.drawable.ic_close, context.getString(R.string.action_cancel), cancelIntent)
+            addAction(R.drawable.ic_close, stringRes(Res.string.action_cancel), cancelIntent)
         }
     }
 

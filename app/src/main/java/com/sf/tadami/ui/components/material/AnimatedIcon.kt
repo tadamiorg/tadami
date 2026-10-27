@@ -13,8 +13,7 @@ import androidx.compose.ui.graphics.Color
 @OptIn(ExperimentalAnimationGraphicsApi::class)
 @Composable
 fun AnimatedVectorDrawable(
-    @DrawableRes
-    animIcon : Int,
+    @DrawableRes animIcon: Int,
     selected: Boolean,
     tint : Color = LocalContentColor.current,
     contentDescription : String = ""

@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.animeinfos.episode.cast.channels
 
-import android.util.Log
+import com.sf.tadami.utils.Log
 import com.google.android.gms.cast.CastDevice
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.ui.animeinfos.episode.cast.preview.CastPreviewProtocol

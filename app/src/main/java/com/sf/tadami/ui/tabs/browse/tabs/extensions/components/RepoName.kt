@@ -5,8 +5,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.ExtensionManager
 import com.sf.tadami.extension.api.ExtensionRepos
@@ -22,7 +23,7 @@ import uy.kohesive.injekt.api.get
  */
 @Composable
 fun repoDisplayName(repoUrl: String, meta: RepoMeta?): String = when {
-    ExtensionRepos.isOfficial(repoUrl) -> stringResource(R.string.ext_repo_official)
+    ExtensionRepos.isOfficial(repoUrl) -> stringResource(Res.string.ext_repo_official)
     else -> ExtensionRepos.safeName(meta?.name) ?: ExtensionRepos.name(repoUrl)
 }
 
@@ -69,11 +70,11 @@ fun rememberExtensionReposInfo(withSources: Boolean = false): ExtensionReposInfo
 fun extensionOrigin(repoUrl: String?, isManual: Boolean = false): String? {
     val info = LocalExtensionRepos.current
     return when {
-        isManual -> stringResource(R.string.ext_origin_manual)
+        isManual -> stringResource(Res.string.ext_origin_manual)
         // Without any repo, none is in a repo, wherever it comes from
-        info.repos?.isEmpty() == true -> stringResource(R.string.ext_origin_no_repo)
+        info.repos?.isEmpty() == true -> stringResource(Res.string.ext_origin_no_repo)
         repoUrl == null -> null
-        info.repos != null && repoUrl !in info.repos -> stringResource(R.string.ext_origin_no_repo)
+        info.repos != null && repoUrl !in info.repos -> stringResource(Res.string.ext_origin_no_repo)
         else -> repoDisplayName(repoUrl, info.metas[repoUrl])
     }
 }

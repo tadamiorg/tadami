@@ -1,8 +1,9 @@
 package com.sf.tadami.ui.tabs.history
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.history.HistoryWithRelations
 import com.sf.tadami.ui.components.grid.EmptyScreen
 import com.sf.tadami.ui.components.widgets.ContentLoader
@@ -19,9 +20,9 @@ fun HistoryComponent(
         ContentLoader(isLoading = it == null){
             if(it!!.isEmpty()){
                 val msg = if (!uiState.searchQuery.isNullOrEmpty()) {
-                    stringResource(id = R.string.pager_no_results)
+                    stringResource(Res.string.pager_no_results)
                 } else {
-                    stringResource(id = R.string.information_no_recent_anime)
+                    stringResource(Res.string.information_no_recent_anime)
                 }
                 EmptyScreen(
                     message = msg,

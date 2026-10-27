@@ -1,8 +1,6 @@
 package com.sf.tadami.ui.animeinfos.details
 
-import android.annotation.SuppressLint
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -31,12 +29,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.download.model.Download
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
@@ -65,7 +64,6 @@ import java.nio.charset.StandardCharsets
 
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("OpaqueUnitKey")
 @Composable
 fun DetailsScreen(
     navHostController: NavHostController,
@@ -99,7 +97,7 @@ fun DetailsScreen(
                 SheetTabs(
                     tabs = listOf(
                         SheetTab(
-                            title = stringResource(R.string.action_filter)
+                            title = stringResource(Res.string.action_filter)
                         ) {
                             FilterTab(
                                 anime = uiState.details!!,
@@ -110,7 +108,7 @@ fun DetailsScreen(
                             )
                         },
                         SheetTab(
-                            title = stringResource(R.string.title_display)
+                            title = stringResource(Res.string.title_display)
                         ) {
                             DisplayTab(
                                 anime = uiState.details!!,
@@ -164,7 +162,7 @@ fun DetailsScreen(
                                 uiState.episodes.fastAny { it.episode.seen }
                             }
                             Text(
-                                text = stringResource(if (isWatching) R.string.details_screen_resume_button else R.string.details_screen_start_button)
+                                text = stringResource(if (isWatching) Res.string.details_screen_resume_button else Res.string.details_screen_start_button)
                             )
                         },
                         icon = {
@@ -187,29 +185,29 @@ fun DetailsScreen(
                     visible = uiState.episodes.fastAny { it.selected },
                     actions = listOf(
                         Action.Vector(
-                            title = R.string.stub_text,
+                            title = Res.string.stub_text,
                             icon = Icons.Outlined.Visibility,
                             onClick = {
                                 detailsViewModel.setSeenStatus()
                             },
                         ),
                         Action.Vector(
-                            title = R.string.stub_text,
+                            title = Res.string.stub_text,
                             icon = Icons.Outlined.VisibilityOff,
                             onClick = {
                                 detailsViewModel.setUnseenStatus()
                             },
                         ),
                         Action.Drawable(
-                            title = R.string.stub_text,
-                            icon = R.drawable.done_down,
+                            title = Res.string.stub_text,
+                            icon = Res.drawable.done_down,
                             onClick = {
                                 detailsViewModel.setSeenStatusDown()
                             },
                             enabled = uiState.episodes.count { it.selected } == 1
                         ),
                         Action.Vector(
-                            title = R.string.download,
+                            title = Res.string.download,
                             icon = Icons.Outlined.Download,
                             onClick = {
                                 detailsViewModel.downloadSelected()
@@ -219,7 +217,7 @@ fun DetailsScreen(
                             }
                         ),
                         Action.Vector(
-                            title = R.string.episodes_download_delete,
+                            title = Res.string.episodes_download_delete,
                             icon = Icons.Outlined.Delete,
                             onClick = {
                                 detailsViewModel.deleteSelectedDownloads()
@@ -267,7 +265,7 @@ fun DetailsScreen(
                             navHostController.navigate("${AnimeInfosRoutes.WEBVIEW}/${detailsViewModel.source.id}/$encodedTitle/$encodedUrl")
                         } else {
                             UiToasts.showToast(
-                                stringRes = R.string.source_not_installed,
+                                stringRes = Res.string.source_not_installed,
                                 args = arrayOf(detailsViewModel.source.id)
                             )
                         }
@@ -300,9 +298,9 @@ fun DetailsScreen(
         if (showDeleteDownloadsDialog) {
             TadaDestructiveDialog(
                 onDismissRequest = { showDeleteDownloadsDialog = false },
-                title = stringResource(R.string.download_delete_all_confirm_title),
-                message = stringResource(R.string.download_delete_all_confirm_text, uiState.details?.title.orEmpty()),
-                confirmLabel = stringResource(R.string.action_delete),
+                title = stringResource(Res.string.download_delete_all_confirm_title),
+                message = stringResource(Res.string.download_delete_all_confirm_text, uiState.details?.title.orEmpty()),
+                confirmLabel = stringResource(Res.string.action_delete),
                 onConfirm = {
                     detailsViewModel.deleteAllDownloads()
                     showDeleteDownloadsDialog = false
@@ -320,7 +318,7 @@ fun DetailsScreen(
                     inclusive = false
                 )
                 if (it == MigrationState.ERRORED) {
-                    UiToasts.showToast(R.string.migration_error, Toast.LENGTH_LONG)
+                    UiToasts.showToast(Res.string.migration_error, UiToasts.LENGTH_LONG)
                     navHostController.navigate("${AnimeInfosRoutes.DETAILS}/${migrateHelperState.oldAnime!!.source}/${migrateHelperState.oldAnime!!.id}")
                 } else {
                     navHostController.navigate("${AnimeInfosRoutes.DETAILS}/${migrateHelperState.newAnime!!.source}/${migrateHelperState.newAnime!!.id}")

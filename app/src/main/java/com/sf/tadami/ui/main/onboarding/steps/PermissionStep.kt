@@ -1,7 +1,6 @@
 package com.sf.tadami.ui.main.onboarding.steps
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -27,16 +26,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.core.content.getSystemService
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.utils.launchRequestPackageInstallsPermission
 import com.sf.tadami.utils.rememberRequestPackageInstallsPermissionState
 
-internal class PermissionStep : OnboardingStep {
+public class PermissionStep : OnboardingStep {
 
     private var notificationGranted by mutableStateOf(false)
     private var batteryGranted by mutableStateOf(false)
@@ -71,8 +71,8 @@ internal class PermissionStep : OnboardingStep {
 
         Column {
             PermissionCheckbox(
-                title = stringResource(R.string.onboarding_permission_install_apps),
-                subtitle = stringResource(R.string.onboarding_permission_install_apps_description),
+                title = stringResource(Res.string.onboarding_permission_install_apps),
+                subtitle = stringResource(Res.string.onboarding_permission_install_apps_description),
                 granted = installGranted,
                 onButtonClick = {
                     context.launchRequestPackageInstallsPermission()
@@ -87,19 +87,18 @@ internal class PermissionStep : OnboardingStep {
                     },
                 )
                 PermissionCheckbox(
-                    title = stringResource(R.string.onboarding_permission_notifications),
-                    subtitle = stringResource(R.string.onboarding_permission_notifications_description),
+                    title = stringResource(Res.string.onboarding_permission_notifications),
+                    subtitle = stringResource(Res.string.onboarding_permission_notifications_description),
                     granted = notificationGranted,
                     onButtonClick = { permissionRequester.launch(Manifest.permission.POST_NOTIFICATIONS) },
                 )
             }
 
             PermissionCheckbox(
-                title = stringResource(R.string.onboarding_permission_ignore_battery_opts),
-                subtitle = stringResource(R.string.onboarding_permission_ignore_battery_opts_description),
+                title = stringResource(Res.string.onboarding_permission_ignore_battery_opts),
+                subtitle = stringResource(Res.string.onboarding_permission_ignore_battery_opts_description),
                 granted = batteryGranted,
                 onButtonClick = {
-                    @SuppressLint("BatteryLife")
                     val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                         data = Uri.parse("package:${context.packageName}")
                     }
@@ -133,7 +132,7 @@ internal class PermissionStep : OnboardingStep {
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     } else {
-                        Text(stringResource(R.string.onboarding_permission_action_grant))
+                        Text(stringResource(Res.string.onboarding_permission_action_grant))
                     }
                 }
             },

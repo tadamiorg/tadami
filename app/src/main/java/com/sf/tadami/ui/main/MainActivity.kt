@@ -6,7 +6,7 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
+import com.sf.tadami.utils.Log
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.window.SplashScreenView
@@ -41,6 +41,8 @@ import com.google.android.gms.cast.framework.SessionManagerListener
 import com.sf.tadami.AppPreferences
 import com.sf.tadami.Migrations
 import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.crash.PendingCrashDialog
 import com.sf.tadami.extension.api.ExtensionsApi
 import com.sf.tadami.extension.util.ExtensionsGuard

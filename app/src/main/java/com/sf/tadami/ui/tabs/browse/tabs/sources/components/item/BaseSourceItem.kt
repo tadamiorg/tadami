@@ -7,7 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.sf.tadami.domain.source.Source
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.LocalExtensionRepos
@@ -26,7 +26,7 @@ fun BaseSourceItem(
     action: @Composable RowScope.(Source) -> Unit = {},
     content: @Composable RowScope.(Source, String?) -> Unit = defaultContent,
 ) {
-    val sourceLangString = stringResource(id = source.lang.getRes())
+    val sourceLangString = stringResource(source.lang.res)
     BaseBrowseItem(
         modifier = modifier,
         onClickItem = onClickItem,

@@ -1,7 +1,7 @@
 package com.sf.tadami.ui.webview.adblock
 
 import android.content.Context
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.work.BackoffPolicy
@@ -14,7 +14,8 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.advanced.AdBlockPreferences
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.webview.WebViewAdBlocker
@@ -49,13 +50,13 @@ class AdBlockUpdateWorker(
             )
             if (manual) {
                 UiToasts.showToast(
-                    if (result.failed.isEmpty()) R.string.pref_webview_adblock_updated else R.string.pref_webview_adblock_update_failed,
+                    if (result.failed.isEmpty()) Res.string.pref_webview_adblock_updated else Res.string.pref_webview_adblock_update_failed,
                 )
             }
             if (result.failed.isNotEmpty() && !manual) Result.retry() else Result.success()
         } catch (e: Exception) {
             Log.e(TAG, "Could not update the filter lists", e)
-            if (manual) UiToasts.showToast(R.string.pref_webview_adblock_update_failed)
+            if (manual) UiToasts.showToast(Res.string.pref_webview_adblock_update_failed)
             if (manual) Result.failure() else Result.retry()
         }
     }

@@ -1,6 +1,7 @@
 package com.sf.tadami.ui.components.widgets
 
-import android.view.ViewConfiguration
+import com.sf.tadami.ui.utils.SCROLL_BAR_FADE_DURATION_MS
+
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -474,11 +475,11 @@ private val ThumbLength = 48.dp
 private val ThumbThickness = 12.dp
 private val ThumbShape = RoundedCornerShape(ThumbThickness / 2)
 private val FadeOutAnimationSpec = tween<Float>(
-    durationMillis = ViewConfiguration.getScrollBarFadeDuration(),
+    durationMillis = SCROLL_BAR_FADE_DURATION_MS,
     delayMillis = 2000,
 )
 private val ImmediateFadeOutAnimationSpec = tween<Float>(
-    durationMillis = ViewConfiguration.getScrollBarFadeDuration(),
+    durationMillis = SCROLL_BAR_FADE_DURATION_MS,
 )
 
 private val LazyListItemInfo.top: Int

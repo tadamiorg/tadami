@@ -11,7 +11,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
 import com.sf.tadami.navigation.graphs.sources.SourcesRoutes
 import com.sf.tadami.preferences.model.rememberDataStoreState
@@ -35,17 +36,17 @@ fun sourcesTab(
     val filterTint =  if (sPrefs.hiddenSources.isNotEmpty() || sPrefs.enabledLanguages.size != Lang.getAllLangs().size) MaterialTheme.colorScheme.active else LocalContentColor.current
 
     return ScreenTabContent(
-        titleRes = R.string.label_sources,
+        titleRes = Res.string.label_sources,
         actions = listOf(
             Action.Vector(
-                title = R.string.stub_text,
+                title = Res.string.stub_text,
                 icon = Icons.Outlined.TravelExplore,
                 onClick = {
                     navController.navigate(DiscoverRoutes.GLOBAL_SEARCH)
                 },
             ),
             Action.Vector(
-                title = R.string.action_filter,
+                title = Res.string.action_filter,
                 icon = Icons.Outlined.FilterList,
                 tint = filterTint,
                 onClick = {

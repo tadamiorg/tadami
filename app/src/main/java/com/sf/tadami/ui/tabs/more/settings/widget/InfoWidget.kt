@@ -15,7 +15,7 @@ import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.secondaryItemAlpha
 
 @Composable
-internal fun InfoWidget(text: String) {
+public fun InfoWidget(text: String) {
     Row(
         modifier = Modifier
             .padding(

@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions.details
 
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

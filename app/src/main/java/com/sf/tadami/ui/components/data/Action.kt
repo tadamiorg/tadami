@@ -1,26 +1,27 @@
 package com.sf.tadami.ui.components.data
 
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.DrawableResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 
 // Top App Bar Action Item
-sealed class Action(@StringRes val title: Int, val onClick: () -> Unit, val enabled: Boolean, val tint : Color?) {
-    class Drawable(title: Int, @DrawableRes val icon: Int, onClick: () -> Unit, enabled: Boolean = true, tint: Color? = null) :
+sealed class Action(val title: StringResource, val onClick: () -> Unit, val enabled: Boolean, val tint : Color?) {
+    class Drawable(title: StringResource, val icon: DrawableResource, onClick: () -> Unit, enabled: Boolean = true, tint: Color? = null) :
         Action(title, onClick, enabled,tint)
 
-    class Vector(title: Int, val icon: ImageVector, onClick: () -> Unit, enabled: Boolean = true,tint: Color? = null) :
+    class Vector(title: StringResource, val icon: ImageVector, onClick: () -> Unit, enabled: Boolean = true,tint: Color? = null) :
         Action(title, onClick, enabled,tint)
 
-    class DropDownVector(title: Int, val icon: ImageVector, onClick: () -> Unit, enabled: Boolean = true,tint: Color? = null,val items : List<DropDownAction>) :
+    class DropDownVector(title: StringResource, val icon: ImageVector, onClick: () -> Unit, enabled: Boolean = true,tint: Color? = null,val items : List<DropDownAction>) :
         Action(title, onClick, enabled,tint)
 
-    class DropDownDrawable(title: Int, @DrawableRes val icon: Int, onClick: () -> Unit = {}, enabled: Boolean = true, tint: Color? = null,val items : List<DropDownAction>) :
+    class DropDownDrawable(title: StringResource, val icon: DrawableResource, onClick: () -> Unit = {}, enabled: Boolean = true, tint: Color? = null,val items : List<DropDownAction>) :
         Action(title, onClick, enabled,tint)
 
-    class CastButton(title: Int = R.string.stub_text, onClick: () -> Unit = {}, enabled: Boolean = true, tint: Color? = null) : Action(title,onClick,enabled,tint)
+    class CastButton(title: StringResource = Res.string.stub_text, onClick: () -> Unit = {}, enabled: Boolean = true, tint: Color? = null) : Action(title,onClick,enabled,tint)
 }
 
 class DropDownAction(

@@ -22,10 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.anime.AnimeCoverData
 import com.sf.tadami.domain.updates.UpdatesWithRelations
 import com.sf.tadami.ui.animeinfos.details.infos.AnimeCover
@@ -94,7 +95,7 @@ fun UpdatesUiItem(
                 if (!update.seen) {
                     Icon(
                         imageVector = Icons.Filled.Circle,
-                        contentDescription = stringResource(R.string.stub_text),
+                        contentDescription = stringResource(Res.string.stub_text),
                         modifier = Modifier
                             .height(8.dp)
                             .padding(end = 4.dp),

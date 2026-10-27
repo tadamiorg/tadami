@@ -10,7 +10,7 @@ import android.opengl.EGLSurface
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.os.Handler
-import android.util.Log
+import com.sf.tadami.utils.Log
 import android.view.Surface
 import com.sf.tadami.ui.animeinfos.episode.player.preview.PREVIEW_FRAME_WIDTH_PX
 import java.nio.ByteBuffer
@@ -26,7 +26,7 @@ import java.nio.FloatBuffer
  * Owned by one thread (the one that called [create]): the GL context is current there, and the frame
  * callback runs there.
  */
-internal class OffscreenFrameReader private constructor(
+public class OffscreenFrameReader private constructor(
     private val display: EGLDisplay,
     private val context: EGLContext,
     private val pbuffer: EGLSurface,

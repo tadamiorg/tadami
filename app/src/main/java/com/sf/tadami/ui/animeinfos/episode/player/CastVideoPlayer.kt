@@ -1,8 +1,9 @@
 package com.sf.tadami.ui.animeinfos.episode.player
 
-import android.annotation.SuppressLint
+import org.jetbrains.compose.resources.painterResource
+import com.sf.tadami.utils.stringRes
 import android.content.Context
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.annotation.OptIn
@@ -26,17 +27,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.google.android.gms.cast.MediaError
 import com.google.android.gms.cast.MediaSeekOptions
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.media.RemoteMediaClient.Callback
 import com.google.android.gms.cast.framework.media.RemoteMediaClient.ProgressListener
 import com.google.android.gms.cast.framework.media.RemoteMediaClient.RESUME_STATE_PLAY
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.anime.coverData
 import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.preferences.model.rememberDataStoreState
@@ -78,7 +80,6 @@ private val castControlJson = Json { encodeDefaults = true }
 private fun JSONObject.castEpisodeId(): Long? = (opt("episodeId") as? Number)?.toLong()
 
 @OptIn(UnstableApi::class)
-@SuppressLint("SourceLockedOrientationActivity", "ContextCastToActivity")
 @Composable
 fun CastVideoPlayer(
     modifier: Modifier = Modifier,
@@ -465,13 +466,13 @@ fun CastVideoPlayer(
                     openEpisodeTooltipDialog = false
                 },
                 sourceDatastore = playerViewModel.sourceDataStore,
-                tooltipContent = playerViewModel.sourceTooltipContent ?: stringResource(R.string.player_epsiode_tooltip_no_content)
+                tooltipContent = playerViewModel.sourceTooltipContent ?: stringResource(Res.string.player_epsiode_tooltip_no_content)
             )
 
             AsyncImage(
                 model = anime?.coverData,
                 placeholder = ColorPainter(ImageDefaults.CoverPlaceholderColor),
-                error = rememberResourceBitmapPainter(R.drawable.cover_error),
+                error = painterResource(Res.drawable.cover_error),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
@@ -487,7 +488,7 @@ fun CastVideoPlayer(
                 isVisible = { true },
                 isPlaying = isPlaying,
                 title = { anime?.title ?: "" },
-                episode = "${stringResource(id = R.string.player_screen_episode_label)} $episodeNumber",
+                episode = "${stringResource(Res.string.player_screen_episode_label)} $episodeNumber",
                 isIdle = isIdle && !idleLock,
                 idleLock = idleLock,
                 onReplay = { seekBy(-playerPreferences.doubleTapLength) },
@@ -567,19 +568,19 @@ fun CastVideoPlayer(
 private fun getErrorMessage(context: Context, errorCode: Int?): String {
     return when (errorCode) {
         CastErrorCode.COMMUNICATION.code -> {
-            context.resources.getString(R.string.cast_error_communication, errorCode)
+            stringRes(Res.string.cast_error_communication, errorCode)
         }
 
         CastErrorCode.UNSUPPORTED.code -> {
-            context.getString(R.string.cast_error_unsupported)
+            stringRes(Res.string.cast_error_unsupported)
         }
 
         CastErrorCode.LOAD_FAILED.code -> {
-            context.getString(R.string.cast_error_load_failed)
+            stringRes(Res.string.cast_error_load_failed)
         }
 
         else -> {
-            context.resources.getString(R.string.cast_error_unknown, errorCode)
+            stringRes(Res.string.cast_error_unknown, errorCode.toString())
         }
     }
 }

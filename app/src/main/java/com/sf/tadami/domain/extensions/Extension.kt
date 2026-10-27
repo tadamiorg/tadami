@@ -1,6 +1,6 @@
 package com.sf.tadami.domain.extensions
 
-import android.graphics.drawable.Drawable
+import androidx.compose.ui.graphics.ImageBitmap
 import com.sf.tadami.extension.api.ExtensionRepos
 import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.extension.model.LibVersion
@@ -46,7 +46,7 @@ sealed class Extension {
         override val lang: Lang,
         val pkgFactory: String?,
         val sources: List<Source>,
-        val icon: Drawable?,
+        val icon: ImageBitmap?,
         val hasUpdate: Boolean = false,
         val isObsolete: Boolean = false,
         /**

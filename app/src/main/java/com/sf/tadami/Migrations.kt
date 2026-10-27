@@ -1,7 +1,7 @@
 package com.sf.tadami
 
 import android.content.Context
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.annotation.OptIn
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -45,9 +45,9 @@ object Migrations {
         sourcesPreferences: SourcesPreferences
     ) {
         val oldVersion = appPreferences.lastVersionCode
-        if (oldVersion < BuildConfig.VERSION_CODE) {
+        if (oldVersion < AppBuildInfo.VERSION_CODE) {
             dataStore.editPreference(
-                BuildConfig.VERSION_CODE,
+                AppBuildInfo.VERSION_CODE,
                 intPreferencesKey(AppPreferences.LAST_VERSION_CODE.name)
             )
 

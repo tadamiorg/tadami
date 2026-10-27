@@ -14,6 +14,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.appearance.AppearancePreferences
 import com.sf.tadami.preferences.appearance.ThemeMode
 import com.sf.tadami.preferences.model.rememberDataStoreState

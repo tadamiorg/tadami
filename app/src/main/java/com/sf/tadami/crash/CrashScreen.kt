@@ -13,8 +13,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.main.onboarding.InfoScreen
 import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.padding
@@ -36,9 +37,9 @@ fun CrashScreen(
 
     InfoScreen(
         icon = Icons.Outlined.BugReport,
-        headingText = stringResource(R.string.crash_screen_title),
-        subtitleText = stringResource(R.string.crash_screen_description, stringResource(R.string.app_name)),
-        acceptText = stringResource(R.string.pref_dump_crash_logs),
+        headingText = stringResource(Res.string.crash_screen_title),
+        subtitleText = stringResource(Res.string.crash_screen_description, stringResource(Res.string.app_name)),
+        acceptText = stringResource(Res.string.pref_dump_crash_logs),
         onAcceptClick = {
             scope.launch {
                 // Not CrashLogUtil: building the extension manager in this process would load the
@@ -46,18 +47,18 @@ fun CrashScreen(
                 if (withContext(Dispatchers.IO) { CrashReporter.shareReport(context, sharedReport, fromCrashScreen = true) }) {
                     onReportShared()
                 } else {
-                    UiToasts.showToast(R.string.crash_logs_dump_failed)
+                    UiToasts.showToast(Res.string.crash_logs_dump_failed)
                 }
             }
         },
-        rejectText = stringResource(R.string.crash_screen_restart_application),
+        rejectText = stringResource(Res.string.crash_screen_restart_application),
         onRejectClick = onRestartClick,
-        neutralText = stringResource(R.string.crash_screen_restart_without_extensions),
+        neutralText = stringResource(Res.string.crash_screen_restart_without_extensions),
         onNeutralClick = onRestartWithoutExtensionsClick,
     ) {
         culprits.forEach {
             Text(
-                text = stringResource(R.string.crash_screen_caused_by_extension, it.name, it.versionName),
+                text = stringResource(Res.string.crash_screen_caused_by_extension, it.name, it.versionName),
                 modifier = Modifier.padding(top = MaterialTheme.padding.small),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodyLarge,

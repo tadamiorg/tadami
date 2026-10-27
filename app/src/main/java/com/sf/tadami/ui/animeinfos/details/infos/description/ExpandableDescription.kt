@@ -19,9 +19,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.utils.clickableNoIndication
 import com.sf.tadami.ui.utils.padding
 
@@ -40,7 +41,7 @@ fun ExpandableAnimeDescription(
         val (expanded, onExpanded) = rememberSaveable {
             mutableStateOf(defaultExpandState)
         }
-        val desc = description.takeIf { !it.isNullOrBlank() } ?: stringResource(id = R.string.unknown_description)
+        val desc = description.takeIf { !it.isNullOrBlank() } ?: stringResource(Res.string.unknown_description)
         val trimmedDescription = remember(desc) {
             desc
                 .replace(whitespaceLineRegex, "\n")

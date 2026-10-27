@@ -155,7 +155,7 @@ fun buildCastLoadRequest(
  * message is limited to 64KB, which a long series (1000+ episodes) went past, failing the load. The
  * receivers only show this list and step through it (next/previous), which the window keeps working.
  */
-internal fun castEpisodesWindow(
+public fun castEpisodesWindow(
     episodes: List<Episode>,
     currentId: Long,
     radius: Int = CAST_EPISODES_RADIUS,
@@ -171,7 +171,7 @@ private const val CAST_EPISODES_RADIUS = 100
  * off in the settings, or no tracks): the first track matching the ordered language preference,
  * compared case-insensitively like the local player does, else the first track.
  */
-internal fun castSubtitleTrackId(
+public fun castSubtitleTrackId(
     subtitleTracks: List<Track.SubtitleTrack>,
     subtitlePrefLanguages: List<String>,
     subtitlesEnabled: Boolean,

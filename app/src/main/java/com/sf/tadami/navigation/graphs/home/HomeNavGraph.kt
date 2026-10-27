@@ -1,11 +1,13 @@
 package com.sf.tadami.navigation.graphs.home
 
+import org.jetbrains.compose.resources.StringResource
 import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.navigation.animations.findEnterAnimation
 import com.sf.tadami.navigation.animations.findExitAnimation
 import com.sf.tadami.navigation.graphs.about.aboutNavGraph
@@ -89,21 +91,21 @@ object GRAPH {
     const val HOME = "home_graph"
 }
 
-sealed class HomeNavItems(val route: String, @StringRes val name: Int, @DrawableRes val icon: Int) {
+sealed class HomeNavItems(val route: String, val name: StringResource, @DrawableRes val icon: Int) {
     data object Library :
-        HomeNavItems("library", R.string.library_tab_title, R.drawable.anim_video_library_enter)
+        HomeNavItems("library", Res.string.library_tab_title, R.drawable.anim_video_library_enter)
 
     data object Updates :
-        HomeNavItems("updates", R.string.label_recent_updates, R.drawable.anim_updates_enter)
+        HomeNavItems("updates", Res.string.label_recent_updates, R.drawable.anim_updates_enter)
 
     data object History :
-        HomeNavItems("history", R.string.label_history, R.drawable.anim_history_enter)
+        HomeNavItems("history", Res.string.label_history, R.drawable.anim_history_enter)
 
     data object Browse :
-        HomeNavItems("anime_sources", R.string.browse_tab_title, R.drawable.anim_sources_enter)
+        HomeNavItems("anime_sources", Res.string.browse_tab_title, R.drawable.anim_sources_enter)
 
     data object More :
-        HomeNavItems("more", R.string.label_more, R.drawable.anim_settings_enter)
+        HomeNavItems("more", Res.string.label_more, R.drawable.anim_settings_enter)
 
     companion object {
         fun includes(route: String?): Boolean {

@@ -209,7 +209,7 @@ object DownloadNames {
     }
 
     /** [name] cut to [maxBytes] UTF-8 bytes, without splitting a character. */
-    internal fun truncateUtf8(name: String, maxBytes: Int): String {
+    public fun truncateUtf8(name: String, maxBytes: Int): String {
         if (name.toByteArray(Charsets.UTF_8).size <= maxBytes) return name
         val result = StringBuilder()
         var bytes = 0

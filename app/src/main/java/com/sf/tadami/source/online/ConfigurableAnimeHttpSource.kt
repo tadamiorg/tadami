@@ -32,7 +32,7 @@ abstract class ConfigurableAnimeHttpSource<T : CustomPreferencesIdentifier>(
     val preferences by CollectAsStateValue(preferencesState)
 
     /** Stops listening to the preferences changes, see [ConfigurableParsedHttpAnimeSource.cancelPreferencesUpdates]. */
-    internal fun cancelPreferencesUpdates() {
+    public fun cancelPreferencesUpdates() {
         sourcePreferences.cancelUpdates()
     }
 

@@ -1,11 +1,13 @@
 package com.sf.tadami.data.download
 
+import com.sf.tadami.utils.stringRes
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.hippo.unifile.UniFile
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.data.download.model.Download
 import com.sf.tadami.data.download.stream.DownloadFatalException
@@ -302,14 +304,14 @@ class Downloader(
     private suspend fun downloadEpisode(download: Download) {
         val source = download.source
         if (source is StubSource) {
-            throw DownloadFatalException(context.getString(R.string.source_not_installed, source.name))
+            throw DownloadFatalException(stringRes(Res.string.source_not_installed, source.name))
         }
-        val noStorage = { DownloadFatalException(context.getString(R.string.download_error_no_storage)) }
+        val noStorage = { DownloadFatalException(stringRes(Res.string.download_error_no_storage)) }
         val animeDir = DownloadOutput.storage { provider.getOrCreateAnimeDir(source, download.anime) }
             ?: throw noStorage()
         val available = DiskUtil.getAvailableStorageSpace(animeDir)
         if (available in 0 until MIN_FREE_SPACE_BYTES) {
-            throw DownloadFatalException(context.getString(R.string.download_error_no_space))
+            throw DownloadFatalException(stringRes(Res.string.download_error_no_space))
         }
         val tmpDir = DownloadOutput.storage { animeDir.createDirectory(DownloadNames.tmpDirName(download.dirName)) }
             ?: throw noStorage()
@@ -322,7 +324,7 @@ class Downloader(
             if (!context.isOnline()) throw NetworkLostException(e)
             throw e
         }
-        if (streams.isEmpty()) throw DownloadFatalException(context.getString(R.string.download_error_no_stream))
+        if (streams.isEmpty()) throw DownloadFatalException(stringRes(Res.string.download_error_no_stream))
 
         val episodeId = download.episode.id
         var resume = resumeStore.load(episodeId) ?: ResumeData()
@@ -344,7 +346,7 @@ class Downloader(
                     onFileProgress = { role, file ->
                         // Each segment or 2 MiB: stop before the device is full, not at its last byte
                         if (DiskUtil.getAvailableStorageSpace(animeDir) in 0 until MIN_FREE_SPACE_BYTES) {
-                            throw DownloadFatalException(context.getString(R.string.download_error_no_space))
+                            throw DownloadFatalException(stringRes(Res.string.download_error_no_space))
                         }
                         if (role == StreamDownloader.VIDEO) download.videoProgress = file
                         resume = resume.copy(files = resume.files + (role to file))
@@ -383,20 +385,20 @@ class Downloader(
             }
         }
         val reason = lastError?.let(::errorMessage).orEmpty()
-        throw DownloadFatalException(context.getString(R.string.download_error_all_streams_failed, reason), lastError)
+        throw DownloadFatalException(stringRes(Res.string.download_error_all_streams_failed, reason), lastError)
     }
 
     // In the user's language: the exception messages stay in English, for the logs
     private fun errorMessage(error: Throwable): String {
         return when (val cause = StreamFallback.unwrap(error)) {
-            is StreamFailedException -> context.getString(cause.failure.text)
+            is StreamFailedException -> stringRes(cause.failure.text)
             // The system's own message is in English
-            is StorageException -> context.getString(R.string.download_error_storage)
+            is StorageException -> stringRes(Res.string.download_error_storage)
             // Ours are written for the user
             is DownloadFatalException -> cause.message.orEmpty()
-            is SocketTimeoutException -> context.getString(R.string.download_error_timeout)
-            is UnknownHostException -> context.getString(R.string.download_error_unknown_host)
-            is HttpException -> context.getString(R.string.download_error_http, cause.code)
+            is SocketTimeoutException -> stringRes(Res.string.download_error_timeout)
+            is UnknownHostException -> stringRes(Res.string.download_error_unknown_host)
+            is HttpException -> stringRes(Res.string.download_error_http, cause.code)
             else -> with(context) { error.formattedMessage }
         }
     }

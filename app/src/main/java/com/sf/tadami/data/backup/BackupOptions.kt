@@ -1,7 +1,8 @@
 package com.sf.tadami.data.backup
 
-import androidx.annotation.StringRes
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.StringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import kotlinx.collections.immutable.persistentListOf
 
 data class BackupOptions(
@@ -27,23 +28,23 @@ data class BackupOptions(
     companion object {
         val libraryOptions = persistentListOf(
             Entry(
-                label = R.string.library_entries,
+                label = Res.string.library_entries,
                 getter = BackupOptions::libraryEntries,
                 setter = { options, enabled -> options.copy(libraryEntries = enabled) },
             ),
             Entry(
-                label = R.string.label_categories,
+                label = Res.string.label_categories,
                 getter = BackupOptions::categories,
                 setter = { options, enabled -> options.copy(categories = enabled) },
             ),
             Entry(
-                label = R.string.label_episodes,
+                label = Res.string.label_episodes,
                 getter = BackupOptions::episodes,
                 setter = { options, enabled -> options.copy(episodes = enabled) },
                 enabled = { it.libraryEntries },
             ),
             Entry(
-                label = R.string.label_history,
+                label = Res.string.label_history,
                 getter = BackupOptions::history,
                 setter = { options, enabled -> options.copy(history = enabled) },
                 enabled = { it.libraryEntries },
@@ -52,12 +53,12 @@ data class BackupOptions(
 
         val settingsOptions = persistentListOf(
             Entry(
-                label = R.string.app_settings,
+                label = Res.string.app_settings,
                 getter = BackupOptions::appSettings,
                 setter = { options, enabled -> options.copy(appSettings = enabled) },
             ),
             Entry(
-                label = R.string.sources_settings,
+                label = Res.string.sources_settings,
                 getter = BackupOptions::sourcesSettings,
                 setter = { options, enabled -> options.copy(sourcesSettings = enabled) },
             )
@@ -74,8 +75,7 @@ data class BackupOptions(
     }
 
     data class Entry(
-        @StringRes
-        val label: Int,
+        val label: StringResource,
         val getter: (BackupOptions) -> Boolean,
         val setter: (BackupOptions, Boolean) -> BackupOptions,
         val enabled: (BackupOptions) -> Boolean = { true },

@@ -16,10 +16,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.source.model.AnimeFilter
 import com.sf.tadami.source.model.AnimeFilterList
 import com.sf.tadami.ui.components.filters.CheckboxItem
@@ -50,7 +51,7 @@ fun FiltersSheet(
             ) {
                 TextButton(onClick = onResetClicked) {
                     Text(
-                        text = stringResource(id = R.string.action_reset),
+                        text = stringResource(Res.string.action_reset),
                         style = LocalTextStyle.current.copy(
                             color = MaterialTheme.colorScheme.primary,
                         ),
@@ -62,7 +63,7 @@ fun FiltersSheet(
                 Button(onClick = {
                     search()
                 }) {
-                    Text(stringResource(R.string.action_filter))
+                    Text(stringResource(Res.string.action_filter))
                 }
             }
             HorizontalDivider()

@@ -1,6 +1,6 @@
 package com.sf.tadami.data.interactors.anime
 
-import android.util.Log
+import com.sf.tadami.utils.Log
 import com.sf.tadami.data.anime.AnimeRepository
 import com.sf.tadami.domain.anime.Anime
 import kotlinx.coroutines.flow.Flow

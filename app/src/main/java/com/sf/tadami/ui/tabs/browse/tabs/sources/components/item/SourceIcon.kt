@@ -9,9 +9,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
+import org.jetbrains.compose.resources.painterResource
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.source.Source
 import com.sf.tadami.domain.source.icon
 
@@ -44,7 +45,7 @@ fun SourceIcon(
         }
         else -> {
             Image(
-                painter = painterResource(R.mipmap.ic_default_source),
+                painter = painterResource(Res.drawable.ic_default_source),
                 contentDescription = null,
                 modifier = modifier.then(defaultModifier),
             )

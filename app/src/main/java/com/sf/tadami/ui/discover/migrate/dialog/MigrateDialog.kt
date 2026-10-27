@@ -1,7 +1,7 @@
 package com.sf.tadami.ui.discover.migrate.dialog
 
-import android.util.Log
-import androidx.activity.compose.BackHandler
+import com.sf.tadami.utils.Log
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -12,11 +12,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.ui.components.modal.ModalAction
 import com.sf.tadami.ui.components.modal.ModalCheckboxRow
@@ -49,8 +50,7 @@ fun MigrateDialog(
             ContentLoader(
                 isLoading = true,
                 subtitle = {
-                    Text(textAlign = TextAlign.Center,modifier = Modifier.padding(vertical = MaterialTheme.padding.tiny, horizontal = MaterialTheme.padding.small),text = stringResource(
-                        id = R.string.label_migration
+                    Text(textAlign = TextAlign.Center,modifier = Modifier.padding(vertical = MaterialTheme.padding.tiny, horizontal = MaterialTheme.padding.small),text = stringResource(Res.string.label_migration
                     ))
                     Text(textAlign = TextAlign.Center,modifier = Modifier.padding(horizontal = MaterialTheme.padding.small),text = oldAnime?.title ?: "")
                 },
@@ -76,13 +76,13 @@ fun MigrateDialog(
             }
             TadaDialog(
                 onDismissRequest = onDismissRequest,
-                title = stringResource(id = R.string.label_migration),
-                neutral = ModalAction(stringResource(R.string.display_anime), enabled = enableShowTitle) {
+                title = stringResource(Res.string.label_migration),
+                neutral = ModalAction(stringResource(Res.string.display_anime), enabled = enableShowTitle) {
                     onDismissRequest()
                     onClickTitle()
                 },
-                dismiss = ModalAction(stringResource(R.string.action_copy)) { migrate(false) },
-                confirm = ModalAction(stringResource(R.string.action_move)) { migrate(true) },
+                dismiss = ModalAction(stringResource(Res.string.action_copy)) { migrate(false) },
+                confirm = ModalAction(stringResource(Res.string.action_move)) { migrate(true) },
             ) {
                 flags.forEachIndexed { index, flag ->
                     ModalCheckboxRow(

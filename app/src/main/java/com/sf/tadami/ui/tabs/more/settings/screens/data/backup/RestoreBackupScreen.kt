@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.data.backup
 
+import org.jetbrains.compose.resources.StringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -18,7 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -26,7 +27,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.backup.RestoreOptions
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.components.banners.WarningBanner
@@ -42,7 +44,7 @@ class RestoreBackupScreen(
     private val navController: NavHostController,
 ) : PreferenceScreen {
 
-    override val title: Int = R.string.preferences_backup_restore_title
+    override val title: StringResource = Res.string.preferences_backup_restore_title
 
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 
@@ -63,7 +65,7 @@ class RestoreBackupScreen(
                 TadaTopAppBar(
                     title = {
                         Text(
-                            text = stringResource(R.string.preferences_backup_restore_title),
+                            text = stringResource(Res.string.preferences_backup_restore_title),
                             style = MaterialTheme.typography.headlineSmall,
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 1
@@ -82,7 +84,7 @@ class RestoreBackupScreen(
         ) { contentPadding ->
             LazyColumnWithAction(
                 contentPadding = contentPadding,
-                actionLabel = stringResource(R.string.preferences_backup_restore_title),
+                actionLabel = stringResource(Res.string.preferences_backup_restore_title),
                 actionEnabled = uiState.canRestore && uiState.options.canRestore(),
                 onClickAction = {
                     restoreBackupViewModel.startRestore()
@@ -91,7 +93,7 @@ class RestoreBackupScreen(
             ) {
                 if (DeviceUtil.isMiui && DeviceUtil.isMiuiOptimizationDisabled()) {
                     item {
-                        WarningBanner(R.string.restore_miui_warning)
+                        WarningBanner(Res.string.restore_miui_warning)
                     }
                 }
 
@@ -130,11 +132,11 @@ class RestoreBackupScreen(
                     val msg = buildAnnotatedString {
                         when (error) {
                             is MissingRestoreComponents -> {
-                                appendLine(stringResource(R.string.backup_restore_content_full))
+                                appendLine(stringResource(Res.string.backup_restore_content_full))
                                 if (error.sources.isNotEmpty()) {
                                     appendLine()
                                     withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        appendLine(stringResource(R.string.backup_restore_missing_sources))
+                                        appendLine(stringResource(Res.string.backup_restore_missing_sources))
                                     }
                                     error.sources.joinTo(
                                         this,
@@ -146,14 +148,14 @@ class RestoreBackupScreen(
 
                             is InvalidRestore -> {
                                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    appendLine(stringResource(R.string.invalid_backup_file))
+                                    appendLine(stringResource(Res.string.invalid_backup_file))
                                 }
                                 appendLine(error.uri.toString())
 
                                 appendLine()
 
                                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    appendLine(stringResource(R.string.invalid_backup_file_error))
+                                    appendLine(stringResource(Res.string.invalid_backup_file_error))
                                 }
                                 appendLine(error.message)
                             }

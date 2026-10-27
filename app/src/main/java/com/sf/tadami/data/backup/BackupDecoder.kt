@@ -1,8 +1,10 @@
 package com.sf.tadami.data.backup
 
+import com.sf.tadami.utils.stringRes
 import android.content.Context
 import android.net.Uri
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.backup.models.Backup
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -33,7 +35,7 @@ class BackupDecoder @OptIn(ExperimentalSerializationApi::class) constructor(
             val backupString = when (id1id2.toInt()) {
                 0x1f8b -> source.gzip().buffer() // 0x1f8b is gzip magic bytes
                 MAGIC_JSON_SIGNATURE1, MAGIC_JSON_SIGNATURE2, MAGIC_JSON_SIGNATURE3 -> {
-                    throw IOException(context.getString(R.string.restoring_backup_error))
+                    throw IOException(stringRes(Res.string.restoring_backup_error))
                 }
                 else -> source
             }.use { it.readByteArray() }
@@ -41,7 +43,7 @@ class BackupDecoder @OptIn(ExperimentalSerializationApi::class) constructor(
             try {
                 parser.decodeFromByteArray(Backup.serializer(), backupString)
             } catch (_: SerializationException) {
-                throw IOException(context.getString(R.string.unknown_error))
+                throw IOException(stringRes(Res.string.unknown_error))
             }
         }
     }

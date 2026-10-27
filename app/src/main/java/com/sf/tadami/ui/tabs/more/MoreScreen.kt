@@ -21,13 +21,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.mediarouter.app.MediaRouteButton
 import androidx.navigation.NavHostController
 import com.google.android.gms.cast.framework.CastButtonFactory
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.navigation.graphs.about.AboutRoutes
 import com.sf.tadami.navigation.graphs.more.MORE_ROUTES
 import com.sf.tadami.preferences.app.BasePreferences
@@ -91,8 +92,8 @@ fun MoreScreen(
 
             item {
                 TogglePreference(
-                    title = stringResource(R.string.label_downloaded_only),
-                    subtitle = stringResource(R.string.downloaded_only_summary),
+                    title = stringResource(Res.string.label_downloaded_only),
+                    subtitle = stringResource(Res.string.downloaded_only_summary),
                     icon = Icons.Outlined.CloudOff,
                     checked = basePreferences.downloadedOnly,
                     onCheckedChanged = {
@@ -104,7 +105,7 @@ fun MoreScreen(
 
             item {
                 TextPreference(
-                    title = stringResource(R.string.label_download_queue),
+                    title = stringResource(Res.string.label_download_queue),
                     icon = Icons.Outlined.Download,
                     onPreferenceClick = {
                         navHostController.navigate(MORE_ROUTES.DOWNLOAD_QUEUE)
@@ -113,7 +114,7 @@ fun MoreScreen(
             }
             item {
                 TextPreference(
-                    title = stringResource(R.string.label_settings),
+                    title = stringResource(Res.string.label_settings),
                     icon = Icons.Outlined.Settings,
                     onPreferenceClick = {
                         navHostController.navigate(MORE_ROUTES.SETTINGS)
@@ -122,7 +123,7 @@ fun MoreScreen(
             }
             item {
                 TextPreference(
-                    title = stringResource(R.string.label_about),
+                    title = stringResource(Res.string.label_about),
                     icon = Icons.Outlined.Info,
                     onPreferenceClick = {
                         navHostController.navigate(AboutRoutes.ABOUT)

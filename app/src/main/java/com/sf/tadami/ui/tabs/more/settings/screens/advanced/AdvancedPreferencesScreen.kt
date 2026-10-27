@@ -1,10 +1,10 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.advanced
 
-import android.annotation.SuppressLint
+import org.jetbrains.compose.resources.StringResource
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.provider.Settings
-import android.util.Log
+import com.sf.tadami.utils.Log
 import android.webkit.WebStorage
 import android.webkit.WebView
 import androidx.compose.runtime.Composable
@@ -15,12 +15,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.crash.CrashLogUtil
 import com.sf.tadami.crash.CrashReporter
 import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
@@ -53,7 +54,7 @@ import java.util.Date
 class AdvancedPreferencesScreen(
     val navController: NavHostController
 ) : PreferenceScreen {
-    override val title: Int = R.string.preferences_advanced
+    override val title: StringResource = Res.string.preferences_advanced
 
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 
@@ -73,11 +74,11 @@ class AdvancedPreferencesScreen(
     @Composable
     private fun getExtensionsGroup(): Preference.PreferenceCategory {
         return Preference.PreferenceCategory(
-            title = stringResource(id = R.string.label_extensions),
+            title = stringResource(Res.string.label_extensions),
             preferenceItems = listOf(
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(R.string.ext_repos_title),
-                    subtitle = stringResource(R.string.ext_repos_summary),
+                    title = stringResource(Res.string.ext_repos_title),
+                    subtitle = stringResource(Res.string.ext_repos_summary),
                     onClick = { navController.navigate(DiscoverRoutes.EXTENSION_REPOS) },
                 ),
             ),
@@ -90,25 +91,25 @@ class AdvancedPreferencesScreen(
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
         return Preference.PreferenceCategory(
-            title = stringResource(id = R.string.preferences_advanced_data),
+            title = stringResource(Res.string.preferences_advanced_data),
             preferenceItems = listOf(
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(R.string.pref_clear_database),
-                    subtitle = stringResource(R.string.pref_clear_database_summary),
+                    title = stringResource(Res.string.pref_clear_database),
+                    subtitle = stringResource(Res.string.pref_clear_database_summary),
                     onClick = {
                         navController.navigate(AdvancedSettingsRoutes.CLEAR_DATABASE)
                     },
                 ),
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(R.string.action_refresh_library_details),
+                    title = stringResource(Res.string.action_refresh_library_details),
                     onClick = {
                         val started = LibraryUpdateWorker.startNow(context, target = LibraryUpdateTarget.DETAILS)
-                        UiToasts.showToast(if (started) R.string.refresh_details_starting else R.string.update_running)
+                        UiToasts.showToast(if (started) Res.string.refresh_details_starting else Res.string.update_running)
                     },
                 ),
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(R.string.pref_dump_crash_logs),
-                    subtitle = stringResource(R.string.pref_dump_crash_logs_summary),
+                    title = stringResource(Res.string.pref_dump_crash_logs),
+                    subtitle = stringResource(Res.string.pref_dump_crash_logs_summary),
                     onClick = {
                         scope.launch {
                             val crashLog = withContext(Dispatchers.IO) { CrashReporter.readPending(context) }
@@ -123,7 +124,7 @@ class AdvancedPreferencesScreen(
                             if (shared) {
                                 withContext(Dispatchers.IO) { CrashReporter.clearPending(context) }
                             } else {
-                                UiToasts.showToast(R.string.crash_logs_dump_failed)
+                                UiToasts.showToast(Res.string.crash_logs_dump_failed)
                             }
                         }
                     },
@@ -140,17 +141,17 @@ class AdvancedPreferencesScreen(
         val context = LocalContext.current
         val networkHelper = remember { Injekt.get<NetworkHelper>() }
         return Preference.PreferenceCategory(
-            title = stringResource(id = R.string.category_network),
+            title = stringResource(Res.string.category_network),
             preferenceItems = listOf(
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(R.string.pref_clear_cookies),
+                    title = stringResource(Res.string.pref_clear_cookies),
                     onClick = {
                         networkHelper.cookieManager.removeAll()
-                        UiToasts.showToast(R.string.cookies_cleared)
+                        UiToasts.showToast(Res.string.cookies_cleared)
                     },
                 ),
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(R.string.pref_clear_webview_data),
+                    title = stringResource(Res.string.pref_clear_webview_data),
                     onClick = {
                         try {
                             WebView(context.applicationContext).run {
@@ -166,22 +167,22 @@ class AdvancedPreferencesScreen(
                             // writing cookies to unlinked files, so clear them through the API
                             networkHelper.cookieManager.removeAll()
                             networkHelper.cookieManager.flush()
-                            UiToasts.showToast(R.string.webview_data_deleted)
+                            UiToasts.showToast(Res.string.webview_data_deleted)
                         } catch (e: Throwable) {
                             Log.d("AdvancedNetworkSettings", e.stackTraceToString())
-                            UiToasts.showToast(R.string.cache_delete_error)
+                            UiToasts.showToast(Res.string.cache_delete_error)
                         }
                     },
                 ),
                 Preference.PreferenceItem.EditTextPreference(
                     value = advancedPreferences.userAgent,
-                    title = stringResource(R.string.pref_user_agent_string),
+                    title = stringResource(Res.string.pref_user_agent_string),
                     onValueChanged = {
                         try {
                             // OkHttp checks for valid values internally
                             Headers.Builder().add("User-Agent", it)
                         } catch (_: IllegalArgumentException) {
-                            UiToasts.showToast(R.string.error_user_agent_string_invalid)
+                            UiToasts.showToast(Res.string.error_user_agent_string_invalid)
                             return@EditTextPreference false
                         }
                         advancedPreferencesState.setValue(
@@ -193,7 +194,7 @@ class AdvancedPreferencesScreen(
                     },
                 ),
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(R.string.pref_reset_user_agent_string),
+                    title = stringResource(Res.string.pref_reset_user_agent_string),
                     enabled = remember(advancedPreferences.userAgent) { advancedPreferences.userAgent != NetworkHelper.defaultUserAgent },
                     onClick = {
                         // Stored as "follow the WebView version" rather than as a fixed string
@@ -222,21 +223,21 @@ class AdvancedPreferencesScreen(
 
         val numberFormat = remember { NumberFormat.getIntegerInstance() }
         val updateSummary = when {
-            updating -> stringResource(R.string.pref_webview_adblock_updating)
-            status?.compiledLists == null -> stringResource(R.string.pref_webview_adblock_never_updated)
+            updating -> stringResource(Res.string.pref_webview_adblock_updating)
+            status?.compiledLists == null -> stringResource(Res.string.pref_webview_adblock_never_updated)
             else -> {
                 val current = status!!
                 val summary = stringResource(
-                    R.string.pref_webview_adblock_last_update,
+                    Res.string.pref_webview_adblock_last_update,
                     if (current.lastSuccess > 0) {
                         DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(current.lastSuccess))
                     } else {
                         "-"
                     },
-                    pluralStringResource(R.plurals.pref_webview_adblock_rules, current.ruleCount, numberFormat.format(current.ruleCount)),
+                    pluralStringResource(Res.plurals.pref_webview_adblock_rules, current.ruleCount, numberFormat.format(current.ruleCount)),
                 )
                 if (current.lastAttempt > current.lastSuccess) {
-                    stringResource(R.string.pref_webview_adblock_last_attempt_failed, summary)
+                    stringResource(Res.string.pref_webview_adblock_last_attempt_failed, summary)
                 } else {
                     summary
                 }
@@ -244,12 +245,12 @@ class AdvancedPreferencesScreen(
         }
 
         return Preference.PreferenceCategory(
-            title = stringResource(id = R.string.pref_category_webview_adblock),
+            title = stringResource(Res.string.pref_category_webview_adblock),
             preferenceItems = listOf<Preference.PreferenceItem<*>>(
                 Preference.PreferenceItem.TogglePreference(
                     value = adBlock.enabled,
-                    title = stringResource(R.string.pref_webview_adblock),
-                    subtitle = stringResource(R.string.pref_webview_adblock_summary),
+                    title = stringResource(Res.string.pref_webview_adblock),
+                    subtitle = stringResource(Res.string.pref_webview_adblock_summary),
                     onValueChanged = { enabled ->
                         adBlockState.setValue(adBlock.copy(enabled = enabled))
                         AdBlockUpdateWorker.setupTask(context, enabled)
@@ -262,9 +263,9 @@ class AdvancedPreferencesScreen(
                     value = list.id !in adBlock.disabledLists,
                     title = list.title,
                     subtitle = if (ruleCount > 0) {
-                        pluralStringResource(R.plurals.pref_webview_adblock_rules, ruleCount, numberFormat.format(ruleCount))
+                        pluralStringResource(Res.plurals.pref_webview_adblock_rules, ruleCount, numberFormat.format(ruleCount))
                     } else {
-                        stringResource(R.string.pref_webview_adblock_list_not_downloaded)
+                        stringResource(Res.string.pref_webview_adblock_list_not_downloaded)
                     },
                     enabled = adBlock.enabled,
                     onValueChanged = { on ->
@@ -276,12 +277,12 @@ class AdvancedPreferencesScreen(
                     },
                 )
             } + Preference.PreferenceItem.TextPreference(
-                title = stringResource(R.string.pref_webview_adblock_update_now),
+                title = stringResource(Res.string.pref_webview_adblock_update_now),
                 subtitle = updateSummary,
                 enabled = !updating,
                 onClick = {
                     AdBlockUpdateWorker.startNow(context, manual = true)
-                    UiToasts.showToast(R.string.pref_webview_adblock_update_started)
+                    UiToasts.showToast(Res.string.pref_webview_adblock_update_started)
                 },
             ),
         )
@@ -293,16 +294,15 @@ class AdvancedPreferencesScreen(
         val uriHandler = LocalUriHandler.current
 
         return Preference.PreferenceCategory(
-            title = stringResource(id = R.string.label_background_activity),
+            title = stringResource(Res.string.label_background_activity),
             preferenceItems = listOf(
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(R.string.pref_disable_battery_optimization),
-                    subtitle = stringResource(R.string.pref_disable_battery_optimization_summary),
+                    title = stringResource(Res.string.pref_disable_battery_optimization),
+                    subtitle = stringResource(Res.string.pref_disable_battery_optimization_summary),
                     onClick = {
                         val packageName: String = context.packageName
                         if (!context.powerManager.isIgnoringBatteryOptimizations(packageName)) {
                             try {
-                                @SuppressLint("BatteryLife")
                                 val intent = Intent().apply {
                                     action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
                                     data = "package:$packageName".toUri()
@@ -310,20 +310,20 @@ class AdvancedPreferencesScreen(
                                 }
                                 context.startActivity(intent)
                             } catch (e: ActivityNotFoundException) {
-                                UiToasts.showToast(R.string.battery_optimization_setting_activity_not_found)
+                                UiToasts.showToast(Res.string.battery_optimization_setting_activity_not_found)
                             }
                         } else {
-                            UiToasts.showToast(R.string.battery_optimization_disabled)
+                            UiToasts.showToast(Res.string.battery_optimization_disabled)
                         }
                     },
                 ),
                 Preference.PreferenceItem.TextPreference(
                     title = "Don't kill my app!",
-                    subtitle = stringResource(R.string.about_dont_kill_my_app),
+                    subtitle = stringResource(Res.string.about_dont_kill_my_app),
                     onClick = { uriHandler.openUri("https://dontkillmyapp.com/") },
                 ),
                 Preference.PreferenceItem.TextPreference(
-                    title = stringResource(R.string.advanced_worker_infos),
+                    title = stringResource(Res.string.advanced_worker_infos),
                     onClick = { navController.navigate(AdvancedSettingsRoutes.PROCESS_INFOS) },
                 ),
             )

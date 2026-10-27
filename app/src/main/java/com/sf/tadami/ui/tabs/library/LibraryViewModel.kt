@@ -237,7 +237,7 @@ class LibraryViewModel : ViewModel() {
 
 // Select all and invert act on the displayed items of the tab shown, [pageIds]: the hidden ones end up
 // unselected, the ones displayed in other tabs keep their selection
-internal fun List<LibraryItem>.selectDisplayed(
+public fun List<LibraryItem>.selectDisplayed(
     displayedIds: Set<Long>,
     pageIds: Set<Long> = displayedIds,
     selected: (LibraryItem) -> Boolean

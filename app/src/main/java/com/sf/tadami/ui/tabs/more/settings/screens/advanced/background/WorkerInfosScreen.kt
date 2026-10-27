@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.advanced.background
 
+import org.jetbrains.compose.resources.StringResource
 import android.app.Application
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,7 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
@@ -28,7 +29,8 @@ import androidx.navigation.NavHostController
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkQuery
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.model.Preference
 import com.sf.tadami.ui.components.topappbar.ActionItem
 import com.sf.tadami.ui.tabs.more.settings.components.PreferenceScreen
@@ -41,7 +43,7 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class WorkerInfosScreen(navController : NavHostController) : PreferenceScreen {
-    override val title: Int = R.string.advanced_worker_infos
+    override val title: StringResource = Res.string.advanced_worker_infos
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 
     @Composable
@@ -152,7 +154,7 @@ class WorkerInfosScreen(navController : NavHostController) : PreferenceScreen {
                         IconButton(onClick = backHandler) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                                contentDescription = stringResource(R.string.stub_text),
+                                contentDescription = stringResource(Res.string.stub_text),
                             )
                         }
                     },

@@ -1,9 +1,11 @@
 package com.sf.tadami.ui.animeinfos.episode.cast
 
+import com.sf.tadami.utils.stringRes
 import android.content.Context
-import android.util.Log
+import com.sf.tadami.utils.Log
 import com.hippo.unifile.UniFile
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.download.EpisodeMetadata
 import com.sf.tadami.data.download.SegmentMetadata
 import com.sf.tadami.data.download.TadamiDownloadManager
@@ -186,7 +188,7 @@ object LocalCast {
                 val urlPrefix = baseUrl + proxy.serveLocal(plan.media.copy(previews = local.previews))
                 Log.i(TAG, "Casting ${episode.name} from the phone: $urlPrefix${plan.master ?: plan.video}")
                 Media(
-                    source = castSource(local.toStreamSource(context.getString(R.string.episode_downloaded)), plan, urlPrefix),
+                    source = castSource(local.toStreamSource(stringRes(Res.string.episode_downloaded)), plan, urlPrefix),
                     contentUrl = urlPrefix + (plan.master ?: plan.video),
                 )
             }

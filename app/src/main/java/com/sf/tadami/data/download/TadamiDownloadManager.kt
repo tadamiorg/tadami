@@ -2,7 +2,7 @@ package com.sf.tadami.data.download
 
 import android.app.Application
 import android.net.Uri
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.hippo.unifile.UniFile
@@ -276,16 +276,16 @@ class TadamiDownloadManager(
     fun localFileExists(uri: String): Boolean = UniFile.fromUri(provider.context, Uri.parse(uri))?.exists() == true
 
     /** Tells [download] failed, for [DownloadWorker]: one notification, the last error. */
-    internal fun showError(download: Download) {
+    public fun showError(download: Download) {
         notifiedError = download
         notifier.showError(download)
     }
 
     /** Runs the queue, for [DownloadWorker]. */
-    internal suspend fun runQueue() = downloader.runQueue()
+    public suspend fun runQueue() = downloader.runQueue()
 
     /** Makes the seekbar preview frames of the episodes downloaded, for [PreviewWorker]. */
-    internal suspend fun makePreviews() = previewGenerator.makeAll()
+    public suspend fun makePreviews() = previewGenerator.makeAll()
 
     private fun downloadedDirs(anime: Anime): Set<String> {
         val source = sourceManager.getOrStub(anime.source)

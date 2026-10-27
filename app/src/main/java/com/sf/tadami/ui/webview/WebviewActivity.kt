@@ -4,8 +4,7 @@ import android.app.assist.AssistContent
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
+import com.sf.tadami.utils.Log
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +17,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.lifecycleScope
 import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.network.NetworkHelper
 import com.sf.tadami.preferences.advanced.AdBlockPreferences
 import com.sf.tadami.network.utils.WebViewUtil
@@ -52,7 +53,7 @@ class WebViewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         if (!WebViewUtil.supportsWebView(this)) {
-            UiToasts.showToast(R.string.information_webview_required, Toast.LENGTH_LONG)
+            UiToasts.showToast(Res.string.information_webview_required, UiToasts.LENGTH_LONG)
             finish()
             return
         }

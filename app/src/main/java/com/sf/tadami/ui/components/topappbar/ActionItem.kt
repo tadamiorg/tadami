@@ -14,8 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.mediarouter.app.MediaRouteButton
@@ -44,10 +44,9 @@ fun ActionItem(
                 }
             ) {
                 Icon(
-                    painter = painterResource(id = action.icon),
+                    painter = painterResource(action.icon),
                     tint = action.tint ?: LocalContentColor.current,
-                    contentDescription = stringResource(
-                        id = action.title
+                    contentDescription = stringResource(action.title
                     )
                 )
             }
@@ -65,8 +64,7 @@ fun ActionItem(
                 Icon(
                     imageVector = action.icon,
                     tint = action.tint ?: LocalContentColor.current,
-                    contentDescription = stringResource(
-                        id = action.title
+                    contentDescription = stringResource(action.title
                     )
                 )
             }
@@ -109,8 +107,7 @@ fun ActionItem(
                 Icon(
                     imageVector = action.icon,
                     tint = action.tint ?: LocalContentColor.current,
-                    contentDescription = stringResource(
-                        id = action.title
+                    contentDescription = stringResource(action.title
                     )
                 )
             }
@@ -143,10 +140,9 @@ fun ActionItem(
                 }
             ) {
                 Icon(
-                    painterResource(id = action.icon),
+                    painterResource(action.icon),
                     tint = action.tint ?: LocalContentColor.current,
-                    contentDescription = stringResource(
-                        id = action.title
+                    contentDescription = stringResource(action.title
                     )
                 )
             }

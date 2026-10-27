@@ -39,9 +39,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 
 /** A button of a dialog. [busy] shows a progress in its place, it can't be clicked then. */
 data class ModalAction(
@@ -86,7 +87,7 @@ fun TadaDialog(
     subtitle: String? = null,
     subject: ModalSubject? = null,
     confirm: ModalAction? = null,
-    dismiss: ModalAction? = ModalAction(stringResource(R.string.action_cancel), onClick = onDismissRequest),
+    dismiss: ModalAction? = ModalAction(stringResource(Res.string.action_cancel), onClick = onDismissRequest),
     neutral: ModalAction? = null,
     tone: DialogTone = DialogTone.Default,
     dismissOnClickOutside: Boolean = true,

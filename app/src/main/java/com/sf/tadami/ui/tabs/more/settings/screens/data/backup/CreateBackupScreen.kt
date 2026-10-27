@@ -1,8 +1,9 @@
 package com.sf.tadami.ui.tabs.more.settings.screens.data.backup
 
+import org.jetbrains.compose.resources.StringResource
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.util.Log
+import com.sf.tadami.utils.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
@@ -17,11 +18,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.backup.BackupOptions
 import com.sf.tadami.data.backup.models.BackupUtils
 import com.sf.tadami.notifications.backup.BackupCreateWorker
@@ -41,7 +43,7 @@ class CreateBackupScreen(
     private val navController: NavHostController
 ) : PreferenceScreen {
 
-    override val title: Int = R.string.settings_tab_library_data_preferences_title
+    override val title: StringResource = Res.string.settings_tab_library_data_preferences_title
 
     override val backHandler: (() -> Unit) = { navController.navigateUp() }
 
@@ -82,7 +84,7 @@ class CreateBackupScreen(
                 TadaTopAppBar(
                     title = {
                         Text(
-                            text = stringResource(R.string.preferences_backup_create_title),
+                            text = stringResource(Res.string.preferences_backup_create_title),
                             style = MaterialTheme.typography.headlineSmall,
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 1
@@ -101,34 +103,34 @@ class CreateBackupScreen(
         ) { contentPadding ->
             LazyColumnWithAction(
                 contentPadding = contentPadding,
-                actionLabel = stringResource(R.string.preferences_backup_create_title),
+                actionLabel = stringResource(Res.string.preferences_backup_create_title),
                 actionEnabled = uiState.options.canCreate(),
                 onClickAction = {
                     if (!BackupCreateWorker.isManualJobRunning(context)) {
                         try {
                             chooseBackupDir.launch(BackupUtils.getFilename())
                         } catch (e: ActivityNotFoundException) {
-                            UiToasts.showToast(R.string.file_picker_error)
+                            UiToasts.showToast(Res.string.file_picker_error)
                         }
                     } else {
-                        UiToasts.showToast(R.string.backup_in_progress)
+                        UiToasts.showToast(Res.string.backup_in_progress)
                     }
                 },
             ) {
                 if (DeviceUtil.isMiui && DeviceUtil.isMiuiOptimizationDisabled()) {
                     item {
-                        WarningBanner(R.string.restore_miui_warning)
+                        WarningBanner(Res.string.restore_miui_warning)
                     }
                 }
 
                 item {
-                    SectionCard(R.string.library_tab_title) {
+                    SectionCard(Res.string.library_tab_title) {
                         Options(BackupOptions.libraryOptions, uiState, createBackupViewModel)
                     }
                 }
 
                 item {
-                    SectionCard(R.string.label_settings) {
+                    SectionCard(Res.string.label_settings) {
                         Options(BackupOptions.settingsOptions,uiState, createBackupViewModel)
                     }
                 }

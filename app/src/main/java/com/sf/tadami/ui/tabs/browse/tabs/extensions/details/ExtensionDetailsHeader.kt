@@ -13,10 +13,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.extensionOrigin
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.ui.tabs.browse.tabs.extensions.components.ExtensionIcon
@@ -74,15 +75,15 @@ fun ExtensionDetailsHeader(
             InfoText(
                 modifier = Modifier.weight(1f),
                 primaryText = extension.versionName,
-                secondaryText = stringResource(R.string.ext_info_version),
+                secondaryText = stringResource(Res.string.ext_info_version),
             )
 
             InfoDivider()
 
             InfoText(
                 modifier = Modifier.weight(1f),
-                primaryText = stringResource(id = extension.lang?.getRes() ?: R.string.language_unknown),
-                secondaryText = stringResource(R.string.ext_info_language),
+                primaryText = stringResource(extension.lang?.res ?: Res.string.language_unknown),
+                secondaryText = stringResource(Res.string.ext_info_language),
             )
         }
 
@@ -92,7 +93,7 @@ fun ExtensionDetailsHeader(
                     .fillMaxWidth()
                     .padding(horizontal = MaterialTheme.padding.extraLarge, vertical = MaterialTheme.padding.small),
                 primaryText = origin,
-                secondaryText = stringResource(R.string.ext_info_repository),
+                secondaryText = stringResource(Res.string.ext_info_repository),
             )
         }
 
@@ -111,7 +112,7 @@ fun ExtensionDetailsHeader(
                     onClick = onClickTrust,
                 ) {
                     Text(
-                        text = stringResource(R.string.ext_trust),
+                        text = stringResource(Res.string.ext_trust),
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 }
@@ -122,7 +123,7 @@ fun ExtensionDetailsHeader(
                     onClick = onClickRetry,
                 ) {
                     Text(
-                        text = stringResource(R.string.retry),
+                        text = stringResource(Res.string.retry),
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 }
@@ -131,7 +132,7 @@ fun ExtensionDetailsHeader(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = onClickUninstall,
             ) {
-                Text(stringResource(R.string.ext_uninstall))
+                Text(stringResource(Res.string.ext_uninstall))
             }
         }
     }

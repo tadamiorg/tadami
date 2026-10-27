@@ -1,6 +1,5 @@
 package com.sf.tadami.ui.animeinfos.episode
 
-import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -9,7 +8,7 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
+import com.sf.tadami.utils.Log
 import android.view.WindowManager
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
@@ -51,6 +50,8 @@ import com.google.android.gms.cast.framework.media.RemoteMediaClient
 import com.google.android.gms.common.api.PendingResult
 import com.google.android.gms.common.api.Status
 import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.download.isLocalFile
 import com.sf.tadami.domain.anime.Anime
 import com.sf.tadami.domain.episode.Episode
@@ -157,7 +158,6 @@ class EpisodeActivity : AppCompatActivity() {
 
     private lateinit var playerViewModel: PlayerViewModel
 
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_YES;
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -581,7 +581,6 @@ class EpisodeActivity : AppCompatActivity() {
     }
 
     /** Loads [source] of [episode] on the receiver, from [resumeTimeMs] or else the saved time. */
-    @SuppressLint("VisibleForTests")
     private fun loadCastMedia(
         episode: Episode,
         anime: Anime?,
@@ -790,7 +789,7 @@ class EpisodeActivity : AppCompatActivity() {
     private fun updatePip(start: Boolean) {
         // Both PiP calls below throw on devices without picture-in-picture.
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
-            if (start) UiToasts.showToast(R.string.player_pip_unavailable)
+            if (start) UiToasts.showToast(Res.string.player_pip_unavailable)
             return
         }
         val anime = playerViewModel.anime.value ?: return
@@ -814,7 +813,7 @@ class EpisodeActivity : AppCompatActivity() {
                 if (!enterPictureInPictureMode(it)) {
                     PipState.mode = PipState.OFF
                     playerViewModel.lockControls(locked = false)
-                    UiToasts.showToast(R.string.player_pip_unavailable)
+                    UiToasts.showToast(Res.string.player_pip_unavailable)
                 }
             }
         }

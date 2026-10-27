@@ -11,7 +11,7 @@ import java.util.Arrays
 import java.util.Collections
 
 @UnstableApi
-internal class WebvttSubtitle(cueInfos: List<WebvttCueInfo>) : Subtitle {
+public class WebvttSubtitle(cueInfos: List<WebvttCueInfo>) : Subtitle {
     private val cueInfos: List<WebvttCueInfo> = Collections.unmodifiableList(ArrayList(cueInfos))
     private val cueTimesUs = LongArray(2 * cueInfos.size)
     private val sortedCueTimesUs: LongArray

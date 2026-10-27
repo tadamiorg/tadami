@@ -1,10 +1,14 @@
 package com.sf.tadami.notifications.download
 
+import com.sf.tadami.utils.pluralRes
+import com.sf.tadami.utils.stringRes
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.data.download.model.Download
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.ui.main.MainActivity
@@ -17,7 +21,7 @@ class DownloadNotifier(private val context: Context) {
 
     val progressNotificationBuilder by lazy {
         NotificationCompat.Builder(context, Notifications.DOWNLOADER_PROGRESS_CHANNEL).apply {
-            setContentTitle(context.getString(R.string.notification_download_waiting))
+            setContentTitle(stringRes(Res.string.notification_download_waiting))
             setSmallIcon(android.R.drawable.stat_sys_download)
             setOngoing(true)
             setOnlyAlertOnce(true)
@@ -26,12 +30,12 @@ class DownloadNotifier(private val context: Context) {
             setContentIntent(mainActivityIntent())
             addAction(
                 R.drawable.ic_pause_24,
-                context.getString(R.string.action_pause),
+                stringRes(Res.string.action_pause),
                 DownloadReceiver.getPendingIntent(context, DownloadReceiver.ACTION_PAUSE),
             )
             addAction(
                 R.drawable.ic_close,
-                context.getString(R.string.action_cancel),
+                stringRes(Res.string.action_cancel),
                 DownloadReceiver.getPendingIntent(context, DownloadReceiver.ACTION_CANCEL),
             )
         }
@@ -42,7 +46,7 @@ class DownloadNotifier(private val context: Context) {
         progressNotificationBuilder.apply {
             when (active.size) {
                 0 -> {
-                    setContentTitle(context.getString(R.string.notification_download_waiting))
+                    setContentTitle(stringRes(Res.string.notification_download_waiting))
                     setContentText(null)
                     setProgress(0, 0, true)
                 }
@@ -54,14 +58,14 @@ class DownloadNotifier(private val context: Context) {
                 }
                 else -> {
                     setContentTitle(
-                        context.resources.getQuantityString(R.plurals.notification_downloading_episodes, active.size, active.size),
+                        pluralRes(Res.plurals.notification_downloading_episodes, active.size, active.size),
                     )
                     setContentText(active.joinToString { it.episode.name }.chop(TITLE_MAX_LENGTH * 2))
                     setProgress(100, active.sumOf { it.progress } / active.size, false)
                 }
             }
             setSubText(
-                context.resources.getQuantityString(R.plurals.notification_download_queued, queued, queued),
+                pluralRes(Res.plurals.notification_download_queued, queued, queued),
             )
         }
         context.notify(Notifications.DOWNLOADER_PROGRESS_ID, progressNotificationBuilder.build())
@@ -73,9 +77,9 @@ class DownloadNotifier(private val context: Context) {
 
     fun showPaused(queued: Int) {
         val notification = NotificationCompat.Builder(context, Notifications.DOWNLOADER_PROGRESS_CHANNEL).apply {
-            setContentTitle(context.getString(R.string.notification_download_paused))
+            setContentTitle(stringRes(Res.string.notification_download_paused))
             setContentText(
-                context.resources.getQuantityString(R.plurals.notification_download_queued, queued, queued),
+                pluralRes(Res.plurals.notification_download_queued, queued, queued),
             )
             setSmallIcon(R.drawable.ic_pause_24)
             setOnlyAlertOnce(true)
@@ -83,12 +87,12 @@ class DownloadNotifier(private val context: Context) {
             setContentIntent(mainActivityIntent())
             addAction(
                 R.drawable.ic_play_24,
-                context.getString(R.string.action_resume),
+                stringRes(Res.string.action_resume),
                 DownloadReceiver.getPendingIntent(context, DownloadReceiver.ACTION_RESUME),
             )
             addAction(
                 R.drawable.ic_close,
-                context.getString(R.string.action_cancel),
+                stringRes(Res.string.action_cancel),
                 DownloadReceiver.getPendingIntent(context, DownloadReceiver.ACTION_CANCEL),
             )
         }.build()
@@ -102,7 +106,7 @@ class DownloadNotifier(private val context: Context) {
     fun showError(download: Download) {
         val notification = NotificationCompat.Builder(context, Notifications.DOWNLOADER_ERROR_CHANNEL).apply {
             setContentTitle(
-                context.getString(R.string.notification_download_error, download.episode.name.chop(TITLE_MAX_LENGTH)),
+                stringRes(Res.string.notification_download_error, download.episode.name.chop(TITLE_MAX_LENGTH)),
             )
             setContentText(download.error)
             setStyle(NotificationCompat.BigTextStyle().bigText("${download.anime.title}\n${download.error.orEmpty()}"))

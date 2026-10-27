@@ -2,7 +2,8 @@ package com.sf.tadami.ui.tabs.browse.tabs.extensions.details
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.domain.extensions.Extension
 import com.sf.tadami.extension.model.ExtensionLoadIssue
 import com.sf.tadami.ui.components.banners.WarningBanner
@@ -29,7 +30,7 @@ fun ExtensionDetailsComponent(
 
         if (extension.isObsolete) {
             item {
-                WarningBanner(R.string.ext_obsolete)
+                WarningBanner(Res.string.ext_obsolete)
             }
         }
 

@@ -1,5 +1,6 @@
 package com.sf.tadami.ui.tabs.history
 
+import com.sf.tadami.utils.stringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -16,10 +17,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.search.SearchTopAppBar
@@ -43,8 +45,8 @@ fun HistoryScreen(
     val actions = remember {
         listOf(
             Action.Drawable(
-                title = R.string.stub_text,
-                icon = R.drawable.ic_delete_sweep,
+                title = Res.string.stub_text,
+                icon = Res.drawable.ic_delete_sweep,
                 enabled = true,
                 onClick = {
                     historyDialogOpened = HistoryDialogs.DeleteAll
@@ -79,7 +81,7 @@ fun HistoryScreen(
                     historyViewModel.removeAllHistory {
                         snackBarHostState.currentSnackbarData?.dismiss()
                         snackBarHostState.showSnackbar(
-                            message = context.getString(R.string.clear_history_completed)
+                            message = stringRes(Res.string.clear_history_completed)
                         )
                     }
                 }
@@ -96,7 +98,7 @@ fun HistoryScreen(
         topBar = {
             SearchTopAppBar(
                 title = {
-                    Text(text = stringResource(id = R.string.label_history))
+                    Text(text = stringResource(Res.string.label_history))
                 },
                 searchOpened = searchOpened,
                 onSearchOpen = {
@@ -133,7 +135,7 @@ fun HistoryScreen(
                         } else {
                             snackBarHostState.currentSnackbarData?.dismiss()
                             snackBarHostState.showSnackbar(
-                                message = context.getString(R.string.next_episode_not_found)
+                                message = stringRes(Res.string.next_episode_not_found)
                             )
                         }
                     }

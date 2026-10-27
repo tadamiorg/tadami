@@ -11,7 +11,8 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.CaptionStyleCompat
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
 
@@ -61,8 +62,8 @@ data class PlayerPreferences(
 
     companion object : CustomPreferences<PlayerPreferences> {
         val DefaultSubtitlesPrefLanguages = mapOf(
-            "fr" to R.string.language_fr,
-            "en" to R.string.language_en
+            "fr" to Res.string.language_fr,
+            "en" to Res.string.language_en
         )
 
         // Subtitles default style. Not private: the cast payload (CastSubtitleStyle) defaults to the

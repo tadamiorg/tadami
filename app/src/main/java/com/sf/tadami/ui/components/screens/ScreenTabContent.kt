@@ -1,12 +1,12 @@
 package com.sf.tadami.ui.components.screens
 
-import androidx.annotation.StringRes
+import org.jetbrains.compose.resources.StringResource
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import com.sf.tadami.ui.components.data.Action
 data class ScreenTabContent(
-    @StringRes val titleRes : Int,
+    val titleRes: StringResource,
     val actions : List<Action> = emptyList(),
     val badgeNumber: Int? = null,
     val searchEnabled: Boolean = false,

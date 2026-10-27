@@ -1,8 +1,9 @@
 package com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.stringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.source.model.Track
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.tabs.SubtitleSettingsTab
 import com.sf.tadami.ui.animeinfos.episode.player.controls.dialogs.tracksselection.tabs.SubtitlesTab
@@ -24,8 +25,8 @@ fun TracksSelectionDialog(
     PlayerPanel(
         visible = opened,
         onDismissRequest = onDismissRequest,
-        title = stringResource(R.string.label_subtitles),
-        tabs = listOf(stringResource(R.string.label_subtitles), stringResource(R.string.label_settings)),
+        title = stringResource(Res.string.label_subtitles),
+        tabs = listOf(stringResource(Res.string.label_subtitles), stringResource(Res.string.label_settings)),
         clearScrim = { page -> page == 1 },
     ) { page ->
         if (page == 0) {

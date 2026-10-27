@@ -1,7 +1,8 @@
 package com.sf.tadami.data.download.stream
 
-import androidx.annotation.StringRes
-import com.sf.tadami.R
+import org.jetbrains.compose.resources.StringResource
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.network.HttpException
 import com.sf.tadami.source.model.StreamSource
 import kotlinx.coroutines.CancellationException
@@ -18,16 +19,16 @@ class StreamFailedException(
 ) : Exception(message, cause)
 
 /** Why a stream failed, as the user is told. */
-enum class StreamFailure(@StringRes val text: Int) {
-    PLAYLIST(R.string.download_stream_error_playlist),
-    LIVE(R.string.download_stream_error_live),
-    DRM(R.string.download_stream_error_drm),
-    UNSUPPORTED(R.string.download_stream_error_unsupported),
-    NOT_VIDEO(R.string.download_stream_error_not_video),
-    DECRYPTION(R.string.download_stream_error_decryption),
-    INCOMPLETE(R.string.download_stream_error_incomplete),
-    TOO_SMALL(R.string.download_stream_error_too_small),
-    TOO_SHORT(R.string.download_stream_error_too_short),
+enum class StreamFailure(val text: StringResource) {
+    PLAYLIST(Res.string.download_stream_error_playlist),
+    LIVE(Res.string.download_stream_error_live),
+    DRM(Res.string.download_stream_error_drm),
+    UNSUPPORTED(Res.string.download_stream_error_unsupported),
+    NOT_VIDEO(Res.string.download_stream_error_not_video),
+    DECRYPTION(Res.string.download_stream_error_decryption),
+    INCOMPLETE(Res.string.download_stream_error_incomplete),
+    TOO_SMALL(Res.string.download_stream_error_too_small),
+    TOO_SHORT(Res.string.download_stream_error_too_short),
 }
 
 /** No stream is worth trying: no storage, no space left, no stream at all... */

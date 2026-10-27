@@ -13,9 +13,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
-import com.sf.tadami.R
+import com.sf.tadami.shared.resources.Res
+import com.sf.tadami.shared.resources.*
 import com.sf.tadami.ui.utils.padding
 import com.sf.tadami.ui.utils.secondaryItemAlpha
 import com.sf.tadami.utils.DiskUtil
@@ -65,7 +66,7 @@ private fun StorageInfo(
         )
 
         Text(
-            text = stringResource(R.string.available_disk_space_info, availableText, totalText),
+            text = stringResource(Res.string.available_disk_space_info, availableText, totalText),
             modifier = Modifier.secondaryItemAlpha(),
             style = MaterialTheme.typography.bodySmall,
         )

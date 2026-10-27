@@ -1,6 +1,5 @@
 package com.sf.tadami.data.interactors.sources
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.sf.tadami.data.sources.SourceRepository
@@ -12,8 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import java.util.SortedMap
 
-class GetLanguagesWithSources(
-    private val context: Context,
+class GetLanguagesWithSources(
     private val repository: SourceRepository,
     private val dataStore: DataStore<Preferences>,
 ) {
@@ -34,9 +32,7 @@ class GetLanguagesWithSources(
                 .groupBy { it.lang }
                 .toSortedMap(
                     compareBy<Lang> { it.name !in enabledLanguages }
-                        .then { a, b ->
-                            context.getString(a.getRes()).compareTo(context.getString(b.getRes()))
-                        },
+                        .thenBy { it.name },
                 )
         }
     }

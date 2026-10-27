@@ -1,6 +1,6 @@
 package com.sf.tadami.ui.tabs.browse.tabs.extensions.components
 
-import androidx.annotation.StringRes
+import org.jetbrains.compose.resources.StringResource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
@@ -9,14 +9,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sf.tadami.ui.utils.padding
 
 @Composable
 fun ExtensionHeader(
-    @StringRes textRes: Int,
+    textRes: StringResource,
     modifier: Modifier = Modifier,
     action: @Composable RowScope.() -> Unit = {}
 ) {
@@ -25,7 +25,7 @@ fun ExtensionHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = stringResource(id = textRes),
+            text = stringResource(textRes),
             modifier = Modifier
                 .padding(vertical = 8.dp)
                 .weight(1f),
