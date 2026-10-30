@@ -22,6 +22,7 @@ import com.sf.tadami.ui.discover.globalSearch.GlobalSearchComponent
 import com.sf.tadami.ui.discover.globalSearch.GlobalSearchToolbar
 import com.sf.tadami.ui.discover.migrate.dialog.MigrateDialog
 import com.sf.tadami.ui.discover.migrate.dialog.MigrationState
+import com.sf.tadami.ui.components.widgets.rememberOpenDohSetting
 import com.sf.tadami.ui.utils.UiToasts
 
 @Composable
@@ -66,7 +67,8 @@ fun MigrateSearchScreen(
                 },
                 onSourceClicked = {
                     navController.navigate("${DiscoverRoutes.SEARCH}/${it.id}?initialQuery=${Uri.encode(uiState.searchQuery)}&migrationId=${migrateViewModel.animeId}")
-                }
+                },
+                onOpenDohSetting = rememberOpenDohSetting(navController),
             )
         }
         MigrateDialog(

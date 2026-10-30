@@ -231,6 +231,11 @@
     <string name="pref_user_agent_string">Default user agent string</string>
     <string name="error_user_agent_string_invalid">Invalid user agent string</string>
     <string name="pref_reset_user_agent_string">Reset default user agent string</string>
+    <string name="pref_dns_over_https">DNS over HTTPS (DoH)</string>
+    <string name="pref_dns_over_https_summary">%s\nThe WebView and Cloudflare checks keep the system DNS: for them, set a Private DNS in Android\'s network settings</string>
+    <string name="pref_dns_over_https_disabled">Disabled</string>
+    <string name="doh_may_fix_error">Your DNS provider may be blocking this source: DNS over HTTPS can get around it</string>
+    <string name="action_use_doh">Use DNS over HTTPS</string>
     <string name="pref_clear_database_summary">Delete history for entries that are not saved in your library</string>
     <string name="pref_clear_database">Clear database</string>
     <string name="player_pref_auto_play">Auto play</string>

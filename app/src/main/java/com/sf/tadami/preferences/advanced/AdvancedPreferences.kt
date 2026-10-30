@@ -2,18 +2,23 @@ package com.sf.tadami.preferences.advanced
 
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sf.tadami.network.NetworkHelper
+import com.sf.tadami.network.doh.DohProviders
 import com.sf.tadami.network.utils.UserAgents
 import com.sf.tadami.preferences.model.CustomPreferences
 import com.sf.tadami.preferences.model.CustomPreferencesIdentifier
 
 data class AdvancedPreferences(
     val userAgent : String,
+    // The id of a DohProviders provider, or DohProviders.DISABLED
+    val dohProvider : Int,
 ) : CustomPreferencesIdentifier {
 
     companion object : CustomPreferences<AdvancedPreferences> {
         private val USER_AGENT =  stringPreferencesKey("app_default_user_agent")
+        private val DOH_PROVIDER = intPreferencesKey("doh_provider")
 
         override fun transform(preferences: Preferences): AdvancedPreferences {
            return AdvancedPreferences(
@@ -21,6 +26,7 @@ data class AdvancedPreferences(
                userAgent = preferences[USER_AGENT]?.trim()
                    ?.takeUnless { it.isEmpty() || UserAgents.isLegacyDefault(it) }
                    ?: NetworkHelper.defaultUserAgent,
+               dohProvider = preferences[DOH_PROVIDER] ?: DohProviders.DISABLED,
            )
         }
 
@@ -32,6 +38,7 @@ data class AdvancedPreferences(
             } else {
                 preferences[USER_AGENT] = userAgent
             }
+            preferences[DOH_PROVIDER] = newValue.dohProvider
         }
     }
 }

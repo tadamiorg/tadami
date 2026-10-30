@@ -12,6 +12,7 @@ fun RecentComponent(
     snackbarHostState : SnackbarHostState,
     onAnimeClicked: (anime:Anime) -> Unit,
     onOpenInWebView: ((url: String) -> Unit)? = null,
+    onOpenDohSetting: (() -> Unit)? = null,
     sourceBaseUrl: String? = null,
 ) {
     InfiniteAnimeGrid(
@@ -19,6 +20,7 @@ fun RecentComponent(
         snackbarHostState = snackbarHostState,
         onAnimeClicked = onAnimeClicked,
         onOpenInWebView = onOpenInWebView,
+        onOpenDohSetting = onOpenDohSetting,
         sourceBaseUrl = sourceBaseUrl,
     )
 }

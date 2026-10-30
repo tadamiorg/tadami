@@ -33,6 +33,7 @@ import com.sf.tadami.navigation.graphs.sources.SourcesRoutes
 import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.topappbar.TadaTopAppBar
+import com.sf.tadami.ui.components.widgets.rememberOpenDohSetting
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -114,6 +115,7 @@ fun RecentScreen(
                     val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
                     navController.navigate("${SourcesRoutes.EXTENSIONS_WEBVIEW}/${source.id}/${source.name}/${encodedUrl}")
                 },
+                onOpenDohSetting = rememberOpenDohSetting(navController),
                 sourceBaseUrl = remember { runCatching { (recentViewModel.source as? AnimeHttpSource)?.baseUrl }.getOrNull() },
             )
         }
