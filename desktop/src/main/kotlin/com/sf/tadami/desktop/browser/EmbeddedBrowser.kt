@@ -66,6 +66,7 @@ object EmbeddedBrowser : DesktopBrowser {
             cefSettings.persist_session_cookies = true
             cefSettings.windowless_rendering_enabled = true
             cefSettings.log_severity = CefSettings.LogSeverity.LOGSEVERITY_ERROR
+            System.getenv("TADAMI_BROWSER_DEBUG_PORT")?.toIntOrNull()?.let { cefSettings.remote_debugging_port = it }
             build()
         }.also {
             app = it
