@@ -46,8 +46,9 @@ class CastOptionsProvider : OptionsProvider {
             .setNotificationOptions(notificationOptions)
             .setMediaIntentReceiverClassName(CastMediaIntentReceiver::class.java.name)
             .build()
+        // No Cast Connect: Android TVs get the web receiver too, not the native Tadami Terebi app
         val launchOptions = LaunchOptions.Builder()
-            .setAndroidReceiverCompatible(true)
+            .setAndroidReceiverCompatible(false)
             .build()
         return CastOptions.Builder()
             .setLaunchOptions(launchOptions)
