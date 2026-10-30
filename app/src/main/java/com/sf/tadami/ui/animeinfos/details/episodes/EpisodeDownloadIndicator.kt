@@ -61,6 +61,7 @@ fun EpisodeDownloadIndicator(
                 Download.State.NOT_DOWNLOADED -> Icon(
                     imageVector = Icons.Outlined.ArrowCircleDown,
                     contentDescription = stringResource(R.string.download),
+                    modifier = Modifier.size(IconSize),
                     tint = iconColor,
                 )
                 Download.State.QUEUED -> {
@@ -89,7 +90,7 @@ fun EpisodeDownloadIndicator(
                         Icon(
                             imageVector = Icons.Filled.ArrowDownward,
                             contentDescription = null,
-                            modifier = Modifier.size(12.dp),
+                            modifier = Modifier.size(14.dp),
                             tint = iconColor,
                         )
                     }
@@ -97,11 +98,13 @@ fun EpisodeDownloadIndicator(
                 Download.State.DOWNLOADED -> Icon(
                     imageVector = Icons.Filled.CheckCircle,
                     contentDescription = stringResource(R.string.episode_downloaded),
+                    modifier = Modifier.size(IconSize),
                     tint = iconColor,
                 )
                 Download.State.ERROR -> Icon(
                     imageVector = Icons.Outlined.ErrorOutline,
                     contentDescription = stringResource(R.string.episode_download_error),
+                    modifier = Modifier.size(IconSize),
                     tint = MaterialTheme.colorScheme.error,
                 )
             }
@@ -138,5 +141,6 @@ private fun MenuItem(@StringRes text: Int, onClick: () -> Unit) {
     )
 }
 
-private val IndicatorSize = 22.dp
+private val IconSize = 26.dp
+private val IndicatorSize = 24.dp
 private val IndicatorStroke = 2.dp

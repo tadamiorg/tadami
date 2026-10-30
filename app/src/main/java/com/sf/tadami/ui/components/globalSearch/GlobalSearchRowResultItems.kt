@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,7 +43,11 @@ fun GlobalSearchLoadingResultItem(sourceBaseUrl: String? = null) {
 }
 
 @Composable
-fun GlobalSearchErrorResultItem(message: String?) {
+fun GlobalSearchErrorResultItem(
+    message: String?,
+    // Shown when a DNS blocking the source may cause the error
+    onOpenDohSetting: (() -> Unit)? = null,
+) {
     Column(
         modifier = Modifier
             .padding(
@@ -58,5 +65,21 @@ fun GlobalSearchErrorResultItem(message: String?) {
             style = MaterialTheme.typography.labelSmall,
             textAlign = TextAlign.Center,
         )
+        if (onOpenDohSetting != null) {
+            Text(
+                text = stringResource(R.string.doh_may_fix_error),
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+            )
+            TextButton(onClick = onOpenDohSetting) {
+                Icon(
+                    imageVector = Icons.Outlined.Dns,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(MaterialTheme.padding.extraSmall))
+                Text(text = stringResource(R.string.action_use_doh))
+            }
+        }
     }
 }

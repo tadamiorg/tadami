@@ -190,6 +190,11 @@
     <string name="pref_user_agent_string">Liste d\'agents utilisateurs par défaut</string>
     <string name="error_user_agent_string_invalid">Chaîne d\'agent utilisateur invalide</string>
     <string name="pref_reset_user_agent_string">Réinitialiser la liste d\'agents utilisateurs</string>
+    <string name="pref_dns_over_https">DNS over HTTPS (DoH)</string>
+    <string name="pref_dns_over_https_summary">%s\nLa WebView et les vérifications Cloudflare gardent le DNS du système : pour elles, définissez un DNS privé dans les paramètres réseau d\'Android</string>
+    <string name="pref_dns_over_https_disabled">Désactivé</string>
+    <string name="doh_may_fix_error">Votre fournisseur DNS bloque peut-être cette source : le DNS over HTTPS peut le contourner</string>
+    <string name="action_use_doh">Utiliser le DNS over HTTPS</string>
     <string name="pref_clear_database">Effacer la base de données</string>
     <string name="pref_clear_database_summary">Supprimer l\'historique des entrées qui ne sont pas enregistrées dans votre bibliothèque</string>
     <string name="player_pref_auto_play">Lecture automatique</string>

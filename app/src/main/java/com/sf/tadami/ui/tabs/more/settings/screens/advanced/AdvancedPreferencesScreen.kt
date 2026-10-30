@@ -26,6 +26,7 @@ import com.sf.tadami.crash.CrashReporter
 import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
 import com.sf.tadami.navigation.graphs.settings.AdvancedSettingsRoutes
 import com.sf.tadami.network.NetworkHelper
+import com.sf.tadami.network.doh.DohProviders
 import com.sf.tadami.network.utils.setDefaultSettings
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateTarget
 import com.sf.tadami.notifications.libraryupdate.LibraryUpdateWorker
@@ -171,6 +172,22 @@ class AdvancedPreferencesScreen(
                             Log.d("AdvancedNetworkSettings", e.stackTraceToString())
                             UiToasts.showToast(R.string.cache_delete_error)
                         }
+                    },
+                ),
+                Preference.PreferenceItem.SelectPreference(
+                    value = advancedPreferences.dohProvider,
+                    items = mapOf(DohProviders.DISABLED to stringResource(R.string.pref_dns_over_https_disabled)) +
+                        DohProviders.all.associate { it.id to it.name },
+                    title = stringResource(R.string.pref_dns_over_https),
+                    subtitle = stringResource(R.string.pref_dns_over_https_summary),
+                    onValueChanged = {
+                        // Applies to the next lookup, no restart needed
+                        advancedPreferencesState.setValue(
+                            advancedPreferences.copy(
+                                dohProvider = it
+                            )
+                        )
+                        true
                     },
                 ),
                 Preference.PreferenceItem.EditTextPreference(

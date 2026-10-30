@@ -25,6 +25,7 @@ import com.sf.tadami.ui.components.globalSearch.GlobalSearchCardRow
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchErrorResultItem
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchItemResult
 import com.sf.tadami.ui.components.globalSearch.GlobalSearchLoadingResultItem
+import com.sf.tadami.ui.components.widgets.suggestsDoh
 import com.sf.tadami.ui.utils.padding
 
 @Composable
@@ -34,6 +35,7 @@ fun GlobalSearchComponent(
     onAnimeClicked: (anime: Anime) -> Unit,
     onAnimeLongClicked: (Anime) -> Unit = onAnimeClicked,
     onSourceClicked: (AnimeCatalogueSource) -> Unit,
+    onOpenDohSetting: (() -> Unit)? = null,
 ) {
     LazyColumn(modifier = modifier) {
         animesBySource.forEach { (source, result) ->
@@ -68,7 +70,10 @@ fun GlobalSearchComponent(
                             )
                         }
                         is GlobalSearchItemResult.Error -> {
-                            GlobalSearchErrorResultItem(message = result.throwable.message)
+                            GlobalSearchErrorResultItem(
+                                message = result.throwable.message,
+                                onOpenDohSetting = onOpenDohSetting?.takeIf { suggestsDoh(result.throwable) },
+                            )
                         }
                     }
                 }

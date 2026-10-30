@@ -42,6 +42,7 @@ import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.ui.components.data.Action
 import com.sf.tadami.ui.components.filters.TadaBottomSheetScaffold
 import com.sf.tadami.ui.components.topappbar.search.SearchTopAppBar
+import com.sf.tadami.ui.components.widgets.rememberOpenDohSetting
 import com.sf.tadami.ui.discover.migrate.dialog.MigrateDialog
 import com.sf.tadami.ui.discover.migrate.dialog.MigrationState
 import com.sf.tadami.ui.utils.UiToasts
@@ -200,6 +201,7 @@ fun SearchScreen(
                     val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
                     navController.navigate("${SourcesRoutes.EXTENSIONS_WEBVIEW}/${source.id}/${source.name}/${encodedUrl}")
                 },
+                onOpenDohSetting = rememberOpenDohSetting(navController),
                 onAnimeLongClicked = {
                     if (migrateHelperState.oldAnime != null) {
                         navController.navigate("${AnimeInfosRoutes.DETAILS}/${it.source}/${it.id}?migrationId=${migrateHelperState.oldAnime!!.id}")

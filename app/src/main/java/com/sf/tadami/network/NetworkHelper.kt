@@ -3,6 +3,8 @@ package com.sf.tadami.network
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import com.sf.tadami.network.doh.DohProviders
+import com.sf.tadami.network.doh.SwitchableDns
 import com.sf.tadami.network.interceptors.CloudflareInterceptor
 import com.sf.tadami.network.interceptors.IgnoreGzipInterceptor
 import com.sf.tadami.network.interceptors.UncaughtExceptionInterceptor
@@ -88,6 +90,14 @@ class NetworkHelper(private val context : Context) {
         )
         .addNetworkInterceptor(IgnoreGzipInterceptor())
         .addNetworkInterceptor(BrotliInterceptor)
+        .dns(
+            SwitchableDns(
+                providerId = { advancedPreferences.dohProvider },
+                // Built at the first lookup, once the client exists. Its queries skip this resolver:
+                // DoH reaches its own host through the provider's fixed addresses
+                providerDns = { id -> DohProviders.dns(id, nonCloudflareClient) },
+            ),
+        )
 
     val nonCloudflareClient = clientBuilder.build()
 

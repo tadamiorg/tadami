@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.CircularProgressIndicator
@@ -53,6 +54,7 @@ import com.sf.tadami.preferences.model.rememberDataStoreState
 import com.sf.tadami.ui.components.data.LibraryItem
 import com.sf.tadami.ui.components.widgets.CloudflareVerificationLine
 import com.sf.tadami.ui.components.widgets.ContentLoader
+import com.sf.tadami.ui.components.widgets.suggestsDoh
 import com.sf.tadami.ui.tabs.library.badges.UnseenBadge
 import com.sf.tadami.ui.utils.CommonAnimeItemDefaults
 import com.sf.tadami.ui.utils.formattedMessage
@@ -71,6 +73,7 @@ fun AnimeGrid(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     contentPadding: PaddingValues = PaddingValues(0.dp),
     onOpenInWebView: ((url: String) -> Unit)? = null,
+    onOpenDohSetting: (() -> Unit)? = null,
     sourceBaseUrl: String? = null,
 ) {
 
@@ -89,6 +92,9 @@ fun AnimeGrid(
     // Solving the challenge in the WebView is the way out, refreshing would just fail again
     val challengeUrl = ((errorState as? LoadState.Error)?.error as? CloudflareChallengeException)?.url
         ?.takeIf { onOpenInWebView != null }
+
+    // A DNS blocking the source may be the cause: DNS over HTTPS can get around it
+    val dohSuggested = suggestsDoh((errorState as? LoadState.Error)?.error) && onOpenDohSetting != null
 
     // The WebView is another activity (opened from here or from the top bar): once back with a
     // clearance, retry the failed load with it. Without one a retry would only run into the
@@ -159,7 +165,8 @@ fun AnimeGrid(
             EmptyScreen(
                 // Centered in the visible area, not under the top bar
                 modifier = Modifier.padding(contentPadding),
-                message = getErrorMessage(errorState),
+                message = getErrorMessage(errorState) +
+                    if (dohSuggested) "\n\n" + stringResource(R.string.doh_may_fix_error) else "",
                 actions = listOfNotNull(
                     challengeUrl?.let { url ->
                         EmptyScreenAction(
@@ -168,6 +175,13 @@ fun AnimeGrid(
                             onClick = { onOpenInWebView?.invoke(url) }
                         )
                     },
+                    if (dohSuggested) {
+                        EmptyScreenAction(
+                            stringResId = R.string.action_use_doh,
+                            icon = Icons.Outlined.Dns,
+                            onClick = { onOpenDohSetting?.invoke() }
+                        )
+                    } else null,
                     EmptyScreenAction(
                         stringResId = R.string.refresh,
                         icon = Icons.Outlined.Refresh,

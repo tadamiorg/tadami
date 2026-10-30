@@ -13,6 +13,7 @@ import androidx.navigation.NavHostController
 import com.sf.tadami.navigation.graphs.animeInfos.AnimeInfosRoutes
 import com.sf.tadami.navigation.graphs.discover.DiscoverRoutes
 import com.sf.tadami.ui.components.data.Action
+import com.sf.tadami.ui.components.widgets.rememberOpenDohSetting
 
 @Composable
 fun GlobalSearchScreen(
@@ -57,7 +58,8 @@ fun GlobalSearchScreen(
             },
             onSourceClicked = {
                 navController.navigate("${DiscoverRoutes.SEARCH}/${it.id}?initialQuery=${Uri.encode(uiState.searchQuery)}")
-            }
+            },
+            onOpenDohSetting = rememberOpenDohSetting(navController),
         )
     }
 }
