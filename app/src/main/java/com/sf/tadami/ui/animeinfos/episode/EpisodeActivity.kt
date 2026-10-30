@@ -57,6 +57,7 @@ import com.sf.tadami.domain.episode.Episode
 import com.sf.tadami.domain.episode.toSEpisode
 import com.sf.tadami.notifications.cast.CastControlService
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
+import com.sf.tadami.preferences.cast.CastPreferences
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.source.model.Track
@@ -64,6 +65,7 @@ import com.sf.tadami.source.online.AnimeHttpSource
 import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionErrorDialog
 import com.sf.tadami.ui.animeinfos.episode.cast.CastConnectionState
 import com.sf.tadami.ui.animeinfos.episode.cast.CastSessionState
+import com.sf.tadami.ui.animeinfos.episode.cast.CastWebReceiverNoticeDialog
 import com.sf.tadami.ui.animeinfos.episode.cast.LocalCast
 import com.sf.tadami.ui.animeinfos.episode.cast.activeCastSubtitleTrackId
 import com.sf.tadami.ui.animeinfos.episode.cast.buildCastLoadRequest
@@ -97,6 +99,7 @@ import com.sf.tadami.ui.utils.UiToasts
 import com.sf.tadami.ui.utils.toShareIntent
 import com.sf.tadami.ui.webview.WebViewActivity
 import com.sf.tadami.utils.createFileInCacheDir
+import com.sf.tadami.utils.editPreferences
 import com.sf.tadami.utils.getPreferencesGroup
 import com.sf.tadami.utils.getPreferencesGroupAsFlow
 import com.sf.tadami.utils.powerManager
@@ -257,6 +260,23 @@ class EpisodeActivity : AppCompatActivity() {
                     if (castConnectionError) {
                         CastConnectionErrorDialog(
                             onDismissRequest = { CastConnectionState.clear() }
+                        )
+                    }
+
+                    val showWebReceiverNotice by CastSessionState.showWebReceiverNotice.collectAsState()
+                    if (showWebReceiverNotice) {
+                        CastWebReceiverNoticeDialog(
+                            onDismissRequest = { dontShowAgain ->
+                                CastSessionState.showWebReceiverNotice.value = false
+                                if (dontShowAgain) {
+                                    lifecycleScope.launch {
+                                        dataStore.editPreferences(
+                                            CastPreferences(showWebReceiverNotice = false),
+                                            CastPreferences,
+                                        )
+                                    }
+                                }
+                            }
                         )
                     }
 

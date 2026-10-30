@@ -27,9 +27,13 @@ object CastSessionState {
     /** Live base url of the phone proxy ("http://<ip>:<port>"), published when the proxy (re)starts. */
     val proxyBaseUrl = MutableStateFlow<String?>(null)
 
+    /** One-shot UI event: show the "you're on the web receiver" notice dialog. */
+    val showWebReceiverNotice = MutableStateFlow(false)
+
     fun clear() {
         receiverType.value = ReceiverType.UNKNOWN
         receiverCapabilities.value = emptySet()
         proxyBaseUrl.value = null
+        showWebReceiverNotice.value = false
     }
 }

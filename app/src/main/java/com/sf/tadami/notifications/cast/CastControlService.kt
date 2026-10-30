@@ -29,6 +29,7 @@ import com.sf.tadami.domain.episode.toSEpisode
 import com.sf.tadami.extension.util.callGuarded
 import com.sf.tadami.notifications.Notifications
 import com.sf.tadami.preferences.advanced.AdvancedPreferences
+import com.sf.tadami.preferences.cast.CastPreferences
 import com.sf.tadami.preferences.player.PlayerPreferences
 import com.sf.tadami.source.model.StreamSource
 import com.sf.tadami.ui.animeinfos.episode.cast.CastProtocol
@@ -97,6 +98,7 @@ class CastControlService : Service() {
     private lateinit var proxyServer: CastProxyServer
     // Seekbar preview frames for the web receiver, cached for this session only
     private lateinit var seekPreview: CastSeekPreview
+    private var webNoticeShownThisSession = false
     private var fetchJob: Job? = null
     // Last seen media customData: at end of playback the media goes IDLE/FINISHED and mediaInfo
     // becomes null, so we fall back to this to keep episode switching working past the end.
@@ -246,6 +248,13 @@ class CastControlService : Service() {
         if (reply.receiverType != "web") return
         CastSessionState.receiverType.value = CastSessionState.ReceiverType.WEB
         CastSessionState.receiverCapabilities.value = reply.capabilities.toSet()
+        if (webNoticeShownThisSession) return
+        webNoticeShownThisSession = true
+        scope.launch {
+            if (dataStore.getPreferencesGroup(CastPreferences).showWebReceiverNotice) {
+                CastSessionState.showWebReceiverNotice.value = true
+            }
+        }
     }
 
     private fun stopNow() {

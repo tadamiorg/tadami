@@ -146,8 +146,20 @@
     <string name="cast_error_unknown">Unknown error : %1$d</string>
     <string name="cast_error_dialog_title">Could not connect to the TV</string>
     <string name="cast_error_dialog_message">Casting failed to start. Most common causes:</string>
+    <string name="cast_error_dialog_cause_app">• The Tadami Terebi app is not installed on the receiver device</string>
     <string name="cast_error_dialog_cause_network">• The phone and the receiver are not on the same Wi-Fi network</string>
     <string name="cast_error_dialog_cause_reboot">• The receiver device needs a restart — reboot it and try again</string>
+    <string name="cast_howto_title">How to install the Tadami Terebi app</string>
+    <string name="cast_howto_step_downloader">1. On your TV, install the free \"Downloader\" app (by AFTVnews) from your TV\'s app store.</string>
+    <string name="cast_howto_step_code">2. In Downloader, enter this code to download the Tadami Terebi app:</string>
+    <string name="cast_howto_downloader_code" translatable="false">4913452</string>
+    <string name="cast_howto_step_install">3. When it finishes downloading, install the Tadami Terebi app, then cast again.</string>
+    <string name="cast_howto_open_guide">Open guide in browser</string>
+    <string name="cast_howto_guide_url" translatable="false">https://github.com/tadamiorg/tadami/blob/main/docs/install-tv-app.md</string>
+    <string name="cast_web_receiver_notice_title">Casting to the built-in web player</string>
+    <string name="cast_web_receiver_notice_message">Your TV is using Tadami\'s web receiver. Some videos may not play, or audio/subtitles may be missing.</string>
+    <string name="cast_web_receiver_notice_recommend">On Google TV / Android TV devices, install the Tadami Terebi app for the best experience:</string>
+    <string name="cast_web_receiver_notice_dont_show_again">Don\'t show again</string>
     <string name="details_screen_start_button">Start</string>
     <string name="details_screen_resume_button">Resume</string>
     <string name="unknown_error">Unknown error</string>
