@@ -636,6 +636,12 @@ class EpisodeActivity : AppCompatActivity() {
                 .put("onSurface", cs.onSurface.toArgb())
                 .put("surfaceVariant", cs.surfaceVariant.toArgb())
                 .put("onSurfaceVariant", cs.onSurfaceVariant.toArgb())
+                // The player panel's: optional on the receivers, which derive them for older phones
+                .put("secondaryContainer", cs.secondaryContainer.toArgb())
+                .put("onSecondaryContainer", cs.onSecondaryContainer.toArgb())
+                .put("surfaceContainer", cs.surfaceContainer.toArgb())
+                .put("surfaceContainerHigh", cs.surfaceContainerHigh.toArgb())
+                .put("outlineVariant", cs.outlineVariant.toArgb())
                 .toString()
         }
 
