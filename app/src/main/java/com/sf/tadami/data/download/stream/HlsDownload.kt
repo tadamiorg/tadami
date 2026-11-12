@@ -52,7 +52,7 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
     /**
      * Downloads the playlist at [url] into [dir] as `<fileBase>.<ext>`. [playlist] is its content
      * when already read, [url] then being where it was read from. For a multivariant playlist, the
-     * variant closest to [quality].
+     * variant closest to [quality], within [maxHeight] when it can.
      *
      * @return the file, with its segments when their sizes are all known.
      */
@@ -68,11 +68,12 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
         onAudioRendition: (AudioRendition) -> Unit,
         onFileProgress: (FileProgress) -> Unit,
         onProgress: (Float) -> Unit,
+        maxHeight: Int? = null,
     ): DownloadedFile {
         val (baseUrl, text) = if (playlist != null) url to playlist else fetchPlaylist(url, headers)
         var parsed = parse(baseUrl, text)
         if (parsed is HlsMultivariantPlaylist) {
-            val variant = chooseVariant(parsed, quality) ?: throw StreamFailedException(StreamFailure.PLAYLIST, "No variant in the playlist")
+            val variant = chooseVariant(parsed, quality, maxHeight) ?: throw StreamFailedException(StreamFailure.PLAYLIST, "No variant in the playlist")
             audioRenditionOf(parsed, variant)?.let(onAudioRendition)
             val (mediaUrl, mediaText) = fetchPlaylist(variant.url.toString(), headers)
             parsed = parse(mediaUrl, mediaText)
@@ -114,7 +115,7 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
         }
     }
 
-    private fun chooseVariant(playlist: HlsMultivariantPlaylist, quality: String): HlsMultivariantPlaylist.Variant? {
+    private fun chooseVariant(playlist: HlsMultivariantPlaylist, quality: String, maxHeight: Int?): HlsMultivariantPlaylist.Variant? {
         val variants = playlist.variants.mapIndexed { index, variant ->
             HlsVariants.Variant(
                 index = index,
@@ -123,7 +124,7 @@ class HlsDownload(private val context: Context, private val http: MediaHttp) {
                 demuxedAudio = audioRenditions(playlist, variant).isNotEmpty(),
             )
         }
-        return HlsVariants.chooseVariant(variants, quality)?.let { playlist.variants[it.index] }
+        return HlsVariants.chooseVariant(variants, quality, maxHeight)?.let { playlist.variants[it.index] }
     }
 
     // Renditions without a URI are the muxed audio, described

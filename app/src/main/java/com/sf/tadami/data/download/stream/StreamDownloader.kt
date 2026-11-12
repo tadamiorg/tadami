@@ -27,6 +27,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
      * @param resume the progress of each file of this stream, by role.
      * @param onFileProgress called with a role ("video", "audio0"...) and its file's progress, to
      * save for a resume.
+     * @param maxHeight the maximum quality of an HLS video, null for the best.
      * @return the video file and the separate audio files.
      */
     suspend fun download(
@@ -36,6 +37,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
         resume: Map<String, FileProgress>,
         onFileProgress: (String, FileProgress) -> Unit,
         onProgress: (Float) -> Unit,
+        maxHeight: Int? = null,
     ): DownloadedStream {
         val headers = stream.headers
         val progress = Progress(onProgress)
@@ -50,6 +52,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
             dir = dir,
             fileBase = episodeDirName,
             quality = stream.quality,
+            maxHeight = maxHeight,
             audio = false,
             resume = resume[VIDEO],
             onAudioRendition = {
@@ -73,6 +76,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
                 dir = dir,
                 fileBase = DownloadNames.audioFileBase(episodeDirName, audioNames[index]),
                 quality = "",
+                maxHeight = null,
                 audio = true,
                 resume = resume[audioRole(index)],
                 onAudioRendition = {},
@@ -92,6 +96,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
         dir: UniFile,
         fileBase: String,
         quality: String,
+        maxHeight: Int?,
         audio: Boolean,
         resume: FileProgress?,
         onAudioRendition: (HlsDownload.AudioRendition) -> Unit,
@@ -102,7 +107,7 @@ class StreamDownloader(private val context: Context, client: OkHttpClient) {
         val reportProgress = { fraction: Float -> progress.update(role, fraction) }
         suspend fun hlsDownload(playlistUrl: String, playlist: String?) = hls.download(
             playlistUrl, playlist, headers, dir, fileBase, quality, audio, resume,
-            onAudioRendition, saveProgress, reportProgress,
+            onAudioRendition, saveProgress, reportProgress, maxHeight,
         )
         if (resume != null) {
             return if (resume.hls) {
