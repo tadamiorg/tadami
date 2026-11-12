@@ -326,13 +326,15 @@ class Downloader(
 
         val episodeId = download.episode.id
         var resume = resumeStore.load(episodeId) ?: ResumeData()
+        val maxHeight = dataStore.getPreferencesGroup(DownloadPreferences).maxQuality
+            .takeIf { it != DownloadPreferences.MaxQualityItems.BEST }
         var lastError: Throwable? = null
-        for (stream in StreamFallback.attemptOrder(streams, resume.stream, resume.failed)) {
+        for (stream in StreamFallback.attemptOrder(streams, resume.stream, resume.failed, maxHeight)) {
             val key = StreamFallback.key(stream)
             if (resume.stream != key) {
                 // Left by another stream
                 clearDir(tmpDir)
-                resume = resume.copy(stream = key, files = emptyMap())
+                resume = resume.copy(stream = key, files = emptyMap(), maxHeight = maxHeight)
                 resumeStore.save(episodeId, resume)
             }
             try {
@@ -351,6 +353,7 @@ class Downloader(
                         resumeStore.save(episodeId, resume)
                     },
                     onProgress = { download.progress = (it * 100).toInt().coerceIn(0, 99) },
+                    maxHeight = resume.maxHeight,
                 )
                 checkDuration(downloaded.video.file)
                 // In the tmp dir: the episode dir appears with its sidecar or not at all

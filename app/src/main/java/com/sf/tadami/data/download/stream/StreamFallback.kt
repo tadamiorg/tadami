@@ -60,18 +60,35 @@ object StreamFallback {
      * The streams in the order to try them: the one a download stopped on first, then the highest
      * quality first, the extension's order (its preferences) between equal ones, the streams that
      * already failed last. A stream that states no quality comes after those that do.
+     *
+     * With a [maxHeight]: the streams at or below it first, highest first, then those that state no
+     * quality, then those above it, lowest first.
      */
     fun attemptOrder(
         streams: List<StreamSource>,
         resumedKey: String?,
         failedKeys: Collection<String>,
+        maxHeight: Int? = null,
     ): List<StreamSource> {
         val resumed = streams.firstOrNull { key(it) == resumedKey && resumedKey !in failedKeys }
         val others = streams.filter { it !== resumed }
         val (failed, untried) = others.partition { key(it) in failedKeys }
         // Stable: equal qualities keep the extension's order
-        val byQuality = compareByDescending<StreamSource> { height(it) ?: -1 }
+        val byQuality = if (maxHeight == null) {
+            compareByDescending<StreamSource> { height(it) ?: -1 }
+        } else {
+            compareBy<StreamSource> { rankUnder(height(it), maxHeight) }
+        }
         return listOfNotNull(resumed) + untried.sortedWith(byQuality) + failed.sortedWith(byQuality)
+    }
+
+    /** Sorts the heights at or below [maxHeight] first, highest first, then unknown, then above it, lowest first. */
+    private fun rankUnder(height: Int?, maxHeight: Int): Int {
+        return when {
+            height == null -> 0
+            height <= maxHeight -> -height
+            else -> height
+        }
     }
 
     /** The height the stream's quality label states, else its name ("Vidmoly 1080p"), null when neither does. */

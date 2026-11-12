@@ -81,6 +81,7 @@ class DownloadPreferencesScreen(
                         true
                     }
                 ),
+                getMaxQualityPref(prefState = prefState, prefs = prefs),
                 Preference.PreferenceItem.TogglePreference(
                     title = stringResource(id = R.string.preferences_download_delete_after_watched),
                     value = prefs.deleteAfterWatched,
@@ -95,6 +96,34 @@ class DownloadPreferencesScreen(
                     }
                 ),
             )
+        )
+    }
+
+    @Composable
+    private fun getMaxQualityPref(
+        prefState: DataStoreState<DownloadPreferences>,
+        prefs: DownloadPreferences
+    ): Preference.PreferenceItem.SelectPreference<Int> {
+        val best = DownloadPreferences.MaxQualityItems.BEST
+        val items = mapOf(best to stringResource(id = R.string.preferences_download_max_quality_best)) +
+            DownloadPreferences.MaxQualityItems.HEIGHTS.associateWith { "${it}p" }
+        val capped = stringResource(id = R.string.preferences_download_max_quality_subtitle)
+        return Preference.PreferenceItem.SelectPreference(
+            value = prefs.maxQuality,
+            items = items,
+            title = stringResource(id = R.string.preferences_download_max_quality),
+            subtitleProvider = {
+                val label = items[prefs.maxQuality]
+                if (prefs.maxQuality == best) label else capped.format(label)
+            },
+            onValueChanged = {
+                prefState.setValue(
+                    prefs.copy(
+                        maxQuality = it
+                    )
+                )
+                true
+            }
         )
     }
 

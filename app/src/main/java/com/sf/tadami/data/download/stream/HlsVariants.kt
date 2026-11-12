@@ -32,10 +32,12 @@ object HlsVariants {
 
     /**
      * The variant closest to the stream's quality label when it states a height, else the highest.
-     * Variants with their audio muxed in come first: one file, nothing to merge.
+     * Variants with their audio muxed in come first: one file, nothing to merge. With a [maxHeight],
+     * only the variants it allows, see [withinMaxHeight].
      */
-    fun chooseVariant(variants: List<Variant>, quality: String): Variant? {
-        val candidates = variants.filter { !it.demuxedAudio }.ifEmpty { variants }
+    fun chooseVariant(variants: List<Variant>, quality: String, maxHeight: Int? = null): Variant? {
+        val allowed = withinMaxHeight(variants, maxHeight)
+        val candidates = allowed.filter { !it.demuxedAudio }.ifEmpty { allowed }
         if (candidates.isEmpty()) return null
         val target = targetHeight(quality)
         val best = compareBy<Variant> { it.height }.thenBy { it.bandwidth }
@@ -43,6 +45,19 @@ object HlsVariants {
         return candidates
             .filter { it.height > 0 }
             .minWith(compareBy<Variant> { kotlin.math.abs(it.height - target) }.then(best.reversed()))
+    }
+
+    /**
+     * The variants at or below [maxHeight], else those of the lowest height above it. All of them
+     * without a maximum, or when no variant states its resolution.
+     */
+    private fun withinMaxHeight(variants: List<Variant>, maxHeight: Int?): List<Variant> {
+        val known = variants.filter { it.height > 0 }
+        if (maxHeight == null || known.isEmpty()) return variants
+        val fitting = known.filter { it.height <= maxHeight }
+        if (fitting.isNotEmpty()) return fitting
+        val lowest = known.minOf { it.height }
+        return known.filter { it.height == lowest }
     }
 
     /** The rendition to download for a demuxed variant: the default one, else the first. */

@@ -54,6 +54,36 @@ class HlsVariantsTest {
     }
 
     @Test
+    fun theMaximumQualityCapsTheVariant() {
+        val variants = listOf(v360, v720, v1080)
+        assertEquals(v720, HlsVariants.chooseVariant(variants, "", maxHeight = 720))
+        assertEquals(v720, HlsVariants.chooseVariant(variants, "1080p", maxHeight = 720))
+        // Under the cap, the quality label still decides
+        assertEquals(v360, HlsVariants.chooseVariant(variants, "360p", maxHeight = 720))
+        assertEquals(v360, HlsVariants.chooseVariant(variants, "", maxHeight = 480))
+    }
+
+    @Test
+    fun nothingUnderTheMaximumTakesTheLowestAboveIt() {
+        val small1080 = v1080.copy(index = 3, bandwidth = 4_000_000)
+        assertEquals(v720, HlsVariants.chooseVariant(listOf(v1080, v720, small1080), "1080p", maxHeight = 360))
+        assertEquals(v1080, HlsVariants.chooseVariant(listOf(small1080, v1080), "", maxHeight = 720))
+    }
+
+    @Test
+    fun theMaximumQualityWinsOverMuxedAudio() {
+        val demuxed720 = v720.copy(demuxedAudio = true)
+        assertEquals(demuxed720, HlsVariants.chooseVariant(listOf(demuxed720, v1080), "", maxHeight = 720))
+    }
+
+    @Test
+    fun unknownResolutionsIgnoreTheMaximum() {
+        val low = Variant(0, 0, 500_000, false)
+        val high = Variant(1, 0, 3_000_000, false)
+        assertEquals(high, HlsVariants.chooseVariant(listOf(low, high), "", maxHeight = 360))
+    }
+
+    @Test
     fun noVariantNoChoice() {
         assertNull(HlsVariants.chooseVariant(emptyList(), "1080p"))
     }

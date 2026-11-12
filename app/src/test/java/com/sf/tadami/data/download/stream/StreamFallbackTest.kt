@@ -46,6 +46,27 @@ class StreamFallbackTest {
     }
 
     @Test
+    fun theMaximumQualityPutsTheStreamsUnderItFirst() {
+        val sibnet = StreamSource(url = "https://sibnet/1.mp4", fullName = "Sibnet", quality = "480p", server = "Sibnet")
+        val doodstream = StreamSource(url = "https://dood/1.mp4", fullName = "Doodstream", quality = "MP4", server = "Doodstream")
+        // Under it highest first, then those stating no quality, then those over it
+        assertEquals(
+            listOf(vidmoly, sibnet, sendvid, doodstream, kwik),
+            StreamFallback.attemptOrder(listOf(kwik, sendvid, doodstream, sibnet, vidmoly), null, emptyList(), maxHeight = 720),
+        )
+        // Nothing under it: those stating no quality, then the lowest over it
+        assertEquals(
+            listOf(sendvid, sibnet, vidmoly, kwik),
+            StreamFallback.attemptOrder(listOf(kwik, sendvid, vidmoly, sibnet), null, emptyList(), maxHeight = 360),
+        )
+        // Failed ones still come last
+        assertEquals(
+            listOf(sendvid, kwik, vidmoly),
+            StreamFallback.attemptOrder(streams, null, listOf(StreamFallback.key(vidmoly)), maxHeight = 720),
+        )
+    }
+
+    @Test
     fun theQualityIsReadFromTheNameWhenTheLabelStatesNone() {
         val named = StreamSource(url = "https://lpayer/1.m3u8", fullName = "LPayer - 1080p", server = "LPayer")
         assertEquals(1080, StreamFallback.height(named))

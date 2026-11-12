@@ -99,13 +99,16 @@ class ResumeStore(private val dir: File, private val json: Json = DownloadStore.
 /**
  * Where a download stopped. [stream] is the key of the stream in progress (its URL may be signed
  * again on the next fetch), [failed] the keys of the streams that failed, [files] the progress of
- * each file of the stream in progress, by role ("video", "audio0", ...).
+ * each file of the stream in progress, by role ("video", "audio0", ...). [maxHeight] is the maximum
+ * quality the stream in progress started with: a resume picks the same HLS variant even when the
+ * setting changed since.
  */
 @Serializable
 data class ResumeData(
     val stream: String? = null,
     val failed: List<String> = emptyList(),
     val files: Map<String, FileProgress> = emptyMap(),
+    val maxHeight: Int? = null,
 )
 
 /**
